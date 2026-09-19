@@ -54,13 +54,13 @@ public class LotteryNumberService {
         List<Integer> numbers = request.getNumbers();
 
         if (numbers == null || numbers.size() != 6) {
-            throw new IllegalArgumentException("Yêu cầu nhập chính xác đúng 6 con số!");
+            throw new IllegalArgumentException("Yêu cầu nhập chính xác đúng 6 con số chính!");
         }
 
         // Validate duplicates
         Set<Integer> uniqueCheck = new HashSet<>(numbers);
         if (uniqueCheck.size() != 6) {
-            throw new IllegalArgumentException("Các con số không được trùng nhau!");
+            throw new IllegalArgumentException("Các con số chính không được trùng nhau!");
         }
 
         LocalDate date = request.getDrawDate() != null ? request.getDrawDate() : LocalDate.now();
@@ -87,10 +87,24 @@ public class LotteryNumberService {
             }
         }
 
+        Integer specialNumber = null;
+        if ("POWER".equals(category)) {
+            if (request.getSpecialNumber() != null) {
+                int sp = request.getSpecialNumber();
+                if (sp < 1 || sp > 55) {
+                    throw new IllegalArgumentException("Số phụ của Power 6/55 phải là số nguyên từ 1 đến 55!");
+                }
+                if (numbers.contains(sp)) {
+                    throw new IllegalArgumentException(String.format("Số phụ (%d) không được trùng với 6 số chính!", sp));
+                }
+                specialNumber = sp;
+            }
+        }
+
         // Sắp xếp tăng dần
         Collections.sort(numbers);
 
-        LotteryNumber entity = new LotteryNumber(date, category, numbers, request.getNote());
+        LotteryNumber entity = new LotteryNumber(date, category, numbers, specialNumber, request.getNote());
         return repository.save(entity);
     }
 

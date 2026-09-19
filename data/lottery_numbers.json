@@ -1,17 +1,130 @@
 [
   {
     "id": 1,
-    "drawDate": "2026-09-19",
+    "drawDate": "2026-09-01",
     "category": "POWER",
-    "numbers": [
-      3,
-      12,
-      19,
-      27,
-      34,
-      42
-    ],
-    "createdAt": "2026-09-19T04:34:37.504Z",
-    "note": "Bộ số mẫu khởi tạo"
+    "numbers": [4, 11, 23, 35, 47, 52],
+    "specialNumber": 18,
+    "createdAt": "2026-09-01T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 3"
+  },
+  {
+    "id": 2,
+    "drawDate": "2026-09-03",
+    "category": "POWER",
+    "numbers": [8, 14, 23, 29, 41, 55],
+    "specialNumber": 33,
+    "createdAt": "2026-09-03T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 5"
+  },
+  {
+    "id": 3,
+    "drawDate": "2026-09-05",
+    "category": "POWER",
+    "numbers": [4, 17, 28, 35, 42, 50],
+    "specialNumber": 18,
+    "createdAt": "2026-09-05T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 7"
+  },
+  {
+    "id": 4,
+    "drawDate": "2026-09-08",
+    "category": "POWER",
+    "numbers": [7, 11, 22, 38, 47, 53],
+    "specialNumber": 12,
+    "createdAt": "2026-09-08T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 3"
+  },
+  {
+    "id": 5,
+    "drawDate": "2026-09-10",
+    "category": "POWER",
+    "numbers": [3, 14, 25, 33, 44, 52],
+    "specialNumber": 7,
+    "createdAt": "2026-09-10T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 5"
+  },
+  {
+    "id": 6,
+    "drawDate": "2026-09-12",
+    "category": "POWER",
+    "numbers": [8, 18, 23, 35, 41, 49],
+    "specialNumber": 14,
+    "createdAt": "2026-09-12T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 7"
+  },
+  {
+    "id": 7,
+    "drawDate": "2026-09-15",
+    "category": "POWER",
+    "numbers": [4, 11, 29, 36, 47, 54],
+    "specialNumber": 23,
+    "createdAt": "2026-09-15T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 3"
+  },
+  {
+    "id": 8,
+    "drawDate": "2026-09-17",
+    "category": "POWER",
+    "numbers": [7, 14, 23, 31, 45, 52],
+    "specialNumber": 18,
+    "createdAt": "2026-09-17T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 thứ 5"
+  },
+  {
+    "id": 9,
+    "drawDate": "2026-09-02",
+    "category": "MEGA",
+    "numbers": [5, 12, 21, 28, 37, 43],
+    "createdAt": "2026-09-02T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 thứ 4"
+  },
+  {
+    "id": 10,
+    "drawDate": "2026-09-04",
+    "category": "MEGA",
+    "numbers": [2, 12, 19, 31, 38, 44],
+    "createdAt": "2026-09-04T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 thứ 6"
+  },
+  {
+    "id": 11,
+    "drawDate": "2026-09-06",
+    "category": "MEGA",
+    "numbers": [8, 15, 21, 29, 34, 42],
+    "createdAt": "2026-09-06T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 Chủ nhật"
+  },
+  {
+    "id": 12,
+    "drawDate": "2026-09-09",
+    "category": "MEGA",
+    "numbers": [5, 18, 24, 31, 39, 45],
+    "createdAt": "2026-09-09T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 thứ 4"
+  },
+  {
+    "id": 13,
+    "drawDate": "2026-09-11",
+    "category": "MEGA",
+    "numbers": [3, 12, 19, 27, 34, 42],
+    "createdAt": "2026-09-11T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 thứ 6"
+  },
+  {
+    "id": 14,
+    "drawDate": "2026-09-13",
+    "category": "MEGA",
+    "numbers": [7, 15, 22, 28, 35, 41],
+    "createdAt": "2026-09-13T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 Chủ nhật"
+  },
+  {
+    "id": 15,
+    "drawDate": "2026-09-16",
+    "category": "MEGA",
+    "numbers": [5, 12, 25, 31, 38, 44],
+    "createdAt": "2026-09-16T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 thứ 4"
   }
 ]

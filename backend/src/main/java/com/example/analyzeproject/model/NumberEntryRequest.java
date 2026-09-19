@@ -5,14 +5,16 @@ import java.util.List;
 
 public class NumberEntryRequest {
     private List<Integer> numbers;
+    private Integer specialNumber; // For POWER category
     private String note;
     private LocalDate drawDate;
     private String category; // "MEGA" or "POWER"
 
     public NumberEntryRequest() {}
 
-    public NumberEntryRequest(List<Integer> numbers, String note, LocalDate drawDate, String category) {
+    public NumberEntryRequest(List<Integer> numbers, Integer specialNumber, String note, LocalDate drawDate, String category) {
         this.numbers = numbers;
+        this.specialNumber = specialNumber;
         this.note = note;
         this.drawDate = drawDate;
         this.category = category;
@@ -24,6 +26,14 @@ public class NumberEntryRequest {
 
     public void setNumbers(List<Integer> numbers) {
         this.numbers = numbers;
+    }
+
+    public Integer getSpecialNumber() {
+        return specialNumber;
+    }
+
+    public void setSpecialNumber(Integer specialNumber) {
+        this.specialNumber = specialNumber;
     }
 
     public String getNote() {

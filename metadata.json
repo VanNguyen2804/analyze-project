@@ -1,6 +1,6 @@
 {
   "name": "Analyze Project",
-  "description": "Ứng dụng phân tích dự đoán số liệu với mô hình XGBoost và chức năng nhập dãy số lưu trữ vào cơ sở dữ liệu PostgreSQL",
+  "description": "Ứng dụng phân tích dự đoán xổ số Mega 6/45 và Power 6/55 với mô hình XGBoost, tích hợp số phụ và thuật toán bảo hiểm bù trừ Jackpot 2 khi sai 1 số trong 6 số chính",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

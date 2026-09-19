@@ -26,6 +26,9 @@ public class LotteryNumber {
     @OrderColumn(name = "number_order")
     private List<Integer> numbers = new ArrayList<>();
 
+    @Column(name = "special_number")
+    private Integer specialNumber; // For POWER category (1-55, distinct from numbers)
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -38,10 +41,11 @@ public class LotteryNumber {
         this.category = "MEGA";
     }
 
-    public LotteryNumber(LocalDate drawDate, String category, List<Integer> numbers, String note) {
+    public LotteryNumber(LocalDate drawDate, String category, List<Integer> numbers, Integer specialNumber, String note) {
         this.drawDate = drawDate != null ? drawDate : LocalDate.now();
         this.category = category != null ? category.toUpperCase() : "MEGA";
         this.numbers = numbers;
+        this.specialNumber = specialNumber;
         this.note = note;
         this.createdAt = LocalDateTime.now();
     }
@@ -77,6 +81,14 @@ public class LotteryNumber {
 
     public void setNumbers(List<Integer> numbers) {
         this.numbers = numbers;
+    }
+
+    public Integer getSpecialNumber() {
+        return specialNumber;
+    }
+
+    public void setSpecialNumber(Integer specialNumber) {
+        this.specialNumber = specialNumber;
     }
 
     public LocalDateTime getCreatedAt() {

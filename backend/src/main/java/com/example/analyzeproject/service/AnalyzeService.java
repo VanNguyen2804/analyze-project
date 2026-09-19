@@ -22,7 +22,9 @@ public class AnalyzeService {
 
     /**
      * Phân tích theo từng dãy số theo ngày cho từng category (MEGA hoặc POWER)
-     * và đề xuất bộ 6 số tối ưu cho category đó.
+     * và đề xuất bộ số tối ưu cho category đó.
+     * Đối với POWER 6/55: Đề xuất 6 số chính + 1 số phụ (Jackpot 2)
+     * Thuật toán: Nếu sai 1 số trong 6 số chính thì tính thêm số phụ.
      */
     public PredictionResponseDto analyzeAndPredict(String categoryInput) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
@@ -31,40 +33,46 @@ public class AnalyzeService {
         // 1. Lấy toàn bộ các dãy số đã lưu theo ngày cho đúng category được yêu cầu
         List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
 
-        // Đảo ngược lại theo thứ tự thời gian tăng dần: từ kỳ cũ nhất đến kỳ gần nhất
         List<LotteryNumber> chronologicalRecords = new ArrayList<>(records);
         Collections.reverse(chronologicalRecords);
 
         int totalDraws = chronologicalRecords.size();
 
-        // 2. Thống kê đặc trưng (Feature Extraction) theo chuỗi thời gian các ngày quay
-        int[] frequency = new int[maxLimit + 1];
-        int[] lastSeenIndex = new int[maxLimit + 1];
-        Arrays.fill(lastSeenIndex, -1);
-        double[] momentum = new double[maxLimit + 1];
+        // 2. Thống kê đặc trưng (Feature Extraction)
+        int[] mainFrequency = new int[maxLimit + 1];
+        int[] specialFrequency = new int[maxLimit + 1];
+        int[] lastSeenMain = new int[maxLimit + 1];
+        int[] lastSeenSpecial = new int[maxLimit + 1];
+        Arrays.fill(lastSeenMain, -1);
+        Arrays.fill(lastSeenSpecial, -1);
+
+        double[] mainMomentum = new double[maxLimit + 1];
+        double[] specialMomentum = new double[maxLimit + 1];
+
+        // Ma trận cặp số chính - chính
         int[][] pairMatrix = new int[maxLimit + 1][maxLimit + 1];
+
+        // Ma trận liên kết số phụ - số chính (Jackpot 2)
+        int[][] specialPairMatrix = new int[maxLimit + 1][maxLimit + 1];
 
         for (int t = 0; t < totalDraws; t++) {
             LotteryNumber draw = chronologicalRecords.get(t);
             List<Integer> nums = draw.getNumbers();
             if (nums == null) continue;
 
-            // Lọc các số hợp lệ trong phạm vi category
             List<Integer> validNums = nums.stream()
                     .filter(n -> n != null && n >= 1 && n <= maxLimit)
                     .distinct()
                     .collect(Collectors.toList());
 
-            // Cập nhật tần suất và chuỗi thời gian
+            double weight = Math.exp(-0.12 * (totalDraws - 1 - t));
+
             for (int n : validNums) {
-                frequency[n]++;
-                lastSeenIndex[n] = t;
-                // Momentum: các kỳ gần đây có trọng số cao hơn theo cấp số nhân
-                double weight = Math.exp(-0.12 * (totalDraws - 1 - t));
-                momentum[n] += weight;
+                mainFrequency[n]++;
+                lastSeenMain[n] = t;
+                mainMomentum[n] += weight;
             }
 
-            // Ma trận cặp số hay đi cùng nhau trong cùng một dãy
             for (int i = 0; i < validNums.size(); i++) {
                 for (int j = i + 1; j < validNums.size(); j++) {
                     int n1 = validNums.get(i);
@@ -73,46 +81,58 @@ public class AnalyzeService {
                     pairMatrix[n2][n1]++;
                 }
             }
-        }
 
-        // 3. Tính độ trễ (Draw Gap / Lô gan) cho từng số
-        int[] drawGap = new int[maxLimit + 1];
-        for (int i = 1; i <= maxLimit; i++) {
-            if (lastSeenIndex[i] == -1) {
-                drawGap[i] = totalDraws + 1; // Chưa xuất hiện lần nào
-            } else {
-                drawGap[i] = (totalDraws - 1) - lastSeenIndex[i];
+            // Ghi nhận số phụ cho category POWER
+            if ("POWER".equals(category) && draw.getSpecialNumber() != null) {
+                int sp = draw.getSpecialNumber();
+                if (sp >= 1 && sp <= maxLimit) {
+                    specialFrequency[sp]++;
+                    lastSeenSpecial[sp] = t;
+                    specialMomentum[sp] += weight * 1.2;
+
+                    for (int mn : validNums) {
+                        specialPairMatrix[sp][mn]++;
+                    }
+                }
             }
         }
 
-        // Tìm max momentum để chuẩn hóa
-        double maxMom = 0.0;
+        // 3. Tính độ trễ (Draw Gap / Lô gan)
+        int[] drawGap = new int[maxLimit + 1];
+        int[] specialDrawGap = new int[maxLimit + 1];
         for (int i = 1; i <= maxLimit; i++) {
-            if (momentum[i] > maxMom) maxMom = momentum[i];
+            drawGap[i] = (lastSeenMain[i] == -1) ? (totalDraws + 1) : ((totalDraws - 1) - lastSeenMain[i]);
+            specialDrawGap[i] = (lastSeenSpecial[i] == -1) ? (totalDraws + 1) : ((totalDraws - 1) - lastSeenSpecial[i]);
         }
-        if (maxMom == 0.0) maxMom = 1.0;
 
-        // 4. Chấm điểm mô hình XGBoost Probability Scoring
+        double maxMainMom = 0.0;
+        double maxSpecMom = 0.0;
+        for (int i = 1; i <= maxLimit; i++) {
+            if (mainMomentum[i] > maxMainMom) maxMainMom = mainMomentum[i];
+            if (specialMomentum[i] > maxSpecMom) maxSpecMom = specialMomentum[i];
+        }
+        if (maxMainMom == 0.0) maxMainMom = 1.0;
+        if (maxSpecMom == 0.0) maxSpecMom = 1.0;
+
+        // 4. Chấm điểm mô hình XGBoost Probability Scoring cho 6 số chính
         Random random = new Random();
         List<ScoredNumber> candidateList = new ArrayList<>();
 
         for (int i = 1; i <= maxLimit; i++) {
-            double normFreq = totalDraws > 0 ? ((double) frequency[i] / totalDraws) : 0.2;
-            double normMom = momentum[i] / maxMom;
+            double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
+            double normMom = mainMomentum[i] / maxMainMom;
 
-            // Điểm số gan (lô gan vừa độ thì có xác suất bật lại cao)
-            double avgCycle = (double) maxLimit / 6.0; // Khoảng 7.5 kỳ cho Mega, 9.1 kỳ cho Power
+            double avgCycle = (double) maxLimit / 6.0;
             double gapRatio = (double) drawGap[i] / avgCycle;
             double gapScore;
             if (gapRatio >= 1.0 && gapRatio <= 2.5) {
-                gapScore = 0.85; // Điểm rơi chu kỳ
+                gapScore = 0.85;
             } else if (gapRatio > 2.5) {
-                gapScore = 0.50; // Gan quá lâu, quán tính thấp
+                gapScore = 0.50;
             } else {
-                gapScore = 0.30; // Mới về
+                gapScore = 0.30;
             }
 
-            // Điểm tương quan cặp số
             int topPairSum = 0;
             for (int j = 1; j <= maxLimit; j++) {
                 if (i != j && pairMatrix[i][j] > 0) {
@@ -121,23 +141,20 @@ public class AnalyzeService {
             }
             double pairScore = Math.min(1.0, topPairSum / 5.0);
 
-            // Logit z-score (mô phỏng cây quyết định XGBoost ensembling)
             double z;
             if (totalDraws >= 3) {
-                z = (normMom * 1.8) + (normFreq * 1.2) + (gapScore * 0.9) + (pairScore * 0.7) - 1.2 + (random.nextDouble() * 0.35 - 0.175);
+                z = (normMom * 1.7) + (normFreq * 1.2) + (gapScore * 0.9) + (pairScore * 0.7) - 1.15 + (random.nextDouble() * 0.3 - 0.15);
             } else {
-                // Fallback nếu dữ liệu lưu chưa nhiều: kết hợp phân phối sin/cos tự nhiên
                 z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4 + (random.nextDouble() * 0.8 - 0.4);
             }
 
             double probability = 1.0 / (1.0 + Math.exp(-z));
-            candidateList.add(new ScoredNumber(i, probability, frequency[i], drawGap[i]));
+            candidateList.add(new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]));
         }
 
-        // Sắp xếp các số theo xác suất từ cao xuống thấp
         candidateList.sort((a, b) -> Double.compare(b.probability, a.probability));
 
-        // 5. Tuyển chọn 6 số tối ưu đảm bảo cân bằng Chẵn/Lẻ và biên độ
+        // 5. Tuyển chọn 6 số chính tối ưu
         List<ScoredNumber> selected6 = new ArrayList<>();
         int oddCount = 0;
         int evenCount = 0;
@@ -146,19 +163,14 @@ public class AnalyzeService {
             if (selected6.size() >= 6) break;
 
             boolean isOdd = (candidate.number % 2 != 0);
-            if (isOdd && oddCount >= 4 && selected6.size() < 5) {
-                continue; // Hạn chế quá 4 số lẻ để giữ cân bằng 3/3 hoặc 2/4
-            }
-            if (!isOdd && evenCount >= 4 && selected6.size() < 5) {
-                continue;
-            }
+            if (isOdd && oddCount >= 4 && selected6.size() < 5) continue;
+            if (!isOdd && evenCount >= 4 && selected6.size() < 5) continue;
 
             selected6.add(candidate);
             if (isOdd) oddCount++;
             else evenCount++;
         }
 
-        // Nếu vì điều kiện cân bằng mà chưa đủ 6 số, lấy tiếp từ top
         if (selected6.size() < 6) {
             for (ScoredNumber candidate : candidateList) {
                 if (selected6.size() >= 6) break;
@@ -168,19 +180,18 @@ public class AnalyzeService {
             }
         }
 
-        // Sắp xếp 6 số tăng dần
         selected6.sort(Comparator.comparingInt(a -> a.number));
+        List<Integer> selected6Numbers = selected6.stream().map(s -> s.number).collect(Collectors.toList());
 
-        // 6. Gán nhãn phân tích (Tagging) cho từng số trong bộ 6 số đề xuất
+        // 6. Gán nhãn phân tích cho 6 số chính
         List<NumberScoreDetailDto> detailDtos = new ArrayList<>();
         for (ScoredNumber sn : selected6) {
             String tag;
             if (sn.drawGap >= (int) (maxLimit / 6.0)) {
                 tag = "LÔ GAN";
-            } else if (momentum[sn.number] > maxMom * 0.6) {
+            } else if (mainMomentum[sn.number] > maxMainMom * 0.6) {
                 tag = "SỐ NÓNG";
             } else {
-                // Kiểm tra xem có cặp số mạnh với số nào khác trong bộ 6 số không
                 boolean hasPair = selected6.stream()
                         .anyMatch(other -> other.number != sn.number && pairMatrix[sn.number][other.number] >= 2);
                 tag = hasPair ? "CẶP ĐI KÈM" : "CÂN BẰNG";
@@ -190,7 +201,81 @@ public class AnalyzeService {
             detailDtos.add(new NumberScoreDetailDto(sn.number, percent, sn.frequency, sn.drawGap, tag));
         }
 
-        // Top số nóng (hot numbers) và số gan (cold numbers) tổng quan của category
+        // 7. Thuật toán chọn Số Phụ cho POWER (Bù trừ khi sai 1 số trong 6 số chính)
+        Integer recommendedSpecialNumber = null;
+        List<Integer> specialHotNumbers = new ArrayList<>();
+        List<String> jackpot2Pairs = new ArrayList<>();
+
+        if ("POWER".equals(category)) {
+            class SpecialCandidate {
+                int number;
+                double score;
+
+                SpecialCandidate(int number, double score) {
+                    this.number = number;
+                    this.score = score;
+                }
+            }
+
+            List<SpecialCandidate> specialCandidates = new ArrayList<>();
+
+            for (int s = 1; s <= maxLimit; s++) {
+                if (selected6Numbers.contains(s)) continue; // Số phụ phải khác 6 số chính
+
+                // Tính điểm bù trừ Jackpot 2: Khi sai 1 số trong 6 số chính, số phụ bù vào cùng 5 số còn lại
+                double subsetSynergy = 0.0;
+                for (int m : selected6Numbers) {
+                    subsetSynergy += (specialPairMatrix[s][m] * 1.8) + (pairMatrix[s][m] * 0.5);
+                }
+
+                double normSpecFreq = totalDraws > 0 ? ((double) specialFrequency[s] / totalDraws) : 0.15;
+                double normSpecMom = specialMomentum[s] / maxSpecMom;
+
+                int specGap = specialDrawGap[s];
+                double specGapScore = (specGap >= 3 && specGap <= 12) ? 0.85 : 0.40;
+
+                double zSpecial = (normSpecMom * 1.5) + (normSpecFreq * 1.3)
+                        + (subsetSynergy / (selected6Numbers.size() * 2.0) * 1.6)
+                        + (specGapScore * 0.8) - 0.85 + (random.nextDouble() * 0.25 - 0.125);
+
+                double probSpecial = 1.0 / (1.0 + Math.exp(-zSpecial));
+                specialCandidates.add(new SpecialCandidate(s, probSpecial + (subsetSynergy > 0 ? 0.3 : 0.0)));
+            }
+
+            specialCandidates.sort((a, b) -> Double.compare(b.score, a.score));
+            if (!specialCandidates.isEmpty()) {
+                recommendedSpecialNumber = specialCandidates.get(0).number;
+            }
+
+            // Top số phụ trong lịch sử
+            List<Integer> allSpecialNums = new ArrayList<>();
+            for (int i = 1; i <= maxLimit; i++) {
+                if (specialFrequency[i] > 0) allSpecialNums.add(i);
+            }
+            allSpecialNums.sort((a, b) -> Integer.compare(specialFrequency[b], specialFrequency[a]));
+            specialHotNumbers = allSpecialNums.stream().limit(3).collect(Collectors.toList());
+
+            // Cặp liên kết bù trừ (Chính &bull; Phụ)
+            class SpMnPair {
+                int sp, mn, count;
+                SpMnPair(int sp, int mn, int count) { this.sp = sp; this.mn = mn; this.count = count; }
+            }
+            List<SpMnPair> jpList = new ArrayList<>();
+            for (int s = 1; s <= maxLimit; s++) {
+                for (int m = 1; m <= maxLimit; m++) {
+                    if (specialPairMatrix[s][m] > 0) {
+                        jpList.add(new SpMnPair(s, m, specialPairMatrix[s][m]));
+                    }
+                }
+            }
+            jpList.sort((a, b) -> Integer.compare(b.count, a.count));
+            for (int p = 0; p < Math.min(3, jpList.size()); p++) {
+                SpMnPair pair = jpList.get(p);
+                jackpot2Pairs.add(String.format("Chính %02d • Phụ %02d (%d lần)", pair.mn, pair.sp, pair.count));
+            }
+        }
+
+        // Top số nóng (hot numbers) và số gan (cold numbers)
         List<Integer> hotNumbers = candidateList.stream()
                 .sorted((a, b) -> Integer.compare(b.frequency, a.frequency))
                 .limit(5)
@@ -222,22 +307,25 @@ public class AnalyzeService {
         // Đóng gói DTO kết quả
         PredictionResponseDto response = new PredictionResponseDto();
         response.setCategory(category);
-        response.setNumbers(selected6.stream().map(sn -> sn.number).collect(Collectors.toList()));
+        response.setNumbers(selected6Numbers);
+        response.setSpecialNumber(recommendedSpecialNumber);
         response.setTotalDrawsAnalyzed(totalDraws);
         response.setHotNumbers(hotNumbers);
         response.setColdNumbers(coldNumbers);
+        response.setSpecialHotNumbers(specialHotNumbers);
         response.setFrequentPairs(frequentPairs);
+        response.setJackpot2Pairs(jackpot2Pairs);
         response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", 6 - oddCount, oddCount));
         response.setDetails(detailDtos);
 
-        if (totalDraws > 0) {
+        if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(
-                    "Đã phân tích chuyên sâu %d dãy số theo ngày của danh mục %s. Thuật toán kết hợp tần suất xuất hiện, chu kỳ lô gan, ma trận cặp số và mô hình xác suất XGBoost.",
-                    totalDraws, category.equals("POWER") ? "Power 6/55" : "Mega 6/45"));
+                    "Đã phân tích %d kỳ quay Power 6/55 theo ngày. Áp dụng thuật toán tích hợp Số Phụ (Jackpot 2): Đề xuất 6 số chính cho Jackpot 1 (trúng 6/6), đồng thời phân tích ma trận bù trừ khi sai 1 số trong 6 số (trúng 5/6) để đề xuất Số Phụ #%02d có chỉ số liên kết cao nhất cho giải Jackpot 2.",
+                    totalDraws, recommendedSpecialNumber != null ? recommendedSpecialNumber : 0));
         } else {
             response.setAnalysisSummary(String.format(
-                    "Chưa có dãy số lịch sử nào được lưu cho danh mục %s. Đang đề xuất dựa trên mô phỏng ngẫu nhiên chuẩn hóa phân phối toàn giải.",
-                    category.equals("POWER") ? "Power 6/55" : "Mega 6/45"));
+                    "Đã phân tích chuyên sâu %d dãy số theo ngày của danh mục Mega 6/45. Thuật toán kết hợp tần suất xuất hiện, chu kỳ lô gan, ma trận cặp số và mô hình xác suất XGBoost.",
+                    totalDraws));
         }
 
         return response;

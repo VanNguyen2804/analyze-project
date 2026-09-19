@@ -4,16 +4,53 @@ interface SavedRecord {
   id: number;
   drawDate: string; // YYYY-MM-DD
   category: 'MEGA' | 'POWER';
-  numbers: number[];
+  numbers: number[]; // 6 distinct numbers
+  specialNumber?: number; // Added for category POWER
   createdAt: string;
   note?: string;
 }
 
+interface NumberScoreDetail {
+  number: number;
+  probabilityPercent: number;
+  frequency: number;
+  drawGap: number;
+  tag: string;
+}
+
+interface SpecialNumberDetail {
+  number: number;
+  probabilityPercent: number;
+  specialFrequency: number;
+  totalFrequency: number;
+  drawGap: number;
+  tag: string;
+  description: string;
+}
+
+interface PredictionResponse {
+  category: 'MEGA' | 'POWER';
+  numbers: number[];
+  specialNumber?: number;
+  specialNumberDetail?: SpecialNumberDetail;
+  specialHotNumbers?: number[];
+  jackpot2Pairs?: string[];
+  totalDrawsAnalyzed: number;
+  hotNumbers: number[];
+  coldNumbers: number[];
+  frequentPairs: string[];
+  oddEvenRatio: string;
+  details: NumberScoreDetail[];
+  analysisSummary: string;
+}
+
 // App State
 let activeTab: 'manual' | 'prediction' = 'manual';
-let selectedCategory: 'MEGA' | 'POWER' = 'MEGA';
+let selectedCategory: 'MEGA' | 'POWER' = 'POWER';
 let selectedDate: string = getTodayDateString();
 let selectedNumbers: number[] = [];
+let selectedSpecialNumber: number | null = null;
+let activeSelectionTarget: 'main' | 'special' = 'main';
 let noteText: string = '';
 let isSaving: boolean = false;
 let savedRecords: SavedRecord[] = [];
@@ -21,12 +58,13 @@ let filterDate: string = '';
 let filterCategory: string = '';
 
 // Prediction State
-let predictionCategory: 'MEGA' | 'POWER' = 'MEGA';
+let predictionCategory: 'MEGA' | 'POWER' = 'POWER';
 let predictedNumbers: number[] = [];
-let predictionResultData: any = null;
+let predictedSpecialNumber: number | null = null;
+let predictionResultData: PredictionResponse | null = null;
 let isPredicting: boolean = false;
 let predictSaveSuccess: string | null = null;
-let statusMessage: { type: 'success' | 'danger'; text: string } | null = null;
+let statusMessage: { type: 'success' | 'danger' | 'warning'; text: string } | null = null;
 
 function getTodayDateString(): string {
   const d = new Date();
@@ -46,7 +84,7 @@ function getYesterdayDateString(): string {
 }
 
 function getCategoryFromDate(dateStr: string): 'MEGA' | 'POWER' {
-  if (!dateStr) return 'MEGA';
+  if (!dateStr) return 'POWER';
   const parts = dateStr.split('-').map(Number);
   if (parts.length === 3) {
     const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -93,9 +131,23 @@ async function fetchSavedRecords(): Promise<void> {
 async function saveToH2(): Promise<void> {
   statusMessage = null;
   if (selectedNumbers.length !== 6) {
-    statusMessage = { type: 'danger', text: `Vui lòng chọn đủ 6 số khác nhau! (Hiện tại: ${selectedNumbers.length}/6)` };
+    statusMessage = {
+      type: 'danger',
+      text: `Vui lòng chọn đủ 6 số chính khác nhau! (Hiện tại: ${selectedNumbers.length}/6 số)`,
+    };
     render();
     return;
+  }
+
+  if (selectedCategory === 'POWER' && selectedSpecialNumber !== null) {
+    if (selectedNumbers.includes(selectedSpecialNumber)) {
+      statusMessage = {
+        type: 'danger',
+        text: `Số phụ (${selectedSpecialNumber}) không được trùng với bất kỳ số nào trong 6 số chính!`,
+      };
+      render();
+      return;
+    }
   }
 
   isSaving = true;
@@ -107,6 +159,7 @@ async function saveToH2(): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         numbers: selectedNumbers,
+        specialNumber: selectedCategory === 'POWER' ? selectedSpecialNumber : undefined,
         drawDate: selectedDate,
         category: selectedCategory,
         note: noteText.trim(),
@@ -119,11 +172,14 @@ async function saveToH2(): Promise<void> {
     }
 
     const saved: SavedRecord = await res.json();
+    const specialInfo = saved.specialNumber ? ` + Số phụ ⭐ ${saved.specialNumber < 10 ? '0' + saved.specialNumber : saved.specialNumber}` : '';
     statusMessage = {
       type: 'success',
-      text: `Đã lưu thành công bộ 6 số ${saved.category} cho ngày ${saved.drawDate} (${getDayOfWeekName(saved.drawDate)}) (#${saved.id})!`,
+      text: `Đã lưu thành công bộ số ${saved.category}${specialInfo} cho ngày ${saved.drawDate} (${getDayOfWeekName(saved.drawDate)}) (#${saved.id})!`,
     };
     selectedNumbers = [];
+    selectedSpecialNumber = null;
+    activeSelectionTarget = 'main';
     noteText = '';
     await fetchSavedRecords();
   } catch (err: any) {
@@ -157,36 +213,13 @@ async function runPrediction(): Promise<void> {
   try {
     const res = await fetch(`/api/analyze/predict?category=${predictionCategory}`);
     if (res.ok) {
-      const data = await res.json();
+      const data: PredictionResponse = await res.json();
       predictionResultData = data;
-      predictedNumbers = Array.isArray(data) ? data : data.numbers || [];
+      predictedNumbers = data.numbers || [];
+      predictedSpecialNumber = data.specialNumber ?? null;
     }
   } catch (err) {
-    console.warn('Backend unavailable, fallback simulation:', err);
-    const limit = predictionCategory === 'POWER' ? 55 : 45;
-    const set = new Set<number>();
-    while (set.size < 6) {
-      set.add(Math.floor(Math.random() * limit) + 1);
-    }
-    const sortedFallback = Array.from(set).sort((a, b) => a - b);
-    predictedNumbers = sortedFallback;
-    predictionResultData = {
-      category: predictionCategory,
-      numbers: sortedFallback,
-      totalDrawsAnalyzed: 0,
-      hotNumbers: [],
-      coldNumbers: [],
-      frequentPairs: [],
-      oddEvenRatio: '3 Chẵn / 3 Lẻ',
-      analysisSummary: `Đề xuất bộ số cho ${predictionCategory === 'POWER' ? 'Power 6/55' : 'Mega 6/45'}.`,
-      details: sortedFallback.map((n) => ({
-        number: n,
-        probabilityPercent: 70.0,
-        frequency: 0,
-        drawGap: 0,
-        tag: 'CÂN BẰNG',
-      })),
-    };
+    console.warn('Backend error or simulation fallback:', err);
   } finally {
     isPredicting = false;
     render();
@@ -202,14 +235,16 @@ async function savePredictedToH2(): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         numbers: predictedNumbers,
+        specialNumber: predictionCategory === 'POWER' ? predictedSpecialNumber : undefined,
         drawDate: selectedDate,
         category: predictionCategory,
-        note: `Dự đoán XGBoost AI (${predictionCategory === 'MEGA' ? 'Mega 6/45' : 'Power 6/55'} - Ngày ${selectedDate})`,
+        note: `Dự đoán AI XGBoost (${predictionCategory === 'MEGA' ? 'Mega 6/45' : 'Power 6/55'} - Ngày ${selectedDate})`,
       }),
     });
     if (res.ok) {
-      const saved = await res.json();
-      predictSaveSuccess = `Đã lưu bộ số dự đoán ${saved.category} cho ngày ${saved.drawDate} (#${saved.id})!`;
+      const saved: SavedRecord = await res.json();
+      const spText = saved.specialNumber ? ` (kèm Số phụ ⭐ ${saved.specialNumber})` : '';
+      predictSaveSuccess = `Đã lưu bộ số dự đoán ${saved.category}${spText} cho ngày ${saved.drawDate} (#${saved.id}) vào cơ sở dữ liệu!`;
       await fetchSavedRecords();
     }
   } catch (err) {
@@ -221,16 +256,66 @@ async function savePredictedToH2(): Promise<void> {
 
 function toggleNumber(num: number): void {
   statusMessage = null;
+
+  if (activeSelectionTarget === 'special') {
+    // Picking or toggling the special number for Power 6/55
+    if (selectedNumbers.includes(num)) {
+      statusMessage = {
+        type: 'warning',
+        text: `Số ${num} đã nằm trong 6 số chính! Số phụ phải khác với 6 số chính.`,
+      };
+      render();
+      return;
+    }
+    if (selectedSpecialNumber === num) {
+      selectedSpecialNumber = null;
+    } else {
+      selectedSpecialNumber = num;
+      // After selecting special number, can stay or switch back
+      activeSelectionTarget = 'main';
+    }
+    render();
+    return;
+  }
+
+  // Picking or toggling main numbers
   if (selectedNumbers.includes(num)) {
     selectedNumbers = selectedNumbers.filter(n => n !== num);
   } else {
     if (selectedNumbers.length >= 6) {
-      statusMessage = { type: 'danger', text: 'Bạn đã chọn đủ 6 số! Hãy bấm "Lưu bộ số" hoặc bỏ chọn bớt số khác.' };
+      if (selectedCategory === 'POWER' && selectedSpecialNumber === null) {
+        statusMessage = {
+          type: 'warning',
+          text: `Đã chọn đủ 6 số chính! Bạn có thể chọn số ${num} làm Số phụ (Jackpot 2) hoặc chuyển sang ô Số phụ để chọn.`,
+        };
+        activeSelectionTarget = 'special';
+        selectedSpecialNumber = num;
+        render();
+        return;
+      }
+      statusMessage = {
+        type: 'danger',
+        text: 'Bạn đã chọn đủ 6 số chính! Hãy bấm "Lưu bộ số" hoặc bỏ bớt số để chọn lại.',
+      };
       render();
       return;
     }
+
+    if (selectedCategory === 'POWER' && selectedSpecialNumber === num) {
+      selectedSpecialNumber = null; // Free up this number from special slot
+    }
+
     selectedNumbers.push(num);
     selectedNumbers.sort((a, b) => a - b);
+
+    // If just finished 6 numbers for POWER and no special number yet, guide user
+    if (selectedCategory === 'POWER' && selectedNumbers.length === 6 && selectedSpecialNumber === null) {
+      activeSelectionTarget = 'special';
+      statusMessage = {
+        type: 'warning',
+        text: 'Đã chọn đủ 6 số chính! Tiếp tục bấm chọn 1 con số bất kỳ trong bảng làm ⭐ Số phụ (Jackpot 2).',
+      };
+    }
   }
   render();
 }
@@ -243,6 +328,17 @@ function randomPick(): void {
     set.add(Math.floor(Math.random() * max) + 1);
   }
   selectedNumbers = Array.from(set).sort((a, b) => a - b);
+
+  if (selectedCategory === 'POWER') {
+    let sp: number;
+    do {
+      sp = Math.floor(Math.random() * 55) + 1;
+    } while (set.has(sp));
+    selectedSpecialNumber = sp;
+  } else {
+    selectedSpecialNumber = null;
+  }
+  activeSelectionTarget = 'main';
   render();
 }
 
@@ -252,6 +348,7 @@ function setDate(newDate: string): void {
   selectedCategory = autoCat;
   if (autoCat === 'MEGA') {
     selectedNumbers = selectedNumbers.filter(n => n <= 45);
+    selectedSpecialNumber = null;
   }
   render();
 }
@@ -260,6 +357,8 @@ function switchCategory(cat: 'MEGA' | 'POWER'): void {
   selectedCategory = cat;
   if (cat === 'MEGA') {
     selectedNumbers = selectedNumbers.filter(n => n <= 45);
+    selectedSpecialNumber = null;
+    activeSelectionTarget = 'main';
   }
   render();
 }
@@ -283,7 +382,7 @@ function render(): void {
             <div>
               <h1 class="h5 mb-0 text-white fw-bold">Analyze Project</h1>
               <small class="text-secondary d-none d-sm-inline">
-                Spring Framework &bull; Angular Project Structure &bull; XGBoost
+                Spring Framework &bull; Angular Project Structure &bull; XGBoost AI &bull; Power 6/55 Số Phụ
               </small>
             </div>
           </div>
@@ -307,7 +406,7 @@ function render(): void {
               <span>📝</span>
               <div>
                 <div class="fw-semibold">Nhập số theo ngày</div>
-                <small class="d-none d-md-block text-muted opacity-75">Mega (1-45) & Power (1-55)</small>
+                <small class="d-none d-md-block text-muted opacity-75">Mega (1-45) & Power (1-55 + Số phụ)</small>
               </div>
             </button>
 
@@ -319,27 +418,34 @@ function render(): void {
               <span>⚡</span>
               <div>
                 <div class="fw-semibold">Dự đoán AI XGBoost</div>
-                <small class="d-none d-md-block text-muted opacity-75">Đề xuất 6 số tối ưu</small>
+                <small class="d-none d-md-block text-muted opacity-75">Bù trừ số phụ Jackpot 2</small>
               </div>
             </button>
           </div>
 
           <!-- Schedule box -->
           <div class="mt-4 pt-3 border-top d-none d-md-block">
-            <small class="text-uppercase text-muted fw-bold">Lịch quay thưởng</small>
-            <div class="mt-2 small p-2 bg-light rounded border">
-              <div class="d-flex align-items-center justify-content-between mb-1">
-                <span class="fw-bold text-danger">🔴 MEGA 6/45</span>
-                <span class="badge bg-danger-subtle text-danger">1 - 45</span>
-              </div>
-              <div class="text-muted" style="font-size: 0.8rem;">Thứ 4 &bull; Thứ 6 &bull; Chủ nhật</div>
-            </div>
+            <small class="text-uppercase text-muted fw-bold">Lịch & Thể lệ quay thưởng</small>
             <div class="mt-2 small p-2 bg-light rounded border">
               <div class="d-flex align-items-center justify-content-between mb-1">
                 <span class="fw-bold text-primary">🔵 POWER 6/55</span>
-                <span class="badge bg-primary-subtle text-primary">1 - 55</span>
+                <span class="badge bg-primary text-white">6 Số + 1 Số phụ</span>
               </div>
-              <div class="text-muted" style="font-size: 0.8rem;">Thứ 3 &bull; Thứ 5 &bull; Thứ 7</div>
+              <div class="text-muted" style="font-size: 0.8rem;">
+                Quay: <strong>Thứ 3 &bull; Thứ 5 &bull; Thứ 7</strong><br />
+                Jackpot 1: Trùng 6/6<br />
+                Jackpot 2: Trùng 5/6 + Số phụ
+              </div>
+            </div>
+
+            <div class="mt-2 small p-2 bg-light rounded border">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="fw-bold text-danger">🔴 MEGA 6/45</span>
+                <span class="badge bg-danger text-white">6 Số (1 - 45)</span>
+              </div>
+              <div class="text-muted" style="font-size: 0.8rem;">
+                Quay: <strong>Thứ 4 &bull; Thứ 6 &bull; Chủ nhật</strong>
+              </div>
             </div>
           </div>
         </aside>
@@ -356,15 +462,21 @@ function render(): void {
 }
 
 function renderManualView(maxLimit: number, gridNumbers: number[], dayName: string): string {
+  const isPower = selectedCategory === 'POWER';
+
   return `
-    <div id="manual-entry-feature" class="mx-auto" style="max-width: 920px;">
+    <div id="manual-entry-feature" class="mx-auto" style="max-width: 940px;">
       <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-3 p-md-4">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
-              <h2 class="h4 fw-bold mb-1 text-primary">Nhập dãy 6 số theo ngày</h2>
+              <h2 class="h4 fw-bold mb-1 text-primary">
+                ${isPower ? 'Nhập dãy số Power 6/55 (6 Số chính + Số phụ)' : 'Nhập dãy 6 số Mega 6/45'}
+              </h2>
               <p class="text-muted mb-0 small">
-                Tự động nhận diện danh mục: <strong>Mega (1-45)</strong> hoặc <strong>Power (1-55)</strong> theo thứ trong tuần
+                ${isPower
+                  ? '⚡ Thể lệ Power 6/55: Nhập 6 số chính đầu và <strong>1 số phụ (Jackpot 2)</strong>. Số phụ sẽ được thuật toán dùng để tính điểm bảo hiểm Jackpot 2 khi sai 1 số.'
+                  : 'Tự động nhận diện danh mục: <strong>Mega (1-45)</strong> hoặc <strong>Power (1-55)</strong> theo thứ trong tuần.'}
               </p>
             </div>
           </div>
@@ -373,24 +485,24 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
           <div class="p-3 mb-4 rounded-3 border bg-light shadow-sm">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <label class="fw-bold text-dark mb-0">🏷️ Chọn danh mục xổ số:</label>
-              <span class="small text-muted">Tự động theo thứ trong tuần của ngày mở thưởng</span>
+              <span class="small text-muted">Tự động chuyển theo thứ trong tuần của ngày quay</span>
             </div>
 
             <div class="row g-2">
               <div class="col-md-6">
                 <button
                   type="button"
-                  id="btn-cat-mega"
-                  class="btn w-100 p-3 text-start border rounded-3 transition ${selectedCategory === 'MEGA' ? 'btn-danger text-white shadow-sm' : 'btn-white bg-white text-dark'}"
+                  id="btn-cat-power"
+                  class="btn w-100 p-3 text-start border rounded-3 transition ${isPower ? 'btn-primary text-white shadow-sm' : 'btn-white bg-white text-dark'}"
                 >
                   <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold fs-6">🔴 MEGA 6/45</span>
-                    <span class="badge ${selectedCategory === 'MEGA' ? 'bg-white text-danger' : 'bg-danger-subtle text-danger'}">
-                      Số: 01 &rarr; 45
+                    <span class="fw-bold fs-6">🔵 POWER 6/55 (Có Số Phụ)</span>
+                    <span class="badge ${isPower ? 'bg-warning text-dark' : 'bg-primary-subtle text-primary'}">
+                      6 số + 1 số phụ
                     </span>
                   </div>
                   <small class="d-block mt-1 opacity-75">
-                    📅 Lịch quay: <strong>Thứ 4 &bull; Thứ 6 &bull; Chủ nhật</strong>
+                    📅 Lịch quay: <strong>Thứ 3 &bull; Thứ 5 &bull; Thứ 7</strong> &bull; Dải số 01 &rarr; 55
                   </small>
                 </button>
               </div>
@@ -398,17 +510,17 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
               <div class="col-md-6">
                 <button
                   type="button"
-                  id="btn-cat-power"
-                  class="btn w-100 p-3 text-start border rounded-3 transition ${selectedCategory === 'POWER' ? 'btn-primary text-white shadow-sm' : 'btn-white bg-white text-dark'}"
+                  id="btn-cat-mega"
+                  class="btn w-100 p-3 text-start border rounded-3 transition ${!isPower ? 'btn-danger text-white shadow-sm' : 'btn-white bg-white text-dark'}"
                 >
                   <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold fs-6">🔵 POWER 6/55</span>
-                    <span class="badge ${selectedCategory === 'POWER' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary'}">
-                      Số: 01 &rarr; 55
+                    <span class="fw-bold fs-6">🔴 MEGA 6/45</span>
+                    <span class="badge ${!isPower ? 'bg-white text-danger' : 'bg-danger-subtle text-danger'}">
+                      Số: 01 &rarr; 45
                     </span>
                   </div>
                   <small class="d-block mt-1 opacity-75">
-                    📅 Lịch quay: <strong>Thứ 3 &bull; Thứ 5 &bull; Thứ 7</strong>
+                    📅 Lịch quay: <strong>Thứ 4 &bull; Thứ 6 &bull; Chủ nhật</strong>
                   </small>
                 </button>
               </div>
@@ -428,7 +540,7 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                 />
               </div>
               <div class="col-md-7">
-                <label class="form-label text-muted small mb-1">Chọn nhanh & Thông tin thứ:</label>
+                <label class="form-label text-muted small mb-1">Chọn nhanh & Thông tin:</label>
                 <div class="d-flex gap-2 flex-wrap align-items-center">
                   <button type="button" id="btn-date-today" class="btn btn-outline-primary btn-sm px-3 ${selectedDate === getTodayDateString() ? 'active' : ''}">
                     🌟 Hôm nay
@@ -437,67 +549,153 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                     ⏪ Hôm qua
                   </button>
                   <span class="badge bg-light text-dark border px-3 py-2 ms-auto">
-                    ${dayName} &bull; <strong>${selectedCategory === 'MEGA' ? 'Mega 6/45' : 'Power 6/55'}</strong>
+                    ${dayName} &bull; <strong>${isPower ? 'Power 6/55' : 'Mega 6/45'}</strong>
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Selected Numbers Preview (6 slots) -->
-          <div class="p-3 bg-light rounded-3 mb-4 text-center">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="fw-semibold text-secondary small">
-                6 số đã chọn cho ngày <strong>${selectedDate}</strong> (${selectedCategory}):
-              </span>
-              <span class="badge ${selectedNumbers.length === 6 ? 'bg-success' : 'bg-primary'}">
-                ${selectedNumbers.length} / 6 số
-              </span>
+          <!-- Selected Numbers Preview (6 Main Numbers + Special Number for Power) -->
+          <div class="p-3 bg-light rounded-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div>
+                <span class="fw-bold text-dark">
+                  Dãy số đã chọn cho ngày <strong>${selectedDate}</strong> (${selectedCategory}):
+                </span>
+                ${isPower ? `
+                  <div class="small text-muted">
+                    Bao gồm 6 số chính và 1 số phụ đặc biệt để tính giải thưởng Jackpot 2.
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Selection Target Switcher for POWER -->
+              ${isPower ? `
+                <div class="btn-group btn-group-sm shadow-sm" role="group">
+                  <button
+                    type="button"
+                    id="btn-target-main"
+                    class="btn ${activeSelectionTarget === 'main' ? 'btn-primary' : 'btn-outline-primary bg-white'}"
+                  >
+                    🔘 6 Số chính (${selectedNumbers.length}/6)
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-target-special"
+                    class="btn ${activeSelectionTarget === 'special' ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning bg-white text-dark'}"
+                  >
+                    ⭐ Số phụ Jackpot 2 (${selectedSpecialNumber !== null ? '1/1' : '0/1'})
+                  </button>
+                </div>
+              ` : `
+                <span class="badge ${selectedNumbers.length === 6 ? 'bg-success' : 'bg-primary'} px-3 py-2">
+                  ${selectedNumbers.length} / 6 số
+                </span>
+              `}
             </div>
 
-            <div class="d-flex justify-content-center gap-2 gap-md-3 flex-wrap my-2">
-              ${[0, 1, 2, 3, 4, 5].map(idx => {
-                const val = selectedNumbers[idx];
-                return `
-                  <div class="text-center" style="width: 58px;">
+            <!-- Numbers Display Row -->
+            <div class="d-flex justify-content-center align-items-center gap-2 gap-md-3 flex-wrap my-2">
+              <!-- 6 Main Numbers -->
+              <div class="d-flex gap-2 gap-md-3">
+                ${[0, 1, 2, 3, 4, 5].map(idx => {
+                  const val = selectedNumbers[idx];
+                  return `
+                    <div class="text-center" style="width: 58px;">
+                      <input
+                        id="slot-input-${idx}"
+                        type="number"
+                        min="1"
+                        max="${maxLimit}"
+                        class="form-control text-center fw-bold slot-main-input"
+                        data-slot-idx="${idx}"
+                        value="${val !== undefined ? val : ''}"
+                        placeholder="--"
+                        style="width: 52px; height: 52px; border-radius: 50%; font-size: 1.25rem; border: 2px solid ${activeSelectionTarget === 'main' ? '#0d6efd' : '#6c757d'}; margin: 0 auto 4px auto; background-color: #fff;"
+                      />
+                      <small class="text-muted" style="font-size: 0.75rem;">Số ${idx + 1}</small>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- Separator & Special Number for POWER -->
+              ${isPower ? `
+                <div class="d-flex align-items-center px-1">
+                  <span class="fs-4 text-muted fw-bold">+</span>
+                </div>
+
+                <div class="text-center p-2 rounded-3 border ${activeSelectionTarget === 'special' ? 'border-warning bg-warning-subtle shadow-sm' : 'border-secondary-subtle bg-white'}" style="min-width: 90px; cursor: pointer;" id="slot-special-container">
+                  <div class="d-flex flex-column align-items-center">
                     <input
-                      id="slot-input-${idx}"
+                      id="slot-special-input"
                       type="number"
                       min="1"
-                      max="${maxLimit}"
-                      class="form-control text-center fw-bold"
-                      value="${val !== undefined ? val : ''}"
-                      placeholder="--"
-                      style="width: 52px; height: 52px; border-radius: 50%; font-size: 1.25rem; border: 2px solid #0d6efd; margin: 0 auto 4px auto;"
+                      max="55"
+                      class="form-control text-center fw-bold border-2 border-warning shadow-sm"
+                      value="${selectedSpecialNumber !== null ? selectedSpecialNumber : ''}"
+                      placeholder="⭐"
+                      style="width: 54px; height: 54px; border-radius: 50%; font-size: 1.3rem; background: radial-gradient(circle at 18px 18px, #fff3cd, #ffc107); color: #000; margin: 0 auto 4px auto;"
                     />
-                    <small class="text-muted" style="font-size: 0.75rem;">Số ${idx + 1}</small>
+                    <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.72rem;">
+                      ⭐ Số phụ
+                    </span>
+                    <small class="text-muted mt-1" style="font-size: 0.7rem;">Jackpot 2</small>
                   </div>
-                `;
-              }).join('')}
+                </div>
+              ` : ''}
             </div>
+
+            <!-- Target Selection Hint -->
+            ${isPower ? `
+              <div class="mt-3 text-center small">
+                ${activeSelectionTarget === 'main'
+                  ? `<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">👉 Đang chọn <strong>6 số chính</strong> trong bảng bên dưới (${selectedNumbers.length}/6). Bấm vào ô "Số phụ" hoặc chọn tab để đổi sang chọn số phụ.</span>`
+                  : `<span class="badge bg-warning-subtle text-dark border border-warning px-3 py-1">👉 Đang chọn <strong>Số phụ (Jackpot 2)</strong> trong bảng bên dưới. Chọn 1 số từ 01-55 (không trùng với 6 số chính).</span>`}
+              </div>
+            ` : ''}
           </div>
 
           <!-- Number Grid -->
           <div class="mb-4">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <span class="fw-semibold text-dark">Bảng số chọn nhanh (01 &rarr; ${maxLimit}):</span>
+              <span class="fw-semibold text-dark">
+                Bảng số chọn nhanh (01 &rarr; ${maxLimit}):
+              </span>
               <div class="d-flex gap-2">
-                <button type="button" id="btn-quick-random" class="btn btn-sm btn-outline-primary">🎲 Ngẫu nhiên 6 số</button>
+                <button type="button" id="btn-quick-random" class="btn btn-sm btn-outline-primary">
+                  🎲 Ngẫu nhiên ${isPower ? '6 số + 1 số phụ' : '6 số'}
+                </button>
                 <button type="button" id="btn-quick-reset" class="btn btn-sm btn-outline-secondary">🧹 Xóa chọn lại</button>
               </div>
             </div>
 
             <div class="d-grid gap-2 p-2 bg-white rounded border" style="grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));">
               ${gridNumbers.map(n => {
-                const isSelected = selectedNumbers.includes(n);
+                const isMainSelected = selectedNumbers.includes(n);
+                const isSpecialSelected = isPower && selectedSpecialNumber === n;
+
+                let ballClass = 'btn-outline-light text-dark';
+                let style = 'height: 42px; border: 1px solid #dee2e6;';
+
+                if (isMainSelected) {
+                  ballClass = 'btn-primary text-white shadow-sm';
+                  style = 'height: 42px; border: none;';
+                } else if (isSpecialSelected) {
+                  ballClass = 'btn-warning text-dark fw-bold shadow-sm';
+                  style = 'height: 42px; border: 2px solid #ff9800; background: radial-gradient(circle at 14px 14px, #fff3cd, #ffc107);';
+                }
+
                 return `
                   <button
                     type="button"
-                    class="btn p-0 fw-bold rounded-circle btn-grid-ball ${isSelected ? 'btn-primary text-white shadow-sm' : 'btn-outline-light text-dark'}"
+                    class="btn p-0 fw-bold rounded-circle btn-grid-ball ${ballClass}"
                     data-num="${n}"
-                    style="height: 42px; border: ${isSelected ? 'none' : '1px solid #dee2e6'};"
+                    style="${style}"
+                    title="${isMainSelected ? `Số chính #${n}` : isSpecialSelected ? `Số phụ Jackpot 2 #${n}` : `Chọn số ${n}`}"
                   >
-                    ${n < 10 ? '0' + n : n}
+                    ${isSpecialSelected ? '★' : ''}${n < 10 ? '0' + n : n}
                   </button>
                 `;
               }).join('')}
@@ -511,7 +709,7 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                 id="input-record-note"
                 type="text"
                 class="form-control"
-                placeholder="Ghi chú (Ví dụ: Vé ${selectedCategory} ngày ${selectedDate}...)"
+                placeholder="Ghi chú (Ví dụ: Vé Power 6/55 kỳ quay ${selectedDate}...)"
                 value="${noteText}"
               />
             </div>
@@ -522,7 +720,7 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                 class="btn btn-primary w-100 fw-bold py-2 shadow-sm"
                 ${isSaving || selectedNumbers.length !== 6 ? 'disabled' : ''}
               >
-                ${isSaving ? 'Đang lưu...' : '💾 Lưu bộ số'}
+                ${isSaving ? 'Đang lưu...' : '💾 Lưu bộ số vào hệ thống'}
               </button>
             </div>
           </div>
@@ -543,15 +741,15 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
               <h3 class="h5 mb-0 fw-bold text-dark">
                 Các bộ số đã lưu (${savedRecords.length})
               </h3>
-              <small class="text-muted">Phân loại Mega & Power theo từng kỳ quay</small>
+              <small class="text-muted">Phân loại Mega 6/45 & Power 6/55 (kèm Số phụ Jackpot 2)</small>
             </div>
 
             <!-- Filters -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
-              <select id="select-filter-category" class="form-select form-select-sm" style="width: 140px;">
+              <select id="select-filter-category" class="form-select form-select-sm" style="width: 145px;">
                 <option value="" ${filterCategory === '' ? 'selected' : ''}>Tất cả danh mục</option>
-                <option value="MEGA" ${filterCategory === 'MEGA' ? 'selected' : ''}>🔴 Mega 6/45</option>
                 <option value="POWER" ${filterCategory === 'POWER' ? 'selected' : ''}>🔵 Power 6/55</option>
+                <option value="MEGA" ${filterCategory === 'MEGA' ? 'selected' : ''}>🔴 Mega 6/45</option>
               </select>
 
               <input
@@ -579,17 +777,17 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
           ${savedRecords.length === 0 ? `
             <div class="text-center py-5 text-muted">
               <p class="mb-0">Chưa có bản ghi nào phù hợp trong hệ thống.</p>
-              <small>Hãy chọn danh mục (Mega/Power), chọn 6 số và bấm "Lưu bộ số".</small>
+              <small>Hãy chọn danh mục (Mega/Power), chọn các số và bấm "Lưu bộ số".</small>
             </div>
           ` : `
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                   <tr>
-                    <th scope="col" style="width: 60px;">ID</th>
-                    <th scope="col" style="width: 130px;">Danh mục</th>
-                    <th scope="col" style="width: 140px;">Ngày mở thưởng</th>
-                    <th scope="col">Dãy 6 số đã lưu</th>
+                    <th scope="col" style="width: 50px;">ID</th>
+                    <th scope="col" style="width: 125px;">Danh mục</th>
+                    <th scope="col" style="width: 135px;">Ngày mở thưởng</th>
+                    <th scope="col">Dãy số & Số phụ</th>
                     <th scope="col">Ghi chú</th>
                     <th scope="col" class="text-end" style="width: 80px;">Thao tác</th>
                   </tr>
@@ -609,7 +807,8 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                         </span>
                       </td>
                       <td>
-                        <div class="d-flex gap-1 gap-md-2 flex-wrap">
+                        <div class="d-flex align-items-center gap-1 gap-md-2 flex-wrap">
+                          <!-- 6 Main Numbers -->
                           ${r.numbers.map(n => `
                             <span
                               class="badge rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
@@ -618,6 +817,21 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                               ${n < 10 ? '0' + n : n}
                             </span>
                           `).join('')}
+
+                          <!-- Special Number if present for POWER -->
+                          ${r.specialNumber !== undefined && r.specialNumber !== null ? `
+                            <span class="text-muted fw-bold mx-1">+</span>
+                            <span
+                              class="badge rounded-circle bg-warning text-dark border border-warning shadow-sm d-inline-flex align-items-center justify-content-center fw-bold"
+                              style="width: 34px; height: 34px; font-size: 0.85rem;"
+                              title="Số phụ Jackpot 2: ${r.specialNumber}"
+                            >
+                              ★${r.specialNumber < 10 ? '0' + r.specialNumber : r.specialNumber}
+                            </span>
+                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle small ms-1" style="font-size: 0.72rem;">
+                              Số phụ: ${r.specialNumber < 10 ? '0' + r.specialNumber : r.specialNumber}
+                            </span>
+                          ` : ''}
                         </div>
                       </td>
                       <td>
@@ -641,11 +855,12 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
 }
 
 function renderPredictionView(): string {
-  const catName = predictionCategory === 'POWER' ? 'Power 6/55' : 'Mega 6/45';
-  const ballBgClass = predictionCategory === 'POWER' ? 'bg-primary text-white' : 'bg-danger text-white';
+  const isPower = predictionCategory === 'POWER';
+  const catName = isPower ? 'Power 6/55' : 'Mega 6/45';
+  const ballBgClass = isPower ? 'bg-primary text-white' : 'bg-danger text-white';
 
   return `
-    <div id="prediction-feature" class="mx-auto" style="max-width: 960px;">
+    <div id="prediction-feature" class="mx-auto" style="max-width: 980px;">
       <!-- Header Card -->
       <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
@@ -655,7 +870,8 @@ function renderPredictionView(): string {
                 ⚡ Phân tích Dãy số theo Ngày & Đề xuất AI XGBoost
               </h3>
               <p class="text-muted mb-0 small">
-                Thuật toán phân tích độc lập theo từng dãy số lịch sử của từng category, kết hợp tần suất xuất hiện, chu kỳ lô gan và ma trận cặp số.
+                Thuật toán phân tích chuỗi thời gian, tần suất cơ bản, lô gan và ma trận bù trừ:
+                ${isPower ? '<strong>Nếu sai 1 số trong 6 số chính, số phụ sẽ được tính để ăn giải Jackpot 2.</strong>' : 'Tối ưu 6 số chính cho Mega 6/45.'}
               </p>
             </div>
           </div>
@@ -663,24 +879,24 @@ function renderPredictionView(): string {
           <!-- Category Selector Tabs -->
           <div class="p-3 bg-light rounded-3 border mb-3">
             <label class="fw-bold text-dark mb-2 d-block small text-uppercase">
-              Chọn danh mục xổ số để phân tích riêng biệt:
+              Chọn danh mục xổ số để phân tích:
             </label>
             <div class="d-flex gap-2 flex-wrap">
               <button
                 type="button"
-                id="btn-pred-mega"
-                class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2 ${predictionCategory === 'MEGA' ? 'btn-danger shadow-sm text-white' : 'btn-outline-danger bg-white'}"
+                id="btn-pred-power"
+                class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2 ${isPower ? 'btn-primary shadow-sm text-white' : 'btn-outline-primary bg-white'}"
               >
-                <span>🔴</span>
-                <span>Mega 6/45 (Dải số 1 - 45)</span>
+                <span>🔵</span>
+                <span>Power 6/55 (Có Số Phụ Jackpot 2)</span>
               </button>
               <button
                 type="button"
-                id="btn-pred-power"
-                class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2 ${predictionCategory === 'POWER' ? 'btn-primary shadow-sm text-white' : 'btn-outline-primary bg-white'}"
+                id="btn-pred-mega"
+                class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2 ${!isPower ? 'btn-danger shadow-sm text-white' : 'btn-outline-danger bg-white'}"
               >
-                <span>🔵</span>
-                <span>Power 6/55 (Dải số 1 - 55)</span>
+                <span>🔴</span>
+                <span>Mega 6/45 (Dải số 1 - 45)</span>
               </button>
             </div>
           </div>
@@ -698,7 +914,7 @@ function renderPredictionView(): string {
             >
               ${isPredicting ? `
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Đang phân tích dữ liệu...
+                Đang phân tích thuật toán...
               ` : `🎯 Phân tích & Đề xuất lại cho ${catName}`}
             </button>
           </div>
@@ -711,15 +927,30 @@ function renderPredictionView(): string {
           <div class="card-header bg-white py-3 border-bottom">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <h4 class="h5 fw-bold mb-0 text-dark">
-                Kết quả Đề xuất 6 số ${catName}
+                Kết quả Đề xuất ${isPower ? '6 Số chính + 1 Số phụ' : '6 Số'} ${catName}
               </h4>
               <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 small">
-                Dữ liệu: ${predictionResultData.totalDrawsAnalyzed || 0} kỳ quay theo ngày
+                Dữ liệu phân tích: ${predictionResultData.totalDrawsAnalyzed || 0} kỳ quay theo ngày
               </span>
             </div>
           </div>
 
           <div class="card-body p-4">
+            <!-- Jackpot 2 Rule Banner for POWER -->
+            ${isPower ? `
+              <div class="alert alert-info border-info-subtle d-flex align-items-start gap-3 p-3 mb-4 rounded-3 shadow-sm">
+                <span class="fs-3">💡</span>
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">Quy tắc trúng thưởng & Thuật toán Số Phụ:</h6>
+                  <p class="mb-1 small text-dark">
+                    &bull; <strong>Jackpot 1:</strong> Trùng toàn bộ 6/6 số chính.<br />
+                    &bull; <strong>Jackpot 2 (Bù trừ số phụ):</strong> Nếu bạn <strong>sai 1 số trong 6 số chính</strong> (khớp 5/6 số), nhưng số bị sai đó trùng với <strong>Số Phụ</strong> &rarr; Trúng giải Jackpot 2!<br />
+                    &bull; <strong>Cập nhật thống kê trong thuật toán:</strong> Hệ thống phân tích ma trận liên kết giữa các bộ 5 số con và các số phụ trong lịch sử để chọn ra con số phụ có độ tương thích bảo hiểm cao nhất cho bộ 6 số này.
+                  </p>
+                </div>
+              </div>
+            ` : ''}
+
             <!-- Summary Message -->
             <div class="p-3 mb-4 rounded-3 border bg-light small text-secondary">
               <div class="fw-bold text-dark mb-1">📋 Tóm tắt phân tích dữ liệu:</div>
@@ -784,35 +1015,116 @@ function renderPredictionView(): string {
               </div>
             </div>
 
-            <!-- 6 Recommended Numbers Showcase -->
-            <div class="p-4 bg-light rounded-3 border text-center mb-2">
-              <h5 class="fw-bold text-dark mb-3">
-                Bộ 6 số tối ưu cho ${catName}
-              </h5>
-
-              <div class="d-flex justify-content-center gap-3 gap-md-4 flex-wrap mb-4">
-                ${(predictionResultData.details || predictedNumbers.map((n: number) => ({ number: n, probabilityPercent: 75, tag: 'CÂN BẰNG' }))).map((detail: any) => `
-                  <div class="d-flex flex-column align-items-center" style="min-width: 65px;">
-                    <div
-                      class="d-flex align-items-center justify-content-center rounded-circle ${ballBgClass} fw-bold shadow"
-                      style="width: 54px; height: 54px; font-size: 1.35rem;"
-                    >
-                      ${detail.number < 10 ? '0' + detail.number : detail.number}
+            <!-- Extra Stats for Power: Top Số Phụ & Cặp Số Phụ liên kết -->
+            ${isPower && (predictionResultData.specialHotNumbers?.length || predictionResultData.jackpot2Pairs?.length) ? `
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <div class="p-3 border rounded-3 bg-warning-subtle h-100">
+                    <div class="fw-bold small text-dark text-uppercase mb-2">
+                      ⭐ Top Số phụ hay về nhất (Lịch sử Power 6/55)
                     </div>
-                    <span class="badge bg-white text-dark border mt-2 small" style="font-size: 0.72rem;">
-                      ${detail.tag || 'CÂN BẰNG'}
+                    <div class="d-flex gap-2 flex-wrap">
+                      ${(predictionResultData.specialHotNumbers || []).map((n: number) => `
+                        <span class="badge bg-warning text-dark border border-warning px-3 py-2 fw-bold fs-6 shadow-sm">
+                          ★ ${n < 10 ? '0' + n : n}
+                        </span>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="p-3 border rounded-3 bg-white h-100">
+                    <div class="fw-bold small text-primary text-uppercase mb-2">
+                      🔗 Cặp liên kết bù trừ (Chính &bull; Phụ Jackpot 2)
+                    </div>
+                    <div class="d-flex gap-1 flex-wrap">
+                      ${(predictionResultData.jackpot2Pairs || []).map((p: string) => `
+                        <span class="badge bg-light text-dark border px-2 py-1">
+                          ${p}
+                        </span>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Recommended Numbers Showcase -->
+            <div class="p-4 bg-light rounded-3 border text-center mb-2">
+              <h5 class="fw-bold text-dark mb-1">
+                Bộ số tối ưu đề xuất cho ${catName}
+              </h5>
+              <p class="text-muted small mb-4">
+                ${isPower
+                  ? 'Gồm 6 số chính tối ưu cho Jackpot 1 và 1 số phụ bảo hiểm cho Jackpot 2 nếu sai 1 số trong 6 số chính'
+                  : 'Gồm 6 con số tối ưu xác suất'}
+              </p>
+
+              <!-- Balls Container -->
+              <div class="d-flex justify-content-center align-items-center gap-3 gap-md-4 flex-wrap mb-4">
+                <!-- 6 Main Balls -->
+                <div class="d-flex gap-3 gap-md-4 flex-wrap justify-content-center">
+                  ${(predictionResultData.details || predictedNumbers.map((n: number) => ({ number: n, probabilityPercent: 75, tag: 'CÂN BẰNG' }))).map((detail: any) => `
+                    <div class="d-flex flex-column align-items-center" style="min-width: 65px;">
+                      <div
+                        class="d-flex align-items-center justify-content-center rounded-circle ${ballBgClass} fw-bold shadow"
+                        style="width: 56px; height: 56px; font-size: 1.4rem;"
+                      >
+                        ${detail.number < 10 ? '0' + detail.number : detail.number}
+                      </div>
+                      <span class="badge bg-white text-dark border mt-2 small" style="font-size: 0.72rem;">
+                        ${detail.tag || 'CÂN BẰNG'}
+                      </span>
+                      <small class="text-muted mt-1" style="font-size: 0.75rem;">
+                        ${detail.probabilityPercent || 75}%
+                      </small>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <!-- Special Ball for POWER -->
+                ${isPower && predictionResultData.specialNumber !== undefined ? `
+                  <div class="d-flex align-items-center">
+                    <span class="fs-2 text-muted fw-bold px-1">+</span>
+                  </div>
+
+                  <div class="d-flex flex-column align-items-center p-2 rounded-3 border border-warning bg-warning-subtle shadow-sm" style="min-width: 95px;">
+                    <div
+                      class="d-flex align-items-center justify-content-center rounded-circle fw-bold shadow"
+                      style="width: 58px; height: 58px; font-size: 1.4rem; background: radial-gradient(circle at 18px 18px, #fff3cd, #ffc107); color: #000; border: 2px solid #ff9800;"
+                    >
+                      ★${predictionResultData.specialNumber < 10 ? '0' + predictionResultData.specialNumber : predictionResultData.specialNumber}
+                    </div>
+                    <span class="badge bg-warning text-dark border border-warning mt-2 fw-bold" style="font-size: 0.72rem;">
+                      ${predictionResultData.specialNumberDetail?.tag || 'SỐ PHỤ JACKPOT 2'}
                     </span>
-                    <small class="text-muted mt-1" style="font-size: 0.75rem;">
-                      ${detail.probabilityPercent || 75}%
+                    <small class="text-dark fw-semibold mt-1" style="font-size: 0.75rem;">
+                      ${predictionResultData.specialNumberDetail?.probabilityPercent || 78}%
                     </small>
                   </div>
-                `).join('')}
+                ` : ''}
               </div>
+
+              <!-- Special Number Explanation Card if POWER -->
+              ${isPower && predictionResultData.specialNumberDetail ? `
+                <div class="p-3 bg-white rounded-3 border border-warning-subtle mx-auto mb-4 text-start" style="max-width: 720px;">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-warning text-dark fw-bold">⭐ Phân tích Số Phụ</span>
+                    <strong class="text-dark">Số: ${predictionResultData.specialNumberDetail.number < 10 ? '0' + predictionResultData.specialNumberDetail.number : predictionResultData.specialNumberDetail.number}</strong>
+                    <span class="text-muted small">&bull; Tần suất làm số phụ: ${predictionResultData.specialNumberDetail.specialFrequency} lần</span>
+                    <span class="text-muted small">&bull; Độ trễ (lô gan): ${predictionResultData.specialNumberDetail.drawGap} kỳ</span>
+                  </div>
+                  <div class="text-secondary small">
+                    ${predictionResultData.specialNumberDetail.description}
+                  </div>
+                </div>
+              ` : ''}
 
               <!-- Save Button -->
               <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <button id="btn-save-predicted" type="button" class="btn btn-outline-primary fw-semibold px-4 py-2">
-                  💾 Lưu bộ số ${catName} này vào hệ thống
+                <button id="btn-save-predicted" type="button" class="btn btn-primary fw-semibold px-4 py-2 shadow-sm">
+                  💾 Lưu bộ số ${isPower ? 'Power 6/55 (kèm Số phụ)' : 'Mega 6/45'} này vào hệ thống
                 </button>
               </div>
 
@@ -838,15 +1150,30 @@ function attachEventListeners(): void {
   document.getElementById('menu-item-prediction')?.addEventListener('click', () => {
     activeTab = 'prediction';
     render();
-    if (!predictionResultData) {
+    if (!predictionResultData || predictionResultData.category !== predictionCategory) {
       runPrediction();
     }
   });
 
   // Manual Entry event listeners
   if (activeTab === 'manual') {
-    document.getElementById('btn-cat-mega')?.addEventListener('click', () => switchCategory('MEGA'));
     document.getElementById('btn-cat-power')?.addEventListener('click', () => switchCategory('POWER'));
+    document.getElementById('btn-cat-mega')?.addEventListener('click', () => switchCategory('MEGA'));
+
+    document.getElementById('btn-target-main')?.addEventListener('click', () => {
+      activeSelectionTarget = 'main';
+      render();
+    });
+
+    document.getElementById('btn-target-special')?.addEventListener('click', () => {
+      activeSelectionTarget = 'special';
+      render();
+    });
+
+    document.getElementById('slot-special-container')?.addEventListener('click', () => {
+      activeSelectionTarget = 'special';
+      render();
+    });
 
     const dateInput = document.getElementById('date-picker-input') as HTMLInputElement | null;
     dateInput?.addEventListener('change', (e) => {
@@ -860,9 +1187,50 @@ function attachEventListeners(): void {
     document.getElementById('btn-quick-random')?.addEventListener('click', randomPick);
     document.getElementById('btn-quick-reset')?.addEventListener('click', () => {
       selectedNumbers = [];
+      selectedSpecialNumber = null;
+      activeSelectionTarget = 'main';
       noteText = '';
       statusMessage = null;
       render();
+    });
+
+    // Special input change
+    const specInput = document.getElementById('slot-special-input') as HTMLInputElement | null;
+    specInput?.addEventListener('change', (e) => {
+      const val = parseInt((e.target as HTMLInputElement).value, 10);
+      if (isNaN(val)) {
+        selectedSpecialNumber = null;
+      } else if (val >= 1 && val <= 55) {
+        if (selectedNumbers.includes(val)) {
+          statusMessage = { type: 'danger', text: `Số phụ (${val}) không được trùng với 6 số chính!` };
+          (e.target as HTMLInputElement).value = '';
+          selectedSpecialNumber = null;
+        } else {
+          selectedSpecialNumber = val;
+          statusMessage = null;
+        }
+      }
+      render();
+    });
+
+    // Main slots input change
+    document.querySelectorAll('.slot-main-input').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const idx = parseInt((e.currentTarget as HTMLElement).getAttribute('data-slot-idx') || '0', 10);
+        const val = parseInt((e.target as HTMLInputElement).value, 10);
+        const max = getMaxLimit();
+
+        if (isNaN(val) || val < 1 || val > max) {
+          selectedNumbers.splice(idx, 1);
+        } else {
+          if (selectedSpecialNumber === val) {
+            selectedSpecialNumber = null;
+          }
+          selectedNumbers[idx] = val;
+          selectedNumbers = Array.from(new Set(selectedNumbers.filter(n => n >= 1 && n <= max))).sort((a, b) => a - b);
+        }
+        render();
+      });
     });
 
     document.querySelectorAll('.btn-grid-ball').forEach(btn => {
@@ -910,14 +1278,14 @@ function attachEventListeners(): void {
 
   // Prediction event listeners
   if (activeTab === 'prediction') {
-    document.getElementById('btn-pred-mega')?.addEventListener('click', () => {
-      if (predictionCategory === 'MEGA' && predictedNumbers.length > 0) return;
-      predictionCategory = 'MEGA';
-      runPrediction();
-    });
     document.getElementById('btn-pred-power')?.addEventListener('click', () => {
       if (predictionCategory === 'POWER' && predictedNumbers.length > 0) return;
       predictionCategory = 'POWER';
+      runPrediction();
+    });
+    document.getElementById('btn-pred-mega')?.addEventListener('click', () => {
+      if (predictionCategory === 'MEGA' && predictedNumbers.length > 0) return;
+      predictionCategory = 'MEGA';
       runPrediction();
     });
     document.getElementById('btn-predict-action')?.addEventListener('click', runPrediction);
