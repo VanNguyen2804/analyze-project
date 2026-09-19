@@ -20,7 +20,10 @@ Vì bạn đã tạo sẵn database PostgreSQL `analyze_project_db` trên Render
 
 2. **Triển khai Web Service qua Blueprint:**
    * Vào Render &rarr; **New +** &rarr; **Blueprint** &rarr; Chọn repo GitHub.
-   * Khi Render hiển thị trường `SPRING_DATASOURCE_URL`, bạn chỉ cần dán chuỗi URL vừa sao chép ở Bước 1 vào.
+   * Render sẽ yêu cầu bạn nhập các thông tin bảo mật cho môi trường (do được cấu hình `sync: false`):
+     - `SPRING_DATASOURCE_URL`: Dán Internal Database URL (hoặc JDBC URL) của PostgreSQL.
+     - `SPRING_DATASOURCE_USERNAME`: Nhập User của Database (ví dụ: `analyze_project_db_user`).
+     - `SPRING_DATASOURCE_PASSWORD`: Nhập Password của Database.
    * Bấm **Apply** để hoàn tất triển khai.
 
 ---
