@@ -26,6 +26,13 @@
   background: radial-gradient(circle at 18px 18px, #339af0, #1864ab);
 }
 
+.ball-special {
+  background: radial-gradient(circle at 18px 18px, #ffd43b, #f59f00);
+  color: #212529;
+  border: 2px solid #e67700;
+  box-shadow: 0 4px 12px rgba(245, 159, 0, 0.45);
+}
+
 .stat-badge-hot {
   background-color: #ffe3e3;
   color: #c92a2a;

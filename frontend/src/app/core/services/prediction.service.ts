@@ -11,16 +11,33 @@ export interface NumberScoreDetail {
   tag: string; // 'SỐ NÓNG' | 'LÔ GAN' | 'CẶP ĐI KÈM' | 'CÂN BẰNG'
 }
 
+export interface NumberSelectionReason {
+  number: number;
+  role: 'main' | 'special';
+  tag: string;
+  title: string;
+  reason: string;
+  probabilityPercent: number;
+  frequency: number;
+  drawGap: number;
+}
+
 export interface PredictionResponse {
   category: 'MEGA' | 'POWER';
   numbers: number[];
+  specialNumber?: number | null;
   totalDrawsAnalyzed: number;
   hotNumbers: number[];
   coldNumbers: number[];
+  specialHotNumbers?: number[];
   frequentPairs: string[];
+  jackpot2Pairs?: string[];
   oddEvenRatio: string;
   analysisSummary: string;
+  overallReason?: string;
   details: NumberScoreDetail[];
+  selectionReasons?: NumberSelectionReason[];
+  recentDraws?: any[];
 }
 
 @Injectable({

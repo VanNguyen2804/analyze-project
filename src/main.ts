@@ -1030,7 +1030,7 @@ function renderPredictionView(): string {
                       ★${predictionResultData.specialNumber < 10 ? '0' + predictionResultData.specialNumber : predictionResultData.specialNumber}
                     </div>
                     <span class="badge bg-warning text-dark border border-warning mt-2 fw-bold px-2 py-1" style="font-size: 0.72rem;">
-                      ⭐ SỐ PHỤ
+                      ⭐ BANH PHỤ (JACKPOT 2)
                     </span>
                     <small class="text-dark fw-bold mt-1" style="font-size: 0.75rem;">
                       ${predictionResultData.specialNumberDetail?.probabilityPercent || 78}%
