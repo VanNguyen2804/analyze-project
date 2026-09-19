@@ -71,3 +71,17 @@ spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=update
 ```
 Spring Boot sẽ tự động tạo bảng `lottery_numbers` và cập nhật cấu trúc bảng khi khởi động.
+
+---
+
+## 💡 Lưu ý khi cập nhật giao diện (UI) lên Render
+
+1. **Cơ chế đóng gói tự động (`Dockerfile`):**
+   - File `Dockerfile` đã được cấu hình tự động:
+     - **Stage 1**: Biên dịch mã nguồn Angular (`frontend/`).
+     - **Stage 2**: Sao chép toàn bộ file tĩnh mới từ Stage 1 vào thư mục `src/main/resources/static/` của Spring Boot trước khi đóng gói JAR (`mvn package`).
+     - **Stage 3**: Chạy `app.jar` chứa toàn vẹn giao diện Angular mới nhất.
+2. **Xóa bộ nhớ đệm khi deploy (Clear build cache):**
+   - Nếu Render sử dụng bộ nhớ đệm cũ (Docker cache), hãy vào Render Dashboard:
+     - Chọn Web Service của bạn &rarr; Bấm nút **Manual Deploy** &rarr; Chọn **Clear build cache & deploy**.
+   - Thao tác này buộc Render tải mới và build lại toàn bộ từ đầu, đảm bảo giao diện mới được hiển thị ngay lập tức.

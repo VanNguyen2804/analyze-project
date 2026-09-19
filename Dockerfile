@@ -14,7 +14,11 @@ COPY frontend/ ./
 RUN npm run build
 
 # Ensure compatibility with both classic browser builder and application builder
-RUN if [ -d "/app/frontend/dist/frontend/browser" ]; then \
+RUN if [ -d "/app/frontend/dist/analyzeproject/browser" ]; then \
+      cp -r /app/frontend/dist/analyzeproject/browser /app/frontend-dist; \
+    elif [ -d "/app/frontend/dist/analyzeproject" ]; then \
+      cp -r /app/frontend/dist/analyzeproject /app/frontend-dist; \
+    elif [ -d "/app/frontend/dist/frontend/browser" ]; then \
       cp -r /app/frontend/dist/frontend/browser /app/frontend-dist; \
     else \
       cp -r /app/frontend/dist/frontend /app/frontend-dist; \
@@ -32,6 +36,10 @@ ENV MAVEN_OPTS="-Xmx512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 # Copy pom.xml and source code
 COPY backend/pom.xml ./
 COPY backend/src ./src
+
+# Inject freshly built Angular frontend from Stage 1 into backend's static directory before packaging JAR
+RUN rm -rf ./src/main/resources/static/*
+COPY --from=frontend-builder /app/frontend-dist/ ./src/main/resources/static/
 
 # Build production jar skipping tests
 RUN mvn clean package -DskipTests -B

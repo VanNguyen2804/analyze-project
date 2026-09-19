@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:sync": "ng build && rm -rf ../backend/src/main/resources/static/* && cp -r dist/analyzeproject/* ../backend/src/main/resources/static/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
