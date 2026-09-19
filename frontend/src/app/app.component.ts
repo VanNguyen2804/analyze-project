@@ -7,9 +7,4 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'Analyze Project';
-  activeTab: 'manual' | 'prediction' = 'manual';
-
-  setActiveTab(tab: 'manual' | 'prediction'): void {
-    this.activeTab = tab;
-  }
 }

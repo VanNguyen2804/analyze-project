@@ -46,10 +46,6 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   `]
 })
 export class LeftMenuComponent {
-  @Input() activeTab: 'manual' | 'prediction' = 'manual';
-  @Output() tabChange = new EventEmitter<'manual' | 'prediction'>();
-
-  selectTab(tab: 'manual' | 'prediction'): void {
-    this.tabChange.emit(tab);
-  }
+  @Input() activeTab?: string;
+  @Output() tabChange = new EventEmitter<string>();
 }
