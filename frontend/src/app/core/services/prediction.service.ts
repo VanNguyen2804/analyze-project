@@ -3,6 +3,26 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface NumberScoreDetail {
+  number: number;
+  probabilityPercent: number;
+  frequency: number;
+  drawGap: number;
+  tag: string; // 'SỐ NÓNG' | 'LÔ GAN' | 'CẶP ĐI KÈM' | 'CÂN BẰNG'
+}
+
+export interface PredictionResponse {
+  category: 'MEGA' | 'POWER';
+  numbers: number[];
+  totalDrawsAnalyzed: number;
+  hotNumbers: number[];
+  coldNumbers: number[];
+  frequentPairs: string[];
+  oddEvenRatio: string;
+  analysisSummary: string;
+  details: NumberScoreDetail[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -12,10 +32,10 @@ export class PredictionService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Gọi API phân tích và dự đoán bộ 6 số từ mô hình XGBoost
-   * Hỗ trợ category: 'MEGA' (1-45) hoặc 'POWER' (1-55)
+   * Phân tích theo từng dãy số theo ngày cho từng category (MEGA hoặc POWER)
+   * và đề xuất bộ 6 số tối ưu cho category đó.
    */
-  getPrediction(category: 'MEGA' | 'POWER' = 'MEGA'): Observable<number[]> {
-    return this.http.get<number[]>(`${this.apiUrl}?category=${category}`);
+  getPrediction(category: 'MEGA' | 'POWER' = 'MEGA'): Observable<PredictionResponse> {
+    return this.http.get<PredictionResponse>(`${this.apiUrl}?category=${category}`);
   }
 }

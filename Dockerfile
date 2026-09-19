@@ -10,29 +10,40 @@ RUN npm install
 COPY frontend/ ./
 RUN npm run build -- --configuration production
 
+# Ensure compatibility with both classic browser builder and application builder
+RUN if [ -d "/app/frontend/dist/frontend/browser" ]; then \
+      cp -r /app/frontend/dist/frontend/browser /app/frontend-dist; \
+    else \
+      cp -r /app/frontend/dist/frontend /app/frontend-dist; \
+    fi
+
 # ==========================================
 # STAGE 2: Build Spring Boot Backend
 # ==========================================
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS backend-builder
+FROM maven:3.9.6-eclipse-temurin-17 AS backend-builder
 WORKDIR /app/backend
 
-COPY backend/pom.xml ./
-RUN mvn dependency:go-offline -B || true
+# Configure JVM memory limits for Maven to run smoothly within container limits (Render free tier)
+ENV MAVEN_OPTS="-Xmx512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
+# Copy pom.xml and source code
+COPY backend/pom.xml ./
 COPY backend/src ./src
+
+# Build production jar skipping tests
 RUN mvn clean package -DskipTests -B
 
 # ==========================================
 # STAGE 3: Final Unified Production Container
 # ==========================================
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # Copy Spring Boot executable JAR
-COPY --from=backend-builder /app/backend/target/*.jar /app/app.jar
+COPY --from=backend-builder /app/backend/target/analyzeproject-*.jar /app/app.jar
 
 # Copy compiled Angular assets into public directory served by Spring Boot
-COPY --from=frontend-builder /app/frontend/dist/frontend /app/public
+COPY --from=frontend-builder /app/frontend-dist /app/public
 
 # Default environment configuration for Render
 ENV PORT=8080

@@ -49,7 +49,7 @@ public class LotteryNumberController {
         Map<String, Object> response = new HashMap<>();
         if (deleted) {
             response.put("success", true);
-            response.put("message", "Đã xóa thành công khỏi DB H2");
+            response.put("message", "Đã xóa thành công khỏi hệ thống");
             return ResponseEntity.ok(response);
         } else {
             response.put("success", false);

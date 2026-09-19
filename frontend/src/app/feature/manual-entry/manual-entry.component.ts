@@ -130,7 +130,7 @@ export class ManualEntryComponent implements OnInit {
         this.isLoadingList = false;
       },
       error: (err) => {
-        console.error('Lỗi khi tải dữ liệu từ DB H2:', err);
+        console.error('Lỗi khi tải dữ liệu:', err);
         this.isLoadingList = false;
       }
     });
@@ -204,7 +204,7 @@ export class ManualEntryComponent implements OnInit {
     this.successMessage = null;
   }
 
-  saveToH2(): void {
+  saveNumbers(): void {
     this.errorMessage = null;
     this.successMessage = null;
 
@@ -229,26 +229,31 @@ export class ManualEntryComponent implements OnInit {
     }).subscribe({
       next: (saved) => {
         this.isSaving = false;
-        this.successMessage = `Đã lưu thành công bộ 6 số ${saved.category} cho ngày ${saved.drawDate} (${this.dayOfWeekText}) vào DB H2! (ID: #${saved.id})`;
+        this.successMessage = `Đã lưu thành công bộ 6 số ${saved.category} cho ngày ${saved.drawDate} (${this.dayOfWeekText})! (ID: #${saved.id})`;
         this.resetForm();
         this.loadSavedRecords();
       },
       error: (err) => {
         this.isSaving = false;
-        this.errorMessage = err.error?.error || 'Lỗi khi lưu vào DB H2. Vui lòng thử lại!';
+        this.errorMessage = err.error?.error || 'Lỗi khi lưu bộ số. Vui lòng thử lại!';
       }
     });
   }
 
+  // Alias for backwards compatibility
+  saveToH2(): void {
+    this.saveNumbers();
+  }
+
   deleteRecord(id: number | string): void {
-    if (!confirm('Bạn có chắc chắn muốn xóa bộ số này khỏi DB H2 không?')) {
+    if (!confirm('Bạn có chắc chắn muốn xóa bộ số này không?')) {
       return;
     }
 
     this.lotteryService.delete(id).subscribe({
       next: () => {
         this.savedRecords = this.savedRecords.filter(r => r.id !== id);
-        this.successMessage = 'Đã xóa bản ghi khỏi DB H2 thành công.';
+        this.successMessage = 'Đã xóa bản ghi thành công.';
       },
       error: (err) => {
         console.error('Lỗi khi xóa bản ghi:', err);

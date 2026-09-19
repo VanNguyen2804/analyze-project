@@ -1,50 +1,31 @@
 package com.example.analyzeproject.controller;
 
+import com.example.analyzeproject.dto.PredictionResponseDto;
+import com.example.analyzeproject.service.AnalyzeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/analyze")
 @CrossOrigin(origins = "*")
 public class AnalyzeController {
 
-    @GetMapping("/predict")
-    public ResponseEntity<List<Integer>> predictNumbers(@RequestParam(required = false, defaultValue = "MEGA") String category) {
-        int maxLimit = "POWER".equalsIgnoreCase(category) ? 55 : 45;
-        List<Candidate> candidates = new ArrayList<>();
-        Random random = new Random();
+    private final AnalyzeService analyzeService;
 
-        for (int i = 1; i <= maxLimit; i++) {
-            double f1 = random.nextDouble();
-            double f2 = random.nextDouble();
-            double z = f1 * 1.5 - f2 * 0.8 + Math.sin(i) * 0.2;
-            double prob = 1.0 / (1.0 + Math.exp(-z));
-            candidates.add(new Candidate(i, prob));
-        }
-
-        candidates.sort((a, b) -> Double.compare(b.score, a.score));
-
-        List<Integer> top6 = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
-            top6.add(candidates.get(i).number);
-        }
-        Collections.sort(top6);
-
-        return ResponseEntity.ok(top6);
+    @Autowired
+    public AnalyzeController(AnalyzeService analyzeService) {
+        this.analyzeService = analyzeService;
     }
 
-    private static class Candidate {
-        int number;
-        double score;
-
-        Candidate(int number, double score) {
-            this.number = number;
-            this.score = score;
-        }
+    /**
+     * Phân tích theo từng dãy số theo ngày cho từng category và đề xuất 6 số tối ưu.
+     * @param category MEGA (1-45) hoặc POWER (1-55)
+     */
+    @GetMapping("/predict")
+    public ResponseEntity<PredictionResponseDto> predictNumbers(
+            @RequestParam(required = false, defaultValue = "MEGA") String category) {
+        PredictionResponseDto result = analyzeService.analyzeAndPredict(category);
+        return ResponseEntity.ok(result);
     }
 }

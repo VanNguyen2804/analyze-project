@@ -3,14 +3,11 @@
     <div class="card-body p-4">
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-          <h3 class="fw-bold mb-1 text-primary">Nhập dãy 6 số theo ngày & Lưu vào DB H2</h3>
+          <h3 class="fw-bold mb-1 text-primary">Nhập dãy 6 số theo ngày</h3>
           <p class="text-muted mb-0 small">
             Phân loại rõ ràng 2 danh mục: <strong>Mega (1-45)</strong> và <strong>Power (1-55)</strong> theo lịch quay thưởng
           </p>
         </div>
-        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
-          <i class="bi bi-database me-1"></i> H2 DB: Connected
-        </span>
       </div>
 
       <!-- Category Selection Pills -->
@@ -175,13 +172,13 @@
         </div>
         <div class="col-md-4">
           <button
-            id="btn-save-h2"
+            id="btn-save-numbers"
             class="btn btn-primary w-100 fw-bold py-2 shadow-sm"
-            (click)="saveToH2()"
+            (click)="saveNumbers()"
             [disabled]="isSaving || selectedSet.size !== 6"
           >
             <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            {{ isSaving ? 'Đang lưu vào H2...' : '💾 Lưu vào DB H2' }}
+            {{ isSaving ? 'Đang lưu...' : '💾 Lưu bộ số' }}
           </button>
         </div>
       </div>
@@ -196,13 +193,13 @@
     </div>
   </div>
 
-  <!-- Table of Saved Records in H2 DB -->
+  <!-- Table of Saved Records -->
   <div class="card shadow-sm border-0">
     <div class="card-header bg-white py-3">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h5 class="mb-0 fw-bold text-dark">
-            Cơ sở dữ liệu H2 - Các bộ số đã lưu ({{ savedRecords.length }})
+            Các bộ số đã lưu ({{ savedRecords.length }})
           </h5>
           <small class="text-muted">Phân loại Mega &bull; Power theo từng kỳ quay</small>
         </div>
@@ -247,8 +244,8 @@
     
     <div class="card-body p-0">
       <div *ngIf="savedRecords.length === 0" class="text-center py-5 text-muted">
-        <p class="mb-0">Chưa có bản ghi nào phù hợp trong cơ sở dữ liệu H2.</p>
-        <small>Hãy chọn danh mục (Mega/Power), chọn 6 con số ở trên và bấm "Lưu vào DB H2".</small>
+        <p class="mb-0">Chưa có bản ghi nào phù hợp trong hệ thống.</p>
+        <small>Hãy chọn danh mục (Mega/Power), chọn 6 con số ở trên và bấm "Lưu bộ số".</small>
       </div>
 
       <div *ngIf="savedRecords.length > 0" class="table-responsive">
@@ -298,7 +295,7 @@
                 <button
                   class="btn btn-sm btn-outline-danger"
                   (click)="deleteRecord(record.id)"
-                  title="Xóa khỏi DB H2"
+                  title="Xóa bản ghi"
                 >
                   Xóa
                 </button>

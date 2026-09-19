@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "drawDate": "2026-09-19",
+    "category": "POWER",
+    "numbers": [
+      3,
+      12,
+      19,
+      27,
+      34,
+      42
+    ],
+    "createdAt": "2026-09-19T04:34:37.504Z",
+    "note": "Bộ số mẫu khởi tạo"
+  }
+]

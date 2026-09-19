@@ -2,8 +2,7 @@
 # https://render.com/docs/blueprint-spec
 services:
   # ====================================================================
-  # Cách 1 (Khuyên dùng): Deploy Toàn bộ ứng dụng (Angular + Spring Boot + H2)
-  # chạy trong 1 Web Service Docker duy nhất (Tối ưu 100% Free Tier của Render)
+  # Web Service: Unified Docker (Angular Frontend + Spring Boot Backend)
   # ====================================================================
   - type: web
     name: analyze-project
@@ -16,26 +15,18 @@ services:
         value: 10000
       - key: SPRING_PROFILES_ACTIVE
         value: prod
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: analyze-postgres
+          property: connectionString
     healthCheckPath: /api/numbers
 
+databases:
   # ====================================================================
-  # Cách 2 (Tùy chọn): Nếu bạn muốn tách riêng Backend và Frontend
-  # (Bỏ comment nếu muốn sử dụng cách này)
+  # PostgreSQL Database: Render Managed PostgreSQL Database
   # ====================================================================
-  # - type: web
-  #   name: analyze-project-backend
-  #   runtime: docker
-  #   dockerfilePath: ./backend/Dockerfile
-  #   dockerContext: ./backend
-  #   plan: free
-  #   region: singapore
-  #   healthCheckPath: /api/numbers
-  #
-  # - type: static
-  #   name: analyze-project-frontend
-  #   buildCommand: cd frontend && npm install && npm run build
-  #   staticPublishPath: frontend/dist/frontend
-  #   routes:
-  #     - type: rewrite
-  #       source: /*
-  #       destination: /index.html
+  - name: analyze-postgres
+    databaseName: lotterydb
+    user: postgres
+    plan: free
+    region: singapore

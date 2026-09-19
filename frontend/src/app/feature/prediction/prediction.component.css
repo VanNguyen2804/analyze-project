@@ -1,19 +1,51 @@
 .ball {
-  width: 60px;
-  height: 60px;
-  background: radial-gradient(circle at 20px 20px, #00c6ff, #0072ff);
+  width: 58px;
+  height: 58px;
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease;
+  font-size: 22px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
 }
 
 .ball:hover {
-  transform: scale(1.1);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+
+.ball-mega {
+  background: radial-gradient(circle at 18px 18px, #ff6b6b, #c92a2a);
+}
+
+.ball-power {
+  background: radial-gradient(circle at 18px 18px, #339af0, #1864ab);
+}
+
+.stat-badge-hot {
+  background-color: #ffe3e3;
+  color: #c92a2a;
+  border: 1px solid #ffc9c9;
+}
+
+.stat-badge-cold {
+  background-color: #e7f5ff;
+  color: #1864ab;
+  border: 1px solid #d0ebff;
+}
+
+.stat-badge-pair {
+  background-color: #f3f0ff;
+  color: #5f3dc4;
+  border: 1px solid #e5dbff;
+}
+
+.stat-badge-balanced {
+  background-color: #ebfbee;
+  color: #2b8a3e;
+  border: 1px solid #d3f9d8;
 }

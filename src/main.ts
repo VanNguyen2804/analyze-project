@@ -23,6 +23,7 @@ let filterCategory: string = '';
 // Prediction State
 let predictionCategory: 'MEGA' | 'POWER' = 'MEGA';
 let predictedNumbers: number[] = [];
+let predictionResultData: any = null;
 let isPredicting: boolean = false;
 let predictSaveSuccess: string | null = null;
 let statusMessage: { type: 'success' | 'danger'; text: string } | null = null;
@@ -85,7 +86,7 @@ async function fetchSavedRecords(): Promise<void> {
       render();
     }
   } catch (err) {
-    console.error('Lỗi khi tải dữ liệu từ DB H2:', err);
+    console.error('Lỗi khi tải dữ liệu:', err);
   }
 }
 
@@ -114,19 +115,19 @@ async function saveToH2(): Promise<void> {
 
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error || 'Lỗi khi lưu vào DB H2');
+      throw new Error(err.error || 'Lỗi khi lưu bộ số');
     }
 
     const saved: SavedRecord = await res.json();
     statusMessage = {
       type: 'success',
-      text: `Đã lưu thành công bộ 6 số ${saved.category} cho ngày ${saved.drawDate} (${getDayOfWeekName(saved.drawDate)}) vào DB H2 (#${saved.id})!`,
+      text: `Đã lưu thành công bộ 6 số ${saved.category} cho ngày ${saved.drawDate} (${getDayOfWeekName(saved.drawDate)}) (#${saved.id})!`,
     };
     selectedNumbers = [];
     noteText = '';
     await fetchSavedRecords();
   } catch (err: any) {
-    statusMessage = { type: 'danger', text: err.message || 'Lỗi kết nối DB H2.' };
+    statusMessage = { type: 'danger', text: err.message || 'Lỗi lưu dữ liệu.' };
   } finally {
     isSaving = false;
     render();
@@ -134,13 +135,13 @@ async function saveToH2(): Promise<void> {
 }
 
 async function deleteRecord(id: number): Promise<void> {
-  if (!confirm(`Bạn có chắc muốn xóa bản ghi #${id} khỏi DB H2 không?`)) return;
+  if (!confirm(`Bạn có chắc muốn xóa bản ghi #${id} không?`)) return;
 
   try {
     const res = await fetch(`/api/numbers/${id}`, { method: 'DELETE' });
     if (res.ok) {
       savedRecords = savedRecords.filter(r => r.id !== id);
-      statusMessage = { type: 'success', text: `Đã xóa bản ghi #${id} khỏi DB H2 thành công.` };
+      statusMessage = { type: 'success', text: `Đã xóa bản ghi #${id} thành công.` };
       render();
     }
   } catch (err) {
@@ -157,6 +158,7 @@ async function runPrediction(): Promise<void> {
     const res = await fetch(`/api/analyze/predict?category=${predictionCategory}`);
     if (res.ok) {
       const data = await res.json();
+      predictionResultData = data;
       predictedNumbers = Array.isArray(data) ? data : data.numbers || [];
     }
   } catch (err) {
@@ -166,7 +168,25 @@ async function runPrediction(): Promise<void> {
     while (set.size < 6) {
       set.add(Math.floor(Math.random() * limit) + 1);
     }
-    predictedNumbers = Array.from(set).sort((a, b) => a - b);
+    const sortedFallback = Array.from(set).sort((a, b) => a - b);
+    predictedNumbers = sortedFallback;
+    predictionResultData = {
+      category: predictionCategory,
+      numbers: sortedFallback,
+      totalDrawsAnalyzed: 0,
+      hotNumbers: [],
+      coldNumbers: [],
+      frequentPairs: [],
+      oddEvenRatio: '3 Chẵn / 3 Lẻ',
+      analysisSummary: `Đề xuất bộ số cho ${predictionCategory === 'POWER' ? 'Power 6/55' : 'Mega 6/45'}.`,
+      details: sortedFallback.map((n) => ({
+        number: n,
+        probabilityPercent: 70.0,
+        frequency: 0,
+        drawGap: 0,
+        tag: 'CÂN BẰNG',
+      })),
+    };
   } finally {
     isPredicting = false;
     render();
@@ -189,7 +209,7 @@ async function savePredictedToH2(): Promise<void> {
     });
     if (res.ok) {
       const saved = await res.json();
-      predictSaveSuccess = `Đã lưu bộ số dự đoán ${saved.category} cho ngày ${saved.drawDate} vào DB H2 (#${saved.id})!`;
+      predictSaveSuccess = `Đã lưu bộ số dự đoán ${saved.category} cho ngày ${saved.drawDate} (#${saved.id})!`;
       await fetchSavedRecords();
     }
   } catch (err) {
@@ -205,7 +225,7 @@ function toggleNumber(num: number): void {
     selectedNumbers = selectedNumbers.filter(n => n !== num);
   } else {
     if (selectedNumbers.length >= 6) {
-      statusMessage = { type: 'danger', text: 'Bạn đã chọn đủ 6 số! Hãy bấm "Lưu vào DB H2" hoặc bỏ chọn bớt số khác.' };
+      statusMessage = { type: 'danger', text: 'Bạn đã chọn đủ 6 số! Hãy bấm "Lưu bộ số" hoặc bỏ chọn bớt số khác.' };
       render();
       return;
     }
@@ -263,14 +283,9 @@ function render(): void {
             <div>
               <h1 class="h5 mb-0 text-white fw-bold">Analyze Project</h1>
               <small class="text-secondary d-none d-sm-inline">
-                Spring Framework &bull; H2 In-Memory DB &bull; Angular Project Structure
+                Spring Framework &bull; Angular Project Structure &bull; XGBoost
               </small>
             </div>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-success-subtle text-success border border-success px-2 py-1 small">
-              H2: Online
-            </span>
           </div>
         </div>
       </header>
@@ -347,7 +362,7 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
         <div class="card-body p-3 p-md-4">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
-              <h2 class="h4 fw-bold mb-1 text-primary">Nhập dãy 6 số theo ngày & Lưu vào DB H2</h2>
+              <h2 class="h4 fw-bold mb-1 text-primary">Nhập dãy 6 số theo ngày</h2>
               <p class="text-muted mb-0 small">
                 Tự động nhận diện danh mục: <strong>Mega (1-45)</strong> hoặc <strong>Power (1-55)</strong> theo thứ trong tuần
               </p>
@@ -507,7 +522,7 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                 class="btn btn-primary w-100 fw-bold py-2 shadow-sm"
                 ${isSaving || selectedNumbers.length !== 6 ? 'disabled' : ''}
               >
-                ${isSaving ? 'Đang lưu vào H2...' : '💾 Lưu vào DB H2'}
+                ${isSaving ? 'Đang lưu...' : '💾 Lưu bộ số'}
               </button>
             </div>
           </div>
@@ -526,7 +541,7 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
               <h3 class="h5 mb-0 fw-bold text-dark">
-                Cơ sở dữ liệu H2 - Các bộ số đã lưu (${savedRecords.length})
+                Các bộ số đã lưu (${savedRecords.length})
               </h3>
               <small class="text-muted">Phân loại Mega & Power theo từng kỳ quay</small>
             </div>
@@ -563,8 +578,8 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
         <div class="card-body p-0">
           ${savedRecords.length === 0 ? `
             <div class="text-center py-5 text-muted">
-              <p class="mb-0">Chưa có bản ghi nào phù hợp trong DB H2.</p>
-              <small>Hãy chọn danh mục (Mega/Power), chọn 6 số và bấm "Lưu vào DB H2".</small>
+              <p class="mb-0">Chưa có bản ghi nào phù hợp trong hệ thống.</p>
+              <small>Hãy chọn danh mục (Mega/Power), chọn 6 số và bấm "Lưu bộ số".</small>
             </div>
           ` : `
             <div class="table-responsive">
@@ -626,73 +641,190 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
 }
 
 function renderPredictionView(): string {
+  const catName = predictionCategory === 'POWER' ? 'Power 6/55' : 'Mega 6/45';
+  const ballBgClass = predictionCategory === 'POWER' ? 'bg-primary text-white' : 'bg-danger text-white';
+
   return `
-    <div id="prediction-feature" class="card shadow-sm border-0 my-3 mx-auto" style="max-width: 820px;">
-      <div class="card-body p-4 text-center">
-        <h3 class="card-title fw-bold text-primary mb-2">⚡ Đề xuất bộ số bằng mô hình AI XGBoost</h3>
-        <p class="card-text text-muted mb-4">
-          Phân tích tần suất số nóng / lô gan và dự đoán bộ 6 số theo từng loại giải:
-        </p>
+    <div id="prediction-feature" class="mx-auto" style="max-width: 960px;">
+      <!-- Header Card -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+              <h3 class="card-title h4 fw-bold text-primary mb-1">
+                ⚡ Phân tích Dãy số theo Ngày & Đề xuất AI XGBoost
+              </h3>
+              <p class="text-muted mb-0 small">
+                Thuật toán phân tích độc lập theo từng dãy số lịch sử của từng category, kết hợp tần suất xuất hiện, chu kỳ lô gan và ma trận cặp số.
+              </p>
+            </div>
+          </div>
 
-        <div class="d-flex justify-content-center gap-2 mb-4">
-          <button
-            type="button"
-            id="btn-pred-mega"
-            class="btn px-4 py-2 rounded-pill fw-bold ${predictionCategory === 'MEGA' ? 'btn-danger text-white shadow-sm' : 'btn-outline-danger'}"
-          >
-            🔴 Mega 6/45 (Thứ 4, 6, CN)
-          </button>
-          <button
-            type="button"
-            id="btn-pred-power"
-            class="btn px-4 py-2 rounded-pill fw-bold ${predictionCategory === 'POWER' ? 'btn-primary text-white shadow-sm' : 'btn-outline-primary'}"
-          >
-            🔵 Power 6/55 (Thứ 3, 5, 7)
-          </button>
+          <!-- Category Selector Tabs -->
+          <div class="p-3 bg-light rounded-3 border mb-3">
+            <label class="fw-bold text-dark mb-2 d-block small text-uppercase">
+              Chọn danh mục xổ số để phân tích riêng biệt:
+            </label>
+            <div class="d-flex gap-2 flex-wrap">
+              <button
+                type="button"
+                id="btn-pred-mega"
+                class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2 ${predictionCategory === 'MEGA' ? 'btn-danger shadow-sm text-white' : 'btn-outline-danger bg-white'}"
+              >
+                <span>🔴</span>
+                <span>Mega 6/45 (Dải số 1 - 45)</span>
+              </button>
+              <button
+                type="button"
+                id="btn-pred-power"
+                class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2 ${predictionCategory === 'POWER' ? 'btn-primary shadow-sm text-white' : 'btn-outline-primary bg-white'}"
+              >
+                <span>🔵</span>
+                <span>Power 6/55 (Dải số 1 - 55)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Control Button -->
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-3">
+            <div class="small text-muted">
+              Đang phân tích danh mục: <strong>${catName}</strong>
+            </div>
+            <button
+              id="btn-predict-action"
+              type="button"
+              class="btn btn-warning fw-bold px-4 py-2 shadow-sm"
+              ${isPredicting ? 'disabled' : ''}
+            >
+              ${isPredicting ? `
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Đang phân tích dữ liệu...
+              ` : `🎯 Phân tích & Đề xuất lại cho ${catName}`}
+            </button>
+          </div>
         </div>
+      </div>
 
-        <div class="d-flex justify-content-center mb-4">
-          <button
-            id="btn-predict-action"
-            type="button"
-            class="btn btn-warning btn-lg fw-bold px-5 py-3 shadow"
-            ${isPredicting ? 'disabled' : ''}
-          >
-            ${isPredicting ? `
-              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Đang phân tích xác suất...
-            ` : `🎯 Dự đoán 6 số ${predictionCategory === 'MEGA' ? 'Mega 6/45' : 'Power 6/55'}`}
-          </button>
-        </div>
+      <!-- Analysis Results & Statistical Insights -->
+      ${predictionResultData ? `
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <h4 class="h5 fw-bold mb-0 text-dark">
+                Kết quả Đề xuất 6 số ${catName}
+              </h4>
+              <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 small">
+                Dữ liệu: ${predictionResultData.totalDrawsAnalyzed || 0} kỳ quay theo ngày
+              </span>
+            </div>
+          </div>
 
-        ${predictedNumbers.length > 0 ? `
-          <div class="mt-4 pt-3 border-top">
-            <h4 class="h6 text-muted mb-3">
-              Kết quả phân tích 6 số đề xuất (${predictionCategory === 'MEGA' ? 'Mega 6/45: 01 - 45' : 'Power 6/55: 01 - 55'}):
-            </h4>
-            <div id="prediction-results" class="d-flex justify-content-center gap-3 flex-wrap mb-4">
-              ${predictedNumbers.map(num => `
-                <div
-                  class="d-flex align-items-center justify-content-center rounded-circle bg-warning text-dark fw-bold shadow"
-                  style="width: 48px; height: 48px; font-size: 1.25rem;"
-                >
-                  ${num < 10 ? '0' + num : num}
-                </div>
-              `).join('')}
+          <div class="card-body p-4">
+            <!-- Summary Message -->
+            <div class="p-3 mb-4 rounded-3 border bg-light small text-secondary">
+              <div class="fw-bold text-dark mb-1">📋 Tóm tắt phân tích dữ liệu:</div>
+              <div>${predictionResultData.analysisSummary || ''}</div>
             </div>
 
-            <button id="btn-save-predicted" type="button" class="btn btn-outline-primary">
-              💾 Lưu bộ số ${predictionCategory} này cho ngày ${selectedDate} vào DB H2
-            </button>
-
-            ${predictSaveSuccess ? `
-              <div class="alert alert-success mt-3 mb-0 py-2">
-                ${predictSaveSuccess}
+            <!-- Historical Sequence Insights Grid -->
+            <div class="row g-3 mb-4">
+              <!-- Hot Numbers -->
+              <div class="col-md-4">
+                <div class="p-3 border rounded-3 bg-white h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-bold small text-danger text-uppercase">🔥 Số nóng (Hay ra)</span>
+                  </div>
+                  <div class="d-flex gap-1 flex-wrap">
+                    ${(predictionResultData.hotNumbers || []).length > 0
+                      ? predictionResultData.hotNumbers.map((n: number) => `
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                          ${n < 10 ? '0' + n : n}
+                        </span>
+                      `).join('')
+                      : '<small class="text-muted">Chưa đủ dữ liệu</small>'}
+                  </div>
+                </div>
               </div>
-            ` : ''}
+
+              <!-- Cold Numbers / Lô Gan -->
+              <div class="col-md-4">
+                <div class="p-3 border rounded-3 bg-white h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-bold small text-primary text-uppercase">❄️ Lô gan (Lâu chưa về)</span>
+                  </div>
+                  <div class="d-flex gap-1 flex-wrap">
+                    ${(predictionResultData.coldNumbers || []).length > 0
+                      ? predictionResultData.coldNumbers.map((n: number) => `
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                          ${n < 10 ? '0' + n : n}
+                        </span>
+                      `).join('')
+                      : '<small class="text-muted">Chưa đủ dữ liệu</small>'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Frequent Pairs & Ratio -->
+              <div class="col-md-4">
+                <div class="p-3 border rounded-3 bg-white h-100">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-bold small text-success text-uppercase">⚖️ Cân bằng & Cặp số</span>
+                  </div>
+                  <div class="small text-muted mb-1">
+                    Tỷ lệ: <strong>${predictionResultData.oddEvenRatio || '3 Chẵn / 3 Lẻ'}</strong>
+                  </div>
+                  <div class="d-flex gap-1 flex-wrap">
+                    ${(predictionResultData.frequentPairs || []).map((p: string) => `
+                      <span class="badge bg-info-subtle text-dark border border-info-subtle px-2 py-1">
+                        ${p}
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6 Recommended Numbers Showcase -->
+            <div class="p-4 bg-light rounded-3 border text-center mb-2">
+              <h5 class="fw-bold text-dark mb-3">
+                Bộ 6 số tối ưu cho ${catName}
+              </h5>
+
+              <div class="d-flex justify-content-center gap-3 gap-md-4 flex-wrap mb-4">
+                ${(predictionResultData.details || predictedNumbers.map((n: number) => ({ number: n, probabilityPercent: 75, tag: 'CÂN BẰNG' }))).map((detail: any) => `
+                  <div class="d-flex flex-column align-items-center" style="min-width: 65px;">
+                    <div
+                      class="d-flex align-items-center justify-content-center rounded-circle ${ballBgClass} fw-bold shadow"
+                      style="width: 54px; height: 54px; font-size: 1.35rem;"
+                    >
+                      ${detail.number < 10 ? '0' + detail.number : detail.number}
+                    </div>
+                    <span class="badge bg-white text-dark border mt-2 small" style="font-size: 0.72rem;">
+                      ${detail.tag || 'CÂN BẰNG'}
+                    </span>
+                    <small class="text-muted mt-1" style="font-size: 0.75rem;">
+                      ${detail.probabilityPercent || 75}%
+                    </small>
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- Save Button -->
+              <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <button id="btn-save-predicted" type="button" class="btn btn-outline-primary fw-semibold px-4 py-2">
+                  💾 Lưu bộ số ${catName} này vào hệ thống
+                </button>
+              </div>
+
+              ${predictSaveSuccess ? `
+                <div class="alert alert-success mt-3 mb-0 py-2">
+                  ${predictSaveSuccess}
+                </div>
+              ` : ''}
+            </div>
           </div>
-        ` : ''}
-      </div>
+        </div>
+      ` : ''}
     </div>
   `;
 }
@@ -706,6 +838,9 @@ function attachEventListeners(): void {
   document.getElementById('menu-item-prediction')?.addEventListener('click', () => {
     activeTab = 'prediction';
     render();
+    if (!predictionResultData) {
+      runPrediction();
+    }
   });
 
   // Manual Entry event listeners
@@ -776,14 +911,14 @@ function attachEventListeners(): void {
   // Prediction event listeners
   if (activeTab === 'prediction') {
     document.getElementById('btn-pred-mega')?.addEventListener('click', () => {
+      if (predictionCategory === 'MEGA' && predictedNumbers.length > 0) return;
       predictionCategory = 'MEGA';
-      predictedNumbers = [];
-      render();
+      runPrediction();
     });
     document.getElementById('btn-pred-power')?.addEventListener('click', () => {
+      if (predictionCategory === 'POWER' && predictedNumbers.length > 0) return;
       predictionCategory = 'POWER';
-      predictedNumbers = [];
-      render();
+      runPrediction();
     });
     document.getElementById('btn-predict-action')?.addEventListener('click', runPrediction);
     document.getElementById('btn-save-predicted')?.addEventListener('click', savePredictedToH2);

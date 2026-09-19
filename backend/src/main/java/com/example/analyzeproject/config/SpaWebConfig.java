@@ -19,8 +19,8 @@ public class SpaWebConfig implements WebMvcConfigurer {
                 .addResolver(new PathResourceResolver() {
                     @Override
                     protected Resource getResource(String resourcePath, Resource location) throws IOException {
-                        // Do not route /api/** or /h2-console to index.html
-                        if (resourcePath.startsWith("api") || resourcePath.startsWith("h2-console")) {
+                        // Do not route /api/** to index.html
+                        if (resourcePath.startsWith("api")) {
                             return null;
                         }
                         Resource requestedResource = location.createRelative(resourcePath);

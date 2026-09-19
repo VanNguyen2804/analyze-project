@@ -14,7 +14,7 @@
   <artifactId>analyzeproject</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>analyzeproject</name>
-  <description>Lottery Prediction &amp; Number Storage backend with H2 Database</description>
+  <description>Lottery Prediction &amp; Number Storage backend with PostgreSQL</description>
 
   <properties>
     <java.version>17</java.version>
@@ -33,10 +33,10 @@
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 
-    <!-- H2 In-Memory Database -->
+    <!-- PostgreSQL Driver -->
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
 
