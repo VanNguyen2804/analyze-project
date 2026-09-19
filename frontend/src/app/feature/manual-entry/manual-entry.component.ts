@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { LotteryService } from '../../core/services/lottery.service';
+import { CategoryService } from '../../core/services/category.service';
 import { SavedLotteryRecord } from '../../core/models/lottery-number.model';
 
 @Component({
@@ -7,10 +9,10 @@ import { SavedLotteryRecord } from '../../core/models/lottery-number.model';
   templateUrl: './manual-entry.component.html',
   styleUrls: ['./manual-entry.component.css']
 })
-export class ManualEntryComponent implements OnInit {
+export class ManualEntryComponent implements OnInit, OnDestroy {
   // Category state: 'MEGA' (1-45, Wed/Fri/Sun) vs 'POWER' (1-55, Tue/Thu/Sat)
-  selectedCategory: 'MEGA' | 'POWER' = 'MEGA';
-  filterCategory: string = ''; // '' = all, 'MEGA', 'POWER'
+  selectedCategory: 'MEGA' | 'POWER' = 'POWER';
+  filterCategory: string = 'POWER'; // 'MEGA', 'POWER'
 
   // Dynamic grid numbers based on category
   gridNumbers: number[] = [];
@@ -30,13 +32,27 @@ export class ManualEntryComponent implements OnInit {
   errorMessage: string | null = null;
 
   savedRecords: SavedLotteryRecord[] = [];
+  private catSub?: Subscription;
 
-  constructor(private lotteryService: LotteryService) {}
+  constructor(
+    private lotteryService: LotteryService,
+    private categoryService: CategoryService
+  ) {}
 
   ngOnInit(): void {
-    this.updateCategoryFromDate(this.selectedDate);
+    this.selectedCategory = this.categoryService.currentCategory;
+    this.filterCategory = this.selectedCategory;
+    this.catSub = this.categoryService.category$.subscribe(cat => {
+      if (this.selectedCategory !== cat) {
+        this.setCategory(cat);
+      }
+    });
     this.refreshGridNumbers();
     this.loadSavedRecords();
+  }
+
+  ngOnDestroy(): void {
+    this.catSub?.unsubscribe();
   }
 
   get maxLimit(): number {
@@ -78,7 +94,10 @@ export class ManualEntryComponent implements OnInit {
 
   onDateChange(): void {
     this.updateCategoryFromDate(this.selectedDate);
+    this.categoryService.setCategory(this.selectedCategory);
+    this.filterCategory = this.selectedCategory;
     this.refreshGridNumbers();
+    this.loadSavedRecords();
   }
 
   /**
@@ -101,18 +120,19 @@ export class ManualEntryComponent implements OnInit {
   }
 
   setCategory(cat: 'MEGA' | 'POWER'): void {
-    if (this.selectedCategory !== cat) {
-      this.selectedCategory = cat;
-      this.refreshGridNumbers();
-      // Remove any selected numbers that exceed new limit
-      const currentSelected = Array.from(this.selectedSet);
-      const filtered = currentSelected.filter(n => n <= this.maxLimit);
-      if (filtered.length < currentSelected.length) {
-        this.selectedSet = new Set(filtered);
-        this.syncFromSet();
-        this.errorMessage = `Đã tự động loại bỏ các số vượt quá giới hạn ${this.maxLimit} của danh mục ${cat}!`;
-      }
+    this.selectedCategory = cat;
+    this.filterCategory = cat;
+    this.categoryService.setCategory(cat);
+    this.refreshGridNumbers();
+    // Remove any selected numbers that exceed new limit
+    const currentSelected = Array.from(this.selectedSet);
+    const filtered = currentSelected.filter(n => n <= this.maxLimit);
+    if (filtered.length < currentSelected.length) {
+      this.selectedSet = new Set(filtered);
+      this.syncFromSet();
+      this.errorMessage = `Đã tự động loại bỏ các số vượt quá giới hạn ${this.maxLimit} của danh mục ${cat}!`;
     }
+    this.loadSavedRecords();
   }
 
   refreshGridNumbers(): void {
@@ -122,11 +142,12 @@ export class ManualEntryComponent implements OnInit {
   loadSavedRecords(): void {
     this.isLoadingList = true;
     const queryDate = this.filterDate.trim() ? this.filterDate.trim() : undefined;
-    const queryCategory = this.filterCategory.trim() ? this.filterCategory.trim() : undefined;
+    const targetCategory = this.filterCategory.trim() ? this.filterCategory.trim() : this.selectedCategory;
 
-    this.lotteryService.getAll(queryDate, queryCategory).subscribe({
+    this.lotteryService.getAll(queryDate, targetCategory).subscribe({
       next: (records: any[]) => {
-        this.savedRecords = records;
+        // Guarantee only records for the exact selected category are displayed
+        this.savedRecords = (records || []).filter(r => r.category === targetCategory);
         this.isLoadingList = false;
       },
       error: (err: any) => {

@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { CategoryService } from '../../../core/services/category.service';
 
 @Component({
   selector: 'app-left-menu',
@@ -35,6 +37,23 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
       color: #0d6efd;
       font-weight: 600;
     }
+    .category-btn {
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid #dee2e6;
+      background: #ffffff;
+    }
+    .category-btn:hover {
+      transform: translateY(-1px);
+    }
+    .active-power {
+      background: #e7f1ff !important;
+      border-color: #0d6efd !important;
+    }
+    .active-mega {
+      background: #ffe3e3 !important;
+      border-color: #dc3545 !important;
+    }
     @media (max-width: 767.98px) {
       .left-menu {
         width: 100%;
@@ -45,7 +64,27 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
     }
   `]
 })
-export class LeftMenuComponent {
+export class LeftMenuComponent implements OnInit, OnDestroy {
   @Input() activeTab?: string;
   @Output() tabChange = new EventEmitter<string>();
+
+  currentCategory: 'MEGA' | 'POWER' = 'POWER';
+  private catSub?: Subscription;
+
+  constructor(private categoryService: CategoryService) {}
+
+  ngOnInit(): void {
+    this.currentCategory = this.categoryService.currentCategory;
+    this.catSub = this.categoryService.category$.subscribe(cat => {
+      this.currentCategory = cat;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.catSub?.unsubscribe();
+  }
+
+  selectCategory(cat: 'MEGA' | 'POWER'): void {
+    this.categoryService.setCategory(cat);
+  }
 }

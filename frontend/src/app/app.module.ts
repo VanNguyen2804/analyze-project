@@ -17,6 +17,7 @@ import { LeftMenuComponent } from './share/components/left-menu/left-menu.compon
 // Core services
 import { PredictionService } from './core/services/prediction.service';
 import { LotteryService } from './core/services/lottery.service';
+import { CategoryService } from './core/services/category.service';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { LotteryService } from './core/services/lottery.service';
   ],
   providers: [
     PredictionService,
-    LotteryService
+    LotteryService,
+    CategoryService
   ],
   bootstrap: [AppComponent]
 })

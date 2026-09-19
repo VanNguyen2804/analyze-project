@@ -1,15 +1,16 @@
 <nav class="left-menu p-3">
+  <!-- Zone 1: Main navigation -->
   <div class="text-uppercase text-muted fw-bold small px-2 mb-2">
     Chức năng chính
   </div>
-  <div class="d-flex flex-column gap-1">
+  <div class="d-flex flex-column gap-1 mb-4">
     <a
       routerLink="/analyze"
       routerLinkActive="active"
       class="menu-item"
     >
-      <span class="fs-5">🤖</span>
-      <span>Dự đoán AI (Trang chủ /analyze)</span>
+      <span class="fs-5">⚡</span>
+      <span>Dự đoán AI XGBoost</span>
     </a>
     <a
       routerLink="/entry"
@@ -21,16 +22,76 @@
     </a>
   </div>
 
-  <hr class="my-4 text-muted opacity-25" />
-
-  <div class="px-2">
-    <div class="text-uppercase text-muted fw-bold small mb-2">
-      Thông tin hệ thống
+  <!-- Zone 2: Category selection transferred here -->
+  <div class="border-top pt-3 mb-4">
+    <div class="text-uppercase text-muted fw-bold small px-2 mb-2">
+      Chọn danh mục xổ số
     </div>
-    <div class="bg-light p-2 rounded small text-secondary">
-      <div><strong>Trang chủ:</strong> <code>/analyze</code></div>
-      <div><strong>Backend:</strong> Spring Boot 3</div>
-      <div><strong>Algorithm:</strong> XGBoost ML</div>
+    <div class="d-flex flex-column gap-2">
+      <button
+        type="button"
+        id="btn-leftmenu-power"
+        class="category-btn p-2 rounded-3 text-start d-flex align-items-center justify-content-between"
+        [class.active-power]="currentCategory === 'POWER'"
+        (click)="selectCategory('POWER')"
+      >
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">🔵</span>
+          <div>
+            <div class="fw-bold fs-6">Power 6/55</div>
+            <small class="text-muted d-block" style="font-size: 0.75rem;">1 - 55 &bull; Có Số Phụ</small>
+          </div>
+        </div>
+        <span
+          class="badge"
+          [ngClass]="currentCategory === 'POWER' ? 'bg-primary text-white' : 'bg-light text-muted border'"
+        >
+          {{ currentCategory === 'POWER' ? 'Đang chọn' : 'Chọn' }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        id="btn-leftmenu-mega"
+        class="category-btn p-2 rounded-3 text-start d-flex align-items-center justify-content-between"
+        [class.active-mega]="currentCategory === 'MEGA'"
+        (click)="selectCategory('MEGA')"
+      >
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">🔴</span>
+          <div>
+            <div class="fw-bold fs-6">Mega 6/45</div>
+            <small class="text-muted d-block" style="font-size: 0.75rem;">1 - 45 &bull; Thứ 4, 6, CN</small>
+          </div>
+        </div>
+        <span
+          class="badge"
+          [ngClass]="currentCategory === 'MEGA' ? 'bg-danger text-white' : 'bg-light text-muted border'"
+        >
+          {{ currentCategory === 'MEGA' ? 'Đang chọn' : 'Chọn' }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Zone 3: Schedule summary -->
+  <div class="border-top pt-3 d-none d-md-block">
+    <div class="text-uppercase text-muted fw-bold small px-2 mb-2">
+      Lịch mở thưởng
+    </div>
+    <div class="small p-2 bg-light rounded border mb-2">
+      <div class="fw-bold text-primary mb-1">🔵 Power 6/55</div>
+      <div class="text-muted" style="font-size: 0.75rem;">
+        Quay: Thứ 3, 5, 7<br />
+        Jackpot 1 & Jackpot 2 (Số phụ)
+      </div>
+    </div>
+    <div class="small p-2 bg-light rounded border">
+      <div class="fw-bold text-danger mb-1">🔴 Mega 6/45</div>
+      <div class="text-muted" style="font-size: 0.75rem;">
+        Quay: Thứ 4, 6, Chủ nhật<br />
+        Jackpot trúng 6/6 số chính
+      </div>
     </div>
   </div>
 </nav>

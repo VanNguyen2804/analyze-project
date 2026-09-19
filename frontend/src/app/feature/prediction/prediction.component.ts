@@ -1,39 +1,46 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { PredictionService, PredictionResponse, NumberScoreDetail } from '../../core/services/prediction.service';
 import { LotteryService } from '../../core/services/lottery.service';
+import { CategoryService } from '../../core/services/category.service';
 
 @Component({
   selector: 'app-prediction',
   templateUrl: './prediction.component.html',
   styleUrls: ['./prediction.component.css']
 })
-export class PredictionComponent implements OnInit {
-  category: 'MEGA' | 'POWER' = 'MEGA';
+export class PredictionComponent implements OnInit, OnDestroy {
+  category: 'MEGA' | 'POWER' = 'POWER';
   predictionResult: PredictionResponse | null = null;
   predictedNumbers: number[] = [];
   isSpinning: boolean = false;
   isSaving: boolean = false;
   saveMessage: string | null = null;
   errorMessage: string | null = null;
+  private catSub?: Subscription;
 
   constructor(
     private predictionService: PredictionService,
-    private lotteryService: LotteryService
+    private lotteryService: LotteryService,
+    private categoryService: CategoryService
   ) {}
 
   ngOnInit(): void {
-    // Tự động phân tích ngay khi mở trang
-    this.onPredict();
+    this.category = this.categoryService.currentCategory;
+    this.catSub = this.categoryService.category$.subscribe(cat => {
+      if (this.category !== cat || this.predictedNumbers.length === 0) {
+        this.category = cat;
+        this.onPredict();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.catSub?.unsubscribe();
   }
 
   setCategory(cat: 'MEGA' | 'POWER'): void {
-    if (this.category === cat && this.predictedNumbers.length > 0) return;
-    this.category = cat;
-    this.predictionResult = null;
-    this.predictedNumbers = [];
-    this.errorMessage = null;
-    this.saveMessage = null;
-    this.onPredict();
+    this.categoryService.setCategory(cat);
   }
 
   onPredict(): void {

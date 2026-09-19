@@ -85,7 +85,7 @@ let noteText: string = '';
 let isSaving: boolean = false;
 let savedRecords: SavedRecord[] = [];
 let filterDate: string = '';
-let filterCategory: string = '';
+let filterCategory: string = 'POWER';
 
 // Prediction State
 let predictionCategory: 'MEGA' | 'POWER' = 'POWER';
@@ -147,14 +147,16 @@ function getMaxLimit(): number {
 // Data Fetching
 async function fetchSavedRecords(): Promise<void> {
   try {
+    const cat = filterCategory || selectedCategory;
     const params = new URLSearchParams();
     if (filterDate.trim()) params.set('date', filterDate.trim());
-    if (filterCategory.trim()) params.set('category', filterCategory.trim());
+    params.set('category', cat);
 
-    const url = params.toString() ? `/api/numbers?${params.toString()}` : '/api/numbers';
+    const url = `/api/numbers?${params.toString()}`;
     const res = await fetch(url);
     if (res.ok) {
-      savedRecords = await res.json();
+      const records: SavedRecord[] = await res.json();
+      savedRecords = records.filter((r) => r.category === cat);
       render();
     }
   } catch (err) {
@@ -378,21 +380,37 @@ function setDate(newDate: string): void {
   selectedDate = newDate;
   const autoCat = getCategoryFromDate(newDate);
   selectedCategory = autoCat;
+  predictionCategory = autoCat;
+  filterCategory = autoCat;
   if (autoCat === 'MEGA') {
     selectedNumbers = selectedNumbers.filter(n => n <= 45);
     selectedSpecialNumber = null;
   }
-  render();
+  fetchSavedRecords();
 }
 
-function switchCategory(cat: 'MEGA' | 'POWER'): void {
+function selectCategoryGlobally(cat: 'MEGA' | 'POWER'): void {
   selectedCategory = cat;
+  predictionCategory = cat;
+  filterCategory = cat;
+
   if (cat === 'MEGA') {
     selectedNumbers = selectedNumbers.filter(n => n <= 45);
     selectedSpecialNumber = null;
     activeSelectionTarget = 'main';
   }
-  render();
+
+  if (activeTab === 'prediction') {
+    historyLimit = 10;
+    historyFilterNumber = null;
+    runPrediction();
+  } else {
+    fetchSavedRecords();
+  }
+}
+
+function switchCategory(cat: 'MEGA' | 'POWER'): void {
+  selectCategoryGlobally(cat);
 }
 
 // Render DOM
@@ -455,6 +473,48 @@ function render(): void {
             </button>
           </div>
 
+          <!-- Zone 2: Chọn danh mục xổ số ở Menu trái -->
+          <div class="border-top pt-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <small class="text-uppercase text-muted fw-bold">Chọn danh mục xổ số</small>
+            </div>
+            <div class="d-flex flex-column gap-2">
+              <button
+                id="menu-cat-power"
+                type="button"
+                class="btn text-start p-2 rounded-3 border d-flex align-items-center justify-content-between transition ${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'POWER' ? 'btn-primary text-white shadow-sm' : 'btn-light bg-white text-dark'}"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fs-5">🔵</span>
+                  <div>
+                    <div class="fw-bold fs-6">Power 6/55</div>
+                    <small class="${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'POWER' ? 'text-white-50' : 'text-muted'} d-block" style="font-size: 0.75rem;">1 - 55 &bull; Có Số phụ</small>
+                  </div>
+                </div>
+                <span class="badge ${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'POWER' ? 'bg-warning text-dark' : 'bg-light text-muted border'}">
+                  ${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'POWER' ? 'Đang chọn' : 'Chọn'}
+                </span>
+              </button>
+
+              <button
+                id="menu-cat-mega"
+                type="button"
+                class="btn text-start p-2 rounded-3 border d-flex align-items-center justify-content-between transition ${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'MEGA' ? 'btn-danger text-white shadow-sm' : 'btn-light bg-white text-dark'}"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fs-5">🔴</span>
+                  <div>
+                    <div class="fw-bold fs-6">Mega 6/45</div>
+                    <small class="${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'MEGA' ? 'text-white-50' : 'text-muted'} d-block" style="font-size: 0.75rem;">1 - 45 &bull; Thứ 4, 6, CN</small>
+                  </div>
+                </div>
+                <span class="badge ${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'MEGA' ? 'bg-warning text-dark' : 'bg-light text-muted border'}">
+                  ${(activeTab === 'prediction' ? predictionCategory : selectedCategory) === 'MEGA' ? 'Đang chọn' : 'Chọn'}
+                </span>
+              </button>
+            </div>
+          </div>
+
           <!-- Schedule box -->
           <div class="mt-4 pt-3 border-top d-none d-md-block">
             <small class="text-uppercase text-muted fw-bold">Thể lệ quay thưởng</small>
@@ -513,50 +573,20 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
             </div>
           </div>
 
-          <!-- Category Selection -->
-          <div class="p-3 mb-4 rounded-3 border bg-light shadow-sm">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-              <label class="fw-bold text-dark mb-0">🏷️ Chọn danh mục xổ số:</label>
-              <span class="small text-muted">Tự động chuyển theo thứ trong tuần của ngày quay</span>
-            </div>
-
-            <div class="row g-2">
-              <div class="col-md-6">
-                <button
-                  type="button"
-                  id="btn-cat-power"
-                  class="btn w-100 p-3 text-start border rounded-3 transition ${isPower ? 'btn-primary text-white shadow-sm' : 'btn-white bg-white text-dark'}"
-                >
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold fs-6">🔵 POWER 6/55 (Có Số Phụ)</span>
-                    <span class="badge ${isPower ? 'bg-warning text-dark' : 'bg-primary-subtle text-primary'}">
-                      6 số + 1 số phụ
-                    </span>
-                  </div>
-                  <small class="d-block mt-1 opacity-75">
-                    📅 Lịch quay: <strong>Thứ 3 &bull; Thứ 5 &bull; Thứ 7</strong> &bull; Dải số 01 &rarr; 55
-                  </small>
-                </button>
-              </div>
-
-              <div class="col-md-6">
-                <button
-                  type="button"
-                  id="btn-cat-mega"
-                  class="btn w-100 p-3 text-start border rounded-3 transition ${!isPower ? 'btn-danger text-white shadow-sm' : 'btn-white bg-white text-dark'}"
-                >
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold fs-6">🔴 MEGA 6/45</span>
-                    <span class="badge ${!isPower ? 'bg-white text-danger' : 'bg-danger-subtle text-danger'}">
-                      Số: 01 &rarr; 45
-                    </span>
-                  </div>
-                  <small class="d-block mt-1 opacity-75">
-                    📅 Lịch quay: <strong>Thứ 4 &bull; Thứ 6 &bull; Chủ nhật</strong>
-                  </small>
-                </button>
+          <!-- Active Category Banner (Selected via Left Menu) -->
+          <div class="d-flex align-items-center justify-content-between p-2 px-3 mb-4 rounded-3 bg-light border flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-5">${isPower ? '🔵' : '🔴'}</span>
+              <div>
+                <span class="small text-muted d-block">Danh mục đang nhập:</span>
+                <strong class="fs-6 ${isPower ? 'text-primary' : 'text-danger'}">
+                  ${isPower ? 'Power 6/55 (Dải số 1 - 55 & Số phụ)' : 'Mega 6/45 (Dải số 1 - 45)'}
+                </strong>
               </div>
             </div>
+            <span class="badge ${isPower ? 'bg-primary text-white' : 'bg-danger text-white'}">
+              Đổi danh mục tại Menu trái
+            </span>
           </div>
 
           <!-- Date Selector -->
@@ -772,7 +802,6 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
             <!-- Filters -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <select id="select-filter-category" class="form-select form-select-sm" style="width: 145px;">
-                <option value="" ${filterCategory === '' ? 'selected' : ''}>Tất cả danh mục</option>
                 <option value="POWER" ${filterCategory === 'POWER' ? 'selected' : ''}>🔵 Power 6/55</option>
                 <option value="MEGA" ${filterCategory === 'MEGA' ? 'selected' : ''}>🔴 Mega 6/45</option>
               </select>
@@ -785,9 +814,9 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                 value="${filterDate}"
               />
 
-              ${(filterDate || filterCategory) ? `
+              ${filterDate ? `
                 <button type="button" id="btn-clear-filters" class="btn btn-sm btn-outline-secondary text-nowrap">
-                  Hiện tất cả
+                  Xóa lọc ngày
                 </button>
               ` : ''}
 
@@ -919,21 +948,9 @@ function renderPredictionView(): string {
 
             <!-- Action buttons -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
-              <div class="btn-group shadow-sm" role="group">
-                <button
-                  type="button"
-                  id="btn-pred-power"
-                  class="btn fw-bold px-3 py-2 ${isPower ? 'btn-primary text-white' : 'btn-outline-primary bg-white'}"
-                >
-                  🔵 Power 6/55 (Có Số phụ)
-                </button>
-                <button
-                  type="button"
-                  id="btn-pred-mega"
-                  class="btn fw-bold px-3 py-2 ${!isPower ? 'btn-danger text-white' : 'btn-outline-danger bg-white'}"
-                >
-                  🔴 Mega 6/45
-                </button>
+              <div class="badge ${isPower ? 'bg-primary text-white' : 'bg-danger text-white'} p-2 px-3 fs-6 fw-semibold shadow-sm d-flex align-items-center gap-2">
+                <span>${isPower ? '🔵' : '🔴'}</span>
+                <span>${isPower ? 'Power 6/55 (Có Số phụ)' : 'Mega 6/45'}</span>
               </div>
 
               <button
@@ -1363,7 +1380,8 @@ function attachEventListeners(): void {
   // Tab switching
   document.getElementById('menu-item-manual')?.addEventListener('click', () => {
     activeTab = 'manual';
-    render();
+    filterCategory = selectedCategory;
+    fetchSavedRecords();
   });
   document.getElementById('menu-item-prediction')?.addEventListener('click', () => {
     activeTab = 'prediction';
@@ -1371,6 +1389,14 @@ function attachEventListeners(): void {
     if (!predictionResultData || predictionResultData.category !== predictionCategory) {
       runPrediction();
     }
+  });
+
+  // Category switching in Left Menu
+  document.getElementById('menu-cat-power')?.addEventListener('click', () => {
+    selectCategoryGlobally('POWER');
+  });
+  document.getElementById('menu-cat-mega')?.addEventListener('click', () => {
+    selectCategoryGlobally('MEGA');
   });
 
   // Manual Entry event listeners
@@ -1468,8 +1494,10 @@ function attachEventListeners(): void {
     // Filters
     const catFilter = document.getElementById('select-filter-category') as HTMLSelectElement | null;
     catFilter?.addEventListener('change', (e) => {
-      filterCategory = (e.target as HTMLSelectElement).value;
-      fetchSavedRecords();
+      const val = (e.target as HTMLSelectElement).value as 'POWER' | 'MEGA';
+      if (val === 'POWER' || val === 'MEGA') {
+        switchCategory(val);
+      }
     });
 
     const dateFilter = document.getElementById('input-filter-date') as HTMLInputElement | null;
@@ -1480,7 +1508,6 @@ function attachEventListeners(): void {
 
     document.getElementById('btn-clear-filters')?.addEventListener('click', () => {
       filterDate = '';
-      filterCategory = '';
       fetchSavedRecords();
     });
 

@@ -10,58 +10,20 @@
         </div>
       </div>
 
-      <!-- Category Selection Pills -->
-      <div class="p-3 mb-4 rounded-3 border bg-light shadow-sm">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-          <label class="fw-bold text-dark mb-0">
-            🏷️ Chọn danh mục xổ số:
-          </label>
-          <span class="small text-muted">
-            Tự động gợi ý theo thứ trong tuần của ngày mở thưởng
-          </span>
-        </div>
-
-        <div class="row g-2">
-          <div class="col-md-6">
-            <button
-              type="button"
-              id="btn-category-mega"
-              class="btn w-100 p-3 text-start border rounded-3 transition position-relative"
-              [ngClass]="selectedCategory === 'MEGA' ? 'btn-danger text-white shadow-sm' : 'btn-white bg-white text-dark'"
-              (click)="setCategory('MEGA')"
-            >
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-bold fs-6">🔴 MEGA 6/45</span>
-                <span class="badge" [ngClass]="selectedCategory === 'MEGA' ? 'bg-white text-danger' : 'bg-danger-subtle text-danger'">
-                  Số: 01 &rarr; 45
-                </span>
-              </div>
-              <small class="d-block mt-1 opacity-75">
-                📅 Lịch quay: <strong>Thứ 4 &bull; Thứ 6 &bull; Chủ nhật</strong>
-              </small>
-            </button>
-          </div>
-
-          <div class="col-md-6">
-            <button
-              type="button"
-              id="btn-category-power"
-              class="btn w-100 p-3 text-start border rounded-3 transition position-relative"
-              [ngClass]="selectedCategory === 'POWER' ? 'btn-primary text-white shadow-sm' : 'btn-white bg-white text-dark'"
-              (click)="setCategory('POWER')"
-            >
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-bold fs-6">🔵 POWER 6/55</span>
-                <span class="badge" [ngClass]="selectedCategory === 'POWER' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary'">
-                  Số: 01 &rarr; 55
-                </span>
-              </div>
-              <small class="d-block mt-1 opacity-75">
-                📅 Lịch quay: <strong>Thứ 3 &bull; Thứ 5 &bull; Thứ 7</strong>
-              </small>
-            </button>
+      <!-- Active Category Banner (Selected from Left Menu) -->
+      <div class="d-flex align-items-center justify-content-between p-2 px-3 mb-4 rounded-3 bg-light border flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">{{ selectedCategory === 'POWER' ? '🔵' : '🔴' }}</span>
+          <div>
+            <span class="small text-muted d-block">Danh mục đang nhập:</span>
+            <strong class="fs-6" [ngClass]="selectedCategory === 'POWER' ? 'text-primary' : 'text-danger'">
+              {{ selectedCategory === 'POWER' ? 'Power 6/55 (Dải số 1 - 55 & Số phụ)' : 'Mega 6/45 (Dải số 1 - 45)' }}
+            </strong>
           </div>
         </div>
+        <span class="badge" [ngClass]="selectedCategory === 'POWER' ? 'bg-primary text-white' : 'bg-danger text-white'">
+          Đổi danh mục tại Menu trái
+        </span>
       </div>
 
       <!-- Date Selection Row -->
@@ -216,9 +178,8 @@
             class="form-select form-select-sm"
             style="width: 140px;"
             [(ngModel)]="filterCategory"
-            (change)="loadSavedRecords()"
+            (change)="setCategory(filterCategory === 'POWER' ? 'POWER' : 'MEGA')"
           >
-            <option value="">Tất cả danh mục</option>
             <option value="MEGA">🔴 Mega 6/45</option>
             <option value="POWER">🔵 Power 6/55</option>
           </select>
@@ -233,11 +194,11 @@
           />
 
           <button
-            *ngIf="filterDate || filterCategory"
+            *ngIf="filterDate"
             class="btn btn-sm btn-outline-secondary text-nowrap"
-            (click)="filterDate = ''; filterCategory = ''; loadSavedRecords()"
+            (click)="filterDate = ''; loadSavedRecords()"
           >
-            Hiện tất cả
+            Xóa lọc ngày
           </button>
 
           <button class="btn btn-sm btn-outline-primary text-nowrap" (click)="loadSavedRecords()" [disabled]="isLoadingList">

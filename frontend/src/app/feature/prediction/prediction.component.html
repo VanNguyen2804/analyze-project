@@ -13,31 +13,20 @@
         </div>
       </div>
 
-      <!-- Category Selector Tabs -->
-      <div class="p-3 bg-light rounded-3 border mb-3">
-        <label class="fw-bold text-dark mb-2 d-block small text-uppercase">
-          Chọn danh mục xổ số để phân tích riêng biệt:
-        </label>
-        <div class="d-flex gap-2 flex-wrap">
-          <button
-            type="button"
-            class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2"
-            [ngClass]="category === 'MEGA' ? 'btn-danger shadow-sm text-white' : 'btn-outline-danger bg-white'"
-            (click)="setCategory('MEGA')"
-          >
-            <span>🔴</span>
-            <span>Mega 6/45 (Dải số 1 - 45)</span>
-          </button>
-          <button
-            type="button"
-            class="btn px-4 py-2 fw-bold d-flex align-items-center gap-2"
-            [ngClass]="category === 'POWER' ? 'btn-primary shadow-sm text-white' : 'btn-outline-primary bg-white'"
-            (click)="setCategory('POWER')"
-          >
-            <span>🔵</span>
-            <span>Power 6/55 (Dải số 1 - 55)</span>
-          </button>
+      <!-- Current Category Indicator (Selected via Left Menu) -->
+      <div class="d-flex align-items-center justify-content-between p-2 px-3 bg-light rounded-3 border mb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">{{ category === 'POWER' ? '🔵' : '🔴' }}</span>
+          <div>
+            <span class="small text-muted d-block">Danh mục đang phân tích:</span>
+            <strong class="fs-6" [ngClass]="category === 'POWER' ? 'text-primary' : 'text-danger'">
+              {{ category === 'POWER' ? 'Power 6/55 (Dải số 1 - 55 & Số phụ)' : 'Mega 6/45 (Dải số 1 - 45)' }}
+            </strong>
+          </div>
         </div>
+        <span class="badge" [ngClass]="category === 'POWER' ? 'bg-primary text-white' : 'bg-danger text-white'">
+          Đổi danh mục tại Menu trái
+        </span>
       </div>
 
       <!-- Control Button -->
