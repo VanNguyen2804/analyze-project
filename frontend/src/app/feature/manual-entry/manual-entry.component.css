@@ -1,22 +1,59 @@
 .slot-container {
-  width: 60px;
+  width: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .slot-input {
-  width: 55px;
-  height: 55px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
-  font-size: 1.25rem;
-  border: 2px solid #0d6efd;
-  background-color: #fff;
+  font-size: 1.35rem;
+  font-weight: 700;
+  border: 2.5px solid #0d6efd;
+  background-color: #ffffff;
   color: #0d6efd;
   margin: 0 auto 4px auto;
+  text-align: center;
+  padding: 0 !important; /* CRITICAL: Remove Bootstrap padding so 2 digits display fully without truncation */
+  line-height: 57px;
+  box-sizing: border-box;
+  letter-spacing: 0;
   transition: all 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: none;
 }
 
-.slot-input:focus {
+/* Remove spin buttons */
+.slot-input::-webkit-outer-spin-button,
+.slot-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.slot-input-power {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.slot-input-power:focus {
   border-color: #0b5ed7;
+  background-color: #f0f7ff;
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  transform: scale(1.05);
+}
+
+.slot-input-mega {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.slot-input-mega:focus {
+  border-color: #b02a37;
+  background-color: #fff5f5;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
   transform: scale(1.05);
 }
 

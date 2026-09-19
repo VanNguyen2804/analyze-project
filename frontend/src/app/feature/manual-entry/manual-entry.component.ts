@@ -152,21 +152,40 @@ export class ManualEntryComponent implements OnInit {
     this.syncFromSet();
   }
 
+  formatTwoDigits(num: number | null): string {
+    if (num === null || num === undefined) return '';
+    return num < 10 ? '0' + num : '' + num;
+  }
+
   onInputChange(index: number, event: any): void {
     this.errorMessage = null;
     this.successMessage = null;
-    const val = parseInt(event.target.value, 10);
+    const rawVal = (event.target.value || '').trim();
 
+    if (!rawVal) {
+      this.inputNumbers[index] = null;
+      this.syncFromInputs();
+      return;
+    }
+
+    const val = parseInt(rawVal, 10);
     if (isNaN(val)) {
       this.inputNumbers[index] = null;
     } else {
       if (val < 1 || val > this.maxLimit) {
-        this.errorMessage = `Số ${val} không hợp lệ! Với danh mục ${this.selectedCategory}, vui lòng nhập từ 1 đến ${this.maxLimit}.`;
+        this.errorMessage = `Số ${val} không hợp lệ! Với danh mục ${this.selectedCategory}, vui lòng nhập từ 01 đến ${this.maxLimit}.`;
         return;
       }
       this.inputNumbers[index] = val;
     }
     this.syncFromInputs();
+  }
+
+  onInputBlur(index: number, event: any): void {
+    const val = this.inputNumbers[index];
+    if (val !== null && val !== undefined) {
+      event.target.value = this.formatTwoDigits(val);
+    }
   }
 
   syncFromSet(): void {

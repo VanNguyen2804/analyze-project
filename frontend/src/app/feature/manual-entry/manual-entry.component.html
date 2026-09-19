@@ -118,15 +118,20 @@
         <div class="d-flex justify-content-center gap-2 gap-md-3 flex-wrap my-2">
           <div *ngFor="let num of inputNumbers; let i = index" class="slot-container text-center">
             <input
-              type="number"
-              min="1"
-              [max]="maxLimit"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="2"
               class="form-control text-center fw-bold slot-input"
-              [value]="num !== null ? num : ''"
+              [ngClass]="selectedCategory === 'MEGA' ? 'slot-input-mega' : 'slot-input-power'"
+              [value]="formatTwoDigits(num)"
               (input)="onInputChange(i, $event)"
+              (blur)="onInputBlur(i, $event)"
               placeholder="--"
+              id="slot-input-{{ i + 1 }}"
+              autocomplete="off"
             />
-            <small class="text-muted">Số {{ i + 1 }}</small>
+            <small class="text-muted fw-semibold">Số {{ i + 1 }}</small>
           </div>
         </div>
       </div>
