@@ -1,0 +1,13 @@
+<div class="container text-center" style="margin-top: 50px;">
+    <h2>Analyze Project - Dự đoán số liệu</h2>
+    
+    <button class="btn btn-danger" style="margin: 20px;" (click)="predict()" [disabled]="isSpinning">
+        {{ isSpinning ? 'Đang chạy mô hình XGBoost...' : 'Tiến hành phân tích' }}
+    </button>
+    
+    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;" *ngIf="predictedNumbers.length > 0">
+        <div class="ball" *ngFor="let num of predictedNumbers">
+            {{ num < 10 ? '0' + num : num }}
+        </div>
+    </div>
+</div>
