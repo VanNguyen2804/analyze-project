@@ -1,0 +1,15 @@
+<div class="app-layout d-flex flex-column min-vh-100 bg-light">
+  <!-- Zone 1: Header -->
+  <app-header></app-header>
+
+  <!-- Body layout: Left menu + Content -->
+  <div class="d-flex flex-column flex-md-row flex-grow-1">
+    <!-- Zone 2: Left Menu -->
+    <app-left-menu></app-left-menu>
+
+    <!-- Zone 3: Main Content Area -->
+    <main class="flex-grow-1 p-3 p-md-4 overflow-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
