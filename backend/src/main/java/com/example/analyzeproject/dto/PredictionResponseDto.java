@@ -15,9 +15,36 @@ public class PredictionResponseDto {
     private List<String> jackpot2Pairs = new ArrayList<>();
     private String oddEvenRatio;
     private String analysisSummary;
+    private String overallReason;
     private List<NumberScoreDetailDto> details = new ArrayList<>();
+    private List<NumberSelectionReasonDto> selectionReasons = new ArrayList<>();
+    private List<DrawRecordDto> recentDraws = new ArrayList<>();
 
     public PredictionResponseDto() {}
+
+    public String getOverallReason() {
+        return overallReason;
+    }
+
+    public void setOverallReason(String overallReason) {
+        this.overallReason = overallReason;
+    }
+
+    public List<NumberSelectionReasonDto> getSelectionReasons() {
+        return selectionReasons;
+    }
+
+    public void setSelectionReasons(List<NumberSelectionReasonDto> selectionReasons) {
+        this.selectionReasons = selectionReasons;
+    }
+
+    public List<DrawRecordDto> getRecentDraws() {
+        return recentDraws;
+    }
+
+    public void setRecentDraws(List<DrawRecordDto> recentDraws) {
+        this.recentDraws = recentDraws;
+    }
 
     public String getCategory() {
         return category;
