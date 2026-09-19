@@ -930,7 +930,7 @@ function renderPredictionView(): string {
   const visibleDraws = filteredDraws.slice(0, historyLimit);
 
   return `
-    <div id="prediction-feature" class="mx-auto" style="max-width: 1200px;">
+    <div id="prediction-feature" class="w-100">
       <!-- Category Switch & Action Controls Bar -->
       <div class="card shadow-sm border-0 mb-3">
         <div class="card-body p-3 p-md-4">
