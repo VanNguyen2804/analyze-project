@@ -23,8 +23,8 @@ Với file `render.yaml` đã được thiết lập sẵn, Render sẽ tự đ�
    * Chọn repository GitHub của bạn &rarr; Bấm **Connect**.
    * Render sẽ tự động phát hiện cấu hình trong `render.yaml`:
      - 1 Web Service Docker: `analyze-project`
-     - 1 PostgreSQL Database: `analyze-postgres` (database: `lotterydb`)
-     - Tự động truyền biến môi trường `SPRING_DATASOURCE_URL` từ PostgreSQL sang Spring Boot.
+     - 1 PostgreSQL Database: `analyze-postgres` (database: `analyze_project_db`, user: `analyze_project_db_user`)
+     - Tự động truyền biến môi trường `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` từ PostgreSQL sang Spring Boot.
    * Bấm **Apply** để bắt đầu triển khai tự động.
 
 ---
@@ -35,7 +35,7 @@ Nếu bạn muốn tạo từng dịch vụ thủ công trên Render Dashboard:
 
 ### Bước 1: Tạo cơ sở dữ liệu PostgreSQL
 1. Trên Render Dashboard, bấm **New +** &rarr; **PostgreSQL**.
-2. Đặt tên: `analyze-postgres` (Database name: `lotterydb`, User: `postgres`).
+2. Đặt tên: `analyze-postgres` (Database name: `analyze_project_db`, User: `analyze_project_db_user`).
 3. Chọn Region: `Singapore` (tốc độ nhanh nhất về Việt Nam) hoặc `Oregon`.
 4. Instance Type: Chọn gói phù hợp (Free).
 5. Bấm **Create Database**.

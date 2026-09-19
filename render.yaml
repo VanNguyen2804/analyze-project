@@ -19,6 +19,12 @@ services:
         fromDatabase:
           name: analyze-postgres
           property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        value: analyze_project_db_user
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: 6Tm0D7ChuHV0LImJZXFZ8BYTdGJXEzgN
+      - key: DB_PASSWORD
+        value: 6Tm0D7ChuHV0LImJZXFZ8BYTdGJXEzgN
     healthCheckPath: /api/numbers
 
 databases:
@@ -26,7 +32,7 @@ databases:
   # PostgreSQL Database: Render Managed PostgreSQL Database
   # ====================================================================
   - name: analyze-postgres
-    databaseName: lotterydb
-    user: postgres
+    databaseName: analyze_project_db
+    user: analyze_project_db_user
     plan: free
     region: singapore
