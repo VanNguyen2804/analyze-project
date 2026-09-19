@@ -10,26 +10,22 @@ Tôi đã chuẩn bị sẵn đầy đủ cấu hình **Docker multi-stage (`Doc
 
 ---
 
-## 🚀 Cách 1 (Khuyên dùng): Deploy Tự động bằng Render Blueprint (Đầy đủ App & PostgreSQL)
+## 🚀 Triển khai Web Service kết nối Database đã tạo trên Render
 
-Với file `render.yaml` đã được thiết lập sẵn, Render sẽ tự động khởi tạo đồng thời cả **Web Service** và **PostgreSQL Database** rồi tự động gắn chuỗi kết nối:
+Vì bạn đã tạo sẵn database PostgreSQL `analyze_project_db` trên Render, cấu hình `render.yaml` đã được cập nhật chỉ deploy Web Service và kết nối trực tiếp vào database hiện có của bạn (tránh lỗi giới hạn 1 database free tier của Render).
 
-1. **Đẩy mã nguồn lên GitHub:**
-   * Tạo repository trên GitHub và commit/push code lên.
+1. **Lấy chuỗi kết nối từ Database đã tạo trên Render:**
+   * Vào Render Dashboard &rarr; Mở database `analyze_project_db` bạn đã tạo.
+   * Cuộn xuống phần **Connections** &rarr; Sao chép **Internal Database URL** (dạng `postgres://...` hoặc `postgresql://...`).
 
-2. **Tạo Blueprint trên Render:**
-   * Truy cập [https://dashboard.render.com](https://dashboard.render.com).
-   * Bấm vào nút **New +** ở góc trên bên phải &rarr; Chọn **Blueprint**.
-   * Chọn repository GitHub của bạn &rarr; Bấm **Connect**.
-   * Render sẽ tự động phát hiện cấu hình trong `render.yaml`:
-     - 1 Web Service Docker: `analyze-project`
-     - 1 PostgreSQL Database: `analyze_project_db` (database: `analyze_project_db`, user: `analyze_project_db_user`)
-     - Tự động truyền biến môi trường `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` từ PostgreSQL sang Spring Boot.
-   * Bấm **Apply** để bắt đầu triển khai tự động.
+2. **Triển khai Web Service qua Blueprint:**
+   * Vào Render &rarr; **New +** &rarr; **Blueprint** &rarr; Chọn repo GitHub.
+   * Khi Render hiển thị trường `SPRING_DATASOURCE_URL`, bạn chỉ cần dán chuỗi URL vừa sao chép ở Bước 1 vào.
+   * Bấm **Apply** để hoàn tất triển khai.
 
 ---
 
-## 🛠️ Cách 2: Tạo thủ công Web Service & PostgreSQL Database
+## 🛠️ Hoặc Tạo Web Service thủ công trên Render:
 
 Nếu bạn muốn tạo từng dịch vụ thủ công trên Render Dashboard:
 

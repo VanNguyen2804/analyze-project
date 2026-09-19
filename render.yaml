@@ -16,9 +16,7 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: SPRING_DATASOURCE_URL
-        fromDatabase:
-          name: analyze_project_db
-          property: connectionString
+        sync: false
       - key: SPRING_DATASOURCE_USERNAME
         value: analyze_project_db_user
       - key: SPRING_DATASOURCE_PASSWORD
@@ -27,12 +25,3 @@ services:
         value: 6Tm0D7ChuHV0LImJZXFZ8BYTdGJXEzgN
     healthCheckPath: /api/numbers
 
-databases:
-  # ====================================================================
-  # PostgreSQL Database: Render Managed PostgreSQL Database
-  # ====================================================================
-  - name: analyze_project_db
-    databaseName: analyze_project_db
-    user: analyze_project_db_user
-    plan: free
-    region: singapore
