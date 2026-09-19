@@ -1,5 +1,11 @@
 # SKILL.md - Project Architecture & Technical Standards
 
+## 0. Vị trí File Cấu hình (Configuration Files Location)
+* **Quy tắc vị trí bắt buộc:** Cả 2 file **`SKILL.md`** và **`AGENT.md`** **PHẢI** luôn nằm trong thư mục **`.github/`**:
+  * Đường dẫn: `.github/SKILL.md`
+  * Đường dẫn: `.github/AGENT.md`
+* **Nghiêm cấm:** Tuyệt đối KHÔNG tạo, sao chép hoặc để file `AGENT.md`, `AGENTS.md`, hay `SKILL.md` ở thư mục gốc (root folder). Mọi cập nhật và tham chiếu quy chuẩn dự án bắt buộc thực hiện tại `.github/`.
+
 ## 1. Backend Project
 * **Core Framework:** Spring Framework.
 * **Database:** Sử dụng **PostgreSQL** làm cơ sở dữ liệu chính.

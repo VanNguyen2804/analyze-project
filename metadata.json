@@ -1,6 +1,6 @@
 {
   "name": "Analyze Project",
-  "description": "Ứng dụng phân tích dự đoán số liệu với mô hình XGBoost và chức năng tự nhập dãy 6 số theo từng ngày lưu vào cơ sở dữ liệu H2",
+  "description": "Ứng dụng phân tích dự đoán số liệu với mô hình XGBoost và chức năng nhập dãy số lưu trữ vào cơ sở dữ liệu PostgreSQL",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
