@@ -1,0 +1,156 @@
+<div class="manual-entry-container container my-4" style="max-width: 900px;">
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h3 class="fw-bold mb-1 text-primary">Nhập 6 số may mắn & Lưu vào DB H2</h3>
+          <p class="text-muted mb-0 small">
+            Nhập tay 6 số hoặc bấm chọn trực tiếp trên bảng số (từ 01 đến 45)
+          </p>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
+          <i class="bi bi-database me-1"></i> H2 DB: jdbc:h2:mem:lotterydb
+        </span>
+      </div>
+
+      <!-- Selected balls preview / Manual 6 inputs -->
+      <div class="p-3 bg-light rounded-3 mb-4 text-center">
+        <label class="form-label fw-semibold text-secondary mb-2">
+          6 con số đã chọn ({{ selectedSet.size }}/6)
+        </label>
+        <div class="d-flex justify-content-center gap-2 gap-md-3 flex-wrap my-2">
+          <div *ngFor="let num of inputNumbers; let i = index" class="slot-container text-center">
+            <input
+              type="number"
+              min="1"
+              max="45"
+              class="form-control text-center fw-bold slot-input"
+              [value]="num !== null ? num : ''"
+              (input)="onInputChange(i, $event)"
+              placeholder="--"
+            />
+            <small class="text-muted">Số {{ i + 1 }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Grid of numbers 1-45 -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-semibold text-dark">Bảng số 1 - 45:</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" (click)="randomPick()">
+              Ngẫu nhiên 6 số
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="resetForm()">
+              Xóa hết
+            </button>
+          </div>
+        </div>
+
+        <div class="number-grid">
+          <button
+            *ngFor="let n of gridNumbers"
+            type="button"
+            class="grid-number-btn"
+            [class.selected]="selectedSet.has(n)"
+            (click)="toggleGridNumber(n)"
+          >
+            {{ n < 10 ? '0' + n : n }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Note and Action -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-8">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Ghi chú (Ví dụ: Vé số mua ngày 18/09, Đài Miền Nam...)"
+            [(ngModel)]="note"
+          />
+        </div>
+        <div class="col-md-4">
+          <button
+            id="btn-save-h2"
+            class="btn btn-primary w-100 fw-bold"
+            (click)="saveToH2()"
+            [disabled]="isSaving || selectedSet.size !== 6"
+          >
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            {{ isSaving ? 'Đang lưu...' : 'Lưu vào DB H2' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div *ngIf="errorMessage" class="alert alert-danger py-2 mt-3" role="alert">
+        {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="alert alert-success py-2 mt-3" role="alert">
+        {{ successMessage }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Table of Saved Records in H2 DB -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fw-bold text-dark">
+        Danh sách các bộ số đã lưu trong DB H2 ({{ savedRecords.length }})
+      </h5>
+      <button class="btn btn-sm btn-outline-primary" (click)="loadSavedRecords()" [disabled]="isLoadingList">
+        {{ isLoadingList ? 'Đang tải...' : 'Làm mới' }}
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="savedRecords.length === 0" class="text-center py-5 text-muted">
+        <p class="mb-0">Chưa có bộ số nào được lưu trong cơ sở dữ liệu H2.</p>
+        <small>Hãy chọn 6 số ở trên và bấm "Lưu vào DB H2".</small>
+      </div>
+
+      <div *ngIf="savedRecords.length > 0" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" style="width: 70px;">ID</th>
+              <th scope="col">Bộ 6 số đã lưu</th>
+              <th scope="col">Ghi chú</th>
+              <th scope="col">Thời gian lưu</th>
+              <th scope="col" class="text-end" style="width: 90px;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of savedRecords">
+              <td class="fw-bold text-muted">#{{ record.id }}</td>
+              <td>
+                <div class="d-flex gap-1 gap-md-2 flex-wrap">
+                  <span *ngFor="let n of record.numbers" class="saved-ball">
+                    {{ n < 10 ? '0' + n : n }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span *ngIf="record.note" class="badge bg-light text-dark border">{{ record.note }}</span>
+                <span *ngIf="!record.note" class="text-muted fst-italic small">Không có</span>
+              </td>
+              <td class="text-muted small">
+                {{ record.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}
+              </td>
+              <td class="text-end">
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  title="Xóa khỏi DB"
+                  (click)="deleteRecord(record.id)"
+                >
+                  Xóa
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

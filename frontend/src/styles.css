@@ -1,4 +1,11 @@
-/* Prediction component styles */
+/* You can add global styles to this file, and also import other style files */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
 .ball {
   width: 60px;
   height: 60px;
@@ -12,9 +19,8 @@
   font-weight: bold;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
-  user-select: none;
 }
 
 .ball:hover {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
