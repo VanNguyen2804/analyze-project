@@ -70,7 +70,7 @@ export class PredictionComponent implements OnInit {
           this.isSpinning = false;
         }, 400);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Lỗi khi lấy dữ liệu dự đoán:', err);
         this.errorMessage = 'Không thể kết nối đến máy chủ. Sử dụng thuật toán dự phòng.';
         setTimeout(() => {
@@ -119,11 +119,11 @@ export class PredictionComponent implements OnInit {
       drawDate: todayStr,
       note: `Dự đoán AI XGBoost (${catName} - Ngày ${todayStr})`
     }).subscribe({
-      next: (saved) => {
+      next: (saved: any) => {
         this.isSaving = false;
         this.saveMessage = `Đã lưu thành công bộ số dự đoán ${saved.category} (#${saved.id}) vào hệ thống!`;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Lỗi khi lưu bộ số dự đoán:', err);
         this.isSaving = false;
         this.saveMessage = 'Không thể lưu bộ số lúc này.';

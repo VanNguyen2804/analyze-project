@@ -125,11 +125,11 @@ export class ManualEntryComponent implements OnInit {
     const queryCategory = this.filterCategory.trim() ? this.filterCategory.trim() : undefined;
 
     this.lotteryService.getAll(queryDate, queryCategory).subscribe({
-      next: (records) => {
+      next: (records: any[]) => {
         this.savedRecords = records;
         this.isLoadingList = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Lỗi khi tải dữ liệu:', err);
         this.isLoadingList = false;
       }
@@ -227,13 +227,13 @@ export class ManualEntryComponent implements OnInit {
       category: this.selectedCategory,
       note: this.note.trim()
     }).subscribe({
-      next: (saved) => {
+      next: (saved: any) => {
         this.isSaving = false;
         this.successMessage = `Đã lưu thành công bộ 6 số ${saved.category} cho ngày ${saved.drawDate} (${this.dayOfWeekText})! (ID: #${saved.id})`;
         this.resetForm();
         this.loadSavedRecords();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isSaving = false;
         this.errorMessage = err.error?.error || 'Lỗi khi lưu bộ số. Vui lòng thử lại!';
       }
@@ -255,7 +255,7 @@ export class ManualEntryComponent implements OnInit {
         this.savedRecords = this.savedRecords.filter(r => r.id !== id);
         this.successMessage = 'Đã xóa bản ghi thành công.';
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Lỗi khi xóa bản ghi:', err);
         this.errorMessage = 'Không thể xóa bản ghi.';
       }

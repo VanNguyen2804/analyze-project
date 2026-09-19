@@ -27,6 +27,10 @@ export class LotteryService {
     return this.http.post<SavedLotteryRecord>(this.apiUrl, request);
   }
 
+  saveNumbers(request: NumberEntryRequest): Observable<SavedLotteryRecord> {
+    return this.save(request);
+  }
+
   delete(id: number | string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
