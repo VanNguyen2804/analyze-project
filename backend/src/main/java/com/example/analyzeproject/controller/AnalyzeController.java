@@ -14,12 +14,12 @@ import java.util.*;
 public class AnalyzeController {
 
     @GetMapping("/predict")
-    public ResponseEntity<List<Integer>> predictNumbers() {
-        // Simulation of logistic feature scoring top 6 sorted numbers (1 to 45)
+    public ResponseEntity<List<Integer>> predictNumbers(@RequestParam(required = false, defaultValue = "MEGA") String category) {
+        int maxLimit = "POWER".equalsIgnoreCase(category) ? 55 : 45;
         List<Candidate> candidates = new ArrayList<>();
         Random random = new Random();
 
-        for (int i = 1; i <= 45; i++) {
+        for (int i = 1; i <= maxLimit; i++) {
             double f1 = random.nextDouble();
             double f2 = random.nextDouble();
             double z = f1 * 1.5 - f2 * 0.8 + Math.sin(i) * 0.2;

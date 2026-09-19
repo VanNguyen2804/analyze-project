@@ -1,41 +1,23 @@
-<header class="bg-white border-bottom shadow-sm">
-  <div class="container py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div class="d-flex align-items-center gap-2">
-      <span class="fs-4">🎯</span>
-      <div>
-        <h1 class="h5 mb-0 fw-bold text-dark">Analyze Project</h1>
-        <small class="text-muted">Quản lý bộ số H2 Database & Dự đoán mô hình XGBoost</small>
+<div class="app-layout d-flex flex-column min-vh-100 bg-light">
+  <!-- Zone 1: Header -->
+  <app-header></app-header>
+
+  <!-- Body layout: Left menu + Content -->
+  <div class="d-flex flex-column flex-md-row flex-grow-1">
+    <!-- Zone 2: Left Menu -->
+    <app-left-menu
+      [activeTab]="activeTab"
+      (tabChange)="setActiveTab($event)"
+    ></app-left-menu>
+
+    <!-- Zone 3: Main Content Area -->
+    <main class="flex-grow-1 p-3 p-md-4 overflow-auto">
+      <div *ngIf="activeTab === 'manual'">
+        <app-manual-entry></app-manual-entry>
       </div>
-    </div>
-    <ul class="nav nav-pills">
-      <li class="nav-item">
-        <button
-          class="nav-link fw-semibold"
-          [class.active]="activeTab === 'manual'"
-          (click)="setActiveTab('manual')"
-        >
-          📝 Tự nhập 6 số & Lưu DB H2
-        </button>
-      </li>
-      <li class="nav-item">
-        <button
-          class="nav-link fw-semibold"
-          [class.active]="activeTab === 'prediction'"
-          (click)="setActiveTab('prediction')"
-        >
-          🤖 Dự đoán XGBoost AI
-        </button>
-      </li>
-    </ul>
+      <div *ngIf="activeTab === 'prediction'">
+        <app-prediction></app-prediction>
+      </div>
+    </main>
   </div>
-</header>
-
-<main class="main-content py-4 bg-light">
-  <div *ngIf="activeTab === 'manual'">
-    <app-manual-entry></app-manual-entry>
-  </div>
-  <div *ngIf="activeTab === 'prediction'">
-    <app-prediction></app-prediction>
-  </div>
-</main>
-
+</div>

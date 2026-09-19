@@ -1,6 +1,7 @@
 package com.example.analyzeproject.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,12 @@ public class LotteryNumber {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "draw_date", nullable = false)
+    private LocalDate drawDate;
+
+    @Column(name = "category", nullable = false)
+    private String category; // "MEGA" (1-45) or "POWER" (1-55)
 
     @ElementCollection
     @CollectionTable(name = "lottery_selected_numbers", joinColumns = @JoinColumn(name = "lottery_id"))
@@ -27,9 +34,13 @@ public class LotteryNumber {
 
     public LotteryNumber() {
         this.createdAt = LocalDateTime.now();
+        this.drawDate = LocalDate.now();
+        this.category = "MEGA";
     }
 
-    public LotteryNumber(List<Integer> numbers, String note) {
+    public LotteryNumber(LocalDate drawDate, String category, List<Integer> numbers, String note) {
+        this.drawDate = drawDate != null ? drawDate : LocalDate.now();
+        this.category = category != null ? category.toUpperCase() : "MEGA";
         this.numbers = numbers;
         this.note = note;
         this.createdAt = LocalDateTime.now();
@@ -42,6 +53,22 @@ public class LotteryNumber {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public LocalDate getDrawDate() {
+        return drawDate;
+    }
+
+    public void setDrawDate(LocalDate drawDate) {
+        this.drawDate = drawDate;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public List<Integer> getNumbers() {

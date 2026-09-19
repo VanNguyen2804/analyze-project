@@ -1,0 +1,38 @@
+<nav class="left-menu p-3">
+  <div class="text-uppercase text-muted fw-bold small px-2 mb-2">
+    Chức năng chính
+  </div>
+  <div class="d-flex flex-column gap-1">
+    <button
+      type="button"
+      class="menu-item"
+      [class.active]="activeTab === 'manual'"
+      (click)="selectTab('manual')"
+    >
+      <span class="fs-5">📝</span>
+      <span>Nhập dãy số theo ngày</span>
+    </button>
+    <button
+      type="button"
+      class="menu-item"
+      [class.active]="activeTab === 'prediction'"
+      (click)="selectTab('prediction')"
+    >
+      <span class="fs-5">🤖</span>
+      <span>Dự đoán XGBoost AI</span>
+    </button>
+  </div>
+
+  <hr class="my-4 text-muted opacity-25" />
+
+  <div class="px-2">
+    <div class="text-uppercase text-muted fw-bold small mb-2">
+      Thông tin hệ thống
+    </div>
+    <div class="bg-light p-2 rounded small text-secondary">
+      <div><strong>DB:</strong> H2 in-memory</div>
+      <div><strong>Backend:</strong> Spring Boot</div>
+      <div><strong>Algorithm:</strong> XGBoost ML</div>
+    </div>
+  </div>
+</nav>

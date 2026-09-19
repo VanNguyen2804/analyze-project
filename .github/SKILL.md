@@ -11,6 +11,7 @@
 ## 2. Frontend Project
 * **Core Framework:** Angular.
 * **UI/UX Design:** Trọng tâm vào **Responsive Design**, đảm bảo trải nghiệm hiển thị liền mạch trên mọi thiết bị.
+* **Quy tắc UI:** Không tự thay đổi UI khi chưa có sự cho phép của tôi.
 * **Main Layout:** Giao diện được cấu trúc theo 3 phân vùng: `Header`, `Left menu`, và `Content`.
 * **Project Skeleton:** Mã nguồn được module hóa chặt chẽ thành 3 phần:
   * `core/`: Nơi lưu trữ các Singleton Services và Components lõi (chỉ khởi tạo một lần duy nhất cho toàn ứng dụng).

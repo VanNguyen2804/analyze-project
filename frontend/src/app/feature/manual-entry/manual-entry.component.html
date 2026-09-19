@@ -1,0 +1,312 @@
+<div class="manual-entry-container container my-4" style="max-width: 920px;">
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h3 class="fw-bold mb-1 text-primary">Nhập dãy 6 số theo ngày & Lưu vào DB H2</h3>
+          <p class="text-muted mb-0 small">
+            Phân loại rõ ràng 2 danh mục: <strong>Mega (1-45)</strong> và <strong>Power (1-55)</strong> theo lịch quay thưởng
+          </p>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
+          <i class="bi bi-database me-1"></i> H2 DB: Connected
+        </span>
+      </div>
+
+      <!-- Category Selection Pills -->
+      <div class="p-3 mb-4 rounded-3 border bg-light shadow-sm">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <label class="fw-bold text-dark mb-0">
+            🏷️ Chọn danh mục xổ số:
+          </label>
+          <span class="small text-muted">
+            Tự động gợi ý theo thứ trong tuần của ngày mở thưởng
+          </span>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-md-6">
+            <button
+              type="button"
+              id="btn-category-mega"
+              class="btn w-100 p-3 text-start border rounded-3 transition position-relative"
+              [ngClass]="selectedCategory === 'MEGA' ? 'btn-danger text-white shadow-sm' : 'btn-white bg-white text-dark'"
+              (click)="setCategory('MEGA')"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold fs-6">🔴 MEGA 6/45</span>
+                <span class="badge" [ngClass]="selectedCategory === 'MEGA' ? 'bg-white text-danger' : 'bg-danger-subtle text-danger'">
+                  Số: 01 &rarr; 45
+                </span>
+              </div>
+              <small class="d-block mt-1 opacity-75">
+                📅 Lịch quay: <strong>Thứ 4 &bull; Thứ 6 &bull; Chủ nhật</strong>
+              </small>
+            </button>
+          </div>
+
+          <div class="col-md-6">
+            <button
+              type="button"
+              id="btn-category-power"
+              class="btn w-100 p-3 text-start border rounded-3 transition position-relative"
+              [ngClass]="selectedCategory === 'POWER' ? 'btn-primary text-white shadow-sm' : 'btn-white bg-white text-dark'"
+              (click)="setCategory('POWER')"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold fs-6">🔵 POWER 6/55</span>
+                <span class="badge" [ngClass]="selectedCategory === 'POWER' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary'">
+                  Số: 01 &rarr; 55
+                </span>
+              </div>
+              <small class="d-block mt-1 opacity-75">
+                📅 Lịch quay: <strong>Thứ 3 &bull; Thứ 5 &bull; Thứ 7</strong>
+              </small>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date Selection Row -->
+      <div class="p-3 mb-4 rounded-3 border bg-white shadow-sm">
+        <div class="row align-items-center g-3">
+          <div class="col-md-5">
+            <label class="form-label fw-bold text-dark mb-1">
+              📅 Ngày mở thưởng:
+            </label>
+            <input
+              type="date"
+              class="form-control form-control-lg fw-bold text-primary"
+              [(ngModel)]="selectedDate"
+              (change)="onDateChange()"
+              id="input-draw-date"
+            />
+          </div>
+          <div class="col-md-7">
+            <label class="form-label text-muted small mb-1">Chọn nhanh & Thông tin thứ:</label>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm px-3"
+                [class.active]="selectedDate === getTodayDateString()"
+                (click)="setDateToday()"
+              >
+                🌟 Hôm nay
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm px-3"
+                (click)="setDateYesterday()"
+              >
+                ⏪ Hôm qua
+              </button>
+              <span class="badge bg-light text-dark border px-3 py-2 ms-auto">
+                {{ dayOfWeekText }} &bull; <strong>{{ selectedCategory === 'MEGA' ? 'Mega 6/45' : 'Power 6/55' }}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected balls preview / Manual 6 inputs -->
+      <div class="p-3 bg-light rounded-3 mb-4 text-center">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-semibold text-secondary small">
+            6 số đã chọn cho ngày <strong>{{ selectedDate }}</strong> ({{ selectedCategory }}):
+          </span>
+          <span class="badge" [ngClass]="selectedSet.size === 6 ? 'bg-success' : 'bg-primary'">
+            {{ selectedSet.size }} / 6 số
+          </span>
+        </div>
+        <div class="d-flex justify-content-center gap-2 gap-md-3 flex-wrap my-2">
+          <div *ngFor="let num of inputNumbers; let i = index" class="slot-container text-center">
+            <input
+              type="number"
+              min="1"
+              [max]="maxLimit"
+              class="form-control text-center fw-bold slot-input"
+              [value]="num !== null ? num : ''"
+              (input)="onInputChange(i, $event)"
+              placeholder="--"
+            />
+            <small class="text-muted">Số {{ i + 1 }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Grid of numbers (01..45 for MEGA, 01..55 for POWER) -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+          <span class="fw-semibold text-dark">
+            Bảng số chọn nhanh (01 &rarr; {{ maxLimit }}):
+          </span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" (click)="randomPick()">
+              🎲 Ngẫu nhiên 6 số
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="resetForm()">
+              🧹 Xóa chọn lại
+            </button>
+          </div>
+        </div>
+
+        <div class="number-grid">
+          <button
+            *ngFor="let n of gridNumbers"
+            type="button"
+            class="grid-number-btn"
+            [class.selected]="selectedSet.has(n)"
+            (click)="toggleGridNumber(n)"
+          >
+            {{ n < 10 ? '0' + n : n }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Note and Action -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-8">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Ghi chú (Ví dụ: Vé Mega ngày {{ selectedDate }}, Jackpot 1...)"
+            [(ngModel)]="note"
+          />
+        </div>
+        <div class="col-md-4">
+          <button
+            id="btn-save-h2"
+            class="btn btn-primary w-100 fw-bold py-2 shadow-sm"
+            (click)="saveToH2()"
+            [disabled]="isSaving || selectedSet.size !== 6"
+          >
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            {{ isSaving ? 'Đang lưu vào H2...' : '💾 Lưu vào DB H2' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div *ngIf="errorMessage" class="alert alert-danger py-2 mt-3 mb-0" role="alert">
+        {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="alert alert-success py-2 mt-3 mb-0" role="alert">
+        {{ successMessage }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Table of Saved Records in H2 DB -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h5 class="mb-0 fw-bold text-dark">
+            Cơ sở dữ liệu H2 - Các bộ số đã lưu ({{ savedRecords.length }})
+          </h5>
+          <small class="text-muted">Phân loại Mega &bull; Power theo từng kỳ quay</small>
+        </div>
+        
+        <!-- Filter Controls: Date and Category -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <!-- Category Filter -->
+          <select
+            class="form-select form-select-sm"
+            style="width: 140px;"
+            [(ngModel)]="filterCategory"
+            (change)="loadSavedRecords()"
+          >
+            <option value="">Tất cả danh mục</option>
+            <option value="MEGA">🔴 Mega 6/45</option>
+            <option value="POWER">🔵 Power 6/55</option>
+          </select>
+
+          <!-- Date Filter -->
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            style="width: 145px;"
+            [(ngModel)]="filterDate"
+            (change)="loadSavedRecords()"
+          />
+
+          <button
+            *ngIf="filterDate || filterCategory"
+            class="btn btn-sm btn-outline-secondary text-nowrap"
+            (click)="filterDate = ''; filterCategory = ''; loadSavedRecords()"
+          >
+            Hiện tất cả
+          </button>
+
+          <button class="btn btn-sm btn-outline-primary text-nowrap" (click)="loadSavedRecords()" [disabled]="isLoadingList">
+            {{ isLoadingList ? 'Đang tải...' : '🔄 Làm mới' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card-body p-0">
+      <div *ngIf="savedRecords.length === 0" class="text-center py-5 text-muted">
+        <p class="mb-0">Chưa có bản ghi nào phù hợp trong cơ sở dữ liệu H2.</p>
+        <small>Hãy chọn danh mục (Mega/Power), chọn 6 con số ở trên và bấm "Lưu vào DB H2".</small>
+      </div>
+
+      <div *ngIf="savedRecords.length > 0" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" style="width: 60px;">ID</th>
+              <th scope="col" style="width: 130px;">Danh mục</th>
+              <th scope="col" style="width: 140px;">Ngày mở thưởng</th>
+              <th scope="col">Dãy 6 số đã lưu</th>
+              <th scope="col">Ghi chú</th>
+              <th scope="col">Thời điểm tạo</th>
+              <th scope="col" class="text-end" style="width: 80px;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of savedRecords">
+              <td class="fw-bold text-muted">#{{ record.id }}</td>
+              <td>
+                <span
+                  class="badge px-2 py-1"
+                  [ngClass]="record.category === 'POWER' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle'"
+                >
+                  {{ record.category === 'POWER' ? '🔵 Power 6/55' : '🔴 Mega 6/45' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border px-2 py-1">
+                  📅 {{ record.drawDate }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex gap-1 gap-md-2 flex-wrap">
+                  <span *ngFor="let n of record.numbers" class="saved-ball">
+                    {{ n < 10 ? '0' + n : n }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span *ngIf="record.note" class="badge bg-light text-dark border text-wrap text-start">{{ record.note }}</span>
+                <span *ngIf="!record.note" class="text-muted fst-italic small">--</span>
+              </td>
+              <td class="text-muted small">
+                {{ record.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}
+              </td>
+              <td class="text-end">
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="deleteRecord(record.id)"
+                  title="Xóa khỏi DB H2"
+                >
+                  Xóa
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

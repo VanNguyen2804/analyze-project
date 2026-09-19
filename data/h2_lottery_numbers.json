@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "drawDate": "2026-09-18",
+    "category": "MEGA",
+    "numbers": [
+      3,
+      12,
+      19,
+      27,
+      34,
+      42
+    ],
+    "createdAt": "2026-09-18T21:00:00.000Z",
+    "note": "Bộ số mẫu khởi tạo Mega 6/45 (DB H2)"
+  }
+]

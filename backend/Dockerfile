@@ -1,14 +1,19 @@
-FROM eclipse-temurin:17-jdk-jammy
-
-RUN apt-get update && apt-get install -y python3 python3-pip
-RUN pip3 install xgboost numpy pandas scikit-learn
-
+# Dockerfile for Spring Boot Backend on Render
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
 WORKDIR /app
-COPY . /app
 
-RUN ./mvnw clean package -DskipTests
-COPY xgboost_predict.py /app/xgboost_predict.py
+COPY pom.xml ./
+RUN mvn dependency:go-offline -B || true
 
+COPY src ./src
+RUN mvn clean package -DskipTests -B
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar /app/app.jar
+
+ENV PORT=8080
 EXPOSE 8080
-# Đã đổi tên file jar xuất ra thành analyzeproject
-CMD ["java", "-Xmx256m", "-jar", "target/analyzeproject-0.0.1-SNAPSHOT.jar"]
+
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar /app/app.jar"]

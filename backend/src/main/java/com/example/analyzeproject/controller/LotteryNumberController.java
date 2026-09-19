@@ -25,8 +25,10 @@ public class LotteryNumberController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LotteryNumber>> getAll() {
-        return ResponseEntity.ok(service.getAllNumbers());
+    public ResponseEntity<List<LotteryNumber>> getAll(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date,
+            @RequestParam(required = false) String category) {
+        return ResponseEntity.ok(service.getAllNumbers(date, category));
     }
 
     @PostMapping
