@@ -41,35 +41,35 @@
 }
 
 .ball-mega {
-    background: radial-gradient(circle at 15px 15px, #00b4db, #0083b0) !important;
+    background: radial-gradient(circle at 15px 15px, #b066cc, #7b1fa2) !important;
     color: white !important;
-    border: 2px solid #00769c !important;
-  }
+    border: 2px solid #4a148c !important;
+}
 
-  /* CLASS MÀU XANH LÁ KHI HOVER VÀO QUẢ BÓNG */
-  .ball-highlight {
-    background: radial-gradient(circle at 15px 15px, #28a745, #155724) !important;
-    color: white !important;
-    border: 2px solid #155724 !important;
-    transform: scale(1.15);
-    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4) !important;
-    z-index: 10;
-  }
+/* CLASS MÀU XANH LÁ KHI HOVER VÀO QUẢ BÓNG */
+.ball-highlight {
+  background: radial-gradient(circle at 15px 15px, #28a745, #155724) !important;
+  color: white !important;
+  border: 2px solid #155724 !important;
+  transform: scale(1.15);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4) !important;
+  z-index: 10;
+}
 
-  /* Định dạng khung Popup đi theo chuột */
-  .floating-popup {
-    position: fixed;
-    z-index: 9999;
-    width: 350px;
-    pointer-events: none; 
-    transition: opacity 0.1s ease-in-out;
-    opacity: 0;
-    visibility: hidden;
-  }
-  .floating-popup.show {
-    opacity: 1;
-    visibility: visible;
-  }
+/* Định dạng khung Popup đi theo chuột */
+.floating-popup {
+  position: fixed;
+  z-index: 9999;
+  width: 350px;
+  pointer-events: none; 
+  transition: opacity 0.1s ease-in-out;
+  opacity: 0;
+  visibility: hidden;
+}
+.floating-popup.show {
+  opacity: 1;
+  visibility: visible;
+}
 .ball-power {
     background: radial-gradient(circle at 15px 15px, #fbc2eb, #a6c1ee); /* Cam/Vàng Power */
     color: #333;

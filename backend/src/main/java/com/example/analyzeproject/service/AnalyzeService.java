@@ -69,7 +69,6 @@ public class AnalyzeService {
                 lastSeenMain[n] = t;
                 mainMomentum[n] += weight;
                 
-                // Đếm số lần xuất hiện trong 5 kỳ quay sát nhất
                 if (t >= totalDraws - 5) {
                     freqLast5[n]++;
                 }
@@ -112,20 +111,23 @@ public class AnalyzeService {
 
         Random random = new Random();
         List<ScoredNumber> candidateList = new ArrayList<>();
+        double avgCycle = (double) maxLimit / 6.0;
 
         for (int i = 1; i <= maxLimit; i++) {
             double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
             double normMom = mainMomentum[i] / maxMainMom;
             
-            // THUẬT TOÁN ĐẢO NGƯỢC: Ưu tiên số ÍT xuất hiện trong 5 kỳ gần nhất
-            // Nếu 5 kỳ qua chưa ra lần nào -> Điểm tuyệt đối (1.0)
-            // Nếu ra 1 lần -> Điểm trung bình (0.5)
-            // Nếu ra 2 lần trở lên -> Ép điểm về cực thấp
-            double shortTermColdScore = (freqLast5[i] == 0) ? 1.0 : (freqLast5[i] == 1 ? 0.5 : (freqLast5[i] == 2 ? 0.1 : 0.0));
+            // 1. CHẤM ĐIỂM SỐ NÓNG (HOT SCORE)
+            // Ưu tiên các số ra từ 2 lần trở lên trong 5 kỳ gần nhất (tạo quán tính mạnh)
+            double hotScore = (freqLast5[i] >= 2) ? 1.5 : (freqLast5[i] == 1 ? 0.5 : 0.0);
+            
+            // 2. CHẤM ĐIỂM SỐ LẠNH / HỒI QUY (COLD SCORE)
+            // Ưu tiên tuyệt đối các số vắng mặt trong 5 kỳ gần nhất
+            double coldScore = (freqLast5[i] == 0) ? 1.2 : 0.0;
 
-            double avgCycle = (double) maxLimit / 6.0;
+            // 3. ĐIỂM CHU KỲ LÔ GAN (GAP SCORE)
             double gapRatio = (double) drawGap[i] / avgCycle;
-            double gapScore = (gapRatio >= 1.0 && gapRatio <= 2.5) ? 0.85 : (gapRatio > 2.5 ? 0.50 : 0.30);
+            double gapScore = (gapRatio >= 1.0 && gapRatio <= 2.5) ? 1.0 : (gapRatio > 2.5 ? 0.6 : 0.2);
 
             int topPairSum = 0;
             for (int j = 1; j <= maxLimit; j++) {
@@ -135,8 +137,11 @@ public class AnalyzeService {
 
             double z;
             if (totalDraws >= 5) {
-                // Nhấn mạnh trọng số của shortTermColdScore (2.8) để đẩy các số vắng bóng ngắn hạn lên top
-                z = (shortTermColdScore * 2.8) + (gapScore * 1.2) + (pairScore * 0.7) + (normMom * 0.8) + (normFreq * 0.2) - 1.5 + (random.nextDouble() * 0.2 - 0.1);
+                // THUẬT TOÁN CÂN BẰNG: Dùng Math.max để chọn ra đặc tính nổi trội nhất của con số
+                // Con số sẽ đạt điểm cao nếu nó RẤT NÓNG (hotScore + normMom) HOẶC RẤT LẠNH (coldScore + gapScore)
+                double dynamicScore = Math.max((hotScore * 1.5 + normMom * 1.0), (coldScore * 1.5 + gapScore * 1.2));
+                
+                z = dynamicScore + (pairScore * 0.7) + (normFreq * 0.4) - 1.8 + (random.nextDouble() * 0.2 - 0.1);
             } else {
                 z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4 + (random.nextDouble() * 0.8 - 0.4);
             }
@@ -199,16 +204,16 @@ public class AnalyzeService {
             return Double.compare(sum2, sum1); 
         });
 
-        // GÁN NHÃN LÝ DO
+        // GÁN NHÃN LÝ DO ĐỘNG DỰA TRÊN ĐẶC TÍNH CỦA SỐ ĐƯỢC CHỌN
         List<NumberScoreDetailDto> detailDtos = new ArrayList<>();
         for (ScoredNumber sn : selected10) {
             String tag;
-            if (sn.drawGap >= (int) (maxLimit / 6.0)) {
+            if (freqLast5[sn.number] >= 2) {
+                tag = "SỐ NÓNG"; 
+            } else if (freqLast5[sn.number] == 0 && sn.drawGap >= avgCycle) {
                 tag = "LÔ GAN";
             } else if (freqLast5[sn.number] == 0) {
-                tag = "CHỜ BÙ TRỪ"; // Thay thế nhãn "SỐ NÓNG" bằng nhãn bắt xu hướng thiếu hụt
-            } else if (mainMomentum[sn.number] > maxMainMom * 0.7) {
-                tag = "SỐ NÓNG";
+                tag = "CHỜ BÙ TRỪ";
             } else {
                 boolean hasPair = selected10.stream()
                         .anyMatch(other -> other.number != sn.number && pairMatrix[sn.number][other.number] >= 2);
@@ -309,18 +314,18 @@ public class AnalyzeService {
             
             if ("CHỜ BÙ TRỪ".equals(sn.getTag())) {
                 title = "Điểm Rơi Bù Trừ Ngắn Hạn";
-                reason = "Hoàn toàn vắng bóng trong 5 kỳ quay gần nhất. Thuật toán ưu tiên bắt nhịp hồi quy (reversion) của con số này thay vì bám đuổi các số đã ra quá nhiều.";
+                reason = "Hoàn toàn vắng bóng trong 5 kỳ quay gần nhất. Đang rơi vào nhịp hồi quy (reversion to the mean).";
             } else if ("LÔ GAN".equals(sn.getTag())) {
                 title = "Chu Kỳ Hoàn Vốn Dài Hạn";
-                reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp. Rơi đúng vào khung chu kỳ hồi quy xác suất tối ưu.", sn.getDrawGap());
+                reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp. Điểm trễ (gap) đạt ngưỡng tối ưu để xuất hiện trở lại.", sn.getDrawGap());
             } else if ("SỐ NÓNG".equals(sn.getTag())) {
-                title = "Số Nóng (Quán Tính)";
-                reason = "Sở hữu quán tính lịch sử cao, vẫn có khả năng rơi lại dựa trên tỷ lệ thống kê tổng thể.";
+                title = "Quán Tính Chuỗi (Trend)";
+                reason = "Đang có đà xuất hiện cực mạnh trong ngắn hạn, thuật toán dự báo đà này chưa kết thúc.";
             } else if ("CẶP ĐI KÈM".equals(sn.getTag())) {
                 title = "Cặp Số Tương Tác Đồng Hành";
-                reason = "Có chỉ số đồng xuất hiện mạnh với các số khác trong bộ vé được chọn.";
+                reason = "Bổ trợ gia tăng xác suất trúng thưởng nhờ có chỉ số đồng xuất hiện mạnh với các số khác trong bộ vé.";
             } else {
-                title = "Cân Bằng Dải Số & Cân Đối Chẵn/Lẻ";
+                title = "Cân Bằng Dải Số";
                 reason = "Đóng vai trò điều tiết cấu trúc dàn trải dải số, duy trì tỷ lệ Chẵn/Lẻ hài hòa.";
             }
             
@@ -345,7 +350,7 @@ public class AnalyzeService {
         response.setSelectionReasons(selectionReasons);
         response.setRecentDraws(recentDraws);
 
-        String wheelingMsg = "Hệ thống đã xếp hạng 5 dãy số (vé) tối ưu nhất, ưu tiên nhịp hồi quy của các số đang lẩn trốn trong ngắn hạn.";
+        String wheelingMsg = "Hệ thống đã chọn lọc 10 số ưu tú nhất (Cân bằng giữa Số Đang Lên và Lô Gan) để nén thành 5 dãy vé tối ưu.";
         
         if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(
@@ -372,19 +377,6 @@ public class AnalyzeService {
             this.probability = probability;
             this.frequency = frequency;
             this.drawGap = drawGap;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ScoredNumber that = (ScoredNumber) o;
-            return number == that.number;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(number);
         }
     }
 

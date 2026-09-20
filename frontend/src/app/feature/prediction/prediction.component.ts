@@ -14,10 +14,9 @@ export class PredictionComponent implements OnInit, OnDestroy {
   isLoadingHistory = false;
   showAllReasons = false;
   
-  // Trạng thái quản lý Popup Hover
-  hoveredNumber: number | null = null; // Trạng thái giữ màu xanh lá
+  hoveredNumber: number | null = null;
   hoveredNumberDetail: any = null;
-  hoveredNumberHistory: any[] = []; // Lịch sử các kỳ có mặt số này
+  hoveredNumberHistory: any[] = [];
   popupStyle: any = { top: '0px', left: '0px' };
   
   category: string = 'MEGA'; 
@@ -29,13 +28,10 @@ export class PredictionComponent implements OnInit, OnDestroy {
   constructor(private analyzeService: AnalyzeService) {}
 
   ngOnInit() {
+    // BehaviorSubject sẽ emit giá trị hiện tại ngay lập tức khi subscribe -> tự động chạy predict() lần đầu tiên vào trang
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
       this.category = newCategory;
-      this.payload = null; 
-      this.showAllReasons = false;
-      this.hidePopup();
-      this.recentDraws = [];
-      this.visibleDraws = [];
+      this.predict(); 
     });
   }
 
@@ -64,7 +60,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
           
           this.isSpinning = false;
           this.isLoadingHistory = false;
-        }, 1500); 
+        }, 1000); 
       },
       error: (err) => {
         console.error('Lỗi khi phân tích dữ liệu:', err);
@@ -74,35 +70,27 @@ export class PredictionComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Bắt sự kiện chuột đi vào quả bóng
   showPopup(num: number, event: MouseEvent) {
     if (this.payload) {
-      this.hoveredNumber = num; // Kích hoạt class xanh lá
-      
-      // Lấy lý do AI chọn
+      this.hoveredNumber = num;
       if (this.payload.selectionReasons) {
         this.hoveredNumberDetail = this.payload.selectionReasons.find(r => r.number === num);
       }
-      
-      // Lọc lịch sử 10 ngày gần nhất xem số này ra vào ngày nào
       if (this.payload.recentDraws) {
         this.hoveredNumberHistory = this.payload.recentDraws.filter(draw => 
           (draw.numbers && draw.numbers.includes(num)) || draw.specialNumber === num
         );
       }
-
       this.updatePopupPosition(event);
     }
   }
 
-  // Cập nhật vị trí bám theo trỏ chuột và chống tràn viền
   updatePopupPosition(event: MouseEvent) {
     if (!this.hoveredNumber) return;
 
     let x = event.clientX + 15;
     let y = event.clientY + 15;
 
-    // Kích thước ước tính của popup (đã tăng chiều cao để chứa lịch sử)
     const popupWidth = 350;
     const popupHeight = 350;
 
@@ -119,14 +107,13 @@ export class PredictionComponent implements OnInit, OnDestroy {
     };
   }
 
-  // Ẩn Popup khi chuột rời đi
   hidePopup() {
     this.hoveredNumber = null;
     this.hoveredNumberDetail = null;
     this.hoveredNumberHistory = [];
   }
 
-  formatNumber(num: number | undefined | null): string {
+  formatNumber(num: number | undefined): string {
     if (num === undefined || num === null) return '--';
     return num < 10 ? '0' + num : num.toString();
   }
