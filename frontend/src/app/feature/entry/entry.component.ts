@@ -4,8 +4,7 @@ import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-entry',
-  templateUrl: './entry.component.html',
-  styleUrls: ['./entry.component.css']
+  templateUrl: './entry.component.html'
 })
 export class EntryComponent implements OnInit, OnDestroy {
   category: string = 'MEGA';
