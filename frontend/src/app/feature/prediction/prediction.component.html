@@ -1,29 +1,77 @@
 <div class="prediction-container w-100">
+  <!-- KHUNG TIÊU ĐỀ & BỘ CHỌN THUẬT TOÁN AI -->
   <div class="card shadow-sm border-0 mb-4 mt-4">
     <div class="card-body p-3 p-md-4">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
           <h3 class="card-title h4 fw-bold text-primary mb-1">
-            ⚡ Phân tích Dãy số theo Ngày & Đề xuất AI XGBoost
+            🤖 Dự Đoán AI & Phân Tích Dãy Số Đa Thuật Toán
           </h3>
           <p class="text-muted mb-0 small">
-            Thuật toán phân tích xu hướng 5 kỳ gần nhất, kết hợp chu kỳ lô gan để tối ưu hóa tỷ lệ trúng.
+            Hệ thống phân tích dữ liệu lịch sử bằng 5 mô hình toán học & học máy, tối ưu xác suất trúng giải theo từng phương pháp.
           </p>
+        </div>
+        <div class="small">
+          <span class="badge bg-secondary me-1">MEGA 6/45 (T4, T6, CN)</span>
+          <span class="badge bg-secondary">POWER 6/55 (T3, T5, T7)</span>
         </div>
       </div>
 
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-3">
-        <div class="small text-muted">
-           <span class="badge bg-secondary">MEGA 6/45 (T4, T6, CN)</span> | <span class="badge bg-secondary">POWER 6/55 (T3, T5, T7)</span>
+      <!-- BỘ NÚT CHỌN THUẬT TOÁN -->
+      <div class="mb-3">
+        <label class="form-label small fw-bold text-dark d-flex align-items-center gap-1 mb-2">
+          <span>⚙️</span> CHỌN THUẬT TOÁN DỰ ĐOÁN:
+        </label>
+        <div class="row g-2">
+          <div class="col-6 col-md-4 col-lg" *ngFor="let alg of algorithms">
+            <button
+              [id]="'btn-alg-' + alg.id"
+              type="button"
+              class="algorithm-btn w-100 h-100"
+              [class.active]="selectedAlgorithm === alg.id"
+              (click)="selectAlgorithm(alg.id)"
+              [disabled]="isSpinning"
+            >
+              <div class="d-flex align-items-center justify-content-between gap-1 w-100 mb-1">
+                <span class="alg-icon">{{ alg.icon }}</span>
+                <span
+                  class="alg-badge badge"
+                  [ngClass]="selectedAlgorithm === alg.id ? 'bg-primary text-white' : 'bg-light text-secondary border'"
+                >
+                  {{ alg.badge }}
+                </span>
+              </div>
+              <div class="alg-title text-truncate fw-semibold small">{{ alg.name }}</div>
+              <div class="text-muted" style="font-size: 0.7rem; line-height: 1.25;">
+                {{ alg.formula }}
+              </div>
+            </button>
+          </div>
         </div>
+      </div>
+
+      <!-- THÔNG TIN CHI TIẾT VỀ THUẬT TOÁN ĐANG CHỌN -->
+      <div class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between flex-wrap gap-3 mt-3">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-4">{{ getCurrentAlgorithmInfo().icon }}</span>
+          <div>
+            <div class="fw-bold text-dark small">
+              Thuật toán đang chọn: <span class="text-primary">{{ getCurrentAlgorithmInfo().name }}</span>
+            </div>
+            <div class="text-secondary small" style="line-height: 1.4;">
+              {{ getCurrentAlgorithmInfo().description }}
+            </div>
+          </div>
+        </div>
+
         <button
           id="btn-predict-action"
-          class="btn btn-warning fw-bold px-4 py-2 shadow-sm"
+          class="btn btn-warning fw-bold px-4 py-2 shadow-sm flex-shrink-0"
           (click)="predict()"
           [disabled]="isSpinning"
         >
           <span *ngIf="isSpinning" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          {{ isSpinning ? 'XGBoost đang tính toán vé...' : '🎯 Phân tích & Đề xuất' }}
+          {{ isSpinning ? 'Đang tính toán dãy số...' : '🎯 Chạy Lại ' + getCurrentAlgorithmInfo().name }}
         </button>
       </div>
     </div>
@@ -33,13 +81,29 @@
   <div *ngIf="payload && payload.status === 'SUCCESS'" class="card shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
-        <span class="badge" [ngClass]="payload.lotteryType === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
-          ĐỀ XUẤT TỐI ƯU &bull; {{ payload.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
-        </span>
-        <h4 class="h5 fw-bold text-dark mb-0 mt-1">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge" [ngClass]="payload.lotteryType === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
+            ĐỀ XUẤT TỐI ƯU &bull; {{ payload.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
+          </span>
+          <span class="badge bg-primary text-white" style="font-size: 0.8rem;">
+            {{ payload.algorithmName || getCurrentAlgorithmInfo().name }}
+          </span>
+        </div>
+        <h4 class="h5 fw-bold text-dark mb-0">
           Top 5 dãy số (vé) có tổng xác suất cao nhất
         </h4>
-        <small class="text-muted">Di chuột vào từng con số để xem chi tiết thuật toán & lịch sử</small>
+        <small class="text-muted">Được chọn lọc theo ma trận {{ payload.algorithmName || getCurrentAlgorithmInfo().name }}. Di chuột vào từng số để xem chi tiết.</small>
+      </div>
+
+      <div *ngIf="payload.lotteryType === 'POWER' && payload.specialNumber" class="d-flex align-items-center gap-2 p-2 rounded-2 bg-light border">
+        <span class="small text-secondary fw-semibold">⭐ Banh Phụ (Jackpot 2):</span>
+        <div class="ball ball-sm ball-special" 
+             (mouseenter)="showPopup(payload.specialNumber, $event)"
+             (mousemove)="updatePopupPosition($event)"
+             (mouseleave)="hidePopup()"
+             style="cursor: crosshair;">
+          {{ formatNumber(payload.specialNumber) }}
+        </div>
       </div>
     </div>
 
@@ -51,7 +115,7 @@
                 <div class="card-header text-start d-flex justify-content-between align-items-center" 
                      [ngClass]="{'bg-info text-dark': payload.lotteryType === 'MEGA', 'bg-warning text-dark': payload.lotteryType === 'POWER'}">
                     <strong>🎟️ Dãy số Top {{ i + 1 }}</strong>
-                    <span class="badge bg-white text-dark small">Tỷ lệ trúng cao</span>
+                    <span class="badge bg-white text-dark small">{{ payload.algorithmName ? payload.algorithmName : 'Tỷ lệ trúng cao' }}</span>
                 </div>
                 
                 <div class="card-body d-flex justify-content-center gap-2 flex-wrap" 
@@ -77,48 +141,57 @@
     </div>
   </div>
 
-  <!-- 2. MỤC DANH SÁCH TỔNG HỢP CÁC SỐ -->
+  <!-- 2. MỤC DANH SÁCH TỔNG HỢP CÁC SỐ & LÝ DO CHỌN -->
   <div *ngIf="payload" class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
         <span class="fs-5">💡</span>
         <h4 class="h5 fw-bold text-dark mb-0">
-          Phân tích các con số cấu thành vé
+          Phân tích các con số & Lý do chọn ({{ payload.algorithmName || getCurrentAlgorithmInfo().name }})
         </h4>
       </div>
+      <span class="badge bg-light text-secondary border">
+        Tỷ lệ chẵn/lẻ: {{ payload.oddEvenRatio }}
+      </span>
     </div>
 
     <div class="card-body p-3 p-md-4">
       <div class="p-3 mb-4 rounded-3 border bg-light">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-primary text-white">{{ payload.algorithmName || getCurrentAlgorithmInfo().name }}</span>
+          <span class="small text-muted fw-semibold">Cơ sở toán học & nguyên lý lựa chọn:</span>
+        </div>
         <div class="text-secondary small" style="line-height: 1.6;">
           {{ payload.overallReason || payload.analysisSummary }}
         </div>
       </div>
 
+      <!-- DANH SÁCH TỪNG CON SỐ VỚI LÝ DO CHỌN TƯƠNG ỨNG -->
       <div class="d-flex flex-column gap-3" *ngIf="payload && payload.selectionReasons && payload.selectionReasons.length > 0">
         <div
-          *ngFor="let item of payload.selectionReasons | slice:0:(showAllReasons ? payload.selectionReasons.length : 5)"
+          *ngFor="let item of payload.selectionReasons | slice:0:(showAllReasons ? payload.selectionReasons.length : 6)"
           class="p-3 rounded-3 border bg-white shadow-sm"
           [ngClass]="{
-            'border-start border-4 border-start-warning': item.role === 'special',
-            'border-start border-4 border-start-danger': item.tag === 'SỐ NÓNG',
-            'border-start border-4 border-start-primary': item.tag === 'LÔ GAN',
-            'border-start border-4 border-start-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM'
+            'border-start border-4 border-start-warning': item.role === 'special' || item.tag === 'BẢO HIỂM JACKPOT 2',
+            'border-start border-4 border-start-danger': item.tag === 'SỐ NÓNG' || item.tag === 'HỒI QUY POISSON' || item.tag === 'BỊ PHẠT VÌ QUÁ NÓNG',
+            'border-start border-4 border-start-primary': item.tag === 'LÔ GAN' || item.tag === 'GAN CHẠM NGƯỠNG',
+            'border-start border-4 border-start-info': item.tag === 'HỘI TỤ EV CAO' || item.tag === 'BƯỚC NHẢY MARKOV' || item.tag === 'CHUỖI BẬC 1',
+            'border-start border-4 border-start-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM' || item.tag === 'DELTA LÝ TƯỞNG' || item.tag === 'PHÂN PHỐI CHUẨN' || item.tag === 'BỌC LÓT WHEELING'
           }"
         >
           <div class="d-flex align-items-start gap-3">
             <div class="d-flex flex-column align-items-center">
               
-              <!-- BÓNG SỐ TRONG DANH SÁCH (CŨNG CÓ XANH LÁ) -->
+              <!-- BÓNG SỐ TRONG DANH SÁCH -->
               <div class="ball flex-shrink-0 shadow-sm"
                    (mouseenter)="showPopup(item.number, $event)"
                    (mousemove)="updatePopupPosition($event)"
                    (mouseleave)="hidePopup()"
                    style="width: 48px; height: 48px; font-size: 1.15rem; cursor: crosshair; transition: all 0.2s;"
                    [ngClass]="{
-                     'ball-important': item.tag === 'SỐ NÓNG', 
+                     'ball-important': item.tag === 'SỐ NÓNG' || item.tag === 'HỘI TỤ EV CAO', 
                      'ball-special': item.role === 'special', 
-                     'bg-secondary text-white': item.tag !== 'SỐ NÓNG' && item.role !== 'special',
+                     'bg-secondary text-white': item.tag !== 'SỐ NÓNG' && item.tag !== 'HỘI TỤ EV CAO' && item.role !== 'special',
                      'ball-highlight': hoveredNumber === item.number
                    }">
                 {{ item.role === 'special' ? '★' : '' }}{{ formatNumber(item.number) }}
@@ -128,14 +201,23 @@
             <div class="flex-grow-1">
               <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
                 <div>
-                  <span class="fw-bold fs-6 text-dark me-2">Số {{ formatNumber(item.number) }}</span>
-                  <span class="badge small" [ngClass]="{'bg-danger': item.tag === 'SỐ NÓNG', 'bg-primary': item.tag === 'LÔ GAN', 'bg-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM'}">
+                  <span class="fw-bold fs-6 text-dark me-2">
+                    {{ item.role === 'special' ? 'Số Phụ ⭐' : 'Số' }} {{ formatNumber(item.number) }}
+                  </span>
+                  <span class="badge small" 
+                        [ngClass]="{
+                          'bg-danger': item.tag === 'SỐ NÓNG' || item.tag === 'HỒI QUY POISSON' || item.tag === 'BỊ PHẠT VÌ QUÁ NÓNG',
+                          'bg-primary': item.tag === 'LÔ GAN' || item.tag === 'GAN CHẠM NGƯỠNG',
+                          'bg-info text-dark': item.tag === 'HỘI TỤ EV CAO' || item.tag === 'BƯỚC NHẢY MARKOV' || item.tag === 'CHUỖI BẬC 1' || item.tag === 'ĐIỂM KỲ DỊ NGẪU NHIÊN',
+                          'bg-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM' || item.tag === 'DELTA LÝ TƯỞNG' || item.tag === 'PHÂN PHỐI CHUẨN' || item.tag === 'BỌC LÓT WHEELING' || item.tag === 'DÃN CÁCH CHUẨN',
+                          'bg-warning text-dark': item.role === 'special' || item.tag === 'BẢO HIỂM JACKPOT 2' || item.tag === 'TÁI TẠO TRẠNG THÁI' || item.tag === 'CHU KỲ NỐI TIẾP' || item.tag === 'BẢO TOÀN BIÊN ĐỘ' || item.tag === 'TÍCH LŨY CỰC HẠN' || item.tag === 'ĐIỂM RƠI ĐỘT PHÁ'
+                        }">
                     {{ item.tag }}
                   </span>
                 </div>
                 <div class="d-flex align-items-center gap-2 small text-muted">
-                  <span class="badge bg-light text-dark border">Xác suất: <strong class="text-primary">{{ item.probabilityPercent }}%</strong></span>
-                  <span class="badge bg-light text-secondary border">Về {{ item.frequency }} lần - Gan {{ item.drawGap }} kỳ</span>
+                  <span class="badge bg-light text-dark border">Điểm xác suất: <strong class="text-primary">{{ item.probabilityPercent }}%</strong></span>
+                  <span class="badge bg-light text-secondary border">Đã về {{ item.frequency }} lần - Gan {{ item.drawGap }} kỳ</span>
                 </div>
               </div>
               <div class="fw-semibold text-dark small mb-1">{{ item.title }}</div>
@@ -144,9 +226,9 @@
           </div>
         </div>
         
-        <div class="text-center mt-3" *ngIf="payload && payload.selectionReasons && payload.selectionReasons.length > 5">
+        <div class="text-center mt-3" *ngIf="payload && payload.selectionReasons && payload.selectionReasons.length > 6">
             <button class="btn btn-outline-primary rounded-pill px-4 fw-semibold" (click)="showAllReasons = !showAllReasons">
-                {{ showAllReasons ? '⬆️ Thu gọn danh sách' : '⬇️ Xem chi tiết các số khác' }}
+                {{ showAllReasons ? '⬆️ Thu gọn danh sách lý do' : '⬇️ Xem chi tiết tất cả các số (' + payload.selectionReasons.length + ' số)' }}
             </button>
         </div>
       </div>
@@ -158,74 +240,43 @@
 <div class="floating-popup shadow bg-white rounded-3 border"
      [class.show]="hoveredNumber"
      [ngStyle]="popupStyle">
-  
-  <div class="p-2 bg-light border-bottom rounded-top-3 d-flex align-items-center gap-2">
-    <div class="ball shadow-sm bg-success text-white" 
-         style="width: 32px; height: 32px; font-size: 0.9rem;">
-       {{ formatNumber(hoveredNumber) }}
-    </div>
-    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.9rem;">Thống kê & Lịch sử</h6>
-  </div>
-
-  <div class="p-2" *ngIf="hoveredNumberDetail">
-    <div class="row g-2 mb-2 text-center">
-      <div class="col-6">
-        <div class="p-1 border rounded bg-white shadow-sm">
-          <div class="text-muted" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Tần suất</div>
-          <div class="fw-bold text-success" style="font-size: 1rem;">{{ hoveredNumberDetail.frequency }} <span class="text-muted fw-normal" style="font-size: 0.7rem;">lần</span></div>
+  <div class="p-3" *ngIf="hoveredNumber">
+    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+      <div class="d-flex align-items-center gap-2">
+        <div class="ball-sm" [ngClass]="payload?.lotteryType === 'MEGA' ? 'ball-mega' : 'ball-power'">
+          {{ formatNumber(hoveredNumber) }}
         </div>
+        <strong class="text-dark">Hồ sơ số {{ formatNumber(hoveredNumber) }}</strong>
       </div>
-      <div class="col-6">
-        <div class="p-1 border rounded bg-white shadow-sm">
-          <div class="text-muted" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Đang vắng</div>
-          <div class="fw-bold text-danger" style="font-size: 1rem;">{{ hoveredNumberDetail.drawGap }} <span class="text-muted fw-normal" style="font-size: 0.7rem;">kỳ</span></div>
-        </div>
-      </div>
+      <span class="badge bg-primary" *ngIf="hoveredNumberDetail">{{ hoveredNumberDetail.tag }}</span>
     </div>
 
-    <!-- KHU VỰC HIỂN THỊ LỊCH SỬ DÃY SỐ VÀ NGÀY QUAY -->
-    <div class="mb-2">
-      <div class="fw-bold text-dark mb-1" style="font-size: 0.75rem;">Lịch sử về trong 10 kỳ gần nhất:</div>
-      
-      <!-- Nếu số có xuất hiện -->
-      <div class="d-flex flex-column gap-1" *ngIf="hoveredNumberHistory.length > 0; else noHistory">
-        <div *ngFor="let draw of hoveredNumberHistory" class="p-1 bg-light border rounded d-flex justify-content-between align-items-center">
-          <span class="text-muted fw-semibold" style="font-size: 0.7rem;">{{ getDayOfWeek(draw.drawDate) }}, {{ draw.drawDate }}</span>
-          
-          <!-- In Dãy số mini của ngày hôm đó -->
-          <div class="d-flex gap-1">
-             <span *ngFor="let n of draw.numbers" 
-                   class="badge" 
-                   [ngClass]="n === hoveredNumber ? 'bg-success' : 'bg-secondary'"
-                   style="font-size: 0.6rem; padding: 0.25em 0.4em;">
-               {{ formatNumber(n) }}
-             </span>
-             <!-- Banh phụ (nếu có) -->
-             <span *ngIf="draw.specialNumber" 
-                   class="badge border" 
-                   [ngClass]="draw.specialNumber === hoveredNumber ? 'bg-success text-white border-success' : 'bg-white text-dark border-secondary'"
-                   style="font-size: 0.6rem; padding: 0.25em 0.4em;">
-               {{ formatNumber(draw.specialNumber) }}
-             </span>
-          </div>
-        </div>
-      </div>
-      <!-- Nếu số vắng mặt hoàn toàn trong 10 kỳ -->
-      <ng-template #noHistory>
-        <div class="p-2 border rounded bg-light text-danger text-center small fw-semibold">
-          Không xuất hiện trong 10 kỳ quay gần nhất.
-        </div>
-      </ng-template>
-    </div>
-
-    <div class="p-2 bg-light rounded border-start border-3 border-success">
-      <div class="d-flex justify-content-between align-items-center mb-1">
-        <span class="badge bg-dark" style="font-size: 0.65rem;">{{ hoveredNumberDetail.tag }}</span>
-        <span class="badge bg-primary" style="font-size: 0.65rem;">Xác suất: {{ hoveredNumberDetail.probabilityPercent }}%</span>
-      </div>
-      <p class="text-secondary mb-0" style="font-size: 0.75rem; line-height: 1.4;">
+    <div *ngIf="hoveredNumberDetail" class="mb-2">
+      <div class="small fw-semibold text-dark mb-1">{{ hoveredNumberDetail.title }}</div>
+      <div class="text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.4;">
         {{ hoveredNumberDetail.reason }}
-      </p>
+      </div>
+      <div class="d-flex justify-content-between small bg-light p-2 rounded">
+        <span>Xác suất: <strong>{{ hoveredNumberDetail.probabilityPercent }}%</strong></span>
+        <span>Đã về: <strong>{{ hoveredNumberDetail.frequency }} lần</strong></span>
+        <span>Gan: <strong>{{ hoveredNumberDetail.drawGap }} kỳ</strong></span>
+      </div>
+    </div>
+
+    <!-- Lịch sử các kỳ gần đây có số này -->
+    <div *ngIf="hoveredNumberHistory && hoveredNumberHistory.length > 0" class="mt-2">
+      <div class="small fw-bold text-secondary mb-1">Xuất hiện trong các kỳ gần đây:</div>
+      <div class="d-flex flex-column gap-1" style="max-height: 120px; overflow-y: auto;">
+        <div *ngFor="let h of hoveredNumberHistory | slice:0:5" class="d-flex justify-content-between align-items-center small py-1 border-bottom">
+          <span class="text-muted">{{ h.drawDate }} ({{ getDayOfWeek(h.drawDate) }})</span>
+          <span class="badge" [ngClass]="h.specialNumber === hoveredNumber ? 'bg-warning text-dark' : 'bg-secondary'">
+            {{ h.specialNumber === hoveredNumber ? '⭐ Số Phụ' : 'Số Chính' }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!hoveredNumberHistory || hoveredNumberHistory.length === 0" class="small text-muted text-center py-2">
+      Chưa có lần về nào trong các kỳ gần đây
     </div>
   </div>
 </div>

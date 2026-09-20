@@ -46,8 +46,9 @@ public class AnalyzeController {
      */
     @GetMapping("/predict")
     public ResponseEntity<PredictionResponseDto> predictNumbers(
-            @RequestParam(required = false, defaultValue = "MEGA") String category) {
-        PredictionResponseDto result = analyzeService.analyzeAndPredict(category);
+            @RequestParam(required = false, defaultValue = "MEGA") String category,
+            @RequestParam(required = false, defaultValue = "xgboost") String algorithm) {
+        PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm);
         return ResponseEntity.ok(result);
     }
 

@@ -3,10 +3,13 @@ export interface PredictionPayload {
   message?: string;
   category?: string;
   lotteryType?: string;
+  algorithm?: string;
+  algorithmName?: string;
+  algorithmDesc?: string;
   tickets?: number[][];
-  details?: NumberScoreDetail[]; // Thêm mảng details hiển thị bóng số
+  details?: NumberScoreDetail[];
   
-  // Bổ sung thêm các field khác từ Backend để tránh lỗi khi map dữ liệu ra HTML
+  // Bổ sung thêm các field từ Backend
   numbers?: number[];
   specialNumber?: number;
   totalDrawsAnalyzed?: number;
@@ -16,7 +19,7 @@ export interface PredictionPayload {
   frequentPairs?: string[];
   jackpot2Pairs?: string[];
   oddEvenRatio?: string;
-  selectionReasons?: any[]; // Bạn có thể thay 'any' bằng 'NumberSelectionReason' nếu đã import
+  selectionReasons?: NumberSelectionReason[];
   recentDraws?: any[];
   analysisSummary?: string;
   overallReason?: string;
@@ -28,4 +31,15 @@ export interface NumberScoreDetail {
   frequency: number;
   drawGap: number;
   tag: string;
+}
+
+export interface NumberSelectionReason {
+  number: number;
+  role: 'main' | 'special';
+  tag: string;
+  title: string;
+  reason: string;
+  probabilityPercent: number;
+  frequency: number;
+  drawGap: number;
 }

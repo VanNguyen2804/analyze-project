@@ -20,9 +20,10 @@ export class AnalyzeService {
     this.categorySource.next(category);
   }
 
-// Cập nhật hàm getPrediction để nhận tham số category
-  getPrediction(category: string): Observable<PredictionPayload> {
-    return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}`);
+// Cập nhật hàm getPrediction để nhận tham số category và algorithm
+  getPrediction(category: string, algorithm: string = 'xgboost'): Observable<PredictionPayload> {
+    const encodedAlg = encodeURIComponent(algorithm);
+    return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}&algorithm=${encodedAlg}`);
   }
 
   checkTickets(payload: any): Observable<any> {

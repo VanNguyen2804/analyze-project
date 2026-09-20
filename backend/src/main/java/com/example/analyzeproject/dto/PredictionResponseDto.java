@@ -6,7 +6,10 @@ public class PredictionResponseDto {
     private String status;
     private String category;
     private String lotteryType;
-    private List<Integer> numbers; // Chứa 10 số tiềm năng từ XGBoost
+    private String algorithm;
+    private String algorithmName;
+    private String algorithmDesc;
+    private List<Integer> numbers; // Chứa 10 số tiềm năng
     private List<List<Integer>> tickets; // Chứa 10 vé đã xáo theo Wheeling System
     private Integer specialNumber;
     private int totalDrawsAnalyzed;
@@ -35,6 +38,15 @@ public class PredictionResponseDto {
 
     public String getLotteryType() { return lotteryType; }
     public void setLotteryType(String lotteryType) { this.lotteryType = lotteryType; }
+
+    public String getAlgorithm() { return algorithm; }
+    public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
+
+    public String getAlgorithmName() { return algorithmName; }
+    public void setAlgorithmName(String algorithmName) { this.algorithmName = algorithmName; }
+
+    public String getAlgorithmDesc() { return algorithmDesc; }
+    public void setAlgorithmDesc(String algorithmDesc) { this.algorithmDesc = algorithmDesc; }
 
     public List<Integer> getNumbers() { return numbers; }
     public void setNumbers(List<Integer> numbers) { this.numbers = numbers; }

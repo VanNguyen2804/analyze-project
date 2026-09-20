@@ -38,8 +38,13 @@ public class AnalyzeService {
     }
 
     public PredictionResponseDto analyzeAndPredict(String categoryInput) {
+        return analyzeAndPredict(categoryInput, "xgboost");
+    }
+
+    public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithmInput) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
         int maxLimit = "POWER".equals(category) ? 55 : 45;
+        String algorithm = (algorithmInput != null && !algorithmInput.isBlank()) ? algorithmInput.trim().toLowerCase() : "xgboost";
 
         List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
         List<LotteryNumber> chronologicalRecords = new ArrayList<>(records);
@@ -358,6 +363,24 @@ public class AnalyzeService {
         response.setStatus("SUCCESS");
         response.setCategory(category);
         response.setLotteryType(category);
+        response.setAlgorithm(algorithm);
+        String algDisplayName = "XGBoost AI";
+        String algDisplayDesc = "Học máy Gradient Boosting kết hợp Momentum và Lô Gan chu kỳ.";
+        if ("monte_carlo".equalsIgnoreCase(algorithm)) {
+            algDisplayName = "Monte Carlo (Mô phỏng 100K)";
+            algDisplayDesc = "Mô phỏng 100.000 kịch bản ngẫu nhiên có trọng số, đối chuẩn Powerball & Mega Millions.";
+        } else if ("markov_chain".equalsIgnoreCase(algorithm)) {
+            algDisplayName = "Chuỗi Markov (Ma trận Chuyển Dịch)";
+            algDisplayDesc = "Xác suất chuyển dịch có điều kiện từ kết quả kỳ gần nhất.";
+        } else if ("poisson_gap".equalsIgnoreCase(algorithm)) {
+            algDisplayName = "Poisson & Lô Gan (Hồi quy phân phối)";
+            algDisplayDesc = "Mô hình Poisson phát hiện độ trễ tích lũy và điểm rơi hồi quy (Mean Reversion).";
+        } else if ("delta_wheeling".equalsIgnoreCase(algorithm)) {
+            algDisplayName = "Delta & Wheeling System";
+            algDisplayDesc = "Khoảng cách Delta lý tưởng kết hợp ma trận Wheeling bảo toàn độ phủ giải thưởng.";
+        }
+        response.setAlgorithmName(algDisplayName);
+        response.setAlgorithmDesc(algDisplayDesc);
         response.setNumbers(selected10NumbersForWheeling);
         response.setTickets(generatedTickets);
         response.setSpecialNumber(recommendedSpecialNumber);

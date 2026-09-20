@@ -143,3 +143,71 @@
 .table-hover tbody tr:hover {
   background-color: rgba(13, 110, 253, 0.035);
 }
+
+/* Nút chọn thuật toán */
+.algorithm-btn {
+  border: 1.5px solid #dee2e6;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 10px 16px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.algorithm-btn:hover {
+  border-color: #0d6efd;
+  background-color: #f8faff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.12);
+}
+
+.algorithm-btn.active {
+  border-color: #0d6efd;
+  background: linear-gradient(145deg, #eef4ff, #e0ecff);
+  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.2);
+}
+
+.algorithm-btn.active .alg-title {
+  color: #0b5ed7;
+  font-weight: 700;
+}
+
+.alg-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.alg-badge {
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.stat-badge-mc {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+
+.stat-badge-markov {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.stat-badge-poisson {
+  background-color: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.stat-badge-delta {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
