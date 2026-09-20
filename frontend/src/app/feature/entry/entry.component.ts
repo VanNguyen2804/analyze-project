@@ -29,6 +29,7 @@ export class EntryComponent implements OnInit, OnDestroy {
 
   recentDraws: any[] = [];
   userCheckHistory: any[] = [];
+  isLoadingHistory: boolean = false;
 
   editingDrawId: number | null = null;
   editNumbers: number[] = [];
@@ -42,7 +43,9 @@ export class EntryComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Lắng nghe sự thay đổi Category từ Header
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
-      this.category = newCategory;
+      if (newCategory) {
+        this.category = newCategory;
+      }
       this.loadHistory(); // Tự động tải lại bảng lịch sử Database
     });
 
@@ -58,7 +61,11 @@ export class EntryComponent implements OnInit, OnDestroy {
 
   // Hàm đồng bộ ngược lên Header khi đổi Category tại Dropdown của trang này
   onCategoryChange(newCategory: string) {
-    this.analyzeService.setCategory(newCategory);
+    if (newCategory) {
+      this.category = newCategory;
+      this.analyzeService.setCategory(newCategory);
+      this.loadHistory();
+    }
   }
 
   onDateOrCategoryChange() {
@@ -66,27 +73,35 @@ export class EntryComponent implements OnInit, OnDestroy {
   }
 
   loadHistory() {
+    this.isLoadingHistory = true;
     this.analyzeService.getHistory(this.category).subscribe({
       next: (res) => {
-        this.recentDraws = res;
+        this.isLoadingHistory = false;
+        this.recentDraws = Array.isArray(res) ? res : [];
         this.checkExistingOfficialDraw();
       },
-      error: (err) => console.error('Lỗi tải lịch sử database:', err)
+      error: (err) => {
+        this.isLoadingHistory = false;
+        console.error('Lỗi tải lịch sử database:', err);
+        this.recentDraws = [];
+      }
     });
   }
 
   checkExistingOfficialDraw() {
+    if (!this.recentDraws || !Array.isArray(this.recentDraws)) {
+      this.existingOfficialDraw = null;
+      return;
+    }
     const existing = this.recentDraws.find(
       (d: any) => d.drawDate === this.drawDate
     );
     if (existing) {
       this.existingOfficialDraw = existing;
-      this.officialNumbers = [...existing.numbers];
+      this.officialNumbers = existing.numbers ? [...existing.numbers] : [null, null, null, null, null, null];
       this.officialSpecialNumber = existing.specialNumber ?? null;
     } else {
       this.existingOfficialDraw = null;
-      this.officialNumbers = [null, null, null, null, null, null];
-      this.officialSpecialNumber = null;
     }
   }
 

@@ -13,7 +13,7 @@ public class UserTicket {
     private String category;
     private String drawDate;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<Integer> numbers;
     
     private String prize;

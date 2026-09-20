@@ -13,12 +13,14 @@ import com.example.analyzeproject.repository.UserTicketRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class AnalyzeService {
 
     // Khuôn mẫu Wheeling System: Xáo 10 số thành 10 vé bảo toàn tỷ lệ trúng
@@ -412,6 +414,7 @@ public class AnalyzeService {
     }
 
     // 1. HÀM ĐỐI CHIẾU VÉ
+    @Transactional
     public TicketCheckResponseDto checkMyTickets(TicketCheckRequestDto request) {
         TicketCheckResponseDto response = new TicketCheckResponseDto();
         
@@ -475,9 +478,24 @@ public class AnalyzeService {
     }
 
     // 2. HÀM CẬP NHẬT KẾT QUẢ MỚI VÀO DB ĐỂ THUẬT TOÁN HỌC LẠI
+    @Transactional
     public void addNewDrawResult(LotteryNumber newDraw) {
+        if (newDraw.getDrawDate() != null && newDraw.getCategory() != null) {
+            List<LotteryNumber> existing = repository.findByDrawDateAndCategoryOrderByCreatedAtDesc(
+                    newDraw.getDrawDate(), newDraw.getCategory().toUpperCase());
+            if (!existing.isEmpty()) {
+                LotteryNumber target = existing.get(0);
+                target.setNumbers(newDraw.getNumbers() != null ? new ArrayList<>(newDraw.getNumbers()) : new ArrayList<>());
+                target.setSpecialNumber(newDraw.getSpecialNumber());
+                if (newDraw.getNote() != null) target.setNote(newDraw.getNote());
+                repository.save(target);
+                return;
+            }
+        }
+        if (newDraw.getCreatedAt() == null) {
+            newDraw.setCreatedAt(LocalDateTime.now());
+        }
         repository.save(newDraw);
-        // Sau khi lưu, lần gọi analyzeAndPredict() tiếp theo sẽ tự động bao gồm dữ liệu này
     }
 
     // HÀM LẤY DANH SÁCH LỊCH SỬ KẾT QUẢ
@@ -489,19 +507,20 @@ public class AnalyzeService {
                 .map(r -> new DrawRecordDto(
                         r.getId(),
                         r.getDrawDate() != null ? r.getDrawDate().toString() : "",
-                        r.getNumbers(),
+                        r.getNumbers() != null ? new ArrayList<>(r.getNumbers()) : new ArrayList<>(),
                         r.getSpecialNumber(),
                         r.getNote()))
                 .collect(Collectors.toList());
     }
 
     // HÀM CẬP NHẬT (CHỈNH SỬA) KẾT QUẢ ĐÃ LƯU
+    @Transactional
     public void updateDrawResult(Long id, LotteryNumber updatedDraw) {
         Optional<LotteryNumber> existingOpt = repository.findById(id);
         if (existingOpt.isPresent()) {
             LotteryNumber existing = existingOpt.get();
             // Chỉ cập nhật các dãy số, giữ nguyên ngày quay và category
-            existing.setNumbers(updatedDraw.getNumbers());
+            existing.setNumbers(updatedDraw.getNumbers() != null ? new ArrayList<>(updatedDraw.getNumbers()) : new ArrayList<>());
             existing.setSpecialNumber(updatedDraw.getSpecialNumber());
             repository.save(existing);
         } else {
@@ -513,6 +532,7 @@ public class AnalyzeService {
         return userTicketRepo.findAllByOrderByCheckedAtDesc();
     }
 
+    @Transactional
     public void clearUserHistory() {
         userTicketRepo.deleteAll();
     }

@@ -20,7 +20,7 @@ public class LotteryNumber {
     @Column(name = "category", nullable = false)
     private String category; // "MEGA" (1-45) or "POWER" (1-55)
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "lottery_selected_numbers", joinColumns = @JoinColumn(name = "lottery_id"))
     @Column(name = "number_value")
     @OrderColumn(name = "number_order")

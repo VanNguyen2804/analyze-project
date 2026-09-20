@@ -62,7 +62,7 @@
       <div class="row g-4 mb-4 align-items-end">
         <div class="col-md-4">
           <label class="form-label fw-bold text-secondary">Loại xổ số Vietlott</label>
-          <select class="form-select form-select-lg border-0 shadow-sm" [(ngModel)]="category" (ngModelChange)="loadHistory()">
+          <select class="form-select form-select-lg border-0 shadow-sm" [(ngModel)]="category" (ngModelChange)="onCategoryChange($event)">
             <option value="MEGA">🔴 Mega 6/45</option>
             <option value="POWER">🔵 Power 6/55</option>
           </select>
@@ -271,27 +271,35 @@
       <div class="card shadow-sm border-0 h-100">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
           <h4 class="h6 fw-bold text-dark mb-0">🗄️ Dữ liệu Database ({{ category }})</h4>
-          <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="loadHistory()">🔄 Làm mới</button>
+          <button class="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-1" (click)="loadHistory()" [disabled]="isLoadingHistory">
+            <span *ngIf="isLoadingHistory" class="spinner-border spinner-border-sm" role="status"></span>
+            <span>🔄 Làm mới</span>
+          </button>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
             <table class="table table-hover mb-0 align-middle">
               <tbody>
+                <tr *ngIf="isLoadingHistory">
+                  <td colspan="2" class="text-center py-4 text-muted">
+                    <span class="spinner-border spinner-border-sm me-2"></span> Đang tải dữ liệu lịch sử {{ category }}...
+                  </td>
+                </tr>
                 <tr *ngFor="let draw of recentDraws">
                   <td class="ps-4 fw-semibold text-muted" style="width: 25%;">{{ draw.drawDate }}</td>
                   
                   <td>
                     <!-- CHẾ ĐỘ XEM (CHỈ ĐỌC) -->
                     <div *ngIf="editingDrawId !== draw.id" class="d-flex justify-content-between align-items-center">
-                      <div class="d-flex gap-1 flex-wrap">
-                        <span class="badge" [ngClass]="category === 'MEGA' ? 'bg-info text-dark' : 'bg-primary'" *ngFor="let n of draw.numbers" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                          {{ n < 10 ? '0'+n : n }}
+                      <div class="d-flex gap-1 flex-wrap align-items-center">
+                        <span class="badge" [ngClass]="category === 'MEGA' ? 'bg-danger text-white' : 'bg-primary text-white'" *ngFor="let n of (draw.numbers || [])" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">
+                          {{ (n != null && n < 10) ? '0' + n : n }}
                         </span>
-                        <span class="badge bg-warning text-dark border border-warning ms-2" *ngIf="draw.specialNumber" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                          {{ draw.specialNumber < 10 ? '0'+draw.specialNumber : draw.specialNumber }}
+                        <span class="badge bg-warning text-dark border border-warning ms-2" *ngIf="draw.specialNumber != null" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;" title="Số phụ Jackpot 2">
+                          ★{{ (draw.specialNumber < 10 ? '0' + draw.specialNumber : draw.specialNumber) }}
                         </span>
                       </div>
-                      <button class="btn btn-sm btn-light border text-primary rounded-circle shadow-sm" (click)="startEdit(draw)" title="Chỉnh sửa dãy số này">
+                      <button class="btn btn-sm btn-light border text-primary rounded-circle shadow-sm ms-2" (click)="startEdit(draw)" title="Chỉnh sửa dãy số này">
                         ✏️
                       </button>
                     </div>
@@ -321,7 +329,7 @@
                     </div>
                   </td>
                 </tr>
-                <tr *ngIf="recentDraws.length === 0">
+                <tr *ngIf="!isLoadingHistory && recentDraws.length === 0">
                   <td colspan="2" class="text-center py-5 text-muted">Chưa có dữ liệu chính thức cho loại vé này.</td>
                 </tr>
               </tbody>
