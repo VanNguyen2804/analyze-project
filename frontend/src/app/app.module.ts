@@ -8,7 +8,6 @@ import { AppComponent } from './app.component';
 
 // Feature components
 import { PredictionComponent } from './feature/prediction/prediction.component';
-import { ManualEntryComponent } from './feature/manual-entry/manual-entry.component';
 
 // Shared components
 import { HeaderComponent } from './share/components/header/header.component';
@@ -17,7 +16,7 @@ import { LeftMenuComponent } from './share/components/left-menu/left-menu.compon
 // Core services
 import { EntryComponent } from './feature/entry/entry.component';
 import { FrenchLearningComponent } from './feature/french-learning/french-learning.component';
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateModule, TranslateLoader, TranslatePipe } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { DatePipe } from '@angular/common';
 import { AnalyzeService } from './core/services/analyze.service';
@@ -34,8 +33,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     LeftMenuComponent,
     PredictionComponent,
     EntryComponent,
-    ManualEntryComponent,
-    FrenchLearningComponent
+    FrenchLearningComponent,
   ],
   imports: [
     BrowserModule,
@@ -52,7 +50,7 @@ export function HttpLoaderFactory(http: HttpClient) {
       defaultLanguage: 'vi' // Ngôn ngữ mặc định
     })
   ],
-  providers: [AnalyzeService],
+  providers: [AnalyzeService, TranslatePipe],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

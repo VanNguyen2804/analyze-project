@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PredictionComponent } from './feature/prediction/prediction.component';
-import { ManualEntryComponent } from './feature/manual-entry/manual-entry.component';
 import { EntryComponent } from './feature/entry/entry.component';
 import { FrenchLearningComponent } from './feature/french-learning/french-learning.component';
 

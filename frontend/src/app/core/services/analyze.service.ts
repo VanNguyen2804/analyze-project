@@ -32,4 +32,21 @@ export class AnalyzeService {
   addOfficialResult(payload: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/add-result`, payload, { responseType: 'text' as 'json' });
   }
+
+  getHistory(category: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/history?category=${category}`);
+  }
+
+  // Thêm phương thức này bên dưới addOfficialResult
+  editOfficialResult(id: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/update-result/${id}`, payload, { responseType: 'text' as 'json' });
+  }
+
+  getUserHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/user-history`);
+  }
+
+  clearUserHistory(): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/user-history`, { responseType: 'text' as 'json' });
+  }
 }

@@ -1,27 +1,50 @@
-import { Component } from '@angular/core';
-import { AnalyzeService } from '../../core/services/analyze.service';
+import { Component, OnInit } from '@angular/core';
+import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-entry',
   templateUrl: './entry.component.html'
 })
-export class EntryComponent {
+export class EntryComponent implements OnInit {
   category: string = 'MEGA';
   drawDate: string = new Date().toISOString().split('T')[0];
   
-  // Quản lý danh sách vé người dùng nhập
-  userTickets: number[][] = [
-    [0, 0, 0, 0, 0, 0] // Khởi tạo 1 vé trống
-  ];
+  userTickets: number[][] = [ [null as any, null as any, null as any, null as any, null as any, null as any] ];
+  officialSpecialNumber: number | null = null;
 
   checkResult: any = null;
   isChecking = false;
   isUpdating = false;
 
+  recentDraws: any[] = [];
+  
+  // Biến lưu trữ lịch sử dò vé của cá nhân
+  userCheckHistory: any[] = [];
+
   constructor(private analyzeService: AnalyzeService) {}
 
+  ngOnInit() {
+    this.loadHistory();
+    this.loadUserHistory();
+    // Tải lịch sử dò vé của người dùng từ LocalStorage khi khởi động trang
+  }
+
+  loadUserHistory() {
+    this.analyzeService.getUserHistory().subscribe({
+      next: (res) => this.userCheckHistory = res,
+      error: (err) => console.error('Lỗi tải lịch sử cá nhân từ DB:', err)
+    });
+  }
+
+  loadHistory() {
+    this.analyzeService.getHistory(this.category).subscribe({
+      next: (res) => this.recentDraws = res,
+      error: (err) => console.error('Lỗi tải lịch sử database:', err)
+    });
+  }
+
   addTicketRow() {
-    this.userTickets.push([0, 0, 0, 0, 0, 0]);
+    this.userTickets.push([null as any, null as any, null as any, null as any, null as any, null as any]);
   }
 
   removeTicketRow(index: number) {
@@ -30,51 +53,63 @@ export class EntryComponent {
     }
   }
 
-  // TrackBy dùng cho ngFor với mảng nguyên thủy (number)
   trackByIndex(index: number, obj: any): any {
     return index;
   }
 
-  submitCheck() {
+submitCheck() {
     this.isChecking = true;
     this.checkResult = null;
-
     const payload = {
       category: this.category,
       drawDate: this.drawDate,
-      tickets: this.userTickets.map(ticket => ticket.map(n => Number(n)))
+      tickets: this.userTickets.map(ticket => ticket.map(n => Number(n) || 0))
     };
 
     this.analyzeService.checkTickets(payload).subscribe({
       next: (res) => {
         this.checkResult = res;
         this.isChecking = false;
+        if (res.status === 'SUCCESS') {
+          this.loadUserHistory(); // Cập nhật lại bảng lịch sử sau khi dò xong
+        }
       },
       error: (err) => {
-        alert('Có lỗi xảy ra kết nối Server');
+        alert('Lỗi kết nối Server.');
         this.isChecking = false;
       }
     });
   }
 
-  // Tính năng nhập tay kết quả chính thức để cập nhật thuật toán
+  clearUserHistory() {
+    if(confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử dò vé cá nhân trong Database?')) {
+      this.analyzeService.clearUserHistory().subscribe({
+        next: () => this.userCheckHistory = [],
+        error: (err) => console.error(err)
+      });
+    }
+  }
+
+  // Nạp kết quả vào Database cho AI phân tích
   updateOfficialResult() {
-    // Lấy vé đầu tiên làm kết quả chính thức (mô phỏng)
-    const officialNums = this.userTickets[0].map(n => Number(n));
+    const officialNums = this.userTickets[0].map(n => Number(n) || 0);
     const payload = {
       category: this.category,
       drawDate: this.drawDate,
       numbers: officialNums,
-      specialNumber: this.category === 'POWER' ? officialNums[5] : null // Xử lý logic số phụ tùy giao diện
+      specialNumber: this.category === 'POWER' ? Number(this.officialSpecialNumber || 0) : null
     };
 
     this.isUpdating = true;
     this.analyzeService.addOfficialResult(payload).subscribe({
       next: (msg) => {
-        alert(msg); // Hiển thị thông báo thành công
+        alert('Đã nạp kết quả vào hệ thống: ' + msg);
         this.isUpdating = false;
+        this.submitCheck(); 
+        this.loadHistory();
       },
-      error: () => {
+      error: (err) => {
+        alert('Lưu thất bại! Kiểm tra log Spring Boot.');
         this.isUpdating = false;
       }
     });

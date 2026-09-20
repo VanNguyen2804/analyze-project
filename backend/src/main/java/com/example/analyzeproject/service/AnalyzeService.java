@@ -7,10 +7,14 @@ import com.example.analyzeproject.dto.PredictionResponseDto;
 import com.example.analyzeproject.dto.TicketCheckRequestDto;
 import com.example.analyzeproject.dto.TicketCheckResponseDto;
 import com.example.analyzeproject.model.LotteryNumber;
+import com.example.analyzeproject.model.UserTicket;
 import com.example.analyzeproject.repository.LotteryNumberRepository;
+import com.example.analyzeproject.repository.UserTicketRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,10 +29,12 @@ public class AnalyzeService {
     };
 
     private final LotteryNumberRepository repository;
+    private final UserTicketRepository userTicketRepo; 
 
-    @Autowired
-    public AnalyzeService(LotteryNumberRepository repository) {
+   @Autowired
+    public AnalyzeService(LotteryNumberRepository repository, UserTicketRepository userTicketRepo) {
         this.repository = repository;
+        this.userTicketRepo = userTicketRepo;
     }
 
     public PredictionResponseDto analyzeAndPredict(String categoryInput) {
@@ -407,15 +413,12 @@ public class AnalyzeService {
         response.setOfficialSpecialNumber(specialNum);
         
         List<TicketCheckResponseDto.TicketResult> ticketResults = new ArrayList<>();
-
         for (List<Integer> ticket : request.getTickets()) {
             int matchCount = 0;
             boolean matchSpecial = false;
 
             for (Integer num : ticket) {
-                if (officialNums.contains(num)) {
-                    matchCount++;
-                }
+                if (officialNums.contains(num)) matchCount++;
             }
 
             if ("POWER".equals(request.getCategory()) && specialNum != null && ticket.contains(specialNum)) {
@@ -424,6 +427,15 @@ public class AnalyzeService {
 
             String prize = determinePrize(matchCount, matchSpecial, request.getCategory());
             ticketResults.add(new TicketCheckResponseDto.TicketResult(ticket, matchCount, matchSpecial, prize));
+
+            // THÊM ĐOẠN NÀY: Lưu vé của User vào Database
+            UserTicket ut = new UserTicket();
+            ut.setCategory(request.getCategory());
+            ut.setDrawDate(request.getDrawDate());
+            ut.setNumbers(new ArrayList<>(ticket));
+            ut.setPrize(prize);
+            ut.setCheckedAt(LocalDateTime.now());
+            userTicketRepo.save(ut);
         }
 
         response.setResults(ticketResults);
@@ -443,6 +455,43 @@ public class AnalyzeService {
     public void addNewDrawResult(LotteryNumber newDraw) {
         repository.save(newDraw);
         // Sau khi lưu, lần gọi analyzeAndPredict() tiếp theo sẽ tự động bao gồm dữ liệu này
+    }
+
+    // HÀM LẤY DANH SÁCH LỊCH SỬ KẾT QUẢ
+    public List<DrawRecordDto> getRecentDraws(String categoryInput) {
+        String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
+        return repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category)
+                .stream()
+                .limit(50) // Lấy 50 kỳ gần nhất để hiển thị
+                .map(r -> new DrawRecordDto(
+                        r.getId(),
+                        r.getDrawDate() != null ? r.getDrawDate().toString() : "",
+                        r.getNumbers(),
+                        r.getSpecialNumber(),
+                        r.getNote()))
+                .collect(Collectors.toList());
+    }
+
+    // HÀM CẬP NHẬT (CHỈNH SỬA) KẾT QUẢ ĐÃ LƯU
+    public void updateDrawResult(Long id, LotteryNumber updatedDraw) {
+        Optional<LotteryNumber> existingOpt = repository.findById(id);
+        if (existingOpt.isPresent()) {
+            LotteryNumber existing = existingOpt.get();
+            // Chỉ cập nhật các dãy số, giữ nguyên ngày quay và category
+            existing.setNumbers(updatedDraw.getNumbers());
+            existing.setSpecialNumber(updatedDraw.getSpecialNumber());
+            repository.save(existing);
+        } else {
+            throw new RuntimeException("Không tìm thấy dữ liệu kỳ quay này!");
+        }
+    }
+
+    public List<UserTicket> getUserHistory() {
+        return userTicketRepo.findAllByOrderByCheckedAtDesc();
+    }
+
+    public void clearUserHistory() {
+        userTicketRepo.deleteAll();
     }
 
     private static class ScoredNumber {
