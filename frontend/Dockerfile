@@ -1,5 +1,6 @@
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
+ENV NG_FORCE_COMPAT_CHECK=false
 COPY package*.json ./
 RUN npm install
 COPY . .

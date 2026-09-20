@@ -1082,6 +1082,194 @@ async function startServer() {
     res.json(result);
   });
 
+  // Analyze Project matching endpoints
+  app.get('/api/analyze/history', (req: Request, res: Response) => {
+    const category =
+      typeof req.query.category === 'string' &&
+      req.query.category.toUpperCase() === 'POWER'
+        ? 'POWER'
+        : 'MEGA';
+    const list = records
+      .filter((r) => r.category === category)
+      .sort(
+        (a, b) =>
+          b.drawDate.localeCompare(a.drawDate) ||
+          (b.createdAt || '').localeCompare(a.createdAt || '')
+      )
+      .slice(0, 50)
+      .map((r) => ({
+        id: r.id,
+        drawDate: r.drawDate,
+        numbers: r.numbers,
+        specialNumber: r.specialNumber,
+        note: r.note,
+      }));
+    res.json(list);
+  });
+
+  app.post('/api/analyze/add-result', (req: Request, res: Response) => {
+    try {
+      const { numbers, drawDate, category: catInput, specialNumber, note } =
+        req.body;
+      if (!Array.isArray(numbers) || numbers.length !== 6) {
+        return res
+          .status(400)
+          .send('Yêu cầu nhập chính xác đúng 6 con số chính!');
+      }
+
+      const cat =
+        catInput && String(catInput).toUpperCase() === 'POWER'
+          ? 'POWER'
+          : 'MEGA';
+      const maxLimit = cat === 'POWER' ? 55 : 45;
+
+      for (const n of numbers) {
+        const num = Number(n);
+        if (!Number.isInteger(num) || num < 1 || num > maxLimit) {
+          return res
+            .status(400)
+            .send(`Số ${num} không hợp lệ! Với ${cat}, các số phải từ 1 đến ${maxLimit}.`);
+        }
+      }
+
+      const sortedNumbers = [...numbers.map(Number)].sort((a, b) => a - b);
+      const targetDate =
+        drawDate && typeof drawDate === 'string' && drawDate.trim()
+          ? drawDate.trim()
+          : new Date().toISOString().slice(0, 10);
+
+      let parsedSpecial: number | undefined = undefined;
+      if (cat === 'POWER' && specialNumber !== undefined && specialNumber !== null && specialNumber !== '') {
+        const sp = Number(specialNumber);
+        if (Number.isInteger(sp) && sp >= 1 && sp <= 55) {
+          parsedSpecial = sp;
+        }
+      }
+
+      const existingIndex = records.findIndex(
+        (r) => r.drawDate === targetDate && r.category === cat
+      );
+      if (existingIndex !== -1) {
+        records[existingIndex].numbers = sortedNumbers;
+        records[existingIndex].specialNumber = parsedSpecial;
+        saveDataToDisk();
+        return res.send(
+          `Đã cập nhật kết quả kỳ quay ngày ${targetDate} (${cat}) vào hệ thống.`
+        );
+      }
+
+      const newRecord: LotteryNumberRecord = {
+        id: nextId++,
+        drawDate: targetDate,
+        category: cat,
+        numbers: sortedNumbers,
+        specialNumber: parsedSpecial,
+        createdAt: new Date().toISOString(),
+        note: note ? String(note).trim() : undefined,
+      };
+
+      records.unshift(newRecord);
+      saveDataToDisk();
+      return res.send(
+        `Đã lưu kết quả Vietlott mở thưởng ngày ${targetDate} (${cat}) vào Database thành công!`
+      );
+    } catch (err: any) {
+      return res.status(500).send(err.message || 'Lỗi khi lưu kết quả');
+    }
+  });
+
+  app.put('/api/analyze/update-result/:id', (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const target = records.find((r) => r.id === id);
+    if (!target) {
+      return res.status(404).send('Không tìm thấy dữ liệu kỳ quay này!');
+    }
+    const { numbers, specialNumber } = req.body;
+    if (Array.isArray(numbers) && numbers.length === 6) {
+      target.numbers = [...numbers.map(Number)].sort((a, b) => a - b);
+    }
+    if (target.category === 'POWER') {
+      target.specialNumber = specialNumber ? Number(specialNumber) : undefined;
+    }
+    saveDataToDisk();
+    return res.send('Đã chỉnh sửa dãy số thành công!');
+  });
+
+  interface UserCheckRecord {
+    id: number;
+    category: string;
+    drawDate: string;
+    numbers: number[];
+    prize: string;
+    checkedAt: string;
+  }
+  const userChecks: UserCheckRecord[] = [];
+  let nextUserCheckId = 1;
+
+  app.post('/api/analyze/check-tickets', (req: Request, res: Response) => {
+    const { category, drawDate, tickets } = req.body;
+    const cat = category === 'POWER' ? 'POWER' : 'MEGA';
+    const official = records.find(
+      (r) => r.category === cat && r.drawDate === drawDate
+    );
+    if (!official) {
+      return res.json({
+        status: 'NOT_FOUND',
+        message: `Chưa có kết quả Vietlott ${cat} ngày ${drawDate} trong Database.`,
+      });
+    }
+
+    const officialSet = new Set(official.numbers);
+    const officialSpecial = official.specialNumber;
+    const results = (tickets || []).map((ticket: number[]) => {
+      const valid = ticket.filter((n) => Number(n) > 0).map(Number);
+      const matchCount = valid.filter((n) => officialSet.has(n)).length;
+      const matchSpecial =
+        cat === 'POWER' &&
+        officialSpecial !== undefined &&
+        valid.includes(officialSpecial);
+      let prize = 'KHÔNG TRÚNG';
+      if (matchCount === 6) prize = 'JACKPOT 1';
+      else if (cat === 'POWER' && matchCount === 5 && matchSpecial)
+        prize = 'JACKPOT 2';
+      else if (matchCount === 5) prize = 'GIẢI NHẤT';
+      else if (matchCount === 4) prize = 'GIẢI NHÌ';
+      else if (matchCount === 3) prize = 'GIẢI BA';
+
+      userChecks.unshift({
+        id: nextUserCheckId++,
+        category: cat,
+        drawDate,
+        numbers: valid,
+        prize,
+        checkedAt: new Date().toISOString(),
+      });
+
+      return {
+        userNumbers: valid,
+        matchCount,
+        matchSpecial,
+        prize,
+      };
+    });
+
+    return res.json({
+      status: 'SUCCESS',
+      officialNumbers: official.numbers,
+      officialSpecialNumber: official.specialNumber,
+      results,
+    });
+  });
+
+  app.get('/api/analyze/user-history', (req: Request, res: Response) => {
+    res.json(userChecks.slice(0, 50));
+  });
+
+  app.delete('/api/analyze/user-history', (req: Request, res: Response) => {
+    userChecks.length = 0;
+    res.send('Đã xóa lịch sử dò vé cá nhân.');
+  });
+
   // Vite middleware for development vs static for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

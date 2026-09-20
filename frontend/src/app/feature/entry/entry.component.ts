@@ -14,12 +14,18 @@ export class EntryComponent implements OnInit, OnDestroy {
   category: string = 'MEGA';
   drawDate: string = new Date().toISOString().split('T')[0];
   
-  userTickets: number[][] = [ [null as any, null as any, null as any, null as any, null as any, null as any] ];
+  // Dãy số kết quả Vietlott chính thức theo ngày
+  officialNumbers: (number | null)[] = [null, null, null, null, null, null];
   officialSpecialNumber: number | null = null;
+  isSavingOfficial: boolean = false;
+  saveOfficialMessage: string = '';
+  existingOfficialDraw: any = null;
+
+  // Dãy số vé cá nhân để dò
+  userTickets: number[][] = [ [null as any, null as any, null as any, null as any, null as any, null as any] ];
 
   checkResult: any = null;
   isChecking = false;
-  isUpdating = false;
 
   recentDraws: any[] = [];
   userCheckHistory: any[] = [];
@@ -55,10 +61,99 @@ export class EntryComponent implements OnInit, OnDestroy {
     this.analyzeService.setCategory(newCategory);
   }
 
+  onDateOrCategoryChange() {
+    this.checkExistingOfficialDraw();
+  }
+
   loadHistory() {
     this.analyzeService.getHistory(this.category).subscribe({
-      next: (res) => this.recentDraws = res,
+      next: (res) => {
+        this.recentDraws = res;
+        this.checkExistingOfficialDraw();
+      },
       error: (err) => console.error('Lỗi tải lịch sử database:', err)
+    });
+  }
+
+  checkExistingOfficialDraw() {
+    const existing = this.recentDraws.find(
+      (d: any) => d.drawDate === this.drawDate
+    );
+    if (existing) {
+      this.existingOfficialDraw = existing;
+      this.officialNumbers = [...existing.numbers];
+      this.officialSpecialNumber = existing.specialNumber ?? null;
+    } else {
+      this.existingOfficialDraw = null;
+      this.officialNumbers = [null, null, null, null, null, null];
+      this.officialSpecialNumber = null;
+    }
+  }
+
+  clearOfficialInputs() {
+    this.officialNumbers = [null, null, null, null, null, null];
+    this.officialSpecialNumber = null;
+    this.saveOfficialMessage = '';
+  }
+
+  // LƯU KẾT QUẢ VIETLOTT THEO NGÀY VÀO DATABASE
+  saveOfficialVietlottResult() {
+    const maxLimit = this.category === 'POWER' ? 55 : 45;
+
+    // Kiểm tra xem đã điền đủ 6 số chưa
+    const filledNums = this.officialNumbers.map(n => Number(n));
+    for (let i = 0; i < 6; i++) {
+      const val = filledNums[i];
+      if (!val || isNaN(val) || val < 1 || val > maxLimit) {
+        alert(`Vui lòng nhập đầy đủ 6 số chính từ 1 đến ${maxLimit} cho ô số ${i + 1}!`);
+        return;
+      }
+    }
+
+    // Kiểm tra trùng nhau giữa 6 số chính
+    const uniqueSet = new Set(filledNums);
+    if (uniqueSet.size !== 6) {
+      alert('Các con số trong kết quả mở thưởng không được trùng nhau!');
+      return;
+    }
+
+    // Nếu là Power 6/55, kiểm tra số phụ nếu có
+    let specialNum: number | null = null;
+    if (this.category === 'POWER') {
+      if (this.officialSpecialNumber !== null && this.officialSpecialNumber !== undefined && this.officialSpecialNumber !== ('' as any)) {
+        specialNum = Number(this.officialSpecialNumber);
+        if (isNaN(specialNum) || specialNum < 1 || specialNum > 55) {
+          alert('Banh phụ của Power 6/55 phải là số từ 1 đến 55!');
+          return;
+        }
+        if (uniqueSet.has(specialNum)) {
+          alert(`Banh phụ (${specialNum}) không được trùng với bất kỳ số nào trong 6 số chính!`);
+          return;
+        }
+      }
+    }
+
+    const payload = {
+      category: this.category,
+      drawDate: this.drawDate,
+      numbers: filledNums.sort((a, b) => a - b),
+      specialNumber: specialNum
+    };
+
+    this.isSavingOfficial = true;
+    this.saveOfficialMessage = '';
+
+    this.analyzeService.addOfficialResult(payload).subscribe({
+      next: (msg) => {
+        this.isSavingOfficial = false;
+        this.saveOfficialMessage = `✅ Đã lưu thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
+        alert(`Thành công: Đã lưu kết quả Vietlott ngày ${this.drawDate} vào Database.`);
+        this.loadHistory();
+      },
+      error: (err) => {
+        this.isSavingOfficial = false;
+        alert('Lưu kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
+      }
     });
   }
 
@@ -114,30 +209,6 @@ export class EntryComponent implements OnInit, OnDestroy {
         error: (err) => console.error(err)
       });
     }
-  }
-
-  updateOfficialResult() {
-    const officialNums = this.userTickets[0].map(n => Number(n) || 0);
-    const payload = {
-      category: this.category,
-      drawDate: this.drawDate,
-      numbers: officialNums,
-      specialNumber: this.category === 'POWER' ? Number(this.officialSpecialNumber || 0) : null
-    };
-
-    this.isUpdating = true;
-    this.analyzeService.addOfficialResult(payload).subscribe({
-      next: (msg) => {
-        alert('Đã nạp kết quả vào hệ thống: ' + msg);
-        this.isUpdating = false;
-        this.submitCheck(); 
-        this.loadHistory();
-      },
-      error: (err) => {
-        alert('Lưu thất bại! Kiểm tra log Spring Boot.');
-        this.isUpdating = false;
-      }
-    });
   }
 
   startEdit(draw: any) {
