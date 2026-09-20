@@ -1270,18 +1270,39 @@ async function startServer() {
     res.send('Đã xóa lịch sử dò vé cá nhân.');
   });
 
-  // Vite middleware for development vs static for production
-  if (process.env.NODE_ENV !== 'production') {
+  // 1. Phục vụ tĩnh tài nguyên assets (i18n JSON, hình ảnh, icons) trực tiếp từ nguồn
+  const frontendAssets = path.join(process.cwd(), 'frontend', 'src', 'assets');
+  if (fs.existsSync(frontendAssets)) {
+    app.use('/assets', express.static(frontendAssets));
+  }
+
+  // 2. Phục vụ ứng dụng Frontend Angular đã build
+  const angularDist = path.join(process.cwd(), 'frontend', 'dist', 'analyzeproject');
+  const backendStatic = path.join(process.cwd(), 'backend', 'src', 'main', 'resources', 'static');
+  const rootDist = path.join(process.cwd(), 'dist');
+
+  if (fs.existsSync(path.join(angularDist, 'index.html'))) {
+    console.log('Serving Angular frontend from:', angularDist);
+    app.use(express.static(angularDist));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(angularDist, 'index.html'));
+    });
+  } else if (fs.existsSync(path.join(backendStatic, 'index.html'))) {
+    console.log('Serving Angular frontend from backend static:', backendStatic);
+    app.use(express.static(backendStatic));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(backendStatic, 'index.html'));
+    });
+  } else if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(rootDist));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      res.sendFile(path.join(rootDist, 'index.html'));
     });
   }
 

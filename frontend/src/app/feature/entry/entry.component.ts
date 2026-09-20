@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -38,7 +38,10 @@ export class EntryComponent implements OnInit, OnDestroy {
   // Khai báo biến lưu trữ Subscription để hủy khi rời trang
   private categorySub: Subscription | undefined;
 
-  constructor(private analyzeService: AnalyzeService) {}
+  constructor(
+    private analyzeService: AnalyzeService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     // Lắng nghe sự thay đổi Category từ Header
@@ -74,16 +77,19 @@ export class EntryComponent implements OnInit, OnDestroy {
 
   loadHistory() {
     this.isLoadingHistory = true;
+    this.cdr.detectChanges();
     this.analyzeService.getHistory(this.category).subscribe({
       next: (res) => {
         this.isLoadingHistory = false;
         this.recentDraws = Array.isArray(res) ? res : [];
         this.checkExistingOfficialDraw();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.isLoadingHistory = false;
         console.error('Lỗi tải lịch sử database:', err);
         this.recentDraws = [];
+        this.cdr.detectChanges();
       }
     });
   }

@@ -77,6 +77,15 @@
     </div>
   </div>
 
+  <!-- THÔNG BÁO LỖI NẾU CÓ -->
+  <div *ngIf="errorMessage" class="alert alert-danger shadow-sm border-0 rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <span class="fs-4">⚠️</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" (click)="predict()">Thử lại</button>
+  </div>
+
   <!-- 1. MỤC DANH SÁCH 5 VÉ TỐI ƯU NHẤT -->
   <div *ngIf="payload && payload.status === 'SUCCESS'" class="card shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">

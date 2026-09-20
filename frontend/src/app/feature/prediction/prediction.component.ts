@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -26,6 +26,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   isSpinning = false;
   isLoadingHistory = false;
   showAllReasons = false;
+  errorMessage = '';
   
   hoveredNumber?: number = undefined;
   hoveredNumberDetail: any = null;
@@ -83,7 +84,10 @@ export class PredictionComponent implements OnInit, OnDestroy {
   recentDraws: any[] = [];
   visibleDraws: any[] = [];
 
-  constructor(private analyzeService: AnalyzeService) {}
+  constructor(
+    private analyzeService: AnalyzeService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     // BehaviorSubject sẽ emit giá trị hiện tại ngay lập tức khi subscribe -> tự động chạy predict() lần đầu tiên vào trang
@@ -114,9 +118,11 @@ export class PredictionComponent implements OnInit, OnDestroy {
   predict() {
     this.isSpinning = true;
     this.isLoadingHistory = true;
+    this.errorMessage = '';
     this.payload = null;
     this.showAllReasons = false;
     this.hidePopup();
+    this.cdr.detectChanges();
     
     this.analyzeService.getPrediction(this.category, this.selectedAlgorithm).subscribe({
       next: (res) => {
@@ -130,12 +136,15 @@ export class PredictionComponent implements OnInit, OnDestroy {
           
           this.isSpinning = false;
           this.isLoadingHistory = false;
-        }, 800); 
+          this.cdr.detectChanges();
+        }, 300); 
       },
       error: (err) => {
         console.error('Lỗi khi phân tích dữ liệu:', err);
+        this.errorMessage = 'Không thể kết nối đến máy chủ phân tích. Vui lòng thử lại sau.';
         this.isSpinning = false;
         this.isLoadingHistory = false;
+        this.cdr.detectChanges();
       }
     });
   }
