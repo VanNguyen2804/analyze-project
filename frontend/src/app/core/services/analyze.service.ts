@@ -12,7 +12,7 @@ export interface PredictionPayload {
 
 @Injectable({ providedIn: 'root' })
 export class AnalyzeService {
-  private readonly apiUrl = (environment.apiUrl ? environment.apiUrl : '') + '/api/analyze/predict';
+  private readonly apiUrl = (environment.apiUrl ? environment.apiUrl : '') + '/api/analyze';
 
   constructor(private http: HttpClient) { }
 
