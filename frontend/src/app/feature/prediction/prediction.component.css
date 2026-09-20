@@ -41,9 +41,10 @@
 }
 
 .ball-mega {
-    background: radial-gradient(circle at 15px 15px, #ff416c, #ff4b2b); /* Đỏ Mega */
-}
-
+    background: radial-gradient(circle at 15px 15px, #00b4db, #0083b0) !important;
+    color: white !important;
+    border: 2px solid #00769c !important;
+  }
 .ball-power {
     background: radial-gradient(circle at 15px 15px, #fbc2eb, #a6c1ee); /* Cam/Vàng Power */
     color: #333;
