@@ -1,10 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { PredictionPayload } from 'src/app/core/models/prediction-payload.model';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-prediction',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './prediction.component.html',
   styleUrls: ['./prediction.component.css']
 })

@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-french-learning',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './french-learning.component.html',
   styleUrls: ['./french-learning.component.css']
 })

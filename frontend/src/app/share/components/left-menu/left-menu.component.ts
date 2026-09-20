@@ -1,9 +1,13 @@
 import { Component, EventEmitter, Input, OnInit, OnDestroy, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CategoryService } from '../../../core/services/category.service';
 
 @Component({
   selector: 'app-left-menu',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   templateUrl: './left-menu.component.html',
   styles: [`
     .left-menu {

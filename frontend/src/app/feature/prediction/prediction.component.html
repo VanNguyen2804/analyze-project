@@ -95,7 +95,7 @@
         </div>
       </div>
 
-      <div class="d-flex flex-column gap-3" *ngIf="payload.selectionReasons && payload.selectionReasons.length > 0">
+      <div class="d-flex flex-column gap-3" *ngIf="payload && payload.selectionReasons && payload.selectionReasons.length > 0">
         <div
           *ngFor="let item of payload.selectionReasons | slice:0:(showAllReasons ? payload.selectionReasons.length : 5)"
           class="p-3 rounded-3 border bg-white shadow-sm"
@@ -144,7 +144,7 @@
           </div>
         </div>
         
-        <div class="text-center mt-3" *ngIf="payload.selectionReasons && payload.selectionReasons.length > 5">
+        <div class="text-center mt-3" *ngIf="payload && payload.selectionReasons && payload.selectionReasons.length > 5">
             <button class="btn btn-outline-primary rounded-pill px-4 fw-semibold" (click)="showAllReasons = !showAllReasons">
                 {{ showAllReasons ? '⬆️ Thu gọn danh sách' : '⬇️ Xem chi tiết các số khác' }}
             </button>

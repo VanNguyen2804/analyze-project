@@ -1,9 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-entry',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './entry.component.html'
 })
 export class EntryComponent implements OnInit, OnDestroy {
