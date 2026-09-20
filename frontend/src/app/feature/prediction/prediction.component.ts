@@ -14,7 +14,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   isLoadingHistory = false;
   showAllReasons = false;
   
-  hoveredNumber: number | null = null;
+  hoveredNumber?: number = undefined;
   hoveredNumberDetail: any = null;
   hoveredNumberHistory: any[] = [];
   popupStyle: any = { top: '0px', left: '0px' };
@@ -108,13 +108,13 @@ export class PredictionComponent implements OnInit, OnDestroy {
   }
 
   hidePopup() {
-    this.hoveredNumber = null;
+    this.hoveredNumber = undefined;
     this.hoveredNumberDetail = null;
     this.hoveredNumberHistory = [];
   }
 
   formatNumber(num: number | undefined): string {
-    if (num === undefined || num === null) return '--';
+    if (num === undefined) return '--';
     return num < 10 ? '0' + num : num.toString();
   }
 
