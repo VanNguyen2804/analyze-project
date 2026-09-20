@@ -1,17 +1,16 @@
 .ball {
-  width: 58px;
-  height: 58px;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 800;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  user-select: none;
+    width: 45px; 
+    height: 45px;
+    color: white; 
+    border-radius: 50%;
+    display: flex; 
+    align-items: center;
+    justify-content: center; 
+    font-size: 18px; 
+    font-weight: bold;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
+
 
 .ball:hover {
   transform: translateY(-3px) scale(1.05);
@@ -19,11 +18,12 @@
 }
 
 .ball-mega {
-  background: radial-gradient(circle at 18px 18px, #ff6b6b, #c92a2a);
+    background: radial-gradient(circle at 15px 15px, #ff416c, #ff4b2b); /* Đỏ Mega */
 }
 
 .ball-power {
-  background: radial-gradient(circle at 18px 18px, #339af0, #1864ab);
+    background: radial-gradient(circle at 15px 15px, #fbc2eb, #a6c1ee); /* Cam/Vàng Power */
+    color: #333;
 }
 
 .ball-special {

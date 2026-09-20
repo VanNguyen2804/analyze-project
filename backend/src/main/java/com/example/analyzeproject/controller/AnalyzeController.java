@@ -5,6 +5,7 @@ import com.example.analyzeproject.service.AnalyzeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analyze")
@@ -17,7 +18,12 @@ public class AnalyzeController {
     public AnalyzeController(AnalyzeService analyzeService) {
         this.analyzeService = analyzeService;
     }
-
+    
+    // Trả về Payload chứa status, loại xổ số và danh sách vé
+    @GetMapping("/predict")
+    public Map<String, Object> getPrediction() {
+        return analyzeService.predictNumbers();
+    }
     /**
      * Phân tích theo từng dãy số theo ngày cho từng category và đề xuất 6 số tối ưu.
      * @param category MEGA (1-45) hoặc POWER (1-55)

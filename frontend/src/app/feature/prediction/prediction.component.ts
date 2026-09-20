@@ -4,6 +4,7 @@ import { PredictionService, PredictionResponse, NumberScoreDetail } from '../../
 import { LotteryService } from '../../core/services/lottery.service';
 import { CategoryService } from '../../core/services/category.service';
 import { SavedLotteryRecord } from '../../core/models/lottery-number.model';
+import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-prediction',
@@ -30,7 +31,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
   constructor(
     private predictionService: PredictionService,
     private lotteryService: LotteryService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private analyzeService: AnalyzeService
   ) {}
 
   ngOnInit(): void {
