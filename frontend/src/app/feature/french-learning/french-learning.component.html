@@ -1,0 +1,95 @@
+<div class="container-fluid mt-4 mb-5">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fs-3">🇫🇷</span>
+        <h3 class="card-title h4 fw-bold text-primary mb-0">Học Tiếng Pháp Tương Tác</h3>
+      </div>
+      <div class="badge bg-warning text-dark fs-6 px-3 py-2 border shadow-sm">
+        🏆 Điểm của bạn: <strong>{{ totalScore }}</strong>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <!-- Tabs Điều Hướng -->
+      <ul class="nav nav-tabs px-3 pt-3 bg-light border-bottom-0" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'alphabet'" (click)="activeTab = 'alphabet'">
+            🔤 Bảng chữ cái
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'dictation'" (click)="activeTab = 'dictation'">
+            🎧 Nghe & Viết (Dictation)
+          </button>
+        </li>
+      </ul>
+
+      <div class="p-4 p-md-5">
+        
+        <!-- SECTION 1: BẢNG CHỮ CÁI -->
+        <div *ngIf="activeTab === 'alphabet'" class="animation-fade">
+          <p class="text-muted mb-4">Nhấn vào từng chữ cái để nghe trình duyệt phát âm chuẩn tiếng Pháp.</p>
+          <div class="row g-3">
+            <div class="col-4 col-md-2" *ngFor="let item of alphabet">
+              <div class="alphabet-card p-3 text-center border rounded-3 shadow-sm bg-white" 
+                   (click)="playAudio(item.letter)">
+                <h2 class="display-5 fw-bold text-dark mb-1">{{ item.letter }}</h2>
+                <span class="badge bg-light text-secondary border">/{{ item.pron }}/</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: BÀI TẬP NGHE VIẾT -->
+        <div *ngIf="activeTab === 'dictation'" class="animation-fade">
+          <p class="text-muted mb-4">Lắng nghe câu tiếng Pháp, gõ lại chính xác những gì bạn nghe được và nhấn kiểm tra.</p>
+          
+          <div class="d-flex flex-column gap-4">
+            <div *ngFor="let ex of exercises" class="exercise-card p-4 border rounded-4 shadow-sm bg-white position-relative"
+                 [ngClass]="{'border-success': ex.status === 'correct', 'border-danger': ex.status === 'incorrect'}">
+              
+              <!-- Badge Cấp độ -->
+              <span class="badge position-absolute top-0 end-0 m-3" 
+                    [ngClass]="{'bg-info': ex.level === 'Cơ bản', 'bg-primary': ex.level === 'Trung bình', 'bg-dark': ex.level === 'Nâng cao'}">
+                {{ ex.level }}
+              </span>
+
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <button class="btn btn-primary rounded-circle shadow-sm play-btn d-flex justify-content-center align-items-center" 
+                        (click)="playAudio(ex.sentence)">
+                  <span class="fs-4">🔊</span>
+                </button>
+                <div>
+                  <h6 class="fw-bold mb-0 text-dark">Câu hỏi {{ ex.id }}</h6>
+                  <small class="text-muted">Nhấn để nghe</small>
+                </div>
+              </div>
+
+              <div class="input-group mb-2">
+                <input type="text" class="form-control form-control-lg bg-light" 
+                       placeholder="Gõ lại câu bạn nghe được..." 
+                       [(ngModel)]="ex.userInput"
+                       (keyup.enter)="checkAnswer(ex)"
+                       [disabled]="ex.status === 'correct'">
+                <button class="btn btn-success fw-bold px-4" (click)="checkAnswer(ex)" [disabled]="ex.status === 'correct' || !ex.userInput">
+                  Kiểm tra
+                </button>
+              </div>
+
+              <!-- Phản hồi kết quả -->
+              <div *ngIf="ex.status === 'correct'" class="text-success small fw-bold mt-2 d-flex align-items-center gap-1">
+                <span>✅ Chính xác! Nghĩa là: <em>{{ ex.translation }}</em></span>
+              </div>
+              <div *ngIf="ex.status === 'incorrect'" class="text-danger small fw-bold mt-2 d-flex align-items-center gap-1">
+                <span>❌ Chưa đúng, hãy nghe kỹ lại hoặc chú ý chính tả nhé!</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

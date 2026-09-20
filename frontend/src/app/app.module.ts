@@ -19,6 +19,7 @@ import { PredictionService } from './core/services/prediction.service';
 import { LotteryService } from './core/services/lottery.service';
 import { CategoryService } from './core/services/category.service';
 import { EntryComponent } from './feature/entry/entry.component';
+import { FrenchLearningComponent } from './feature/french-learning/french-learning.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { EntryComponent } from './feature/entry/entry.component';
     LeftMenuComponent,
     PredictionComponent,
     ManualEntryComponent,
-    EntryComponent
+    EntryComponent,
+    FrenchLearningComponent
   ],
   imports: [
     BrowserModule,

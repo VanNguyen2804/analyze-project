@@ -1,0 +1,37 @@
+.animation-fade {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.alphabet-card {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.alphabet-card:hover {
+  transform: translateY(-5px);
+  border-color: #0d6efd !important;
+  box-shadow: 0 .5rem 1rem rgba(13, 110, 253, 0.15) !important;
+}
+
+.alphabet-card:active {
+  transform: scale(0.95);
+}
+
+.play-btn {
+  width: 60px;
+  height: 60px;
+  transition: transform 0.2s;
+}
+
+.play-btn:active {
+  transform: scale(0.9);
+}
+
+.exercise-card {
+  transition: border-color 0.3s;
+}
