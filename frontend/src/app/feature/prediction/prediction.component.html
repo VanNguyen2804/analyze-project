@@ -39,7 +39,7 @@
         <h4 class="h5 fw-bold text-dark mb-0 mt-1">
           Top 5 dãy số (vé) có tổng xác suất cao nhất
         </h4>
-        <small class="text-muted">Nhấn vào từng con số để xem lý do AI chọn</small>
+        <small class="text-muted">Di chuột vào từng con số để xem chi tiết thuật toán & lịch sử</small>
       </div>
     </div>
 
@@ -57,16 +57,17 @@
                 <div class="card-body d-flex justify-content-center gap-2 flex-wrap" 
                      [ngStyle]="{'background-color': payload.lotteryType === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
                     
-                    <!-- BÓNG SỐ TRONG VÉ - SỰ KIỆN GỌI MODAL ĐÃ ĐƯỢC FIX -->
+                    <!-- BÓNG SỐ (TÍCH HỢP CLASS BALL-HIGHLIGHT ĐỂ ĐỔI XANH LÁ KHI HOVER) -->
                     <div class="ball shadow-sm" *ngFor="let num of ticket"
-                         (click)="openNumberDetail(num)"
-                         data-bs-toggle="modal" 
-                         data-bs-target="#numberDetailModal"
-                         title="Bấm để xem lý do"
-                         onmouseover="this.style.transform='scale(1.1)'" 
-                         onmouseout="this.style.transform='scale(1)'"
-                         style="transition: transform 0.2s; cursor: pointer;"
-                         [ngClass]="{'ball-mega': payload.lotteryType === 'MEGA', 'ball-power': payload.lotteryType === 'POWER'}">
+                         (mouseenter)="showPopup(num, $event)"
+                         (mousemove)="updatePopupPosition($event)"
+                         (mouseleave)="hidePopup()"
+                         style="transition: all 0.2s; cursor: crosshair;"
+                         [ngClass]="{
+                           'ball-mega': payload.lotteryType === 'MEGA', 
+                           'ball-power': payload.lotteryType === 'POWER',
+                           'ball-highlight': hoveredNumber === num
+                         }">
                         {{ num < 10 ? '0' + num : num }}
                     </div>
                 </div>
@@ -107,13 +108,19 @@
         >
           <div class="d-flex align-items-start gap-3">
             <div class="d-flex flex-column align-items-center">
+              
+              <!-- BÓNG SỐ TRONG DANH SÁCH (CŨNG CÓ XANH LÁ) -->
               <div class="ball flex-shrink-0 shadow-sm"
-                   (click)="openNumberDetail(item.number)"
-                   data-bs-toggle="modal" 
-                   data-bs-target="#numberDetailModal"
-                   title="Bấm để xem lý do"
-                   style="width: 48px; height: 48px; font-size: 1.15rem; cursor: pointer;"
-                   [ngClass]="{'ball-important': item.tag === 'SỐ NÓNG', 'ball-special': item.role === 'special', 'bg-secondary text-white': item.tag !== 'SỐ NÓNG' && item.role !== 'special'}">
+                   (mouseenter)="showPopup(item.number, $event)"
+                   (mousemove)="updatePopupPosition($event)"
+                   (mouseleave)="hidePopup()"
+                   style="width: 48px; height: 48px; font-size: 1.15rem; cursor: crosshair; transition: all 0.2s;"
+                   [ngClass]="{
+                     'ball-important': item.tag === 'SỐ NÓNG', 
+                     'ball-special': item.role === 'special', 
+                     'bg-secondary text-white': item.tag !== 'SỐ NÓNG' && item.role !== 'special',
+                     'ball-highlight': hoveredNumber === item.number
+                   }">
                 {{ item.role === 'special' ? '★' : '' }}{{ formatNumber(item.number) }}
               </div>
             </div>
@@ -147,64 +154,78 @@
   </div>
 </div>
 
-<!-- POPUP MODAL HIỂN THỊ CHI TIẾT CON SỐ ĐƯỢC CLICK TỪ VÉ -->
-<div class="modal fade" id="numberDetailModal" tabindex="-1" aria-labelledby="numberDetailModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow">
+<!-- FLOATING POPUP TỰ ĐỘNG BÁM THEO CHUỘT -->
+<div class="floating-popup shadow bg-white rounded-3 border"
+     [class.show]="hoveredNumber"
+     [ngStyle]="popupStyle">
+  
+  <div class="p-2 bg-light border-bottom rounded-top-3 d-flex align-items-center gap-2">
+    <div class="ball shadow-sm bg-success text-white" 
+         style="width: 32px; height: 32px; font-size: 0.9rem;">
+       {{ formatNumber(hoveredNumber) }}
+    </div>
+    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.9rem;">Thống kê & Lịch sử</h6>
+  </div>
+
+  <div class="p-2" *ngIf="hoveredNumberDetail">
+    <div class="row g-2 mb-2 text-center">
+      <div class="col-6">
+        <div class="p-1 border rounded bg-white shadow-sm">
+          <div class="text-muted" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Tần suất</div>
+          <div class="fw-bold text-success" style="font-size: 1rem;">{{ hoveredNumberDetail.frequency }} <span class="text-muted fw-normal" style="font-size: 0.7rem;">lần</span></div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="p-1 border rounded bg-white shadow-sm">
+          <div class="text-muted" style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Đang vắng</div>
+          <div class="fw-bold text-danger" style="font-size: 1rem;">{{ hoveredNumberDetail.drawGap }} <span class="text-muted fw-normal" style="font-size: 0.7rem;">kỳ</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KHU VỰC HIỂN THỊ LỊCH SỬ DÃY SỐ VÀ NGÀY QUAY -->
+    <div class="mb-2">
+      <div class="fw-bold text-dark mb-1" style="font-size: 0.75rem;">Lịch sử về trong 10 kỳ gần nhất:</div>
       
-      <div class="modal-header bg-light border-bottom-0">
-        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="numberDetailModalLabel">
-          <!-- Màu bóng trong modal tự động đổi theo tag -->
-          <div class="ball" 
-               [ngClass]="selectedNumberDetail?.tag === 'SỐ NÓNG' ? 'bg-danger text-white' : 'bg-primary text-white'" 
-               style="width: 40px; height: 40px; font-size: 1rem;">
-             {{ formatNumber(selectedNumberDetail?.number) }}
-          </div>
-          Chi tiết phân tích số
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body p-4" *ngIf="selectedNumberDetail">
-        
-        <div class="row g-3 mb-4 text-center">
-          <div class="col-6">
-            <div class="p-3 border rounded bg-white shadow-sm">
-              <div class="text-muted small text-uppercase fw-semibold mb-1">Tần suất về</div>
-              <h3 class="fw-bold text-success mb-0">{{ selectedNumberDetail.frequency }} <span class="fs-6 text-muted fw-normal">lần</span></h3>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="p-3 border rounded bg-white shadow-sm">
-              <div class="text-muted small text-uppercase fw-semibold mb-1">Đang vắng (Gan)</div>
-              <h3 class="fw-bold text-danger mb-0">{{ selectedNumberDetail.drawGap }} <span class="fs-6 text-muted fw-normal">kỳ</span></h3>
-            </div>
+      <!-- Nếu số có xuất hiện -->
+      <div class="d-flex flex-column gap-1" *ngIf="hoveredNumberHistory.length > 0; else noHistory">
+        <div *ngFor="let draw of hoveredNumberHistory" class="p-1 bg-light border rounded d-flex justify-content-between align-items-center">
+          <span class="text-muted fw-semibold" style="font-size: 0.7rem;">{{ getDayOfWeek(draw.drawDate) }}, {{ draw.drawDate }}</span>
+          
+          <!-- In Dãy số mini của ngày hôm đó -->
+          <div class="d-flex gap-1">
+             <span *ngFor="let n of draw.numbers" 
+                   class="badge" 
+                   [ngClass]="n === hoveredNumber ? 'bg-success' : 'bg-secondary'"
+                   style="font-size: 0.6rem; padding: 0.25em 0.4em;">
+               {{ formatNumber(n) }}
+             </span>
+             <!-- Banh phụ (nếu có) -->
+             <span *ngIf="draw.specialNumber" 
+                   class="badge border" 
+                   [ngClass]="draw.specialNumber === hoveredNumber ? 'bg-success text-white border-success' : 'bg-white text-dark border-secondary'"
+                   style="font-size: 0.6rem; padding: 0.25em 0.4em;">
+               {{ formatNumber(draw.specialNumber) }}
+             </span>
           </div>
         </div>
-
-        <div class="mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="text-muted fw-bold">Xác suất tính toán:</span>
-            <span class="badge bg-primary fs-6">{{ selectedNumberDetail.probabilityPercent }}%</span>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-muted fw-bold">Thuật toán gắn tag:</span>
-            <span class="badge bg-dark">{{ selectedNumberDetail.tag }}</span>
-          </div>
-        </div>
-
-        <div class="p-3 bg-light rounded border-start border-4 border-primary">
-          <h6 class="fw-bold text-dark mb-2">{{ selectedNumberDetail.title }}</h6>
-          <p class="text-secondary mb-0 small" style="line-height: 1.6;">
-            {{ selectedNumberDetail.reason }}
-          </p>
-        </div>
-
       </div>
-      
-      <div class="modal-footer border-top-0">
-        <button type="button" class="btn btn-secondary w-100 rounded-pill" data-bs-dismiss="modal">Đóng</button>
+      <!-- Nếu số vắng mặt hoàn toàn trong 10 kỳ -->
+      <ng-template #noHistory>
+        <div class="p-2 border rounded bg-light text-danger text-center small fw-semibold">
+          Không xuất hiện trong 10 kỳ quay gần nhất.
+        </div>
+      </ng-template>
+    </div>
+
+    <div class="p-2 bg-light rounded border-start border-3 border-success">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="badge bg-dark" style="font-size: 0.65rem;">{{ hoveredNumberDetail.tag }}</span>
+        <span class="badge bg-primary" style="font-size: 0.65rem;">Xác suất: {{ hoveredNumberDetail.probabilityPercent }}%</span>
       </div>
+      <p class="text-secondary mb-0" style="font-size: 0.75rem; line-height: 1.4;">
+        {{ hoveredNumberDetail.reason }}
+      </p>
     </div>
   </div>
 </div>

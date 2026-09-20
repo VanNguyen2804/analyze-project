@@ -69,6 +69,7 @@ public class AnalyzeService {
                 lastSeenMain[n] = t;
                 mainMomentum[n] += weight;
                 
+                // Đếm số lần xuất hiện trong 5 kỳ quay sát nhất
                 if (t >= totalDraws - 5) {
                     freqLast5[n]++;
                 }
@@ -115,7 +116,12 @@ public class AnalyzeService {
         for (int i = 1; i <= maxLimit; i++) {
             double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
             double normMom = mainMomentum[i] / maxMainMom;
-            double recentTrendScore = (double) freqLast5[i] / 5.0;
+            
+            // THUẬT TOÁN ĐẢO NGƯỢC: Ưu tiên số ÍT xuất hiện trong 5 kỳ gần nhất
+            // Nếu 5 kỳ qua chưa ra lần nào -> Điểm tuyệt đối (1.0)
+            // Nếu ra 1 lần -> Điểm trung bình (0.5)
+            // Nếu ra 2 lần trở lên -> Ép điểm về cực thấp
+            double shortTermColdScore = (freqLast5[i] == 0) ? 1.0 : (freqLast5[i] == 1 ? 0.5 : (freqLast5[i] == 2 ? 0.1 : 0.0));
 
             double avgCycle = (double) maxLimit / 6.0;
             double gapRatio = (double) drawGap[i] / avgCycle;
@@ -129,7 +135,8 @@ public class AnalyzeService {
 
             double z;
             if (totalDraws >= 5) {
-                z = (recentTrendScore * 2.8) + (normMom * 1.5) + (normFreq * 0.3) + (gapScore * 0.9) + (pairScore * 0.7) - 1.5 + (random.nextDouble() * 0.2 - 0.1);
+                // Nhấn mạnh trọng số của shortTermColdScore (2.8) để đẩy các số vắng bóng ngắn hạn lên top
+                z = (shortTermColdScore * 2.8) + (gapScore * 1.2) + (pairScore * 0.7) + (normMom * 0.8) + (normFreq * 0.2) - 1.5 + (random.nextDouble() * 0.2 - 0.1);
             } else {
                 z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4 + (random.nextDouble() * 0.8 - 0.4);
             }
@@ -138,6 +145,7 @@ public class AnalyzeService {
             candidateList.add(new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]));
         }
 
+        // Sort toàn bộ tập số theo xác suất giảm dần
         candidateList.sort((a, b) -> Double.compare(b.probability, a.probability));
 
         List<ScoredNumber> selected10 = new ArrayList<>();
@@ -170,6 +178,7 @@ public class AnalyzeService {
                 .sorted()
                 .collect(Collectors.toList());
 
+        // ÁP DỤNG WHEELING SYSTEM
         List<List<Integer>> generatedTickets = new ArrayList<>();
         for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
             List<Integer> ticket = new ArrayList<>();
@@ -190,12 +199,15 @@ public class AnalyzeService {
             return Double.compare(sum2, sum1); 
         });
 
+        // GÁN NHÃN LÝ DO
         List<NumberScoreDetailDto> detailDtos = new ArrayList<>();
         for (ScoredNumber sn : selected10) {
             String tag;
             if (sn.drawGap >= (int) (maxLimit / 6.0)) {
                 tag = "LÔ GAN";
-            } else if (freqLast5[sn.number] > 0 || mainMomentum[sn.number] > maxMainMom * 0.7) {
+            } else if (freqLast5[sn.number] == 0) {
+                tag = "CHỜ BÙ TRỪ"; // Thay thế nhãn "SỐ NÓNG" bằng nhãn bắt xu hướng thiếu hụt
+            } else if (mainMomentum[sn.number] > maxMainMom * 0.7) {
                 tag = "SỐ NÓNG";
             } else {
                 boolean hasPair = selected10.stream()
@@ -294,19 +306,24 @@ public class AnalyzeService {
         for (NumberScoreDetailDto sn : detailDtos) {
             String title;
             String reason;
-            if ("SỐ NÓNG".equals(sn.getTag())) {
-                title = "Đang Vào Cầu (Trend 5 Kỳ Cuối)";
-                reason = "Thuật toán phát hiện sự xuất hiện liên tục trong 5 kỳ mở thưởng gần nhất. Các số này có quán tính ngắn hạn rất mạnh.";
+            
+            if ("CHỜ BÙ TRỪ".equals(sn.getTag())) {
+                title = "Điểm Rơi Bù Trừ Ngắn Hạn";
+                reason = "Hoàn toàn vắng bóng trong 5 kỳ quay gần nhất. Thuật toán ưu tiên bắt nhịp hồi quy (reversion) của con số này thay vì bám đuổi các số đã ra quá nhiều.";
             } else if ("LÔ GAN".equals(sn.getTag())) {
-                title = "Điểm Rơi Chu Kỳ Hoàn Vốn (Lô Gan)";
+                title = "Chu Kỳ Hoàn Vốn Dài Hạn";
                 reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp. Rơi đúng vào khung chu kỳ hồi quy xác suất tối ưu.", sn.getDrawGap());
+            } else if ("SỐ NÓNG".equals(sn.getTag())) {
+                title = "Số Nóng (Quán Tính)";
+                reason = "Sở hữu quán tính lịch sử cao, vẫn có khả năng rơi lại dựa trên tỷ lệ thống kê tổng thể.";
             } else if ("CẶP ĐI KÈM".equals(sn.getTag())) {
                 title = "Cặp Số Tương Tác Đồng Hành";
-                reason = "Có chỉ số đồng xuất hiện mạnh với các số khác trong bộ số.";
+                reason = "Có chỉ số đồng xuất hiện mạnh với các số khác trong bộ vé được chọn.";
             } else {
                 title = "Cân Bằng Dải Số & Cân Đối Chẵn/Lẻ";
                 reason = "Đóng vai trò điều tiết cấu trúc dàn trải dải số, duy trì tỷ lệ Chẵn/Lẻ hài hòa.";
             }
+            
             selectionReasons.add(new NumberSelectionReasonDto(sn.getNumber(), "main", sn.getTag(), title, reason, sn.getProbabilityPercent(), sn.getFrequency(), sn.getDrawGap()));
         }
 
@@ -328,7 +345,7 @@ public class AnalyzeService {
         response.setSelectionReasons(selectionReasons);
         response.setRecentDraws(recentDraws);
 
-        String wheelingMsg = "Hệ thống đã xếp hạng 5 dãy số (vé) tối ưu nhất dựa trên tổng tỷ lệ xác suất.";
+        String wheelingMsg = "Hệ thống đã xếp hạng 5 dãy số (vé) tối ưu nhất, ưu tiên nhịp hồi quy của các số đang lẩn trốn trong ngắn hạn.";
         
         if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(

@@ -14,8 +14,11 @@ export class PredictionComponent implements OnInit, OnDestroy {
   isLoadingHistory = false;
   showAllReasons = false;
   
-  // Lưu trữ chi tiết con số khi bấm vào để truyền ra Popup Modal
-  selectedNumberDetail: any = null;
+  // Trạng thái quản lý Popup Hover
+  hoveredNumber: number | null = null; // Trạng thái giữ màu xanh lá
+  hoveredNumberDetail: any = null;
+  hoveredNumberHistory: any[] = []; // Lịch sử các kỳ có mặt số này
+  popupStyle: any = { top: '0px', left: '0px' };
   
   category: string = 'MEGA'; 
   private categorySub: Subscription | undefined;
@@ -30,7 +33,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
       this.category = newCategory;
       this.payload = null; 
       this.showAllReasons = false;
-      this.selectedNumberDetail = null;
+      this.hidePopup();
       this.recentDraws = [];
       this.visibleDraws = [];
     });
@@ -47,7 +50,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.isLoadingHistory = true;
     this.payload = null;
     this.showAllReasons = false;
-    this.selectedNumberDetail = null;
+    this.hidePopup();
     
     this.analyzeService.getPrediction(this.category).subscribe({
       next: (res) => {
@@ -71,14 +74,59 @@ export class PredictionComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Hàm được gọi khi bấm vào 1 số trong vé để mở Modal
-  openNumberDetail(num: number) {
-    if (this.payload && this.payload.selectionReasons) {
-      this.selectedNumberDetail = this.payload.selectionReasons.find(r => r.number === num);
+  // Bắt sự kiện chuột đi vào quả bóng
+  showPopup(num: number, event: MouseEvent) {
+    if (this.payload) {
+      this.hoveredNumber = num; // Kích hoạt class xanh lá
+      
+      // Lấy lý do AI chọn
+      if (this.payload.selectionReasons) {
+        this.hoveredNumberDetail = this.payload.selectionReasons.find(r => r.number === num);
+      }
+      
+      // Lọc lịch sử 10 ngày gần nhất xem số này ra vào ngày nào
+      if (this.payload.recentDraws) {
+        this.hoveredNumberHistory = this.payload.recentDraws.filter(draw => 
+          (draw.numbers && draw.numbers.includes(num)) || draw.specialNumber === num
+        );
+      }
+
+      this.updatePopupPosition(event);
     }
   }
 
-  formatNumber(num: number | undefined): string {
+  // Cập nhật vị trí bám theo trỏ chuột và chống tràn viền
+  updatePopupPosition(event: MouseEvent) {
+    if (!this.hoveredNumber) return;
+
+    let x = event.clientX + 15;
+    let y = event.clientY + 15;
+
+    // Kích thước ước tính của popup (đã tăng chiều cao để chứa lịch sử)
+    const popupWidth = 350;
+    const popupHeight = 350;
+
+    if (x + popupWidth > window.innerWidth) {
+      x = event.clientX - popupWidth - 15;
+    }
+    if (y + popupHeight > window.innerHeight) {
+      y = event.clientY - popupHeight - 15;
+    }
+
+    this.popupStyle = {
+      top: y + 'px',
+      left: x + 'px'
+    };
+  }
+
+  // Ẩn Popup khi chuột rời đi
+  hidePopup() {
+    this.hoveredNumber = null;
+    this.hoveredNumberDetail = null;
+    this.hoveredNumberHistory = [];
+  }
+
+  formatNumber(num: number | undefined | null): string {
     if (num === undefined || num === null) return '--';
     return num < 10 ? '0' + num : num.toString();
   }
@@ -86,15 +134,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   getDayOfWeek(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
     return days[date.getDay()];
-  }
-
-  showMoreHistory() {
-    this.visibleDraws = [...this.recentDraws];
-  }
-
-  collapseHistory() {
-    this.visibleDraws = this.recentDraws.slice(0, 10);
   }
 }
