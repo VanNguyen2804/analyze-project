@@ -24,4 +24,12 @@ export class AnalyzeService {
   getPrediction(category: string): Observable<PredictionPayload> {
     return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}`);
   }
+
+  checkTickets(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/check-tickets`, payload);
+  }
+
+  addOfficialResult(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/add-result`, payload, { responseType: 'text' as 'json' });
+  }
 }

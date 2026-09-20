@@ -4,6 +4,8 @@ import com.example.analyzeproject.dto.DrawRecordDto;
 import com.example.analyzeproject.dto.NumberScoreDetailDto;
 import com.example.analyzeproject.dto.NumberSelectionReasonDto;
 import com.example.analyzeproject.dto.PredictionResponseDto;
+import com.example.analyzeproject.dto.TicketCheckRequestDto;
+import com.example.analyzeproject.dto.TicketCheckResponseDto;
 import com.example.analyzeproject.model.LotteryNumber;
 import com.example.analyzeproject.repository.LotteryNumberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -378,6 +380,69 @@ public class AnalyzeService {
         response.setOverallReason(response.getAnalysisSummary());
 
         return response;
+    }
+
+    // 1. HÀM ĐỐI CHIẾU VÉ
+    public TicketCheckResponseDto checkMyTickets(TicketCheckRequestDto request) {
+        TicketCheckResponseDto response = new TicketCheckResponseDto();
+        
+        // Tìm kết quả chính thức trong DB dựa vào Category và Ngày quay
+        Optional<LotteryNumber> officialDrawOpt = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(request.getCategory())
+                .stream()
+                .filter(d -> d.getDrawDate() != null && d.getDrawDate().toString().equals(request.getDrawDate()))
+                .findFirst();
+
+        if (officialDrawOpt.isEmpty()) {
+            response.setStatus("NOT_FOUND");
+            response.setMessage("Không tìm thấy kết quả chính thức cho ngày " + request.getDrawDate());
+            return response;
+        }
+
+        LotteryNumber officialDraw = officialDrawOpt.get();
+        List<Integer> officialNums = officialDraw.getNumbers();
+        Integer specialNum = officialDraw.getSpecialNumber();
+        
+        response.setStatus("SUCCESS");
+        response.setOfficialNumbers(officialNums);
+        response.setOfficialSpecialNumber(specialNum);
+        
+        List<TicketCheckResponseDto.TicketResult> ticketResults = new ArrayList<>();
+
+        for (List<Integer> ticket : request.getTickets()) {
+            int matchCount = 0;
+            boolean matchSpecial = false;
+
+            for (Integer num : ticket) {
+                if (officialNums.contains(num)) {
+                    matchCount++;
+                }
+            }
+
+            if ("POWER".equals(request.getCategory()) && specialNum != null && ticket.contains(specialNum)) {
+                matchSpecial = true;
+            }
+
+            String prize = determinePrize(matchCount, matchSpecial, request.getCategory());
+            ticketResults.add(new TicketCheckResponseDto.TicketResult(ticket, matchCount, matchSpecial, prize));
+        }
+
+        response.setResults(ticketResults);
+        return response;
+    }
+
+    private String determinePrize(int matchCount, boolean matchSpecial, String category) {
+        if (matchCount == 6) return "JACKPOT 1";
+        if ("POWER".equals(category) && matchCount == 5 && matchSpecial) return "JACKPOT 2";
+        if (matchCount == 5) return "GIẢI NHẤT";
+        if (matchCount == 4) return "GIẢI NHÌ";
+        if (matchCount == 3) return "GIẢI BA";
+        return "KHÔNG TRÚNG";
+    }
+
+    // 2. HÀM CẬP NHẬT KẾT QUẢ MỚI VÀO DB ĐỂ THUẬT TOÁN HỌC LẠI
+    public void addNewDrawResult(LotteryNumber newDraw) {
+        repository.save(newDraw);
+        // Sau khi lưu, lần gọi analyzeAndPredict() tiếp theo sẽ tự động bao gồm dữ liệu này
     }
 
     private static class ScoredNumber {

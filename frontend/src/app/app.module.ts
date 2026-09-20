@@ -18,6 +18,7 @@ import { LeftMenuComponent } from './share/components/left-menu/left-menu.compon
 import { PredictionService } from './core/services/prediction.service';
 import { LotteryService } from './core/services/lottery.service';
 import { CategoryService } from './core/services/category.service';
+import { EntryComponent } from './feature/entry/entry.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { CategoryService } from './core/services/category.service';
     HeaderComponent,
     LeftMenuComponent,
     PredictionComponent,
-    ManualEntryComponent
+    ManualEntryComponent,
+    EntryComponent
   ],
   imports: [
     BrowserModule,
