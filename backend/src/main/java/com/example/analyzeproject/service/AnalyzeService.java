@@ -39,7 +39,7 @@ public class AnalyzeService {
         int totalDraws = chronologicalRecords.size();
 
         int[] mainFrequency = new int[maxLimit + 1];
-        int[] freqLast5 = new int[maxLimit + 1]; // THÊM MỚI: Theo dõi 5 kỳ gần nhất
+        int[] freqLast5 = new int[maxLimit + 1]; 
         int[] specialFrequency = new int[maxLimit + 1];
         int[] lastSeenMain = new int[maxLimit + 1];
         int[] lastSeenSpecial = new int[maxLimit + 1];
@@ -69,7 +69,6 @@ public class AnalyzeService {
                 lastSeenMain[n] = t;
                 mainMomentum[n] += weight;
                 
-                // THÊM MỚI: Đếm số lần xuất hiện trong 5 kỳ quay sát nhất
                 if (t >= totalDraws - 5) {
                     freqLast5[n]++;
                 }
@@ -116,7 +115,7 @@ public class AnalyzeService {
         for (int i = 1; i <= maxLimit; i++) {
             double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
             double normMom = mainMomentum[i] / maxMainMom;
-            double recentTrendScore = (double) freqLast5[i] / 5.0; // THÊM MỚI: Chỉ số trend 5 ngày
+            double recentTrendScore = (double) freqLast5[i] / 5.0;
 
             double avgCycle = (double) maxLimit / 6.0;
             double gapRatio = (double) drawGap[i] / avgCycle;
@@ -130,8 +129,6 @@ public class AnalyzeService {
 
             double z;
             if (totalDraws >= 5) {
-                // THÊM MỚI: Thuật toán đánh trọng số cực cao (2.8) cho các số có xu hướng ra trong 5 kỳ gần nhất, 
-                // và giảm mạnh trọng số của tần suất tổng (0.3) để tránh bẫy "số hiện nhiều nhất chưa chắc đã ra"
                 z = (recentTrendScore * 2.8) + (normMom * 1.5) + (normFreq * 0.3) + (gapScore * 0.9) + (pairScore * 0.7) - 1.5 + (random.nextDouble() * 0.2 - 0.1);
             } else {
                 z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4 + (random.nextDouble() * 0.8 - 0.4);
@@ -141,7 +138,6 @@ public class AnalyzeService {
             candidateList.add(new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]));
         }
 
-        // Sort toàn bộ tập số theo xác suất giảm dần
         candidateList.sort((a, b) -> Double.compare(b.probability, a.probability));
 
         List<ScoredNumber> selected10 = new ArrayList<>();
@@ -167,16 +163,13 @@ public class AnalyzeService {
             }
         }
 
-        // SẮP XẾP LẠI THEO XÁC SUẤT GIẢM DẦN ĐỂ FRONTEND CẮT 5 SỐ ĐẦU TIÊN DỄ DÀNG
         selected10.sort((a, b) -> Double.compare(b.probability, a.probability));
 
-        // Sắp xếp bản sao theo thứ tự tăng dần chỉ để phục vụ Wheeling System
         List<Integer> selected10NumbersForWheeling = selected10.stream()
                 .map(s -> s.number)
                 .sorted()
                 .collect(Collectors.toList());
 
-      // ÁP DỤNG WHEELING SYSTEM
         List<List<Integer>> generatedTickets = new ArrayList<>();
         for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
             List<Integer> ticket = new ArrayList<>();
@@ -187,11 +180,10 @@ public class AnalyzeService {
             generatedTickets.add(ticket);
         }
 
-        // THÊM MỚI: Tạo Map tra cứu nhanh xác suất của từng con số
+        // TÍNH ĐIỂM TỔNG CỦA TỪNG VÉ VÀ SẮP XẾP VÉ THEO TỶ LỆ TRÚNG GIẢM DẦN
         Map<Integer, Double> probabilityMap = selected10.stream()
                 .collect(Collectors.toMap(sn -> sn.number, sn -> sn.probability));
 
-        // THÊM MỚI: Sắp xếp các vé dựa trên tổng xác suất của 6 con số trong vé đó (Giảm dần)
         generatedTickets.sort((t1, t2) -> {
             double sum1 = t1.stream().mapToDouble(probabilityMap::get).sum();
             double sum2 = t2.stream().mapToDouble(probabilityMap::get).sum();
@@ -304,7 +296,7 @@ public class AnalyzeService {
             String reason;
             if ("SỐ NÓNG".equals(sn.getTag())) {
                 title = "Đang Vào Cầu (Trend 5 Kỳ Cuối)";
-                reason = "Thuật toán phát hiện sự xuất hiện liên tục trong 5 kỳ mở thưởng gần nhất. Các số này có quán tính ngắn hạn rất mạnh, phủ nhận quy luật phân phối đồng đều thông thường.";
+                reason = "Thuật toán phát hiện sự xuất hiện liên tục trong 5 kỳ mở thưởng gần nhất. Các số này có quán tính ngắn hạn rất mạnh.";
             } else if ("LÔ GAN".equals(sn.getTag())) {
                 title = "Điểm Rơi Chu Kỳ Hoàn Vốn (Lô Gan)";
                 reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp. Rơi đúng vào khung chu kỳ hồi quy xác suất tối ưu.", sn.getDrawGap());
@@ -332,15 +324,15 @@ public class AnalyzeService {
         response.setFrequentPairs(frequentPairs);
         response.setJackpot2Pairs(jackpot2Pairs);
         response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", 10 - oddCount, oddCount));
-        response.setDetails(detailDtos); // Đã được sort theo xác suất giảm dần
+        response.setDetails(detailDtos); 
         response.setSelectionReasons(selectionReasons);
         response.setRecentDraws(recentDraws);
 
-        String wheelingMsg = "Thuật toán đã thu thập 10 số tiềm năng nhất dựa trên 5 kỳ gần đây và rải thành các vé tối ưu bằng Wheeling System.";
+        String wheelingMsg = "Hệ thống đã xếp hạng 5 dãy số (vé) tối ưu nhất dựa trên tổng tỷ lệ xác suất.";
         
         if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(
-                    "Phân tích %d kỳ quay Power 6/55. %s Đồng thời đề xuất Banh Phụ #%02d bảo hiểm Jackpot 2.",
+                    "Phân tích %d kỳ quay Power 6/55. %s Đề xuất Banh Phụ #%02d bảo hiểm Jackpot 2.",
                     totalDraws, wheelingMsg, recommendedSpecialNumber != null ? recommendedSpecialNumber : 0));
         } else {
             response.setAnalysisSummary(String.format(
@@ -352,7 +344,6 @@ public class AnalyzeService {
         return response;
     }
 
-    // Các class phụ trợ
     private static class ScoredNumber {
         int number;
         double probability;
