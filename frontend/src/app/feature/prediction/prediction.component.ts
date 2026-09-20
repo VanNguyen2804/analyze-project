@@ -4,6 +4,7 @@ import { PredictionService, PredictionResponse, NumberScoreDetail } from '../../
 import { LotteryService } from '../../core/services/lottery.service';
 import { CategoryService } from '../../core/services/category.service';
 import { SavedLotteryRecord } from '../../core/models/lottery-number.model';
+import { PredictionPayload } from '../../core/models/prediction-payload.model';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
@@ -20,7 +21,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   isSaving: boolean = false;
   saveMessage: string | null = null;
   errorMessage: string | null = null;
-
+  payload: PredictionPayload | null = null;
   // Lịch sử kỳ quay gần nhất (mặc định 10 kỳ, bấm xem thêm để mở rộng)
   recentDraws: SavedLotteryRecord[] = [];
   historyLimit: number = 10;
@@ -53,6 +54,17 @@ export class PredictionComponent implements OnInit, OnDestroy {
 
   setCategory(cat: 'MEGA' | 'POWER'): void {
     this.categoryService.setCategory(cat);
+  }
+
+  predict() {
+    this.isSpinning = true;
+    this.payload = null;
+    this.analyzeService.getPrediction().subscribe(res => {
+      setTimeout(() => {
+        this.payload = res;
+        this.isSpinning = false;
+      }, 1500); 
+    });
   }
 
   onPredict(): void {
