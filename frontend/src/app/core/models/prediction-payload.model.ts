@@ -18,6 +18,8 @@ export interface PredictionPayload {
   oddEvenRatio?: string;
   selectionReasons?: any[]; // Bạn có thể thay 'any' bằng 'NumberSelectionReason' nếu đã import
   recentDraws?: any[];
+  analysisSummary?: string;
+  overallReason?: string;
 }
 
 export interface NumberScoreDetail {
