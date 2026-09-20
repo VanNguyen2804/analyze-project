@@ -5,8 +5,8 @@
     <div class="d-flex align-items-center gap-2">
       <span class="fs-4">🎯</span>
       <div>
-        <h1 class="h6 mb-0 fw-bold text-dark">Analyze Project</h1>
-        <small class="text-muted d-none d-lg-inline">Spring Framework &bull; Angular &bull; XGBoost</small>
+        <h1 class="h6 mb-0 fw-bold text-dark">{{ 'HEADER.TITLE' | translate }}</h1>
+        <small class="text-muted d-none d-lg-inline">{{ 'HEADER.SUBTITLE' | translate }}</small>
       </div>
     </div>
 
@@ -18,7 +18,7 @@
         [ngClass]="currentCategory === 'POWER' ? 'btn-primary shadow text-white' : 'btn-light text-muted'"
         (click)="selectCategory('POWER')"
       >
-        🔵 Power 6/55
+        {{ 'CATEGORY.POWER' | translate }}
       </button>
       <button
         type="button"
@@ -26,37 +26,36 @@
         [ngClass]="currentCategory === 'MEGA' ? 'btn-danger shadow text-white' : 'btn-light text-muted'"
         (click)="selectCategory('MEGA')"
       >
-        🔴 Mega 6/45
+        {{ 'CATEGORY.MEGA' | translate }}
       </button>
     </div>
 
-    <!-- Menu Điều hướng Navigation (Bên phải) -->
+    <!-- Menu Điều hướng & Đổi ngôn ngữ (Bên phải) -->
     <div class="d-none d-lg-flex align-items-center gap-4">
-      <!-- Thêm menu Học Tiếng Pháp -->
-      <a 
-        routerLink="/french" 
-        routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" 
-        class="text-decoration-none text-secondary transition-hover" 
-        style="font-size: 0.95rem;"
-      >
-        🇫🇷 Học Tiếng Pháp
+      <a routerLink="/french" routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" class="text-decoration-none text-secondary transition-hover" style="font-size: 0.95rem;">
+        {{ 'HEADER.FRENCH_LEARNING' | translate }}
       </a>
-      <a 
-        routerLink="/analyze" 
-        routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" 
-        class="text-decoration-none text-secondary transition-hover" 
-        style="font-size: 0.95rem;"
-      >
-        ⚡ Phân Tích AI
+      <a routerLink="/analyze" routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" class="text-decoration-none text-secondary transition-hover" style="font-size: 0.95rem;">
+        {{ 'HEADER.AI_ANALYSIS' | translate }}
       </a>
-      <a 
-        routerLink="/entry" 
-        routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" 
-        class="text-decoration-none text-secondary transition-hover" 
-        style="font-size: 0.95rem;"
-      >
-        📝 Nhập & Dò Vé
+      <a routerLink="/entry" routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" class="text-decoration-none text-secondary transition-hover" style="font-size: 0.95rem;">
+        {{ 'HEADER.CHECK_TICKET' | translate }}
       </a>
+
+      <!-- Vạch ngăn cách -->
+      <div class="vr bg-secondary" style="height: 25px;"></div>
+
+      <!-- Nút Dropdown Đổi Ngôn Ngữ -->
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3 fw-semibold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          🌐 {{ currentLang | uppercase }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+          <li><a class="dropdown-item" [class.active]="currentLang === 'vi'" (click)="switchLanguage('vi')">🇻🇳 {{ 'HEADER.VI' | translate }}</a></li>
+          <li><a class="dropdown-item" [class.active]="currentLang === 'en'" (click)="switchLanguage('en')">🇬🇧 {{ 'HEADER.EN' | translate }}</a></li>
+          <li><a class="dropdown-item" [class.active]="currentLang === 'fr'" (click)="switchLanguage('fr')">🇫🇷 {{ 'HEADER.FR' | translate }}</a></li>
+        </ul>
+      </div>
     </div>
 
   </div>

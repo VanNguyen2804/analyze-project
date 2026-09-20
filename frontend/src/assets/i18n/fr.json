@@ -1,0 +1,17 @@
+{
+  "HEADER": {
+    "TITLE": "Projet d'Analyse",
+    "SUBTITLE": "Spring Framework • Angular • XGBoost",
+    "FRENCH_LEARNING": "🇫🇷 Apprendre le Français",
+    "AI_ANALYSIS": "⚡ Analyse IA",
+    "CHECK_TICKET": "📝 Vérifier les Billets",
+    "LANGUAGE": "Langue",
+    "VI": "Tiếng Việt",
+    "EN": "English",
+    "FR": "Français"
+  },
+  "CATEGORY": {
+    "POWER": "🔵 Power 6/55",
+    "MEGA": "🔴 Mega 6/45"
+  }
+}

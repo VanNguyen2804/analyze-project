@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -15,11 +15,17 @@ import { HeaderComponent } from './share/components/header/header.component';
 import { LeftMenuComponent } from './share/components/left-menu/left-menu.component';
 
 // Core services
-import { PredictionService } from './core/services/prediction.service';
-import { LotteryService } from './core/services/lottery.service';
-import { CategoryService } from './core/services/category.service';
 import { EntryComponent } from './feature/entry/entry.component';
 import { FrenchLearningComponent } from './feature/french-learning/french-learning.component';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { DatePipe } from '@angular/common';
+import { AnalyzeService } from './core/services/analyze.service';
+
+// Cấu hình loader để lấy file JSON từ thư mục assets/i18n/
+export function HttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
 
 @NgModule({
   declarations: [
@@ -27,21 +33,26 @@ import { FrenchLearningComponent } from './feature/french-learning/french-learni
     HeaderComponent,
     LeftMenuComponent,
     PredictionComponent,
-    ManualEntryComponent,
     EntryComponent,
+    ManualEntryComponent,
     FrenchLearningComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     FormsModule,
-    AppRoutingModule
+    AppRoutingModule,
+    DatePipe,
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [HttpClient]
+      },
+      defaultLanguage: 'vi' // Ngôn ngữ mặc định
+    })
   ],
-  providers: [
-    PredictionService,
-    LotteryService,
-    CategoryService
-  ],
+  providers: [AnalyzeService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
