@@ -29,7 +29,7 @@ public class AnalyzeController {
 
     @PostMapping("/add-result")
     public String addOfficialResult(@RequestBody LotteryNumber newDraw) {
-        service.addNewDrawResult(newDraw);
+        analyzeService.addNewDrawResult(newDraw);
         return "Đã cập nhật kết quả mới vào hệ thống. Thuật toán đã được hiệu chỉnh mốc thống kê.";
     }
     
