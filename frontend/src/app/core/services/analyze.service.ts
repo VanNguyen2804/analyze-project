@@ -49,4 +49,16 @@ export class AnalyzeService {
   clearUserHistory(): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/user-history`, { responseType: 'text' as 'json' });
   }
+
+  getFrenchExercises(category: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl.replace('/analyze', '/french')}/exercises?category=${category}`);
+  }
+
+  submitFrenchAttempt(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl.replace('/analyze', '/french')}/attempt`, payload);
+  }
+
+  getFrenchHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl.replace('/analyze', '/french')}/history`);
+  }
 }

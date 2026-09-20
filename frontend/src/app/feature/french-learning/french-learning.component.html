@@ -11,54 +11,46 @@
     </div>
 
     <div class="card-body p-0">
-      <!-- Tabs Điều Hướng -->
       <ul class="nav nav-tabs px-3 pt-3 bg-light border-bottom-0" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold" [class.active]="activeTab === 'alphabet'" (click)="activeTab = 'alphabet'">
-            🔤 Bảng chữ cái
-          </button>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'alphabet'" (click)="activeTab = 'alphabet'">🔤 Bảng chữ cái</button>
         </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold" [class.active]="activeTab === 'dictation'" (click)="activeTab = 'dictation'">
-            🎧 Nghe & Viết (Dictation)
-          </button>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'dictation'" (click)="activeTab = 'dictation'">🎧 Nghe & Viết</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">📖 Lịch sử lỗi sai</button>
         </li>
       </ul>
 
       <div class="p-4 p-md-5">
         
-        <!-- SECTION 1: BẢNG CHỮ CÁI -->
-        <div *ngIf="activeTab === 'alphabet'" class="animation-fade">
-          <p class="text-muted mb-4">Nhấn vào từng chữ cái để nghe trình duyệt phát âm chuẩn tiếng Pháp.</p>
-          <div class="row g-3">
+        <!-- SECTION 1: BẢNG CHỮ CÁI (Giữ nguyên) -->
+        <div *ngIf="activeTab === 'alphabet'" class="row g-3">
             <div class="col-4 col-md-2" *ngFor="let item of alphabet">
-              <div class="alphabet-card p-3 text-center border rounded-3 shadow-sm bg-white" 
-                   (click)="playAudio(item.letter)">
+              <div class="alphabet-card p-3 text-center border rounded-3 shadow-sm bg-white" (click)="playAudio(item.letter)">
                 <h2 class="display-5 fw-bold text-dark mb-1">{{ item.letter }}</h2>
                 <span class="badge bg-light text-secondary border">/{{ item.pron }}/</span>
               </div>
             </div>
-          </div>
         </div>
 
-        <!-- SECTION 2: BÀI TẬP NGHE VIẾT -->
-        <div *ngIf="activeTab === 'dictation'" class="animation-fade">
-          <p class="text-muted mb-4">Lắng nghe câu tiếng Pháp, gõ lại chính xác những gì bạn nghe được và nhấn kiểm tra.</p>
+        <!-- SECTION 2: BÀI TẬP NGHE VIẾT THEO CHỦ ĐỀ -->
+        <div *ngIf="activeTab === 'dictation'">
+          <div class="d-flex gap-2 mb-4 flex-wrap">
+            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'ALL' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('ALL')">Tất cả</button>
+            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'GREETING' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('GREETING')">👋 Chào hỏi</button>
+            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'HEALTH' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('HEALTH')">❤️ Sức khỏe</button>
+            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'FOOD' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('FOOD')">🍔 Gọi món</button>
+          </div>
           
           <div class="d-flex flex-column gap-4">
-            <div *ngFor="let ex of exercises" class="exercise-card p-4 border rounded-4 shadow-sm bg-white position-relative"
-                 [ngClass]="{'border-success': ex.status === 'correct', 'border-danger': ex.status === 'incorrect'}">
-              
-              <!-- Badge Cấp độ -->
-              <span class="badge position-absolute top-0 end-0 m-3" 
-                    [ngClass]="{'bg-info': ex.level === 'Cơ bản', 'bg-primary': ex.level === 'Trung bình', 'bg-dark': ex.level === 'Nâng cao'}">
-                {{ ex.level }}
-              </span>
+            <div *ngFor="let ex of exercises" class="exercise-card p-4 border rounded-4 shadow-sm bg-white position-relative" [ngClass]="{'border-success': ex.status === 'correct', 'border-danger': ex.status === 'incorrect'}">
+              <span class="badge bg-info position-absolute top-0 end-0 m-3">{{ ex.level }}</span>
 
               <div class="d-flex align-items-center gap-3 mb-3">
-                <button class="btn btn-primary rounded-circle shadow-sm play-btn d-flex justify-content-center align-items-center" 
-                        (click)="playAudio(ex.sentence)">
-                  <span class="fs-4">🔊</span>
+                <button class="btn btn-primary rounded-circle shadow-sm play-btn d-flex justify-content-center align-items-center" (click)="playAudio(ex.sentence)" style="width: 50px; height: 50px;">
+                  <span class="fs-5">🔊</span>
                 </button>
                 <div>
                   <h6 class="fw-bold mb-0 text-dark">Câu hỏi {{ ex.id }}</h6>
@@ -67,25 +59,40 @@
               </div>
 
               <div class="input-group mb-2">
-                <input type="text" class="form-control form-control-lg bg-light" 
-                       placeholder="Gõ lại câu bạn nghe được..." 
-                       [(ngModel)]="ex.userInput"
-                       (keyup.enter)="checkAnswer(ex)"
-                       [disabled]="ex.status === 'correct'">
-                <button class="btn btn-success fw-bold px-4" (click)="checkAnswer(ex)" [disabled]="ex.status === 'correct' || !ex.userInput">
-                  Kiểm tra
-                </button>
+                <input type="text" class="form-control bg-light" placeholder="Gõ lại câu bạn nghe được..." [(ngModel)]="ex.userInput" (keyup.enter)="checkAnswer(ex)" [disabled]="ex.status === 'correct'">
+                <button class="btn btn-success fw-bold px-4" (click)="checkAnswer(ex)" [disabled]="ex.status === 'correct' || !ex.userInput">Kiểm tra</button>
               </div>
 
-              <!-- Phản hồi kết quả -->
-              <div *ngIf="ex.status === 'correct'" class="text-success small fw-bold mt-2 d-flex align-items-center gap-1">
-                <span>✅ Chính xác! Nghĩa là: <em>{{ ex.translation }}</em></span>
-              </div>
-              <div *ngIf="ex.status === 'incorrect'" class="text-danger small fw-bold mt-2 d-flex align-items-center gap-1">
-                <span>❌ Chưa đúng, hãy nghe kỹ lại hoặc chú ý chính tả nhé!</span>
-              </div>
-
+              <div *ngIf="ex.status === 'correct'" class="text-success small fw-bold mt-2">✅ Chính xác! Nghĩa là: <em>{{ ex.translation }}</em></div>
+              <div *ngIf="ex.status === 'incorrect'" class="text-danger small fw-bold mt-2">❌ Sai rồi! Bạn có thể thử lại hoặc xem lịch sử.</div>
             </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: LỊCH SỬ VÀ ÔN TẬP LỖI SAI -->
+        <div *ngIf="activeTab === 'history'">
+          <h5 class="fw-bold mb-3">Lịch sử làm bài (Database)</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+              <thead class="table-light">
+                <tr>
+                  <th>Thời gian</th>
+                  <th>Câu trả lời của bạn</th>
+                  <th>Đáp án đúng</th>
+                  <th>Kết quả</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let hist of attemptHistory">
+                  <td class="text-muted small">{{ hist.attemptedAt | date:'HH:mm dd/MM/yyyy' }}</td>
+                  <td [ngClass]="hist.correct ? 'text-success' : 'text-danger fw-bold'"><del *ngIf="!hist.correct">{{ hist.userInput }}</del><span *ngIf="hist.correct">{{ hist.userInput }}</span></td>
+                  <td class="fw-semibold">{{ hist.expectedSentence }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="hist.correct ? 'bg-success' : 'bg-danger'">{{ hist.correct ? 'Đúng' : 'Sai' }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
