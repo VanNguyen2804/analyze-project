@@ -18,6 +18,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   predictedNumbers: number[] = [];
   specialNumber: number | null = null;
   isSpinning: boolean = false;
+  showAllReasons: boolean = false;
   isSaving: boolean = false;
   saveMessage: string | null = null;
   errorMessage: string | null = null;

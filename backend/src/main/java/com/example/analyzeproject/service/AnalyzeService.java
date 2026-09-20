@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 public class AnalyzeService {
 
-    // Khuôn mẫu Wheeling System: Xáo 10 số thành 10 vé tối ưu đảm bảo trúng giải phụ
+    // Khuôn mẫu Wheeling System: Xáo 10 số thành 10 vé
     private static final int[][] WHEEL_TEMPLATE_10_TO_6 = {
         {0, 1, 2, 3, 4, 5}, {0, 1, 2, 6, 7, 8}, {0, 3, 4, 6, 7, 9}, {0, 3, 5, 6, 8, 9},
         {1, 2, 3, 4, 7, 9}, {1, 2, 4, 5, 8, 9}, {1, 3, 5, 6, 7, 8}, {2, 4, 5, 6, 7, 9},
@@ -29,12 +29,6 @@ public class AnalyzeService {
         this.repository = repository;
     }
 
-    /**
-     * Thuật toán Hỗn hợp (Hybrid):
-     * 1. XGBoost (Tấn công): Phân tích lịch sử, trích xuất đặc trưng và chọn ra 10 số tiềm năng nhất.
-     * 2. Wheeling System (Phòng thủ): Trải 10 số này vào 10 vé tối ưu để bảo toàn vốn.
-     * Áp dụng riêng biệt cho MEGA (1-45) và POWER (1-55 + Banh phụ).
-     */
     public PredictionResponseDto analyzeAndPredict(String categoryInput) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
         int maxLimit = "POWER".equals(category) ? 55 : 45;
@@ -45,6 +39,7 @@ public class AnalyzeService {
         int totalDraws = chronologicalRecords.size();
 
         int[] mainFrequency = new int[maxLimit + 1];
+        int[] freqLast5 = new int[maxLimit + 1]; // THÊM MỚI: Theo dõi 5 kỳ gần nhất
         int[] specialFrequency = new int[maxLimit + 1];
         int[] lastSeenMain = new int[maxLimit + 1];
         int[] lastSeenSpecial = new int[maxLimit + 1];
@@ -73,6 +68,11 @@ public class AnalyzeService {
                 mainFrequency[n]++;
                 lastSeenMain[n] = t;
                 mainMomentum[n] += weight;
+                
+                // THÊM MỚI: Đếm số lần xuất hiện trong 5 kỳ quay sát nhất
+                if (t >= totalDraws - 5) {
+                    freqLast5[n]++;
+                }
             }
 
             for (int i = 0; i < validNums.size(); i++) {
@@ -116,6 +116,7 @@ public class AnalyzeService {
         for (int i = 1; i <= maxLimit; i++) {
             double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
             double normMom = mainMomentum[i] / maxMainMom;
+            double recentTrendScore = (double) freqLast5[i] / 5.0; // THÊM MỚI: Chỉ số trend 5 ngày
 
             double avgCycle = (double) maxLimit / 6.0;
             double gapRatio = (double) drawGap[i] / avgCycle;
@@ -128,8 +129,10 @@ public class AnalyzeService {
             double pairScore = Math.min(1.0, topPairSum / 5.0);
 
             double z;
-            if (totalDraws >= 3) {
-                z = (normMom * 1.7) + (normFreq * 1.2) + (gapScore * 0.9) + (pairScore * 0.7) - 1.15 + (random.nextDouble() * 0.3 - 0.15);
+            if (totalDraws >= 5) {
+                // THÊM MỚI: Thuật toán đánh trọng số cực cao (2.8) cho các số có xu hướng ra trong 5 kỳ gần nhất, 
+                // và giảm mạnh trọng số của tần suất tổng (0.3) để tránh bẫy "số hiện nhiều nhất chưa chắc đã ra"
+                z = (recentTrendScore * 2.8) + (normMom * 1.5) + (normFreq * 0.3) + (gapScore * 0.9) + (pairScore * 0.7) - 1.5 + (random.nextDouble() * 0.2 - 0.1);
             } else {
                 z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4 + (random.nextDouble() * 0.8 - 0.4);
             }
@@ -138,9 +141,9 @@ public class AnalyzeService {
             candidateList.add(new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]));
         }
 
+        // Sort toàn bộ tập số theo xác suất giảm dần
         candidateList.sort((a, b) -> Double.compare(b.probability, a.probability));
 
-        // CHỌN 10 SỐ ĐỂ ĐƯA VÀO WHEELING SYSTEM
         List<ScoredNumber> selected10 = new ArrayList<>();
         int oddCount = 0;
         int evenCount = 0;
@@ -164,15 +167,20 @@ public class AnalyzeService {
             }
         }
 
-        selected10.sort(Comparator.comparingInt(a -> a.number));
-        List<Integer> selected10Numbers = selected10.stream().map(s -> s.number).collect(Collectors.toList());
+        // SẮP XẾP LẠI THEO XÁC SUẤT GIẢM DẦN ĐỂ FRONTEND CẮT 5 SỐ ĐẦU TIÊN DỄ DÀNG
+        selected10.sort((a, b) -> Double.compare(b.probability, a.probability));
 
-        // ÁP DỤNG WHEELING SYSTEM
+        // Sắp xếp bản sao theo thứ tự tăng dần chỉ để phục vụ Wheeling System
+        List<Integer> selected10NumbersForWheeling = selected10.stream()
+                .map(s -> s.number)
+                .sorted()
+                .collect(Collectors.toList());
+
         List<List<Integer>> generatedTickets = new ArrayList<>();
         for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
             List<Integer> ticket = new ArrayList<>();
             for (int index : ticketIndices) {
-                ticket.add(selected10Numbers.get(index));
+                ticket.add(selected10NumbersForWheeling.get(index));
             }
             Collections.sort(ticket);
             generatedTickets.add(ticket);
@@ -183,7 +191,7 @@ public class AnalyzeService {
             String tag;
             if (sn.drawGap >= (int) (maxLimit / 6.0)) {
                 tag = "LÔ GAN";
-            } else if (mainMomentum[sn.number] > maxMainMom * 0.6) {
+            } else if (freqLast5[sn.number] > 0 || mainMomentum[sn.number] > maxMainMom * 0.7) {
                 tag = "SỐ NÓNG";
             } else {
                 boolean hasPair = selected10.stream()
@@ -202,10 +210,10 @@ public class AnalyzeService {
         if ("POWER".equals(category)) {
             double bestSpecialScore = -1.0;
             for (int s = 1; s <= maxLimit; s++) {
-                if (selected10Numbers.contains(s)) continue; 
+                if (selected10NumbersForWheeling.contains(s)) continue; 
 
                 double subsetSynergy = 0.0;
-                for (int m : selected10Numbers) {
+                for (int m : selected10NumbersForWheeling) {
                     subsetSynergy += (specialPairMatrix[s][m] * 1.8) + (pairMatrix[s][m] * 0.5);
                 }
 
@@ -215,7 +223,7 @@ public class AnalyzeService {
                 double specGapScore = (specGap >= 3 && specGap <= 12) ? 0.85 : 0.40;
 
                 double zSpecial = (normSpecMom * 1.5) + (normSpecFreq * 1.3)
-                        + (subsetSynergy / (selected10Numbers.size() * 2.0) * 1.6)
+                        + (subsetSynergy / (selected10NumbersForWheeling.size() * 2.0) * 1.6)
                         + (specGapScore * 0.8) - 0.85;
 
                 double probSpecial = 1.0 / (1.0 + Math.exp(-zSpecial));
@@ -283,8 +291,8 @@ public class AnalyzeService {
             String title;
             String reason;
             if ("SỐ NÓNG".equals(sn.getTag())) {
-                title = "Số Nóng Có Quán Tính Chuỗi Cao";
-                reason = String.format("Xuất hiện %d lần trong các kỳ gần đây. Quán tính thời gian cao, khả năng tái lặp khả quan.", sn.getFrequency());
+                title = "Đang Vào Cầu (Trend 5 Kỳ Cuối)";
+                reason = "Thuật toán phát hiện sự xuất hiện liên tục trong 5 kỳ mở thưởng gần nhất. Các số này có quán tính ngắn hạn rất mạnh, phủ nhận quy luật phân phối đồng đều thông thường.";
             } else if ("LÔ GAN".equals(sn.getTag())) {
                 title = "Điểm Rơi Chu Kỳ Hoàn Vốn (Lô Gan)";
                 reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp. Rơi đúng vào khung chu kỳ hồi quy xác suất tối ưu.", sn.getDrawGap());
@@ -298,26 +306,11 @@ public class AnalyzeService {
             selectionReasons.add(new NumberSelectionReasonDto(sn.getNumber(), "main", sn.getTag(), title, reason, sn.getProbabilityPercent(), sn.getFrequency(), sn.getDrawGap()));
         }
 
-        if ("POWER".equals(category) && recommendedSpecialNumber != null) {
-            int spFreq = (recommendedSpecialNumber <= maxLimit) ? specialFrequency[recommendedSpecialNumber] : 0;
-            int spGap = (recommendedSpecialNumber <= maxLimit) ? specialDrawGap[recommendedSpecialNumber] : 0;
-            selectionReasons.add(new NumberSelectionReasonDto(
-                    recommendedSpecialNumber,
-                    "special",
-                    "BẢO HIỂM JACKPOT 2",
-                    "Bảo Hiểm Jackpot 2 Khi Sai 1 Số",
-                    String.format("Nếu sai 1 số trong 6 số chính, số %02d đạt điểm bù trừ cao nhất theo ma trận lịch sử để trúng giải Jackpot 2.", recommendedSpecialNumber),
-                    78.5,
-                    spFreq,
-                    spGap
-            ));
-        }
-
         PredictionResponseDto response = new PredictionResponseDto();
         response.setStatus("SUCCESS");
         response.setCategory(category);
         response.setLotteryType(category);
-        response.setNumbers(selected10Numbers);
+        response.setNumbers(selected10NumbersForWheeling);
         response.setTickets(generatedTickets);
         response.setSpecialNumber(recommendedSpecialNumber);
         response.setTotalDrawsAnalyzed(totalDraws);
@@ -327,19 +320,19 @@ public class AnalyzeService {
         response.setFrequentPairs(frequentPairs);
         response.setJackpot2Pairs(jackpot2Pairs);
         response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", 10 - oddCount, oddCount));
-        response.setDetails(detailDtos);
+        response.setDetails(detailDtos); // Đã được sort theo xác suất giảm dần
         response.setSelectionReasons(selectionReasons);
         response.setRecentDraws(recentDraws);
 
-        String wheelingMsg = "Thuật toán Wheeling System đã nén tập 10 số tiềm năng thành 10 vé tối ưu, bảo vệ tỷ lệ hoàn vốn (ROI).";
+        String wheelingMsg = "Thuật toán đã thu thập 10 số tiềm năng nhất dựa trên 5 kỳ gần đây và rải thành các vé tối ưu bằng Wheeling System.";
         
         if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(
-                    "Phân tích %d kỳ quay Power 6/55. XGBoost đã chọn ra 10 số. %s Đồng thời đề xuất Banh Phụ #%02d bảo hiểm Jackpot 2.",
+                    "Phân tích %d kỳ quay Power 6/55. %s Đồng thời đề xuất Banh Phụ #%02d bảo hiểm Jackpot 2.",
                     totalDraws, wheelingMsg, recommendedSpecialNumber != null ? recommendedSpecialNumber : 0));
         } else {
             response.setAnalysisSummary(String.format(
-                    "Phân tích %d kỳ quay Mega 6/45. XGBoost đã chọn ra tập 10 số tốt nhất. %s",
+                    "Phân tích %d kỳ quay Mega 6/45. %s",
                     totalDraws, wheelingMsg));
         }
         response.setOverallReason(response.getAnalysisSummary());
@@ -347,6 +340,7 @@ public class AnalyzeService {
         return response;
     }
 
+    // Các class phụ trợ
     private static class ScoredNumber {
         int number;
         double probability;

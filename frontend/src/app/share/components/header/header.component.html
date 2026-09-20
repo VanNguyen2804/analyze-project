@@ -1,5 +1,7 @@
-<header class="app-header d-flex align-items-center px-3 px-md-4 shadow-sm">
+<header class="app-header d-flex align-items-center px-3 px-md-4 shadow-sm position-relative">
   <div class="d-flex align-items-center justify-content-between w-100">
+    
+    <!-- Logo (Bên trái) -->
     <div class="d-flex align-items-center gap-2">
       <span class="fs-4">🎯</span>
       <div>
@@ -7,5 +9,28 @@
         <small class="text-muted d-none d-sm-inline">Spring Framework &bull; Angular &bull; XGBoost</small>
       </div>
     </div>
+
+    <!-- Chọn danh mục (Căn giữa tuyệt đối) -->
+    <div class="position-absolute top-50 start-50 translate-middle d-flex bg-light p-1 rounded-pill border shadow-sm" style="z-index: 10;">
+      <button
+        type="button"
+        class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
+        [ngClass]="currentCategory === 'POWER' ? 'btn-primary shadow text-white' : 'btn-light text-muted'"
+        (click)="selectCategory('POWER')"
+      >
+        🔵 Power 6/55
+      </button>
+      <button
+        type="button"
+        class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
+        [ngClass]="currentCategory === 'MEGA' ? 'btn-danger shadow text-white' : 'btn-light text-muted'"
+        (click)="selectCategory('MEGA')"
+      >
+        🔴 Mega 6/45
+      </button>
+    </div>
+
+    <!-- Khối ẩn để cân bằng Layout (Bên phải) -->
+    <div class="d-none d-md-block" style="width: 150px;"></div>
   </div>
 </header>
