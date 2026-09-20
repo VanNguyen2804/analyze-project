@@ -20,6 +20,7 @@ export interface NumberSelectionReason {
   probabilityPercent: number;
   frequency: number;
   drawGap: number;
+  showFreq?: boolean;
 }
 
 export interface PredictionResponse {
