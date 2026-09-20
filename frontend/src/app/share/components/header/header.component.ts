@@ -4,8 +4,7 @@ import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css']
+  templateUrl: './header.component.html'
 })
 export class HeaderComponent {
   currentCategory: string = 'MEGA';
