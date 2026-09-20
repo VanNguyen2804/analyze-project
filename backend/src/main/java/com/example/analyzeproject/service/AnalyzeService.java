@@ -2,7 +2,6 @@ package com.example.analyzeproject.service;
 
 import com.example.analyzeproject.dto.DrawRecordDto;
 import com.example.analyzeproject.dto.NumberScoreDetailDto;
-import com.example.analyzeproject.dto.NumberSelectionReasonDto;
 import com.example.analyzeproject.dto.PredictionResponseDto;
 import com.example.analyzeproject.model.LotteryNumber;
 import com.example.analyzeproject.repository.LotteryNumberRepository;
