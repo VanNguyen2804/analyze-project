@@ -51,18 +51,27 @@
     <div class="card-body p-3 p-md-4">
       <div class="row justify-content-center">
         <!-- Vòng lặp hiển thị từng vé -->
-        <div class="col-md-5 mb-3" *ngFor="let ticket of payload.tickets; let i = index">
-            <div class="card shadow-sm border-0">
-                <!-- Đổi bg-danger thành bg-info (xanh dương nhạt) và text-white thành text-dark cho dễ đọc -->
-                <div class="card-header text-start" 
+    <!-- Vòng lặp hiển thị từng vé (THÊM SLICE ĐỂ CHỈ LẤY 5 VÉ TOP ĐẦU) -->
+        <div class="col-md-5 mb-3" *ngFor="let ticket of payload.tickets | slice:0:5; let i = index">
+            <div class="card shadow-sm border-0 transition-hover">
+                <div class="card-header text-start d-flex justify-content-between align-items-center" 
                      [ngClass]="{'bg-info text-dark': payload.lotteryType === 'MEGA', 'bg-warning text-dark': payload.lotteryType === 'POWER'}">
-                    <strong>🎟️ Vé số {{ i + 1 }}</strong>
+                    <strong>🎟️ Dãy số Top {{ i + 1 }}</strong>
+                    <span class="badge bg-white text-dark small">Tỷ lệ trúng cao</span>
                 </div>
-                <!-- Đổi màu nền body của vé sang xanh nhạt cực dịu (#e0f7fa) khi là vé MEGA -->
+                
                 <div class="card-body d-flex justify-content-center gap-2 flex-wrap" 
                      [ngStyle]="{'background-color': payload.lotteryType === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
-                    <!-- Vòng lặp hiển thị từng quả bóng trong 1 vé -->
-                    <div class="ball" *ngFor="let num of ticket"
+                    
+                    <!-- Các quả bóng (THÊM CLICK VÀ DATA-BS-TOGGLE GỌI MODAL) -->
+                    <div class="ball cursor-pointer shadow-sm" *ngFor="let num of ticket"
+                         (click)="openNumberDetail(num)"
+                         data-bs-toggle="modal" 
+                         data-bs-target="#numberDetailModal"
+                         title="Bấm để xem lý do"
+                         onmouseover="this.style.transform='scale(1.1)'" 
+                         onmouseout="this.style.transform='scale(1)'"
+                         style="transition: transform 0.2s;"
                          [ngClass]="{'ball-mega': payload.lotteryType === 'MEGA', 'ball-power': payload.lotteryType === 'POWER'}">
                         {{ num < 10 ? '0' + num : num }}
                     </div>
@@ -74,7 +83,7 @@
   </div>
 
  <!-- 2. MỤC LÍ DO CHỌN SỐ Ở MỤC DƯỚI -->
-  <div *ngIf="predictionResult" class="card shadow-sm border-0 mb-4">
+  <div *ngIf="payload" class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
         <span class="fs-5">💡</span>
@@ -90,17 +99,17 @@
     <div class="card-body p-3 p-md-4">
       <div class="p-3 mb-4 rounded-3 border bg-light">
         <div class="fw-bold text-dark mb-1 small text-uppercase">
-          📋 Tóm tắt phân tích chuỗi lịch sử ({{ predictionResult.totalDrawsAnalyzed }} kỳ quay):
+          📋 Tóm tắt phân tích chuỗi lịch sử ({{ payload.totalDrawsAnalyzed }} kỳ quay):
         </div>
         <div class="text-secondary small" style="line-height: 1.6;">
-          {{ predictionResult.overallReason || predictionResult.analysisSummary }}
+          {{ payload.overallReason || payload.analysisSummary }}
         </div>
       </div>
 
       <!-- Danh sách chi tiết lý do từng con số (Chỉ hiển thị 5 số đầu tiên, có nút Xem thêm) -->
-      <div class="d-flex flex-column gap-3" *ngIf="predictionResult.selectionReasons && predictionResult.selectionReasons.length > 0">
+      <div class="d-flex flex-column gap-3" *ngIf="payload.selectionReasons && payload.selectionReasons.length > 0">
         <div
-          *ngFor="let item of predictionResult.selectionReasons | slice:0:(showAllReasons ? predictionResult.selectionReasons.length : 5)"
+          *ngFor="let item of payload.selectionReasons | slice:0:(showAllReasons ? payload.selectionReasons.length : 5)"
           class="p-3 rounded-3 border bg-white shadow-sm transition-hover"
           [ngClass]="{
             'border-start border-4 border-start-warning': item.role === 'special',
@@ -171,7 +180,7 @@
         </div>
         
         <!-- Nút Xem Thêm / Thu Gọn -->
-        <div class="text-center mt-3" *ngIf="predictionResult.selectionReasons && predictionResult.selectionReasons.length > 5">
+        <div class="text-center mt-3" *ngIf="payload.selectionReasons && payload.selectionReasons.length > 5">
             <button class="btn btn-outline-primary rounded-pill px-4 fw-semibold" (click)="showAllReasons = !showAllReasons">
                 {{ showAllReasons ? '⬆️ Thu gọn danh sách' : '⬇️ Xem thêm các số khác' }}
             </button>
@@ -198,6 +207,67 @@
 
     <div class="card-body p-3 p-md-4 text-center text-muted">
       <p><i>* (Phần dữ liệu lịch sử và Thống kê chuỗi / Ma trận lô gan sẽ được nạp từ API thống kê) *</i></p>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP MODAL HIỂN THỊ CHI TIẾT CON SỐ -->
+<div class="modal fade" id="numberDetailModal" tabindex="-1" aria-labelledby="numberDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      
+      <div class="modal-header bg-light border-bottom-0">
+        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="numberDetailModalLabel">
+          <div class="ball ball-important" style="width: 40px; height: 40px; font-size: 1rem;">
+             {{ formatNumber(selectedNumberDetail?.number) }}
+          </div>
+          Chi tiết phân tích số
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4" *ngIf="selectedNumberDetail">
+        
+        <!-- Các thông số lịch sử -->
+        <div class="row g-3 mb-4 text-center">
+          <div class="col-6">
+            <div class="p-3 border rounded bg-white shadow-sm">
+              <div class="text-muted small text-uppercase fw-semibold mb-1">Tần suất về</div>
+              <h3 class="fw-bold text-success mb-0">{{ selectedNumberDetail.frequency }} <span class="fs-6 text-muted fw-normal">lần</span></h3>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 border rounded bg-white shadow-sm">
+              <div class="text-muted small text-uppercase fw-semibold mb-1">Đang vắng (Gan)</div>
+              <h3 class="fw-bold text-danger mb-0">{{ selectedNumberDetail.drawGap }} <span class="fs-6 text-muted fw-normal">kỳ</span></h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trọng số AI & Lý do chọn -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted fw-bold">Xác suất XGBoost chấm:</span>
+            <span class="badge bg-primary fs-6">{{ selectedNumberDetail.probabilityPercent }}%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted fw-bold">Phân loại thuật toán:</span>
+            <span class="badge bg-dark">{{ selectedNumberDetail.tag }}</span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-light rounded border-start border-4 border-primary">
+          <h6 class="fw-bold text-dark mb-2">{{ selectedNumberDetail.title }}</h6>
+          <p class="text-secondary mb-0 small" style="line-height: 1.6;">
+            {{ selectedNumberDetail.reason }}
+          </p>
+        </div>
+
+      </div>
+      
+      <div class="modal-footer border-top-0">
+        <button type="button" class="btn btn-secondary w-100 rounded-pill" data-bs-dismiss="modal">Đóng</button>
+      </div>
     </div>
   </div>
 </div>

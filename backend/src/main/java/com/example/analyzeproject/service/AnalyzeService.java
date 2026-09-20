@@ -176,6 +176,7 @@ public class AnalyzeService {
                 .sorted()
                 .collect(Collectors.toList());
 
+      // ÁP DỤNG WHEELING SYSTEM
         List<List<Integer>> generatedTickets = new ArrayList<>();
         for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
             List<Integer> ticket = new ArrayList<>();
@@ -185,6 +186,17 @@ public class AnalyzeService {
             Collections.sort(ticket);
             generatedTickets.add(ticket);
         }
+
+        // THÊM MỚI: Tạo Map tra cứu nhanh xác suất của từng con số
+        Map<Integer, Double> probabilityMap = selected10.stream()
+                .collect(Collectors.toMap(sn -> sn.number, sn -> sn.probability));
+
+        // THÊM MỚI: Sắp xếp các vé dựa trên tổng xác suất của 6 con số trong vé đó (Giảm dần)
+        generatedTickets.sort((t1, t2) -> {
+            double sum1 = t1.stream().mapToDouble(probabilityMap::get).sum();
+            double sum2 = t2.stream().mapToDouble(probabilityMap::get).sum();
+            return Double.compare(sum2, sum1); 
+        });
 
         List<NumberScoreDetailDto> detailDtos = new ArrayList<>();
         for (ScoredNumber sn : selected10) {
