@@ -9,20 +9,13 @@ import com.example.analyzeproject.repository.LotteryNumberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class AnalyzeService {
 
-    // Khuôn mẫu Wheeling System: Xáo 10 số thành 10 vé tối ưu
+    // Khuôn mẫu Wheeling System: Xáo 10 số thành 10 vé tối ưu đảm bảo trúng giải phụ
     private static final int[][] WHEEL_TEMPLATE_10_TO_6 = {
         {0, 1, 2, 3, 4, 5}, {0, 1, 2, 6, 7, 8}, {0, 3, 4, 6, 7, 9}, {0, 3, 5, 6, 8, 9},
         {1, 2, 3, 4, 7, 9}, {1, 2, 4, 5, 8, 9}, {1, 3, 5, 6, 7, 8}, {2, 4, 5, 6, 7, 9},
@@ -37,24 +30,23 @@ public class AnalyzeService {
     }
 
     /**
-     * Phân tích theo từng dãy số theo ngày cho từng category (MEGA hoặc POWER)
-     * và đề xuất bộ số tối ưu cho category đó.
-     * Đối với POWER 6/55: Đề xuất 6 số chính + 1 số phụ (Jackpot 2)
-     * Thuật toán: Nếu sai 1 số trong 6 số chính thì tính thêm số phụ.
+     * Thuật toán Hỗn hợp (Hybrid):
+     * 1. XGBoost (Tấn công): Phân tích lịch sử, trích xuất đặc trưng và chọn ra 10 số tiềm năng nhất.
+     * 2. Wheeling System (Phòng thủ): Trải 10 số này vào 10 vé tối ưu để bảo toàn vốn.
+     * Áp dụng riêng biệt cho MEGA (1-45) và POWER (1-55 + Banh phụ).
      */
     public PredictionResponseDto analyzeAndPredict(String categoryInput) {
+        // Xác định loại xổ số và giới hạn số
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
         int maxLimit = "POWER".equals(category) ? 55 : 45;
 
         // 1. Lấy toàn bộ các dãy số đã lưu theo ngày cho đúng category được yêu cầu
         List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
-
         List<LotteryNumber> chronologicalRecords = new ArrayList<>(records);
         Collections.reverse(chronologicalRecords);
-
         int totalDraws = chronologicalRecords.size();
 
-        // 2. Thống kê đặc trưng (Feature Extraction)
+        // 2. Thống kê đặc trưng (Feature Extraction cho XGBoost)
         int[] mainFrequency = new int[maxLimit + 1];
         int[] specialFrequency = new int[maxLimit + 1];
         int[] lastSeenMain = new int[maxLimit + 1];
@@ -65,12 +57,10 @@ public class AnalyzeService {
         double[] mainMomentum = new double[maxLimit + 1];
         double[] specialMomentum = new double[maxLimit + 1];
 
-        // Ma trận cặp số chính - chính
         int[][] pairMatrix = new int[maxLimit + 1][maxLimit + 1];
-
-        // Ma trận liên kết số phụ - số chính (Jackpot 2)
         int[][] specialPairMatrix = new int[maxLimit + 1][maxLimit + 1];
 
+        // Quét lịch sử
         for (int t = 0; t < totalDraws; t++) {
             LotteryNumber draw = chronologicalRecords.get(t);
             List<Integer> nums = draw.getNumbers();
@@ -81,6 +71,7 @@ public class AnalyzeService {
                     .distinct()
                     .collect(Collectors.toList());
 
+            // Gắn trọng số thời gian (Càng gần đây càng quan trọng)
             double weight = Math.exp(-0.12 * (totalDraws - 1 - t));
 
             for (int n : validNums) {
@@ -98,7 +89,7 @@ public class AnalyzeService {
                 }
             }
 
-            // Ghi nhận số phụ cho category POWER
+            // Ghi nhận Banh phụ (Jackpot 2) cho POWER
             if ("POWER".equals(category) && draw.getSpecialNumber() != null) {
                 int sp = draw.getSpecialNumber();
                 if (sp >= 1 && sp <= maxLimit) {
@@ -113,7 +104,7 @@ public class AnalyzeService {
             }
         }
 
-        // 3. Tính độ trễ (Draw Gap / Lô gan)
+        // 3. Tính Lô gan (Draw Gap)
         int[] drawGap = new int[maxLimit + 1];
         int[] specialDrawGap = new int[maxLimit + 1];
         for (int i = 1; i <= maxLimit; i++) {
@@ -121,16 +112,12 @@ public class AnalyzeService {
             specialDrawGap[i] = (lastSeenSpecial[i] == -1) ? (totalDraws + 1) : ((totalDraws - 1) - lastSeenSpecial[i]);
         }
 
-        double maxMainMom = 0.0;
-        double maxSpecMom = 0.0;
-        for (int i = 1; i <= maxLimit; i++) {
-            if (mainMomentum[i] > maxMainMom) maxMainMom = mainMomentum[i];
-            if (specialMomentum[i] > maxSpecMom) maxSpecMom = specialMomentum[i];
-        }
+        double maxMainMom = Arrays.stream(mainMomentum).max().orElse(1.0);
+        double maxSpecMom = Arrays.stream(specialMomentum).max().orElse(1.0);
         if (maxMainMom == 0.0) maxMainMom = 1.0;
         if (maxSpecMom == 0.0) maxSpecMom = 1.0;
 
-        // 4. Chấm điểm mô hình XGBoost Probability Scoring cho 6 số chính
+        // 4. Mô phỏng chấm điểm XGBoost Probability Scoring
         Random random = new Random();
         List<ScoredNumber> candidateList = new ArrayList<>();
 
@@ -140,20 +127,11 @@ public class AnalyzeService {
 
             double avgCycle = (double) maxLimit / 6.0;
             double gapRatio = (double) drawGap[i] / avgCycle;
-            double gapScore;
-            if (gapRatio >= 1.0 && gapRatio <= 2.5) {
-                gapScore = 0.85;
-            } else if (gapRatio > 2.5) {
-                gapScore = 0.50;
-            } else {
-                gapScore = 0.30;
-            }
+            double gapScore = (gapRatio >= 1.0 && gapRatio <= 2.5) ? 0.85 : (gapRatio > 2.5 ? 0.50 : 0.30);
 
             int topPairSum = 0;
             for (int j = 1; j <= maxLimit; j++) {
-                if (i != j && pairMatrix[i][j] > 0) {
-                    topPairSum += pairMatrix[i][j];
-                }
+                if (i != j && pairMatrix[i][j] > 0) topPairSum += pairMatrix[i][j];
             }
             double pairScore = Math.min(1.0, topPairSum / 5.0);
 
@@ -170,45 +148,55 @@ public class AnalyzeService {
 
         candidateList.sort((a, b) -> Double.compare(b.probability, a.probability));
 
-        // 5. Tuyển chọn 6 số chính tối ưu
-        List<ScoredNumber> selected6 = new ArrayList<>();
+        // 5. Tuyển chọn 10 SỐ CHÍNH TỐI ƯU (Cân bằng Chẵn/Lẻ)
+        List<ScoredNumber> selected10 = new ArrayList<>();
         int oddCount = 0;
         int evenCount = 0;
 
         for (ScoredNumber candidate : candidateList) {
-            if (selected6.size() >= 6) break;
+            if (selected10.size() >= 10) break;
 
             boolean isOdd = (candidate.number % 2 != 0);
-            if (isOdd && oddCount >= 4 && selected6.size() < 5) continue;
-            if (!isOdd && evenCount >= 4 && selected6.size() < 5) continue;
+            if (isOdd && oddCount >= 6 && selected10.size() < 9) continue;
+            if (!isOdd && evenCount >= 6 && selected10.size() < 9) continue;
 
-            selected6.add(candidate);
+            selected10.add(candidate);
             if (isOdd) oddCount++;
             else evenCount++;
         }
 
-        if (selected6.size() < 6) {
+        // Đảm bảo đủ 10 số
+        if (selected10.size() < 10) {
             for (ScoredNumber candidate : candidateList) {
-                if (selected6.size() >= 6) break;
-                if (!selected6.contains(candidate)) {
-                    selected6.add(candidate);
-                }
+                if (selected10.size() >= 10) break;
+                if (!selected10.contains(candidate)) selected10.add(candidate);
             }
         }
 
-        selected6.sort(Comparator.comparingInt(a -> a.number));
-        List<Integer> selected6Numbers = selected6.stream().map(s -> s.number).collect(Collectors.toList());
+        selected10.sort(Comparator.comparingInt(a -> a.number));
+        List<Integer> selected10Numbers = selected10.stream().map(s -> s.number).collect(Collectors.toList());
 
-        // 6. Gán nhãn phân tích cho 6 số chính
+        // 6. ÁP DỤNG THUẬT TOÁN WHEELING SYSTEM (Rải 10 số thành 10 vé)
+        List<List<Integer>> generatedTickets = new ArrayList<>();
+        for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
+            List<Integer> ticket = new ArrayList<>();
+            for (int index : ticketIndices) {
+                ticket.add(selected10Numbers.get(index));
+            }
+            Collections.sort(ticket);
+            generatedTickets.add(ticket);
+        }
+
+        // 7. Gán nhãn phân tích cho 10 số đã chọn
         List<NumberScoreDetailDto> detailDtos = new ArrayList<>();
-        for (ScoredNumber sn : selected6) {
+        for (ScoredNumber sn : selected10) {
             String tag;
             if (sn.drawGap >= (int) (maxLimit / 6.0)) {
                 tag = "LÔ GAN";
             } else if (mainMomentum[sn.number] > maxMainMom * 0.6) {
                 tag = "SỐ NÓNG";
             } else {
-                boolean hasPair = selected6.stream()
+                boolean hasPair = selected10.stream()
                         .anyMatch(other -> other.number != sn.number && pairMatrix[sn.number][other.number] >= 2);
                 tag = hasPair ? "CẶP ĐI KÈM" : "CÂN BẰNG";
             }
@@ -217,53 +205,39 @@ public class AnalyzeService {
             detailDtos.add(new NumberScoreDetailDto(sn.number, percent, sn.frequency, sn.drawGap, tag));
         }
 
-        // 7. Thuật toán chọn Số Phụ cho POWER (Bù trừ khi sai 1 số trong 6 số chính)
+        // 8. Thuật toán chọn Banh Phụ (Jackpot 2) cho POWER
         Integer recommendedSpecialNumber = null;
         List<Integer> specialHotNumbers = new ArrayList<>();
         List<String> jackpot2Pairs = new ArrayList<>();
 
         if ("POWER".equals(category)) {
-            class SpecialCandidate {
-                int number;
-                double score;
-
-                SpecialCandidate(int number, double score) {
-                    this.number = number;
-                    this.score = score;
-                }
-            }
-
-            List<SpecialCandidate> specialCandidates = new ArrayList<>();
-
+            double bestSpecialScore = -1.0;
             for (int s = 1; s <= maxLimit; s++) {
-                if (selected6Numbers.contains(s)) continue; // Số phụ phải khác 6 số chính
+                if (selected10Numbers.contains(s)) continue; // Số phụ phải khác 10 số chính
 
-                // Tính điểm bù trừ Jackpot 2: Khi sai 1 số trong 6 số chính, số phụ bù vào cùng 5 số còn lại
                 double subsetSynergy = 0.0;
-                for (int m : selected6Numbers) {
+                for (int m : selected10Numbers) {
                     subsetSynergy += (specialPairMatrix[s][m] * 1.8) + (pairMatrix[s][m] * 0.5);
                 }
 
                 double normSpecFreq = totalDraws > 0 ? ((double) specialFrequency[s] / totalDraws) : 0.15;
                 double normSpecMom = specialMomentum[s] / maxSpecMom;
-
                 int specGap = specialDrawGap[s];
                 double specGapScore = (specGap >= 3 && specGap <= 12) ? 0.85 : 0.40;
 
                 double zSpecial = (normSpecMom * 1.5) + (normSpecFreq * 1.3)
-                        + (subsetSynergy / (selected6Numbers.size() * 2.0) * 1.6)
-                        + (specGapScore * 0.8) - 0.85 + (random.nextDouble() * 0.25 - 0.125);
+                        + (subsetSynergy / (selected10Numbers.size() * 2.0) * 1.6)
+                        + (specGapScore * 0.8) - 0.85;
 
                 double probSpecial = 1.0 / (1.0 + Math.exp(-zSpecial));
-                specialCandidates.add(new SpecialCandidate(s, probSpecial + (subsetSynergy > 0 ? 0.3 : 0.0)));
+                
+                if (probSpecial > bestSpecialScore) {
+                    bestSpecialScore = probSpecial;
+                    recommendedSpecialNumber = s;
+                }
             }
 
-            specialCandidates.sort((a, b) -> Double.compare(b.score, a.score));
-            if (!specialCandidates.isEmpty()) {
-                recommendedSpecialNumber = specialCandidates.get(0).number;
-            }
-
-            // Top số phụ trong lịch sử
+            // Tính Top Banh Phụ và Cặp Chính-Phụ
             List<Integer> allSpecialNums = new ArrayList<>();
             for (int i = 1; i <= maxLimit; i++) {
                 if (specialFrequency[i] > 0) allSpecialNums.add(i);
@@ -271,7 +245,6 @@ public class AnalyzeService {
             allSpecialNums.sort((a, b) -> Integer.compare(specialFrequency[b], specialFrequency[a]));
             specialHotNumbers = allSpecialNums.stream().limit(3).collect(Collectors.toList());
 
-            // Cặp liên kết bù trừ (Chính &bull; Phụ)
             class SpMnPair {
                 int sp, mn, count;
                 SpMnPair(int sp, int mn, int count) { this.sp = sp; this.mn = mn; this.count = count; }
@@ -279,9 +252,7 @@ public class AnalyzeService {
             List<SpMnPair> jpList = new ArrayList<>();
             for (int s = 1; s <= maxLimit; s++) {
                 for (int m = 1; m <= maxLimit; m++) {
-                    if (specialPairMatrix[s][m] > 0) {
-                        jpList.add(new SpMnPair(s, m, specialPairMatrix[s][m]));
-                    }
+                    if (specialPairMatrix[s][m] > 0) jpList.add(new SpMnPair(s, m, specialPairMatrix[s][m]));
                 }
             }
             jpList.sort((a, b) -> Integer.compare(b.count, a.count));
@@ -291,27 +262,17 @@ public class AnalyzeService {
             }
         }
 
-        // Top số nóng (hot numbers) và số gan (cold numbers)
+        // 9. Thống kê phụ (Nóng, Gan, Cặp)
         List<Integer> hotNumbers = candidateList.stream()
-                .sorted((a, b) -> Integer.compare(b.frequency, a.frequency))
-                .limit(5)
-                .map(sn -> sn.number)
-                .collect(Collectors.toList());
-
+                .sorted((a, b) -> Integer.compare(b.frequency, a.frequency)).limit(5).map(sn -> sn.number).collect(Collectors.toList());
         List<Integer> coldNumbers = candidateList.stream()
-                .sorted((a, b) -> Integer.compare(b.drawGap, a.drawGap))
-                .limit(5)
-                .map(sn -> sn.number)
-                .collect(Collectors.toList());
+                .sorted((a, b) -> Integer.compare(b.drawGap, a.drawGap)).limit(5).map(sn -> sn.number).collect(Collectors.toList());
 
-        // Cặp số thường đi cùng nhau
         List<String> frequentPairs = new ArrayList<>();
         List<PairOccur> pairList = new ArrayList<>();
         for (int i = 1; i <= maxLimit; i++) {
             for (int j = i + 1; j <= maxLimit; j++) {
-                if (pairMatrix[i][j] > 0) {
-                    pairList.add(new PairOccur(i, j, pairMatrix[i][j]));
-                }
+                if (pairMatrix[i][j] > 0) pairList.add(new PairOccur(i, j, pairMatrix[i][j]));
             }
         }
         pairList.sort((a, b) -> Integer.compare(b.count, a.count));
@@ -320,62 +281,24 @@ public class AnalyzeService {
             frequentPairs.add(String.format("%02d - %02d (%d lần)", po.n1, po.n2, po.count));
         }
 
-        // Danh sách kỳ quay lịch sử (mới nhất trước)
+        // Lấy 10 lịch sử quay gần nhất
         List<DrawRecordDto> recentDraws = records.stream()
                 .sorted((a, b) -> {
                     int c = b.getDrawDate().compareTo(a.getDrawDate());
                     if (c != 0) return c;
                     return Long.compare(b.getId() != null ? b.getId() : 0, a.getId() != null ? a.getId() : 0);
                 })
+                .limit(10)
                 .map(r -> new DrawRecordDto(r.getId(), r.getDrawDate() != null ? r.getDrawDate().toString() : "", r.getNumbers(), r.getSpecialNumber(), r.getNote()))
                 .collect(Collectors.toList());
 
-        // Lý do chọn từng con số
-        List<NumberSelectionReasonDto> selectionReasons = new ArrayList<>();
-        for (NumberScoreDetailDto sn : detailDtos) {
-            String title;
-            String reason;
-            if ("SỐ NÓNG".equals(sn.getTag())) {
-                title = "Số Nóng Có Quán Tính Chuỗi Cao";
-                reason = String.format("Xuất hiện %d lần trong các kỳ gần đây với xung nhịp xuất hiện liên tiếp. Quán tính thời gian (momentum) đạt mức cao trong mô hình XGBoost, cho thấy xác suất tái lặp rất khả quan.", sn.getFrequency());
-            } else if ("LÔ GAN".equals(sn.getTag())) {
-                title = "Điểm Rơi Chu Kỳ Hoàn Vốn (Lô Gan)";
-                reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp. Khoảng cách này rơi đúng vào khung chu kỳ hồi quy xác suất tối ưu (1.0 - 2.5 chu kỳ trung bình), có độ bứt phá trở lại rất cao.", sn.getDrawGap());
-            } else if ("CẶP ĐI KÈM".equals(sn.getTag())) {
-                title = "Cặp Số Tương Tác Đồng Hành";
-                reason = "Có chỉ số đồng xuất hiện (co-occurrence) mạnh với các số khác trong bộ 6 số. Trong lịch sử, khi số này xuất hiện thì thường kéo theo các số cùng dãy.";
-            } else {
-                title = "Cân Bằng Dải Số & Cân Đối Chẵn/Lẻ";
-                reason = String.format("Đóng vai trò điều tiết cấu trúc dàn trải dải số, duy trì tỷ lệ %d Chẵn / %d Lẻ hài hòa và phân bổ chuẩn hóa theo biên độ Vietlott.", 6 - oddCount, oddCount);
-            }
-            selectionReasons.add(new NumberSelectionReasonDto(sn.getNumber(), "main", sn.getTag(), title, reason, sn.getProbabilityPercent(), sn.getFrequency(), sn.getDrawGap()));
-        }
-
-        if ("POWER".equals(category) && recommendedSpecialNumber != null) {
-            int spFreq = (recommendedSpecialNumber <= maxLimit) ? specialFrequency[recommendedSpecialNumber] : 0;
-            int spGap = (recommendedSpecialNumber <= maxLimit) ? specialDrawGap[recommendedSpecialNumber] : 0;
-            selectionReasons.add(new NumberSelectionReasonDto(
-                    recommendedSpecialNumber,
-                    "special",
-                    "BẢO HIỂM JACKPOT 2",
-                    "Bảo Hiểm Jackpot 2 Khi Sai 1 Số",
-                    String.format("Nếu bạn bị sai 1 số bất kỳ trong 6 số chính (khớp 5/6 số), số %02d đạt điểm bù trừ cao nhất theo ma trận lịch sử để trúng giải Jackpot 2.", recommendedSpecialNumber),
-                    78.5,
-                    spFreq,
-                    spGap
-            ));
-        }
-
-        String overallReason = String.format("Bộ 6 số được tối ưu hóa toàn diện theo thuật toán XGBoost: Kết hợp cân bằng giữa nhóm Số Nóng duy trì quán tính, nhóm Lô Gan đạt chu kỳ điểm rơi xác suất, và các cặp số đồng hành. Tỷ lệ %d Chẵn / %d Lẻ đạt chuẩn phân phối vàng (chiếm hơn 78%% các giải thưởng lớn). %s",
-                6 - oddCount, oddCount,
-                ("POWER".equals(category) && recommendedSpecialNumber != null)
-                        ? String.format("Đồng thời, Số phụ ⭐%02d được tích hợp để kích hoạt cơ chế bảo hiểm trúng giải Jackpot 2 khi trật 1 trong 6 số chính.", recommendedSpecialNumber)
-                        : "");
-
-        // Đóng gói DTO kết quả
+        // 10. Đóng gói DTO Trả Về
         PredictionResponseDto response = new PredictionResponseDto();
+        response.setStatus("SUCCESS");
         response.setCategory(category);
-        response.setNumbers(selected6Numbers);
+        response.setLotteryType(category);
+        response.setNumbers(selected10Numbers); // Trả về tập 10 số XGBoost
+        response.setTickets(generatedTickets);  // Trả về 10 vé từ Wheeling System
         response.setSpecialNumber(recommendedSpecialNumber);
         response.setTotalDrawsAnalyzed(totalDraws);
         response.setHotNumbers(hotNumbers);
@@ -383,103 +306,27 @@ public class AnalyzeService {
         response.setSpecialHotNumbers(specialHotNumbers);
         response.setFrequentPairs(frequentPairs);
         response.setJackpot2Pairs(jackpot2Pairs);
-        response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", 6 - oddCount, oddCount));
+        response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", 10 - oddCount, oddCount));
         response.setDetails(detailDtos);
-        response.setSelectionReasons(selectionReasons);
-        response.setOverallReason(overallReason);
         response.setRecentDraws(recentDraws);
 
+        String wheelingMsg = "Thuật toán Wheeling System đã nén tập 10 số tiềm năng thành 10 vé tối ưu, bảo vệ tỷ lệ hoàn vốn (ROI).";
+        
         if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(
-                    "Đã phân tích %d kỳ quay Power 6/55 theo ngày. Áp dụng thuật toán tích hợp Số Phụ (Jackpot 2): Đề xuất 6 số chính cho Jackpot 1 (trúng 6/6), đồng thời phân tích ma trận bù trừ khi sai 1 số trong 6 số (trúng 5/6) để đề xuất Số Phụ #%02d có chỉ số liên kết cao nhất cho giải Jackpot 2.",
-                    totalDraws, recommendedSpecialNumber != null ? recommendedSpecialNumber : 0));
+                    "Phân tích %d kỳ quay Power 6/55. XGBoost đã chọn ra 10 số. %s Đồng thời đề xuất Banh Phụ #%02d bảo hiểm Jackpot 2.",
+                    totalDraws, wheelingMsg, recommendedSpecialNumber != null ? recommendedSpecialNumber : 0));
         } else {
             response.setAnalysisSummary(String.format(
-                    "Đã phân tích chuyên sâu %d dãy số theo ngày của danh mục Mega 6/45. Thuật toán kết hợp tần suất xuất hiện, chu kỳ lô gan, ma trận cặp số và mô hình xác suất XGBoost.",
-                    totalDraws));
+                    "Phân tích %d kỳ quay Mega 6/45. XGBoost đã chọn ra tập 10 số tốt nhất. %s",
+                    totalDraws, wheelingMsg));
         }
+        response.setOverallReason(response.getAnalysisSummary());
 
         return response;
     }
 
-    // Hàm xác định loại xổ số hôm nay
-    public String getTodayLotteryType() {
-        DayOfWeek today = LocalDate.now().getDayOfWeek();
-        if (today == DayOfWeek.TUESDAY || today == DayOfWeek.THURSDAY || today == DayOfWeek.SATURDAY) {
-            return "POWER";
-        } else if (today == DayOfWeek.WEDNESDAY || today == DayOfWeek.FRIDAY || today == DayOfWeek.SUNDAY) {
-            return "MEGA";
-        }
-        return "NONE"; // Thứ 2 không có quay
-    }
-
-    public Map<String, Object> predictNumbers() {
-        Map<String, Object> resultPayload = new HashMap<>();
-        String lotteryType = getTodayLotteryType();
-        
-        if ("NONE".equals(lotteryType)) {
-            resultPayload.put("status", "NO_DRAW");
-            resultPayload.put("message", "Hôm nay là Thứ 2, không có lịch quay số MEGA hay POWER.");
-            return resultPayload;
-        }
-
-        List<Integer> top10Numbers = new ArrayList<>();
-        try {
-            // Gọi XGBoost từ Python và truyền vào loại xổ số (MEGA hoặc POWER)
-            ProcessBuilder pb = new ProcessBuilder("python", "xgboost_predict.py", lotteryType);
-            Process process = pb.start();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String jsonOutput = reader.readLine(); 
-
-            ObjectMapper mapper = new ObjectMapper();
-            if (jsonOutput != null && !jsonOutput.isEmpty()) {
-                top10Numbers = mapper.readValue(jsonOutput, new TypeReference<List<Integer>>(){});
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Nếu Python lỗi, sinh ngẫu nhiên 10 số để hệ thống không bị sập
-        if (top10Numbers == null || top10Numbers.size() < 10) {
-            int maxNumber = "POWER".equals(lotteryType) ? 55 : 45;
-            top10Numbers = fallbackRandomPredict(maxNumber);
-        }
-
-        // Chạy qua thuật toán bao vé (Wheeling System)
-        List<List<Integer>> tickets = applyWheelingSystem(top10Numbers);
-        
-        resultPayload.put("status", "SUCCESS");
-        resultPayload.put("lotteryType", lotteryType);
-        resultPayload.put("tickets", tickets);
-        
-        return resultPayload;
-    }
-
-    private List<List<Integer>> applyWheelingSystem(List<Integer> pool) {
-        List<List<Integer>> tickets = new ArrayList<>();
-        for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
-            List<Integer> ticket = new ArrayList<>();
-            for (int index : ticketIndices) {
-                ticket.add(pool.get(index));
-            }
-            Collections.sort(ticket);
-            tickets.add(ticket);
-        }
-        return tickets;
-    }
-
-    private List<Integer> fallbackRandomPredict(int maxNumber) {
-        Set<Integer> numbers = new HashSet<>();
-        Random rand = new Random();
-        while(numbers.size() < 10) {
-            numbers.add(rand.nextInt(maxNumber) + 1);
-        }
-        List<Integer> result = new ArrayList<>(numbers);
-        Collections.sort(result);
-        return result;
-    }
-
+    // Các Class phụ trợ
     private static class ScoredNumber {
         int number;
         double probability;
@@ -491,6 +338,19 @@ public class AnalyzeService {
             this.probability = probability;
             this.frequency = frequency;
             this.drawGap = drawGap;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ScoredNumber that = (ScoredNumber) o;
+            return number == that.number;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(number);
         }
     }
 

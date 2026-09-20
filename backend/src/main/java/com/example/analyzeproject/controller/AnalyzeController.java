@@ -19,11 +19,6 @@ public class AnalyzeController {
         this.analyzeService = analyzeService;
     }
     
-    // Trả về Payload chứa status, loại xổ số và danh sách vé
-    @GetMapping("/predict")
-    public Map<String, Object> getPrediction() {
-        return analyzeService.predictNumbers();
-    }
     /**
      * Phân tích theo từng dãy số theo ngày cho từng category và đề xuất 6 số tối ưu.
      * @param category MEGA (1-45) hoặc POWER (1-55)
