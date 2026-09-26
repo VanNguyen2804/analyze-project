@@ -203,4 +203,45 @@ export class PredictionComponent implements OnInit, OnDestroy {
     const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
     return days[date.getDay()];
   }
+
+  // --- MỤC ĐỐI SOÁT & CHI TIẾT ĐIỂM SỐ CÁC SỐ 48, 52, 14 ---
+  selectedFocusNumber: number = 48;
+  activeFocusTab: 'target3' | 'fullDraw' | 'allScores' = 'target3';
+  scoreSearchTerm: string = '';
+
+  selectFocusNumber(num: number) {
+    this.selectedFocusNumber = num;
+  }
+
+  getFocusItem(num: number): any {
+    if (!this.payload) return null;
+    if (this.payload.focusAnalysis && this.payload.focusAnalysis.focusItems) {
+      const found = this.payload.focusAnalysis.focusItems.find(f => f.number === num);
+      if (found) return found;
+    }
+    if (this.payload.allNumberScores) {
+      return this.payload.allNumberScores.find(s => s.number === num) || null;
+    }
+    return null;
+  }
+
+  getTarget3Items(): any[] {
+    const targetNumbers = [48, 52, 14];
+    return targetNumbers.map(n => this.getFocusItem(n)).filter(item => item !== null);
+  }
+
+  getFilteredScores(): any[] {
+    if (!this.payload || !this.payload.allNumberScores) return [];
+    if (!this.scoreSearchTerm.trim()) {
+      return this.payload.allNumberScores;
+    }
+    const term = this.scoreSearchTerm.trim().toLowerCase();
+    const termNum = parseInt(term, 10);
+    return this.payload.allNumberScores.filter(s => 
+      s.number === termNum ||
+      s.number.toString().includes(term) ||
+      s.tag.toLowerCase().includes(term) ||
+      s.title.toLowerCase().includes(term)
+    );
+  }
 }

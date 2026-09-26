@@ -1,94 +1,535 @@
 <div class="container-fluid mt-4 mb-5">
-  <div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <span class="fs-3">🇫🇷</span>
-        <h3 class="card-title h4 fw-bold text-primary mb-0">Học Tiếng Pháp Tương Tác</h3>
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    <!-- HEADER -->
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <span class="fs-2">🇫🇷</span>
+        <div>
+          <h3 class="card-title h4 fw-bold text-primary mb-0">Học Tiếng Pháp Tương Tác</h3>
+          <small class="text-muted">Dành cho người mới bắt đầu: Bảng chữ cái, quy tắc ghép từ & luyện viết câu</small>
+        </div>
       </div>
-      <div class="badge bg-warning text-dark fs-6 px-3 py-2 border shadow-sm">
-        🏆 Điểm của bạn: <strong>{{ totalScore }}</strong>
+      <div class="d-flex align-items-center gap-2">
+        <div class="badge bg-warning text-dark fs-6 px-3 py-2 border shadow-sm rounded-pill">
+          🏆 Điểm của bạn: <strong>{{ totalScore }}</strong> XP
+        </div>
       </div>
     </div>
 
     <div class="card-body p-0">
-      <ul class="nav nav-tabs px-3 pt-3 bg-light border-bottom-0" role="tablist">
+      <!-- TAB NAVIGATION -->
+      <ul class="nav nav-tabs px-3 pt-3 bg-light border-bottom" role="tablist">
         <li class="nav-item">
-          <button class="nav-link fw-bold" [class.active]="activeTab === 'alphabet'" (click)="activeTab = 'alphabet'">🔤 Bảng chữ cái</button>
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'sentence-builder'" (click)="activeTab = 'sentence-builder'">
+            🧩 Luyện Ghép Từ Thành Câu
+          </button>
         </li>
         <li class="nav-item">
-          <button class="nav-link fw-bold" [class.active]="activeTab === 'dictation'" (click)="activeTab = 'dictation'">🎧 Nghe & Viết</button>
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'sentence-guide'" (click)="activeTab = 'sentence-guide'">
+            📖 Cấu Trúc Câu & Ghép Từ
+          </button>
         </li>
         <li class="nav-item">
-          <button class="nav-link fw-bold" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">📖 Lịch sử lỗi sai</button>
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'alphabet'" (click)="activeTab = 'alphabet'">
+            🔤 Bảng Chữ Cái (26 Ký Tự)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'quiz'" (click)="activeTab = 'quiz'">
+            🎯 Trắc Nghiệm Ghép Từ
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">
+            📊 Lịch Sử Làm Bài
+          </button>
         </li>
       </ul>
 
-      <div class="p-4 p-md-5">
-        
-        <!-- SECTION 1: BẢNG CHỮ CÁI (Giữ nguyên) -->
-        <div *ngIf="activeTab === 'alphabet'" class="row g-3">
-            <div class="col-4 col-md-2" *ngFor="let item of alphabet">
-              <div class="alphabet-card p-3 text-center border rounded-3 shadow-sm bg-white" (click)="playAudio(item.letter)">
-                <h2 class="display-5 fw-bold text-dark mb-1">{{ item.letter }}</h2>
-                <span class="badge bg-light text-secondary border">/{{ item.pron }}/</span>
+      <div class="p-3 p-md-4">
+
+        <!-- ==================== TAB 1: BÀI TẬP GHÉP TỪ THÀNH CÂU ==================== -->
+        <div *ngIf="activeTab === 'sentence-builder'" class="animation-fade">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">Luyện Ghép Từ Thành Câu Hoàn Chỉnh</h5>
+              <p class="text-muted small mb-0">Bấm chọn các từ theo đúng ngữ pháp để tạo thành câu tiếng Pháp chính xác.</p>
+            </div>
+            
+            <!-- Bộ lọc chủ đề -->
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-sm rounded-pill px-3" [ngClass]="selectedCategory === 'ALL' ? 'btn-primary' : 'btn-outline-secondary'" (click)="filterCategory('ALL')">Tất cả ({{ allExercises.length }})</button>
+              <button class="btn btn-sm rounded-pill px-3" [ngClass]="selectedCategory === 'BASIC' ? 'btn-primary' : 'btn-outline-secondary'" (click)="filterCategory('BASIC')">S + V Cơ bản</button>
+              <button class="btn btn-sm rounded-pill px-3" [ngClass]="selectedCategory === 'ARTICLE_ADJ' ? 'btn-primary' : 'btn-outline-secondary'" (click)="filterCategory('ARTICLE_ADJ')">Danh từ & Tính từ</button>
+              <button class="btn btn-sm rounded-pill px-3" [ngClass]="selectedCategory === 'NEGATIVE' ? 'btn-primary' : 'btn-outline-secondary'" (click)="filterCategory('NEGATIVE')">Câu Phủ Định</button>
+              <button class="btn btn-sm rounded-pill px-3" [ngClass]="selectedCategory === 'CONVERSATION' ? 'btn-primary' : 'btn-outline-secondary'" (click)="filterCategory('CONVERSATION')">Giao Tiếp</button>
+            </div>
+          </div>
+
+          <!-- Thanh chọn bài tập nhanh -->
+          <div class="d-flex gap-2 overflow-auto pb-2 mb-4">
+            <button *ngFor="let ex of filteredExercises; let idx = index" 
+                    class="btn btn-sm px-3 rounded-pill fw-bold text-nowrap"
+                    [ngClass]="idx === currentExerciseIndex ? 'btn-dark' : (ex.status === 'correct' ? 'btn-success' : 'btn-outline-primary')"
+                    (click)="selectExercise(idx)">
+              <span *ngIf="ex.status === 'correct'">✓ </span>Câu {{ idx + 1 }}
+            </button>
+          </div>
+
+          <!-- Khung bài tập chính -->
+          <div *ngIf="currentExercise" class="card border rounded-4 shadow-sm p-3 p-md-4 bg-white mb-4 position-relative">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                🏷️ {{ currentExercise.categoryLabel }}
+              </span>
+              <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">
+                Cấp độ: {{ currentExercise.level }}
+              </span>
+            </div>
+
+            <!-- Câu tiếng Việt mục tiêu -->
+            <div class="bg-light p-3 rounded-3 mb-4 border-start border-4 border-primary">
+              <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Nhiệm vụ của bạn: Ghép câu tiếng Pháp có nghĩa:</span>
+              <h4 class="fw-bold text-dark mb-0">"{{ currentExercise.vietnamese }}"</h4>
+            </div>
+
+            <!-- KHU VỰC LẮP RÁP CÂU CỦA NGƯỜI DÙNG -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small fw-bold text-secondary">Vùng ghép câu của bạn (Bấm vào từ để gỡ bỏ):</span>
+                <span class="badge bg-light text-muted border">{{ currentExercise.userTokens.length }} / {{ currentExercise.expectedTokens.length }} từ</span>
+              </div>
+              
+              <div class="sentence-assembly-zone p-3 rounded-3 border d-flex flex-wrap align-items-center gap-2 min-vh-25"
+                   [ngClass]="{
+                     'border-success bg-success-subtle': currentExercise.status === 'correct',
+                     'border-danger bg-danger-subtle': currentExercise.status === 'incorrect',
+                     'bg-white': currentExercise.status === 'none'
+                   }">
+                <span *ngIf="currentExercise.userTokens.length === 0" class="text-muted fst-italic">
+                  👈 Bấm chọn các từ bên dưới theo đúng thứ tự ngữ pháp để ghép vào đây...
+                </span>
+
+                <button *ngFor="let token of currentExercise.userTokens; let uIdx = index"
+                        class="btn btn-primary word-token-btn shadow-sm rounded-3 py-2 px-3 fw-bold"
+                        (click)="removeTokenFromAnswer(token, uIdx)"
+                        [disabled]="currentExercise.status === 'correct'"
+                        title="Bấm để trả lại từ này">
+                  {{ token }} <span class="small opacity-75">✕</span>
+                </button>
               </div>
             </div>
-        </div>
 
-        <!-- SECTION 2: BÀI TẬP NGHE VIẾT THEO CHỦ ĐỀ -->
-        <div *ngIf="activeTab === 'dictation'">
-          <div class="d-flex gap-2 mb-4 flex-wrap">
-            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'ALL' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('ALL')">Tất cả</button>
-            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'GREETING' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('GREETING')">👋 Chào hỏi</button>
-            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'HEALTH' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('HEALTH')">❤️ Sức khỏe</button>
-            <button class="btn btn-sm rounded-pill px-3" [ngClass]="currentCategory === 'FOOD' ? 'btn-primary' : 'btn-outline-secondary'" (click)="changeCategory('FOOD')">🍔 Gọi món</button>
-          </div>
-          
-          <div class="d-flex flex-column gap-4">
-            <div *ngFor="let ex of exercises" class="exercise-card p-4 border rounded-4 shadow-sm bg-white position-relative" [ngClass]="{'border-success': ex.status === 'correct', 'border-danger': ex.status === 'incorrect'}">
-              <span class="badge bg-info position-absolute top-0 end-0 m-3">{{ ex.level }}</span>
-
-              <div class="d-flex align-items-center gap-3 mb-3">
-                <button class="btn btn-primary rounded-circle shadow-sm play-btn d-flex justify-content-center align-items-center" (click)="playAudio(ex.sentence)" style="width: 50px; height: 50px;">
-                  <span class="fs-5">🔊</span>
+            <!-- NGÂN HÀNG TỪ ĐỂ CHỌN (SCRAMBLED TOKENS) -->
+            <div class="mb-4">
+              <span class="small fw-bold text-secondary d-block mb-2">Kho từ có sẵn (Bấm để thêm vào câu):</span>
+              <div class="d-flex flex-wrap gap-2 p-3 bg-light rounded-3 border">
+                <button *ngFor="let token of currentExercise.scrambledTokens; let sIdx = index"
+                        class="btn btn-outline-dark word-bank-btn shadow-sm rounded-3 py-2 px-3 fw-bold"
+                        (click)="addTokenToAnswer(token, sIdx)">
+                  {{ token }}
                 </button>
+                <span *ngIf="currentExercise.scrambledTokens.length === 0" class="text-muted small fst-italic align-self-center">
+                  Đã chọn hết tất cả các từ! Hãy nhấn "Kiểm tra kết quả".
+                </span>
+              </div>
+            </div>
+
+            <!-- CÁC NÚT ĐIỀU KHIỂN & HỖ TRỢ -->
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center pt-2 border-top">
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-danger btn-sm rounded-pill px-3" 
+                        (click)="resetCurrentExercise()"
+                        [disabled]="currentExercise.status === 'correct' && currentExercise.userTokens.length === 0">
+                  🔄 Xóa làm lại
+                </button>
+                <button class="btn btn-outline-info btn-sm rounded-pill px-3" (click)="toggleHint()">
+                  💡 {{ currentExercise.showHint ? 'Ẩn gợi ý' : 'Xem gợi ý cấu trúc' }}
+                </button>
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="playAudio(currentExercise.expectedTokens.join(' '))">
+                  🔊 Nghe phát âm chuẩn
+                </button>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" 
+                        (click)="prevExercise()" 
+                        [disabled]="currentExerciseIndex === 0">
+                  ⬅ Câu trước
+                </button>
+                <button class="btn btn-success fw-bold px-4 rounded-pill shadow-sm" 
+                        (click)="checkSentenceBuilder()" 
+                        [disabled]="currentExercise.userTokens.length === 0 || currentExercise.status === 'correct'">
+                  Kiểm tra kết quả ✅
+                </button>
+                <button class="btn btn-primary btn-sm rounded-pill px-3" 
+                        (click)="nextExercise()" 
+                        [disabled]="currentExerciseIndex === filteredExercises.length - 1">
+                  Câu tiếp ➡
+                </button>
+              </div>
+            </div>
+
+            <!-- GỢI Ý CẤU TRÚC (HINT) -->
+            <div *ngIf="currentExercise.showHint" class="mt-3 p-3 bg-info-subtle border border-info rounded-3 text-dark animation-fade">
+              <strong>💡 Gợi ý trật tự từ:</strong>
+              <p class="mb-1 mt-1">{{ currentExercise.hint }}</p>
+              <small class="text-muted">Công thức: <em>{{ currentExercise.grammarPattern }}</em></small>
+            </div>
+
+            <!-- KẾT QUẢ VÀ GIẢI THÍCH CHI TIẾT (EXPLANATION) -->
+            <div *ngIf="currentExercise.status === 'correct'" class="mt-3 p-4 bg-success-subtle border border-success rounded-4 animation-fade">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="fs-4">🎉</span>
+                <h5 class="fw-bold text-success mb-0">Xuất sắc! Bạn đã ghép câu hoàn toàn chính xác (+10 XP)</h5>
+              </div>
+              <div class="p-2 bg-white rounded-3 border mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fs-5 fw-bold text-primary">{{ currentExercise.expectedTokens.join(' ') }}</span>
+                  <button class="btn btn-sm btn-outline-primary rounded-pill px-3" (click)="playAudio(currentExercise.expectedTokens.join(' '))">
+                    🔊 Nghe lại
+                  </button>
+                </div>
+                <small class="text-muted">Nghĩa tiếng Việt: "{{ currentExercise.vietnamese }}"</small>
+              </div>
+
+              <!-- Phân tích cách từ kết hợp -->
+              <div class="card bg-white border-0 shadow-sm p-3 rounded-3">
+                <h6 class="fw-bold text-dark mb-2">🔍 Phân tích cách ghép từ trong câu này:</h6>
+                <div class="small text-secondary mb-2" style="white-space: pre-line;">{{ currentExercise.explanation }}</div>
+                <span class="badge bg-light text-dark border p-2 text-start">
+                  📐 Mô hình câu: <code>{{ currentExercise.grammarPattern }}</code>
+                </span>
+              </div>
+            </div>
+
+            <!-- KẾT QUẢ KHI SAI -->
+            <div *ngIf="currentExercise.status === 'incorrect'" class="mt-3 p-3 bg-danger-subtle border border-danger rounded-3 animation-fade">
+              <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">❌</span>
                 <div>
-                  <h6 class="fw-bold mb-0 text-dark">Câu hỏi {{ ex.id }}</h6>
-                  <small class="text-muted">Nhấn để nghe</small>
+                  <h6 class="fw-bold text-danger mb-1">Chưa chính xác! Trật tự từ chưa đúng ngữ pháp.</h6>
+                  <small class="text-dark">Hãy bấm vào từ muốn đổi chỗ để gỡ bỏ, hoặc bấm "Xem gợi ý cấu trúc" để được trợ giúp nhé!</small>
                 </div>
               </div>
-
-              <div class="input-group mb-2">
-                <input type="text" class="form-control bg-light" placeholder="Gõ lại câu bạn nghe được..." [(ngModel)]="ex.userInput" (keyup.enter)="checkAnswer(ex)" [disabled]="ex.status === 'correct'">
-                <button class="btn btn-success fw-bold px-4" (click)="checkAnswer(ex)" [disabled]="ex.status === 'correct' || !ex.userInput">Kiểm tra</button>
-              </div>
-
-              <div *ngIf="ex.status === 'correct'" class="text-success small fw-bold mt-2">✅ Chính xác! Nghĩa là: <em>{{ ex.translation }}</em></div>
-              <div *ngIf="ex.status === 'incorrect'" class="text-danger small fw-bold mt-2">❌ Sai rồi! Bạn có thể thử lại hoặc xem lịch sử.</div>
             </div>
           </div>
         </div>
 
-        <!-- SECTION 3: LỊCH SỬ VÀ ÔN TẬP LỖI SAI -->
-        <div *ngIf="activeTab === 'history'">
-          <h5 class="fw-bold mb-3">Lịch sử làm bài (Database)</h5>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle border">
-              <thead class="table-light">
+        <!-- ==================== TAB 2: HƯỚNG DẪN CẤU TRÚC CÂU & GHÉP TỪ ==================== -->
+        <div *ngIf="activeTab === 'sentence-guide'" class="animation-fade">
+          <div class="mb-4">
+            <h4 class="fw-bold text-primary mb-1">Cẩm Nang Ghép Từ & Viết Câu Tiếng Pháp</h4>
+            <p class="text-muted">Hướng dẫn trực quan từng bước giúp người mới nắm trọn trật tự từ và cách tạo câu chuẩn ngữ pháp Pháp.</p>
+          </div>
+
+          <div class="row g-4">
+            <!-- QUY TẮC 1: CẤU TRÚC CÂU CƠ BẢN -->
+            <div class="col-12 col-lg-6">
+              <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white border-top border-4 border-primary">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <span class="fs-3">📐</span>
+                  <h5 class="fw-bold mb-0 text-dark">1. Cấu Trúc Câu Chuẩn: S + V + C</h5>
+                </div>
+                <p class="text-muted small">Cũng giống như tiếng Việt và tiếng Anh, câu trần thuật cơ bản tiếng Pháp luôn đi theo trật tự:</p>
+                
+                <div class="p-3 bg-light rounded-3 text-center mb-3 border">
+                  <span class="badge bg-primary fs-6 px-3 py-2 me-1">Sujet (Chủ ngữ)</span>
+                  <span class="fs-5 fw-bold text-muted">+</span>
+                  <span class="badge bg-success fs-6 px-3 py-2 mx-1">Verbe (Động từ)</span>
+                  <span class="fs-5 fw-bold text-muted">+</span>
+                  <span class="badge bg-info fs-6 px-3 py-2 ms-1">Complément (Bổ ngữ)</span>
+                </div>
+
+                <ul class="list-group list-group-flush small">
+                  <li class="list-group-item px-0">
+                    <span class="fw-bold text-primary">Je</span> (Tôi) + <span class="fw-bold text-success">mange</span> (ăn) + <span class="fw-bold text-info">une pomme</span> (một quả táo)
+                    <br><strong class="text-dark">➔ Je mange une pomme.</strong>
+                    <button class="btn btn-sm btn-link p-0 ms-2 text-decoration-none" (click)="playAudio('Je mange une pomme.')">🔊 Nghe</button>
+                  </li>
+                  <li class="list-group-item px-0">
+                    <span class="fw-bold text-primary">Paul</span> (Paul) + <span class="fw-bold text-success">aime</span> (thích) + <span class="fw-bold text-info">la musique</span> (âm nhạc)
+                    <br><strong class="text-dark">➔ Paul aime la musique.</strong>
+                    <button class="btn btn-sm btn-link p-0 ms-2 text-decoration-none" (click)="playAudio('Paul aime la musique.')">🔊 Nghe</button>
+                  </li>
+                </ul>
+                <div class="alert alert-warning py-2 px-3 small mt-3 mb-0">
+                  ⚠️ <strong>Lưu ý cốt lõi:</strong> Động từ tiếng Pháp bắt buộc phải được chia theo ngôi của Chủ ngữ (Je, Tu, Il, Elle, Nous, Vous, Ils, Elles).
+                </div>
+              </div>
+            </div>
+
+            <!-- QUY TẮC 2: CÁCH GHÉP MẠO TỪ + DANH TỪ + TÍNH TỪ -->
+            <div class="col-12 col-lg-6">
+              <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white border-top border-4 border-success">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <span class="fs-3">🎨</span>
+                  <h5 class="fw-bold mb-0 text-dark">2. Ghép Mạo Từ + Danh Từ + Tính Từ</h5>
+                </div>
+                <p class="text-muted small">Mọi danh từ trong tiếng Pháp đều có <strong>Giống (Đực/Cái)</strong> và thường đi cùng mạo từ:</p>
+
+                <div class="table-responsive mb-3">
+                  <table class="table table-sm table-bordered small align-middle mb-0 text-center">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Giống / Số</th>
+                        <th>Không xác định</th>
+                        <th>Xác định</th>
+                        <th>Ví dụ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="fw-bold">Giống đực (Masculin)</td>
+                        <td><span class="badge bg-secondary">un</span></td>
+                        <td><span class="badge bg-secondary">le / l'</span></td>
+                        <td>un livre, le café</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Giống cái (Féminin)</td>
+                        <td><span class="badge bg-secondary">une</span></td>
+                        <td><span class="badge bg-secondary">la / l'</span></td>
+                        <td>une maison, la table</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Số nhiều (Pluriel)</td>
+                        <td><span class="badge bg-secondary">des</span></td>
+                        <td><span class="badge bg-secondary">les</span></td>
+                        <td>des chats, les livres</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="bg-light p-3 rounded-3 small">
+                  <strong class="text-danger">⭐ VỊ TRÍ TÍNH TỪ CỰC KỲ QUAN TRỌNG:</strong>
+                  <p class="mb-1 mt-1">• <strong>Đa số tính từ (màu sắc, hình dạng, quốc tịch) ĐỨNG SAU danh từ</strong> (ngược tiếng Anh):</p>
+                  <div class="ms-2 mb-2">
+                    ➔ <em>un chat</em> + <em>noir</em> = <strong>un chat noir</strong> (con mèo đen)
+                    <br>➔ <em>une robe</em> + <em>rouge</em> = <strong>une robe rouge</strong> (váy màu đỏ)
+                  </div>
+                  <p class="mb-0">• <strong>Ngoại lệ quy tắc BANGS</strong> (Tính từ ngắn đứng TRƯỚC danh từ): Beauty (beau), Age (vieux, jeune), Number (deux), Goodness (bon), Size (grand, petit). Ví dụ: <em>un bon ami</em>, <em>une grande maison</em>.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- QUY TẮC 3: 2 ĐỘNG TỪ THEN CHỐT: ÊTRE & AVOIR -->
+            <div class="col-12 col-lg-6">
+              <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white border-top border-4 border-warning">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <span class="fs-3">🔑</span>
+                  <h5 class="fw-bold mb-0 text-dark">3. Hai Động Từ "Cột Trụ": Être & Avoir</h5>
+                </div>
+                <p class="text-muted small">Bất kỳ người mới nào cũng cần thuộc lòng bảng chia của 2 động từ này để ghép được hàng trăm câu:</p>
+
+                <div class="row g-2 small">
+                  <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border h-100">
+                      <div class="fw-bold text-primary mb-2">Động từ ÊTRE (Thì / Là / Ở):</div>
+                      <div>• <strong>Je suis</strong> (Tôi là)</div>
+                      <div>• <strong>Tu es</strong> (Bạn là)</div>
+                      <div>• <strong>Il / Elle est</strong> (Anh/Cô ấy là)</div>
+                      <div>• <strong>Nous sommes</strong> (Chúng tôi là)</div>
+                      <div>• <strong>Vous êtes</strong> (Các bạn là)</div>
+                      <div>• <strong>Ils / Elles sont</strong> (Họ là)</div>
+                      <div class="mt-2 text-muted fst-italic">VD: Je suis étudiant.</div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border h-100">
+                      <div class="fw-bold text-success mb-2">Động từ AVOIR (Có):</div>
+                      <div>• <strong>J'ai</strong> (Tôi có)</div>
+                      <div>• <strong>Tu as</strong> (Bạn có)</div>
+                      <div>• <strong>Il / Elle a</strong> (Anh/Cô ấy có)</div>
+                      <div>• <strong>Nous avons</strong> (Chúng tôi có)</div>
+                      <div>• <strong>Vous avez</strong> (Các bạn có)</div>
+                      <div>• <strong>Ils / Elles ont</strong> (Họ có)</div>
+                      <div class="mt-2 text-muted fst-italic">VD: J'ai un chat noir.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- QUY TẮC 4: CÔNG THỨC CÂU PHỦ ĐỊNH (NE... PAS) -->
+            <div class="col-12 col-lg-6">
+              <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white border-top border-4 border-danger">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <span class="fs-3">🥪</span>
+                  <h5 class="fw-bold mb-0 text-dark">4. Công Thức Câu Phủ Định (Ne ... Pas)</h5>
+                </div>
+                <p class="text-muted small">Người Pháp dùng cấu trúc "kẹp bánh mì" để tạo câu phủ định (không làm gì):</p>
+
+                <div class="p-3 bg-danger-subtle border border-danger-subtle rounded-3 text-center mb-3">
+                  <span class="fw-bold">[Chủ ngữ]</span> + <span class="badge bg-danger fs-6 px-3 py-1">ne / n'</span> + <span class="badge bg-success fs-6 px-3 py-1">[ĐỘNG TỪ]</span> + <span class="badge bg-danger fs-6 px-3 py-1">pas</span> + <span class="fw-bold">[Bổ ngữ]</span>
+                </div>
+
+                <div class="small">
+                  <div class="mb-2">
+                    <span class="text-muted">Khẳng định:</span> <strong>Je parle français.</strong> (Tôi nói tiếng Pháp)
+                    <br><span class="text-danger fw-bold">Phủ định:</span> <strong>Je <span class="text-danger">ne</span> parle <span class="text-danger">pas</span> français.</strong> (Tôi không nói tiếng Pháp)
+                    <button class="btn btn-sm btn-link p-0 ms-2 text-decoration-none" (click)="playAudio('Je ne parle pas français.')">🔊 Nghe</button>
+                  </div>
+                  <div>
+                    <span class="text-muted">Khi động từ bắt đầu bằng nguyên âm:</span>
+                    <br><span class="text-danger fw-bold">Rút gọn n':</span> <strong>Je <span class="text-danger">n'</span>aime <span class="text-danger">pas</span> le café.</strong> (Tôi không thích cà phê)
+                    <button class="btn btn-sm btn-link p-0 ms-2 text-decoration-none" (click)="playAudio('Je n\'aime pas le café.')">🔊 Nghe</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: BẢNG CHỮ CÁI 26 KÝ TỰ (A - Z) ==================== -->
+        <div *ngIf="activeTab === 'alphabet'" class="animation-fade">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">Bảng Chữ Cái Tiếng Pháp Chuẩn (26 Ký Tự A - Z)</h5>
+              <p class="text-muted small mb-0">Bấm vào bất kỳ thẻ nào để nghe phát âm chữ cái và từ vựng tương ứng.</p>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border px-3 py-2 rounded-pill">
+              💡 Bấm thẻ để nghe âm thanh 🔊
+            </span>
+          </div>
+
+          <!-- Lưới 26 chữ cái -->
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" *ngFor="let item of alphabet">
+              <div class="alphabet-card p-3 text-center border rounded-4 shadow-sm bg-white position-relative" (click)="playAlphabetItem(item)">
+                <span class="position-absolute top-0 end-0 m-2 fs-5">{{ item.wordIcon }}</span>
+                <h1 class="display-6 fw-bold text-primary mb-0">{{ item.letter }}</h1>
+                <div class="badge bg-light text-dark border my-1 small">/{{ item.ipa }}/</div>
+                <div class="text-secondary small fw-semibold">"{{ item.pron }}"</div>
+                <div class="mt-2 pt-2 border-top">
+                  <div class="fw-bold text-dark small">{{ item.word }}</div>
+                  <div class="text-muted very-small">{{ item.wordMeaning }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HƯỚNG DẪN DẤU & NGUYÊN ÂM ĐẶC TRƯNG -->
+          <div class="card border rounded-4 p-4 bg-light shadow-sm">
+            <h5 class="fw-bold text-dark mb-3">✨ Các Dấu & Ký Tự Đặc Biệt Cần Nhớ</h5>
+            <div class="row g-3">
+              <div class="col-12 col-md-6 col-lg-4" *ngFor="let acc of specialAccents">
+                <div class="p-3 bg-white border rounded-3 h-100 shadow-sm">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-primary fs-6">{{ acc.char }}</span>
+                    <strong class="text-dark small">{{ acc.name }}</strong>
+                  </div>
+                  <p class="text-muted small mb-1">{{ acc.note }}</p>
+                  <small class="text-success fw-semibold">VD: {{ acc.example }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: TRẮC NGHIỆM GHÉP TỪ ==================== -->
+        <div *ngIf="activeTab === 'quiz'" class="animation-fade">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">Trắc Nghiệm Ghép Từ & Ngữ Pháp</h5>
+              <p class="text-muted small mb-0">Kiểm tra khả năng chọn mạo từ, động từ và vị trí tính từ trong câu.</p>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="resetQuiz()">
+              🔄 Làm lại bài trắc nghiệm
+            </button>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-12 col-md-6" *ngFor="let q of quizQuestions; let qIdx = index">
+              <div class="card h-100 border rounded-4 shadow-sm p-3 p-md-4 bg-white"
+                   [ngClass]="{
+                     'border-success': q.isAnswered && q.selectedOption === q.correctIndex,
+                     'border-danger': q.isAnswered && q.selectedOption !== q.correctIndex
+                   }">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge bg-light text-secondary border">Câu hỏi {{ qIdx + 1 }}</span>
+                  <span *ngIf="q.isAnswered" class="badge" [ngClass]="q.selectedOption === q.correctIndex ? 'bg-success' : 'bg-danger'">
+                    {{ q.selectedOption === q.correctIndex ? 'Chính xác (+10 XP)' : 'Chưa đúng' }}
+                  </span>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-1">{{ q.vietnamesePrompt }}</h6>
+                <div class="p-3 bg-light rounded-3 mb-3 border text-center fs-5 fw-bold text-primary">
+                  {{ q.question }}
+                </div>
+
+                <div class="d-grid gap-2 mb-3">
+                  <button *ngFor="let opt of q.options; let optIdx = index"
+                          class="btn text-start p-2 rounded-3 border"
+                          [ngClass]="{
+                            'btn-success text-white': q.isAnswered && optIdx === q.correctIndex,
+                            'btn-danger text-white': q.isAnswered && q.selectedOption === optIdx && optIdx !== q.correctIndex,
+                            'btn-outline-dark': !q.isAnswered,
+                            'opacity-50': q.isAnswered && optIdx !== q.correctIndex && q.selectedOption !== optIdx
+                          }"
+                          [disabled]="q.isAnswered"
+                          (click)="selectQuizOption(q, optIdx)">
+                    <span class="fw-bold me-2">{{ ['A', 'B', 'C', 'D'][optIdx] }}.</span> {{ opt }}
+                  </button>
+                </div>
+
+                <div *ngIf="q.isAnswered" class="p-3 rounded-3 small" [ngClass]="q.selectedOption === q.correctIndex ? 'bg-success-subtle text-success-emphasis' : 'bg-danger-subtle text-danger-emphasis'">
+                  <strong>💡 Giải thích:</strong> {{ q.explanation }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 5: LỊCH SỬ LÀM BÀI ==================== -->
+        <div *ngIf="activeTab === 'history'" class="animation-fade">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+              <h5 class="fw-bold mb-1 text-dark">Lịch Sử Luyện Tập & Ghép Câu</h5>
+              <p class="text-muted small mb-0">Xem lại các câu đã thử sức và quá trình tiến bộ của bạn.</p>
+            </div>
+            <div class="badge bg-primary text-white fs-6 px-3 py-2 rounded-pill">
+              Tổng số lần thử: {{ attemptHistory.length }}
+            </div>
+          </div>
+
+          <div *ngIf="attemptHistory.length === 0" class="text-center py-5 bg-light rounded-4 border">
+            <span class="fs-1">📝</span>
+            <h6 class="fw-bold mt-2 text-dark">Chưa có lịch sử làm bài</h6>
+            <p class="text-muted small">Hãy chuyển sang tab "Luyện Ghép Từ Thành Câu" hoặc "Trắc Nghiệm" để bắt đầu tích lũy điểm nhé!</p>
+            <button class="btn btn-primary btn-sm rounded-pill px-4" (click)="activeTab = 'sentence-builder'">
+              Bắt đầu luyện tập ngay
+            </button>
+          </div>
+
+          <div *ngIf="attemptHistory.length > 0" class="table-responsive border rounded-4 bg-white shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small">
                 <tr>
-                  <th>Thời gian</th>
-                  <th>Câu trả lời của bạn</th>
-                  <th>Đáp án đúng</th>
-                  <th>Kết quả</th>
+                  <th class="ps-3">Thời gian</th>
+                  <th>Câu bạn ghép</th>
+                  <th>Đáp án chuẩn</th>
+                  <th class="text-center">Kết quả</th>
+                  <th class="text-end pe-3">Nghe</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody class="small">
                 <tr *ngFor="let hist of attemptHistory">
-                  <td class="text-muted small">{{ hist.attemptedAt | date:'HH:mm dd/MM/yyyy' }}</td>
-                  <td [ngClass]="hist.correct ? 'text-success' : 'text-danger fw-bold'"><del *ngIf="!hist.correct">{{ hist.userInput }}</del><span *ngIf="hist.correct">{{ hist.userInput }}</span></td>
-                  <td class="fw-semibold">{{ hist.expectedSentence }}</td>
-                  <td>
-                    <span class="badge" [ngClass]="hist.correct ? 'bg-success' : 'bg-danger'">{{ hist.correct ? 'Đúng' : 'Sai' }}</span>
+                  <td class="ps-3 text-muted text-nowrap">{{ hist.attemptedAt | date:'HH:mm dd/MM/yyyy' }}</td>
+                  <td [ngClass]="hist.correct ? 'text-success fw-semibold' : 'text-danger'">
+                    <span *ngIf="hist.correct">✓ {{ hist.userInput }}</span>
+                    <span *ngIf="!hist.correct">✗ {{ hist.userInput }}</span>
+                  </td>
+                  <td class="fw-bold text-dark">{{ hist.expectedSentence }}</td>
+                  <td class="text-center">
+                    <span class="badge rounded-pill" [ngClass]="hist.correct ? 'bg-success' : 'bg-danger'">
+                      {{ hist.correct ? 'Đúng (+10 XP)' : 'Cần sửa' }}
+                    </span>
+                  </td>
+                  <td class="text-end pe-3">
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="playAudio(hist.expectedSentence)" title="Nghe câu này">
+                      🔊
+                    </button>
                   </td>
                 </tr>
               </tbody>

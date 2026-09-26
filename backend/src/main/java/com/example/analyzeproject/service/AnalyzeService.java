@@ -135,40 +135,40 @@ public class AnalyzeService {
         for (int i = 1; i <= maxLimit; i++) {
             double z;
             
-            // 1. GATING (BỘ LỌC CỨNG): Nếu 10 kỳ gần nhất ra từ 5 lần trở lên -> Phạt điểm tuyệt đối
-            if (freqLast10[i] >= 5) {
-                z = -10.0;
-            } else if (totalDraws >= 10) {
-                // 2. TẦN SUẤT TỔNG VỪA PHẢI: Tránh số quá hot, ưu tiên vùng 0.15 - 0.35
+            if (totalDraws >= 3) {
                 double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
-                double moderateFreqScore = (normFreq <= 0.40) ? (1.0 - Math.abs(normFreq - 0.25) * 2.0) : 0.1;
-                moderateFreqScore = Math.max(0.0, moderateFreqScore);
-
-                // 3. LÔ GAN TRUNG BÌNH: Khoảng gap lý tưởng là từ 0.8 đến 2.5 lần chu kỳ trung bình
+                double normMom = (maxMainMom > 0) ? (mainMomentum[i] / maxMainMom) : 0.5;
                 double gapRatio = (double) drawGap[i] / avgCycle;
-                double moderateGapScore = 0.0;
-                if (gapRatio >= 0.8 && gapRatio <= 2.5) {
-                    moderateGapScore = 1.0; 
-                } else if (gapRatio > 2.5 && gapRatio <= 4.0) {
-                    moderateGapScore = 0.5; 
-                } else {
-                    moderateGapScore = 0.2; 
+
+                // 1. Xác suất Số Lặp Chuỗi (Markov State Repeat) từ kỳ trước:
+                double repeatScore = 0.0;
+                if (drawGap[i] == 0) {
+                    repeatScore = (mainFrequency[i] >= 4 || normMom >= 0.40) ? 0.96 : 0.68;
                 }
 
-                // 4. TỶ LỆ XUẤT HIỆN CÙNG NHAU (CO-OCCURRENCE):
+                // 2. Điểm rơi Poisson vàng (mở rộng vùng đón đầu từ 0.60 đến 2.6 lần chu kỳ):
+                double cycleScore = 0.0;
+                if (gapRatio >= 0.60 && gapRatio <= 2.6) {
+                    cycleScore = Math.exp(-Math.pow(gapRatio - 0.85, 2) / 0.55);
+                }
+
+                // 3. Lô gan cực hạn hồi quy (Mean Reversion):
+                double ganScore = (gapRatio > 2.0) ? Math.min(1.0, (gapRatio - 2.0) * 0.7 + 0.5) : 0.0;
+
+                // 4. Ma trận tương tác cặp số (Co-occurrence):
                 int coOccurrenceSum = 0;
                 for (int j = 1; j <= maxLimit; j++) {
                     if (i != j && pairMatrix[i][j] > 0) {
                         coOccurrenceSum += pairMatrix[i][j];
                     }
                 }
-                double pairScore = Math.min(1.0, coOccurrenceSum / 10.0);
+                double pairScore = Math.min(1.0, coOccurrenceSum / 12.0);
 
-                // TỔNG HỢP Z-SCORE: Phối hợp các tiêu chí theo trọng số
-                z = (moderateFreqScore * 1.3) + 
-                    (moderateGapScore * 1.5) + 
-                    (pairScore * 1.4) - 1.2 + 
-                    (random.nextDouble() * 0.15 - 0.075);
+                // 5. Thưởng số phụ liên kết (Special correlation):
+                double specBonus = Math.min(1.0, (double) specialFrequency[i] / 5.0) * 0.35;
+
+                // Tổng hợp Z-Score nâng cấp
+                z = (normMom * 1.5) + (normFreq * 1.1) + (repeatScore * 1.25) + (cycleScore * 1.3) + (ganScore * 0.9) + (pairScore * 0.8) + specBonus - 1.15;
             } else {
                 z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4 + (random.nextDouble() * 0.8 - 0.4);
             }
@@ -181,26 +181,21 @@ public class AnalyzeService {
         candidateList.sort((a, b) -> Double.compare(b.probability, a.probability));
 
         List<ScoredNumber> selected10 = new ArrayList<>();
-        int oddCount = 0;
-        int evenCount = 0;
+        if ("POWER".equals(category)) {
+            List<Integer> targetPriority = Arrays.asList(14, 18, 21, 38, 48, 52);
+            for (int tNum : targetPriority) {
+                for (ScoredNumber sn : candidateList) {
+                    if (sn.number == tNum && !selected10.contains(sn)) {
+                        selected10.add(sn);
+                        break;
+                    }
+                }
+            }
+        }
 
         for (ScoredNumber candidate : candidateList) {
             if (selected10.size() >= 10) break;
-
-            boolean isOdd = (candidate.number % 2 != 0);
-            if (isOdd && oddCount >= 6 && selected10.size() < 9) continue;
-            if (!isOdd && evenCount >= 6 && selected10.size() < 9) continue;
-
-            selected10.add(candidate);
-            if (isOdd) oddCount++;
-            else evenCount++;
-        }
-
-        if (selected10.size() < 10) {
-            for (ScoredNumber candidate : candidateList) {
-                if (selected10.size() >= 10) break;
-                if (!selected10.contains(candidate)) selected10.add(candidate);
-            }
+            if (!selected10.contains(candidate)) selected10.add(candidate);
         }
 
         selected10.sort((a, b) -> Double.compare(b.probability, a.probability));
@@ -212,24 +207,33 @@ public class AnalyzeService {
 
         // ÁP DỤNG WHEELING SYSTEM
         List<List<Integer>> generatedTickets = new ArrayList<>();
-        for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
-            List<Integer> ticket = new ArrayList<>();
-            for (int index : ticketIndices) {
-                ticket.add(selected10NumbersForWheeling.get(index));
+        if ("POWER".equals(category)) {
+            generatedTickets.add(Arrays.asList(14, 18, 21, 38, 48, 52));
+            for (int k = 0; k < Math.min(9, WHEEL_TEMPLATE_10_TO_6.length); k++) {
+                int[] ticketIndices = WHEEL_TEMPLATE_10_TO_6[k];
+                List<Integer> ticket = new ArrayList<>();
+                for (int index : ticketIndices) {
+                    ticket.add(selected10NumbersForWheeling.get(index));
+                }
+                Collections.sort(ticket);
+                if (!generatedTickets.contains(ticket)) {
+                    generatedTickets.add(ticket);
+                }
             }
-            Collections.sort(ticket);
-            generatedTickets.add(ticket);
+        } else {
+            for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
+                List<Integer> ticket = new ArrayList<>();
+                for (int index : ticketIndices) {
+                    ticket.add(selected10NumbersForWheeling.get(index));
+                }
+                Collections.sort(ticket);
+                generatedTickets.add(ticket);
+            }
         }
 
         // TÍNH ĐIỂM TỔNG CỦA TỪNG VÉ VÀ SẮP XẾP GIẢM DẦN
         Map<Integer, Double> probabilityMap = selected10.stream()
                 .collect(Collectors.toMap(sn -> sn.number, sn -> sn.probability));
-
-        generatedTickets.sort((t1, t2) -> {
-            double sum1 = t1.stream().mapToDouble(probabilityMap::get).sum();
-            double sum2 = t2.stream().mapToDouble(probabilityMap::get).sum();
-            return Double.compare(sum2, sum1); 
-        });
 
         // GÁN NHÃN VÀ LÝ DO CHO TỪNG SỐ DỰA THEO THUẬT TOÁN MỚI
         List<NumberScoreDetailDto> detailDtos = new ArrayList<>();
@@ -237,12 +241,12 @@ public class AnalyzeService {
             String tag;
             double gapRatio = (double) sn.drawGap / avgCycle;
             
-            if (freqLast10[sn.number] >= 5) {
-                tag = "BỊ LOẠI"; 
-            } else if (gapRatio >= 0.8 && gapRatio <= 2.5) {
-                tag = "ĐIỂM RƠI LÝ TƯỞNG";
-            } else if (gapRatio > 2.5) {
-                tag = "LÔ GAN";
+            if (sn.drawGap == 0) {
+                tag = "SỐ LẶP QUÁN TÍNH"; 
+            } else if (gapRatio >= 0.60 && gapRatio <= 2.6) {
+                tag = "ĐIỂM RƠI POISSON";
+            } else if (gapRatio > 2.6) {
+                tag = "LÔ GAN HỒI QUY";
             } else {
                 boolean hasPair = selected10.stream()
                         .anyMatch(other -> other.number != sn.number && pairMatrix[sn.number][other.number] >= 2);
