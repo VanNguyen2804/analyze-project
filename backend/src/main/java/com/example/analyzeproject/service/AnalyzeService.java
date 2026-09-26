@@ -396,7 +396,9 @@ public class AnalyzeService {
         response.setSpecialHotNumbers(specialHotNumbers);
         response.setFrequentPairs(frequentPairs);
         response.setJackpot2Pairs(jackpot2Pairs);
-        response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", 10 - oddCount, oddCount));
+        int oddCount = (int) selected10NumbersForWheeling.stream().filter(n -> n % 2 != 0).count();
+        int evenCount = selected10NumbersForWheeling.size() - oddCount;
+        response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", evenCount, oddCount));
         response.setDetails(detailDtos); 
         response.setSelectionReasons(selectionReasons);
         response.setRecentDraws(recentDraws);
