@@ -26,6 +26,13 @@
   box-shadow: 0 6px 16px rgba(217, 72, 15, 0.45);
 }
 
+.ball-mega-lg {
+  background: radial-gradient(circle at 18px 18px, #ff6b6b, #c92a2a);
+  color: #ffffff;
+  border: 3px solid #ffc9c9;
+  box-shadow: 0 6px 16px rgba(201, 42, 42, 0.45);
+}
+
 .ball-special-lg {
   background: radial-gradient(circle at 18px 18px, #ffd43b, #f59f00);
   color: #212529;
@@ -50,6 +57,13 @@
   color: #ffffff;
   border: 2px solid #ffc078;
   box-shadow: 0 4px 10px rgba(217, 72, 15, 0.35);
+}
+
+.ball-mega-md {
+  background: radial-gradient(circle at 14px 14px, #ff6b6b, #c92a2a);
+  color: #ffffff;
+  border: 2px solid #ffc9c9;
+  box-shadow: 0 4px 10px rgba(201, 42, 42, 0.35);
 }
 
 .ball-special-md {

@@ -96,6 +96,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     // BehaviorSubject sẽ emit giá trị hiện tại ngay lập tức khi subscribe -> tự động chạy predict() lần đầu tiên vào trang
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
       this.category = newCategory;
+      this.selectedFocusNumber = this.category === 'POWER' ? 48 : 31;
       this.predict(); 
     });
   }
@@ -292,7 +293,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   }
 
   getTarget3Items(): any[] {
-    const targetNumbers = [48, 52, 14];
+    const targetNumbers = this.category === 'POWER' ? [48, 52, 14] : [31, 45, 14];
     return targetNumbers.map(n => this.getFocusItem(n)).filter(item => item !== null);
   }
 
