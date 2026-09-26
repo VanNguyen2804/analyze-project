@@ -19,21 +19,19 @@
         </div>
 
         <!-- Category Selector -->
-        <div class="btn-group p-1 bg-white bg-opacity-20 rounded-pill border border-white border-opacity-25">
+        <div class="category-toggle-container p-1 rounded-pill d-flex align-items-center">
           <button
             type="button"
-            class="btn rounded-pill px-3 py-1 fw-bold text-white transition-all"
-            [class.btn-light]="category === 'POWER'"
-            [class.text-dark]="category === 'POWER'"
+            class="btn category-toggle-btn rounded-pill px-3 py-1 fw-bold transition-all"
+            [class.active-power]="category === 'POWER'"
             (click)="setCategory('POWER')"
           >
             🔵 Power 6/55
           </button>
           <button
             type="button"
-            class="btn rounded-pill px-3 py-1 fw-bold text-white transition-all"
-            [class.btn-light]="category === 'MEGA'"
-            [class.text-dark]="category === 'MEGA'"
+            class="btn category-toggle-btn rounded-pill px-3 py-1 fw-bold transition-all"
+            [class.active-mega]="category === 'MEGA'"
             (click)="setCategory('MEGA')"
           >
             🔴 Mega 6/45

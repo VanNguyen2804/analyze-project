@@ -1,7 +1,23 @@
 [
   {
+    "id": 42,
+    "drawDate": "2026-09-19",
+    "category": "POWER",
+    "numbers": [
+      14,
+      18,
+      21,
+      38,
+      48,
+      52
+    ],
+    "specialNumber": 49,
+    "createdAt": "2026-09-19T18:30:00.000Z",
+    "note": "Kỳ quay Power 6/55 Thứ 7 (Mới nhất)"
+  },
+  {
     "id": 41,
-    "drawDate": "2026-09-18",
+    "drawDate": "2026-09-25",
     "category": "MEGA",
     "numbers": [
       3,
@@ -11,7 +27,8 @@
       39,
       45
     ],
-    "createdAt": "2026-09-20T16:27:19.510Z"
+    "createdAt": "2026-09-25T18:30:00.000Z",
+    "note": "Kỳ quay Mega 6/45 Thứ 6 (Mới nhất)"
   },
   {
     "id": 1,

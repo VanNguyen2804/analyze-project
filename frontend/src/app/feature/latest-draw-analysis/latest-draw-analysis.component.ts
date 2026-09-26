@@ -645,7 +645,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     const title = isPower ? 'Power 6/55' : 'Mega 6/45';
     const drawDate = this.latestDraw?.drawDate
       ? this.formatDateWithDay(this.latestDraw.drawDate)
-      : (isPower ? '19/09/2026 (Thứ 7)' : '18/09/2026 (Thứ 6)');
+      : (isPower ? '19/09/2026 (Thứ 7)' : '25/09/2026 (Thứ 6)');
 
     const numbers: number[] = this.latestDraw?.numbers || (isPower ? [14, 18, 21, 38, 48, 52] : [3, 14, 22, 31, 39, 45]);
     const specialNumber: number | undefined = isPower ? (this.latestDraw?.specialNumber ?? 49) : undefined;
@@ -658,7 +658,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     return {
       title,
       drawDate,
-      rawDate: this.latestDraw?.drawDate || (isPower ? '2026-09-19' : '2026-09-18'),
+      rawDate: this.latestDraw?.drawDate || (isPower ? '2026-09-19' : '2026-09-25'),
       numbers,
       totalSum,
       parity,
@@ -734,7 +734,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const targetDate = this.latestDraw?.drawDate || (this.category === 'POWER' ? '2026-09-19' : '2026-09-18');
+    const targetDate = this.latestDraw?.drawDate || (this.category === 'POWER' ? '2026-09-19' : '2026-09-25');
     const payload = {
       category: this.category,
       drawDate: targetDate,

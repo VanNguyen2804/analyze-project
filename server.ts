@@ -53,7 +53,7 @@ function loadUserTicketsFromDisk(): void {
 
     // Default sample user tickets for demonstration:
     // User played in POWER draw 2026-09-19 (matches Jackpot 2 and Giải Nhì)
-    // User did NOT play in MEGA draw 2026-09-18 (demonstrates 'chỉ phân tích' mode)
+    // User did NOT play in MEGA draw 2026-09-25 (demonstrates 'chỉ phân tích' mode)
     userChecks = [
       {
         id: 1,
@@ -200,7 +200,7 @@ function loadInitialData(): void {
         },
         {
           id: 2,
-          drawDate: '2026-09-18',
+          drawDate: '2026-09-25',
           category: 'MEGA',
           numbers: [3, 12, 19, 27, 34, 42],
           createdAt: new Date().toISOString(),
