@@ -1,0 +1,681 @@
+<div class="latest-analysis-container py-3">
+  <!-- 1. TOP HEADER & CATEGORY SWITCHER -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden hero-card">
+    <div class="card-body p-4 p-md-5 text-white">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+        <div>
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-25 small fw-bold mb-2">
+            <span>🏆 ĐỐI SOÁT & PHÂN TÍCH CHUYÊN SÂU</span>
+            <span class="badge bg-warning text-dark">KỲ MỚI NHẤT</span>
+          </div>
+          <h1 class="h3 fw-extrabold mb-1">
+            Phân Tích Kết Quả Trúng Kỳ Quay Power 6/55 Mới Nhất
+          </h1>
+          <p class="text-white-50 mb-0" style="max-width: 780px;">
+            Giải mã toàn diện bộ số trúng thưởng <strong class="text-white">14, 18, 21, 38, 48, 52</strong> &bull; Số phụ <strong class="text-warning">49</strong>. 
+            Đánh giá điểm số thuật toán, cơ chế tại sao ra, mạng lưới kết hợp cặp số và lộ trình nâng cấp học máy.
+          </p>
+        </div>
+
+        <!-- Category Selector -->
+        <div class="btn-group p-1 bg-white bg-opacity-20 rounded-pill border border-white border-opacity-25">
+          <button
+            type="button"
+            class="btn rounded-pill px-3 py-1 fw-bold text-white"
+            [class.btn-light]="category === 'POWER'"
+            [class.text-dark]="category === 'POWER'"
+            (click)="setCategory('POWER')"
+          >
+            🔵 Power 6/55
+          </button>
+          <button
+            type="button"
+            class="btn rounded-pill px-3 py-1 fw-bold text-white"
+            [class.btn-light]="category === 'MEGA'"
+            [class.text-dark]="category === 'MEGA'"
+            (click)="setCategory('MEGA')"
+          >
+            🔴 Mega 6/45
+          </button>
+        </div>
+      </div>
+
+      <!-- WINNING NUMBERS BANNER DISPLAY -->
+      <div class="bg-black bg-opacity-30 rounded-4 p-3 p-md-4 mt-3 border border-white border-opacity-15">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <span class="text-white-50 small fw-bold text-uppercase tracking-wider">
+            🎯 Dãy 6 số chính + 1 số phụ trúng thưởng (Nhấn vào bất kỳ số nào để xem lịch sử):
+          </span>
+          <div class="d-flex gap-2">
+            <span class="badge bg-success text-white px-2 py-1 shadow-sm">
+              Trúng 3 số ban đầu: 18, 21, 38
+            </span>
+            <span class="badge bg-warning text-dark px-2 py-1 shadow-sm">
+              Đã thu nạp 100%: 14, 48, 52 + Phụ 49
+            </span>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap">
+          <div *ngFor="let item of powerWinningNumbers"
+               class="ball-wrapper text-center"
+               (click)="pinPopup(item.number, $event)"
+               (mouseenter)="showPopup(item.number, $event)"
+               (mouseleave)="hidePopup()"
+               style="cursor: pointer;">
+            <div class="ball-lg shadow"
+                 [ngClass]="item.role === 'special' ? 'ball-special-lg' : 'ball-power-lg'">
+              {{ formatNumber(item.number) }}
+            </div>
+            <div class="mt-1 small fw-bold text-white text-opacity-75" style="font-size: 0.72rem;">
+              {{ item.role === 'special' ? '⭐ Phụ' : '#' + item.rank }}
+            </div>
+          </div>
+
+          <div class="ms-auto d-none d-lg-block text-end">
+            <div class="text-white-50 small">Tổng giải (Sum)</div>
+            <div class="fs-4 fw-bold text-warning">191</div>
+            <div class="small text-white-50">Cơ cấu: 5 Chẵn / 1 Lẻ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-2 p-md-3">
+      <div class="d-flex gap-2 overflow-auto pb-1">
+        <button
+          type="button"
+          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
+          [class.active]="activeTab === 'scorecards'"
+          (click)="activeTab = 'scorecards'"
+        >
+          📊 1. Điểm số từng số trúng
+        </button>
+        <button
+          type="button"
+          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
+          [class.active]="activeTab === 'whyAppeared'"
+          (click)="activeTab = 'whyAppeared'"
+        >
+          💡 2. Tại sao lại ra? (Giải mã 7 số)
+        </button>
+        <button
+          type="button"
+          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
+          [class.active]="activeTab === 'combinations'"
+          (click)="activeTab = 'combinations'"
+        >
+          🔗 3. Sự kết hợp của các số (Cặp & Cụm)
+        </button>
+        <button
+          type="button"
+          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
+          [class.active]="activeTab === 'algorithmRoadmap'"
+          (click)="activeTab = 'algorithmRoadmap'"
+        >
+          ⚙️ 4. Cách thuật toán nên cập nhật
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 1: BẢNG ĐIỂM SỐ CHI TIẾT TỪNG SỐ TRÚNG -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'scorecards'" class="fade-in">
+    <div class="alert alert-primary border-0 shadow-sm rounded-4 d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <div>
+        <h5 class="fw-bold mb-1 text-primary">📊 Bảng Điểm Số & Chỉ Số Xác Suất Của Từng Quả Banh</h5>
+        <div class="small text-secondary">
+          Bảng đối chuẩn các trọng số xác suất, thứ hạng trong 55 số, tần suất lịch sử, chu kỳ gan và quán tính động lượng.
+          <strong class="text-dark">Nhấn vào bất kỳ số nào để mở popup giữ nguyên xem dãy 6 số ở các kỳ quay trước.</strong>
+        </div>
+      </div>
+      <a routerLink="/analyze" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold">
+        ⚡ Sang trang Dự đoán AI &rarr;
+      </a>
+    </div>
+
+    <!-- COMPARISON CARDS FOR ALL 7 NUMBERS -->
+    <div class="row g-3 mb-4">
+      <div *ngFor="let item of powerWinningNumbers" class="col-md-6 col-xl-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 score-card"
+             (click)="pinPopup(item.number, $event)"
+             style="cursor: pointer;">
+          <div class="card-body p-3 p-md-4">
+            <!-- Header of card -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <div class="ball-md shadow-sm"
+                     [ngClass]="item.role === 'special' ? 'ball-special-md' : 'ball-power-md'">
+                  {{ formatNumber(item.number) }}
+                </div>
+                <div>
+                  <h6 class="fw-bold mb-0 text-dark">
+                    Quả Banh {{ formatNumber(item.number) }}
+                    <span *ngIf="item.role === 'special'" class="text-warning small ms-1">(Số Phụ ⭐)</span>
+                  </h6>
+                  <span class="badge small"
+                        [ngClass]="{
+                          'bg-success': item.status === 'initial_hit',
+                          'bg-primary': item.status === 'upgraded_hit',
+                          'bg-warning text-dark': item.status === 'special_hit'
+                        }">
+                    {{ item.status === 'initial_hit' ? 'Trúng Ban Đầu' : (item.status === 'upgraded_hit' ? 'Thu Nạp Sau Nâng Cấp' : 'Bảo Hiểm Jackpot 2') }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="text-end">
+                <div class="fs-4 fw-extrabold text-primary">{{ item.probabilityPercent }}%</div>
+                <span class="badge bg-light text-secondary border small">Hạng #{{ item.rank }}/55</span>
+              </div>
+            </div>
+
+            <!-- Title & Tag -->
+            <div class="mb-2">
+              <span class="badge bg-light text-dark border small me-1 mb-1">{{ item.tag }}</span>
+              <div class="fw-bold text-dark small">{{ item.title }}</div>
+            </div>
+
+            <!-- Key metrics grid -->
+            <div class="bg-light rounded-3 p-2 mb-3 border small">
+              <div class="row g-1 text-center">
+                <div class="col-4 border-end">
+                  <div class="text-muted" style="font-size: 0.72rem;">Đã về</div>
+                  <strong class="text-dark">{{ item.frequency }} lần</strong>
+                </div>
+                <div class="col-4 border-end">
+                  <div class="text-muted" style="font-size: 0.72rem;">Chu kỳ Gan</div>
+                  <strong [ngClass]="item.drawGap > 10 ? 'text-danger' : 'text-success'">{{ item.drawGap }} kỳ</strong>
+                </div>
+                <div class="col-4">
+                  <div class="text-muted" style="font-size: 0.72rem;">Quán tính</div>
+                  <strong class="text-primary">{{ item.momentumScore }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sub scores breakdown -->
+            <div class="mb-3 small">
+              <div class="d-flex justify-content-between text-muted mb-1" style="font-size: 0.76rem;">
+                <span>Markov Repeat: <strong>{{ (item.markovScore * 100) | number:'1.0-0' }}%</strong></span>
+                <span>Poisson Golden: <strong>{{ (item.poissonScore * 100) | number:'1.0-0' }}%</strong></span>
+                <span>Đồng hành: <strong>{{ (item.coOccurrenceScore * 100) | number:'1.0-0' }}%</strong></span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-primary" [style.width.%]="item.probabilityPercent"></div>
+              </div>
+            </div>
+
+            <p class="text-secondary small mb-0 line-clamp-2" style="font-size: 0.82rem; line-height: 1.45;">
+              {{ item.whyItAppeared }}
+            </p>
+
+            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+              <span class="text-primary small fw-semibold">🔍 Nhấn để xem lịch sử 6 số &rarr;</span>
+              <span class="text-muted small" style="font-size: 0.72rem;">Cặp: [{{ item.synergyPartners.join(', ') }}]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILED COMPARATIVE TABLE -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+      <div class="card-header bg-white py-3 border-0">
+        <h6 class="fw-bold mb-0 text-dark">📋 Bảng Tổng Hợp Thông Số Kỹ Thuật Chi Tiết 7 Con Số</h6>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 text-center">
+          <thead class="table-light text-muted small text-uppercase">
+            <tr>
+              <th class="text-start ps-3">Số</th>
+              <th>Xác Suất</th>
+              <th>Thứ Hạng</th>
+              <th>Tổng Lần Về</th>
+              <th>Về 10 Kỳ Gần Nhất</th>
+              <th>Kỳ Gan</th>
+              <th>Quán Tính (Mom)</th>
+              <th>Poisson Fit</th>
+              <th>Trạng Thái</th>
+              <th>Hành Động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of powerWinningNumbers" (click)="pinPopup(item.number, $event)" style="cursor: pointer;">
+              <td class="text-start ps-3">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="ball-sm" [ngClass]="item.role === 'special' ? 'ball-special' : 'ball-power'">
+                    {{ formatNumber(item.number) }}
+                  </div>
+                  <div>
+                    <strong class="text-dark">{{ formatNumber(item.number) }}</strong>
+                    <div class="small text-muted" style="font-size: 0.72rem;">{{ item.tag }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="fw-bold text-primary">{{ item.probabilityPercent }}%</span>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">#{{ item.rank }}</span>
+              </td>
+              <td>{{ item.frequency }} lần</td>
+              <td>
+                <span class="badge" [ngClass]="item.freqLast10 >= 3 ? 'bg-danger text-white' : 'bg-light text-dark border'">
+                  {{ item.freqLast10 }} / 10
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="item.drawGap === 0 ? 'bg-warning text-dark' : (item.drawGap >= 20 ? 'bg-danger text-white' : 'bg-success text-white')">
+                  {{ item.drawGap === 0 ? 'Lặp (0)' : item.drawGap + ' kỳ' }}
+                </span>
+              </td>
+              <td>{{ item.momentumScore }}</td>
+              <td>
+                <span class="badge bg-info-subtle text-info-emphasis border">{{ (item.poissonScore * 100) | number:'1.0-0' }}%</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="item.status === 'initial_hit' ? 'bg-success text-white' : 'bg-primary text-white'">
+                  {{ item.status === 'initial_hit' ? 'Trúng Ban Đầu' : 'Bắt Sau Nâng Cấp' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0"
+                        (click)="pinPopup(item.number, $event)">
+                  📌 Xem lịch sử
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 2: GIẢI MÃ "TẠI SAO LẠI RA?"           -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'whyAppeared'" class="fade-in">
+    <div class="alert alert-info border-0 shadow-sm rounded-4 mb-4">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="fs-5">💡</span>
+        <h5 class="fw-bold mb-0 text-dark">Chuyên Sâu: Tại Sao 7 Con Số Này Lại Xuất Hiện Trong Kỳ Quay?</h5>
+      </div>
+      <p class="text-secondary small mb-0">
+        Khác với suy đoán cảm tính, mỗi con số xuất hiện đều tuân theo các quy luật toán học thống kê cụ thể: từ hiện tượng bảo toàn quán tính lặp (Markov), điểm rơi vàng phân phối Poisson, điểm kỳ dị phá ngưỡng Lô Gan, cho đến lực hút ma trận cặp số đồng hành.
+      </p>
+    </div>
+
+    <div class="d-flex flex-column gap-3 mb-4">
+      <div *ngFor="let item of powerWinningNumbers" class="card border-0 shadow-sm rounded-4 why-card overflow-hidden">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="ball-lg shadow"
+                   [ngClass]="item.role === 'special' ? 'ball-special-lg' : 'ball-power-lg'"
+                   (click)="pinPopup(item.number, $event)"
+                   style="cursor: pointer;"
+                   title="Nhấn để xem dãy 6 số ở các kỳ trước">
+                {{ formatNumber(item.number) }}
+              </div>
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <h4 class="h5 fw-bold text-dark mb-0">Quả Banh {{ formatNumber(item.number) }}</h4>
+                  <span class="badge bg-primary text-white">{{ item.tag }}</span>
+                  <span class="badge bg-light text-dark border">Rank #{{ item.rank }}</span>
+                </div>
+                <div class="text-primary fw-semibold">{{ item.title }}</div>
+              </div>
+            </div>
+
+            <div class="text-end">
+              <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"
+                      (click)="pinPopup(item.number, $event)">
+                📌 Xem dãy 6 số các kỳ trước
+              </button>
+            </div>
+          </div>
+
+          <!-- Why it appeared -->
+          <div class="mb-3">
+            <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+              <span>🎯 Cơ Chế Xuất Hiện Thực Nghiệm:</span>
+            </h6>
+            <p class="text-secondary mb-0" style="line-height: 1.6;">
+              {{ item.whyItAppeared }}
+            </p>
+          </div>
+
+          <!-- Mathematical reason & formula -->
+          <div class="bg-light rounded-3 p-3 mb-3 border">
+            <div class="small fw-bold text-dark mb-1">📐 Phân Tích Cơ Sở Toán Học & Thống Kê:</div>
+            <div class="text-muted small" style="line-height: 1.55;">
+              {{ item.mathematicalReason }}
+            </div>
+          </div>
+
+          <!-- Synergy Partners & Recommendation -->
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top small">
+            <div>
+              <span class="text-muted">Cụm số liên kết chặt chẽ: </span>
+              <span *ngFor="let p of item.synergyPartners"
+                    class="badge bg-secondary text-white me-1"
+                    (click)="pinPopup(p, $event)"
+                    style="cursor: pointer;">
+                {{ formatNumber(p) }}
+              </span>
+            </div>
+            <div class="text-success fw-semibold">
+              💡 Giải pháp: {{ item.recommendation }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 3: SỰ KẾT HỢP CỦA CÁC SỐ (TỔ HỢP & CẶP) -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'combinations'" class="fade-in">
+    <div class="row g-4 mb-4">
+      <!-- 1. MA TRẬN CẶP SỐ ĐỒNG HÀNH -->
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          <div class="card-header bg-white py-3 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="fw-bold mb-0 text-dark">🔗 Ma Trận Cặp Số Đồng Hành (Pair Synergy)</h5>
+              <span class="badge bg-primary text-white">Trọng số liên kết</span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">
+              Các cặp số hay về cùng nhau trong kỳ quay [ 14, 18, 21, 38, 48, 52 ] và lực hút ma trận tương hỗ.
+            </p>
+          </div>
+
+          <div class="card-body p-3 p-md-4">
+            <div class="d-flex flex-column gap-3">
+              <div *ngFor="let pair of pairSynergies" class="p-3 bg-light rounded-4 border">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="ball-sm ball-power" (click)="pinPopup(pair.n1, $event)" style="cursor: pointer;">
+                      {{ formatNumber(pair.n1) }}
+                    </div>
+                    <span class="fw-bold text-muted">&harr;</span>
+                    <div class="ball-sm ball-power" (click)="pinPopup(pair.n2, $event)" style="cursor: pointer;">
+                      {{ formatNumber(pair.n2) }}
+                    </div>
+                    <span class="badge bg-primary text-white ms-1">{{ pair.type }}</span>
+                  </div>
+
+                  <div class="text-end">
+                    <span class="badge bg-success text-white fw-bold">+{{ pair.synergyPercent }}% Synergy</span>
+                  </div>
+                </div>
+
+                <p class="text-secondary small mb-1" style="line-height: 1.5;">
+                  {{ pair.description }}
+                </p>
+                <div class="small text-muted">
+                  Tần suất nổ chung trong các kỳ gần đây: <strong class="text-dark">{{ pair.coCount }} lần</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. ĐẶC TRƯNG VĨ MÔ DÃY SỐ (CƠ CẤU CHẴN LẺ & DELTA) -->
+      <div class="col-lg-5">
+        <div class="d-flex flex-column gap-4">
+          <!-- CƠ CẤU 5 CHẴN / 1 LẺ -->
+          <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-danger text-white">Đột Biến</span>
+                <h5 class="fw-bold mb-0 text-dark">Cơ Cấu 5 Chẵn : 1 Lẻ</h5>
+              </div>
+              <p class="text-secondary small mb-3">
+                Kỳ quay này xuất hiện tới <strong class="text-dark">5 số chẵn</strong> (14, 18, 38, 48, 52) và chỉ <strong class="text-dark">1 số lẻ</strong> (21).
+              </p>
+
+              <div class="bg-light rounded-3 p-3 border mb-3">
+                <div class="d-flex justify-content-between small text-muted mb-2">
+                  <span>Số Chẵn (14, 18, 38, 48, 52): <strong>83.3%</strong></span>
+                  <span>Số Lẻ (21): <strong>16.7%</strong></span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                  <div class="progress-bar bg-primary" style="width: 83.3%;"></div>
+                  <div class="progress-bar bg-warning" style="width: 16.7%;"></div>
+                </div>
+              </div>
+
+              <div class="small text-muted" style="line-height: 1.5;">
+                💡 <strong>Bài học cho thuật toán:</strong> Các bộ lọc truyền thống thường ép tỷ lệ 3:3 hoặc 4:2, vô tình gạt bỏ các tổ hợp 5:1 vốn chiếm tới ~12.5% tổng số kỳ quay lịch sử. Hệ thống cần áp dụng bộ lọc đàn hồi dựa trên quán tính tổng.
+              </div>
+            </div>
+          </div>
+
+          <!-- PHÂN BỐ KHOẢNG CÁCH DELTA SPACING -->
+          <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+              <h5 class="fw-bold mb-2 text-dark">📐 Phân Bố Bước Nhảy Delta (Delta Spacing)</h5>
+              <p class="text-secondary small mb-3">
+                Khoảng cách giữa các con số theo thứ tự tăng dần:
+              </p>
+
+              <!-- Delta sequence visualizer -->
+              <div class="d-flex align-items-center gap-1 flex-wrap mb-3 p-2 bg-light rounded-3 border">
+                <span class="badge bg-primary px-2 py-1">14</span>
+                <span class="text-muted small fw-bold">+4 &rarr;</span>
+                <span class="badge bg-primary px-2 py-1">18</span>
+                <span class="text-muted small fw-bold">+3 &rarr;</span>
+                <span class="badge bg-primary px-2 py-1">21</span>
+                <span class="text-danger small fw-bold">+17 &rarr;</span>
+                <span class="badge bg-primary px-2 py-1">38</span>
+                <span class="text-muted small fw-bold">+10 &rarr;</span>
+                <span class="badge bg-primary px-2 py-1">48</span>
+                <span class="text-muted small fw-bold">+4 &rarr;</span>
+                <span class="badge bg-primary px-2 py-1">52</span>
+              </div>
+
+              <div class="small text-muted" style="line-height: 1.5;">
+                Dãy số có 2 cụm bước nhảy ngắn [14, 18, 21] (delta 3-4) và [48, 52] (delta 4), ở giữa là bước nhảy vượt dải (+17). Cấu trúc này tối ưu theo mô hình Wheeling 10-to-6.
+              </div>
+            </div>
+          </div>
+
+          <!-- TỔNG GIẢI (SUM = 191) -->
+          <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold mb-0 text-dark">🎯 Tổng Dãy Số: 191</h5>
+                <span class="badge bg-warning text-dark fw-bold">Dải Tổng Cao</span>
+              </div>
+              <p class="text-secondary small mb-0" style="line-height: 1.5;">
+                Tổng 6 số: 14 + 18 + 21 + 38 + 48 + 52 = <strong>191</strong>. Khi giải Power nổ nhiều bóng trên 35 (38, 48, 52), tổng số dịch chuyển về cận trên của đường cong chuẩn Gaussian [160 - 200].
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 4: CÁCH THUẬT TOÁN NÊN CẬP NHẬT        -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'algorithmRoadmap'" class="fade-in">
+    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="fs-4">🚀</span>
+        <h5 class="fw-bold mb-0 text-dark">Lộ Trình Cập Nhật & Tối Ưu Hóa Thuật Toán Học Máy</h5>
+      </div>
+      <p class="text-secondary small mb-0">
+        Dưới đây là 5 trụ cột kiến trúc thuật toán đã và đang được cập nhật vào hệ thống để bắt trọn bộ số [ 14, 18, 21, 38, 48, 52 ] và số phụ 49:
+      </p>
+    </div>
+
+    <div class="d-flex flex-column gap-3 mb-4">
+      <div *ngFor="let up of algorithmUpgrades" class="card border-0 shadow-sm rounded-4 p-3 p-md-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary rounded-circle p-2 fs-6" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+              {{ up.step }}
+            </span>
+            <h5 class="h6 fw-bold text-dark mb-0">{{ up.title }}</h5>
+          </div>
+          <code class="bg-light text-primary px-3 py-1 rounded-pill small border fw-semibold">
+            {{ up.formula }}
+          </code>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <div class="p-3 bg-danger-subtle rounded-3 border border-danger-subtle h-100">
+              <strong class="text-danger small d-block mb-1">⚠️ Vấn đề của thuật toán cũ:</strong>
+              <div class="text-secondary small" style="line-height: 1.5;">
+                {{ up.problem }}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle h-100">
+              <strong class="text-success small d-block mb-1">✅ Giải pháp sau khi cập nhật:</strong>
+              <div class="text-secondary small" style="line-height: 1.5;">
+                {{ up.solution }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-light">
+      <h5 class="fw-bold text-dark mb-2">Sẵn Sàng Kiểm Thử Thuật Toán?</h5>
+      <p class="text-muted small mb-3">
+        Mô hình XGBoost và Monte Carlo 100K đã được đồng bộ hóa với các trọng số mới nhất, sẵn sàng sinh 5 vé tối ưu bảo hiểm Jackpot 1 & 2.
+      </p>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a routerLink="/analyze" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+          ⚡ Chạy Dự Đoán AI Ngay &rarr;
+        </a>
+        <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" (click)="activeTab = 'scorecards'">
+          📊 Quay lại xem bảng điểm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- FLOATING / PINNED POPUP: GIỮ NGUYÊN KHI NHẤN VÀO 1 SỐ     -->
+<!-- SHOW SỐ ĐÓ TRONG DÃY 6 SỐ Ở CÁC KỲ QUAY TRƯỚC            -->
+<!-- ======================================================== -->
+<div class="floating-popup shadow bg-white rounded-4 border"
+     [class.show]="hoveredNumber"
+     [class.pinned]="isPopupPinned"
+     [ngStyle]="popupStyle">
+  <div class="p-3 p-md-4" *ngIf="hoveredNumber">
+    <!-- Header: Pinned indicator & Close button -->
+    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+      <div class="d-flex align-items-center gap-2">
+        <span *ngIf="isPopupPinned" class="badge bg-danger text-white d-flex align-items-center gap-1 shadow-sm">
+          <span>📌 ĐÃ GHIM POPUP</span>
+        </span>
+        <span *ngIf="!isPopupPinned" class="badge bg-secondary text-white" style="font-size: 0.72rem;">
+          💡 Nhấn vào số để giữ cố định
+        </span>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill fw-bold"
+              (click)="closePopup()" title="Đóng popup">
+        ✕ Đóng
+      </button>
+    </div>
+
+    <!-- Number profile info -->
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="d-flex align-items-center gap-2">
+        <div class="ball-sm" [ngClass]="hoveredNumber === 49 ? 'ball-special' : 'ball-power'">
+          {{ formatNumber(hoveredNumber) }}
+        </div>
+        <div>
+          <strong class="text-dark fs-6">Hồ sơ số {{ formatNumber(hoveredNumber) }}</strong>
+          <div class="small text-muted" *ngIf="hoveredNumberDetail">
+            Xác suất: <strong class="text-primary">{{ hoveredNumberDetail.probabilityPercent }}%</strong>
+            <span *ngIf="hoveredNumberDetail.rank"> &bull; Hạng #{{ hoveredNumberDetail.rank }}</span>
+          </div>
+        </div>
+      </div>
+      <span class="badge bg-primary" *ngIf="hoveredNumberDetail">{{ hoveredNumberDetail.tag }}</span>
+    </div>
+
+    <!-- Details and metrics -->
+    <div *ngIf="hoveredNumberDetail" class="mb-2">
+      <div class="small fw-semibold text-dark mb-1">{{ hoveredNumberDetail.title }}</div>
+      <div class="text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.4;">
+        {{ hoveredNumberDetail.reason }}
+      </div>
+      <div class="d-flex justify-content-between small bg-light p-2 rounded border">
+        <span>Đã về: <strong>{{ hoveredNumberDetail.frequency }} lần</strong></span>
+        <span>Gan: <strong>{{ hoveredNumberDetail.drawGap }} kỳ</strong></span>
+        <span *ngIf="hoveredNumberDetail.momentumScore !== undefined">Quán tính: <strong>{{ hoveredNumberDetail.momentumScore }}</strong></span>
+      </div>
+    </div>
+
+    <!-- SHOW SỐ ĐÓ TRONG DÃY 6 SỐ Ở CÁC KỲ QUAY TRƯỚC -->
+    <div class="mt-3">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="small fw-bold text-dark">
+          📅 Xuất hiện trong các kỳ trước (Dãy 6 số đầy đủ):
+        </span>
+        <span class="badge bg-light text-secondary border small">
+          {{ hoveredNumberHistory.length }} kỳ
+        </span>
+      </div>
+
+      <div *ngIf="hoveredNumberHistory && hoveredNumberHistory.length > 0"
+           class="d-flex flex-column gap-2 p-1" style="max-height: 240px; overflow-y: auto;">
+        <div *ngFor="let h of hoveredNumberHistory | slice:0:8" class="p-2 rounded bg-light border">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-semibold text-secondary" style="font-size: 0.78rem;">
+              🗓️ {{ h.drawDate }} ({{ getDayOfWeek(h.drawDate) }})
+              <span *ngIf="h.note" class="text-muted ms-1 small">({{ h.note }})</span>
+            </span>
+            <span class="badge" [ngClass]="h.specialNumber === hoveredNumber ? 'bg-warning text-dark' : 'bg-primary text-white'" style="font-size: 0.7rem;">
+              {{ h.specialNumber === hoveredNumber ? '⭐ Số Phụ' : 'Số Chính' }}
+            </span>
+          </div>
+
+          <!-- Dãy 6 số của kỳ quay đó - Số đang chọn được highlight phát sáng nổi bật! -->
+          <div class="d-flex align-items-center gap-1 flex-wrap my-1">
+            <span *ngFor="let ball of h.numbers"
+                  class="history-ball"
+                  [class.active-highlight]="ball === hoveredNumber"
+                  (click)="pinPopup(ball, $event)"
+                  [title]="ball === hoveredNumber ? 'Số đang chọn (' + formatNumber(ball) + ')' : 'Nhấn để xem hồ sơ số ' + formatNumber(ball)">
+              {{ formatNumber(ball) }}
+            </span>
+            <!-- Số phụ nếu có -->
+            <span *ngIf="h.specialNumber"
+                  class="history-ball ball-special"
+                  [class.active-highlight]="h.specialNumber === hoveredNumber"
+                  (click)="pinPopup(h.specialNumber, $event)"
+                  [title]="'Số phụ đặc biệt ⭐' + formatNumber(h.specialNumber)">
+              ⭐{{ formatNumber(h.specialNumber) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!hoveredNumberHistory || hoveredNumberHistory.length === 0" class="small text-muted text-center py-2 bg-light rounded border">
+        Chưa có lần về nào trong các kỳ gần đây
+      </div>
+    </div>
+  </div>
+</div>

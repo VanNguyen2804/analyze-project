@@ -827,11 +827,11 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
     return `${pad1} - ${pad2} (${p.count} lần)`;
   });
 
-  // Recent draws
+  // Recent draws (up to 50 draws)
   const recentDraws: DrawRecordDto[] = categoryRecords
     .slice()
     .reverse()
-    .slice(0, 10)
+    .slice(0, 50)
     .map((r) => ({
       id: r.id,
       drawDate: r.drawDate,
@@ -840,11 +840,9 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
       note: r.note,
     }));
 
-  // Target numbers for history map
-  const allTargetNumbers = Array.from(new Set([...top10Numbers, ...(recommendedSpecialNumber ? [recommendedSpecialNumber] : [])]));
-
+  // Target numbers for history map - include all numbers 1..maxLimit so clicking ANY number has complete draw sequences
   const numberHistoryMap: Record<number, NumberHistoryAppearance[]> = {};
-  for (const num of allTargetNumbers) {
+  for (let num = 1; num <= maxLimit; num++) {
     numberHistoryMap[num] = [];
     for (const draw of categoryRecords.slice().reverse()) {
       const isMain = draw.numbers.includes(num);

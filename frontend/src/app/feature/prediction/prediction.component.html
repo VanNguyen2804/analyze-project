@@ -86,7 +86,25 @@
     <button class="btn btn-sm btn-outline-danger rounded-pill px-3" (click)="predict()">Thử lại</button>
   </div>
 
-  <!-- SECTION MỚI: ĐỐI SOÁT KỲ QUAY THỰC TẾ & BẢNG ĐIỂM SỐ 48, 52, 14 -->
+  <!-- BANNER LIÊN KẾT TRANG PHÂN TÍCH KẾT QUẢ KỲ QUAY MỚI NHẤT -->
+  <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 p-3 p-md-4">
+    <div class="d-flex align-items-center gap-3">
+      <span class="fs-2">🏆</span>
+      <div>
+        <h5 class="fw-bold text-dark mb-1">
+          Trang Mới: Phân Tích Kết Quả Trúng Kỳ Quay Mới Nhất [ 14, 18, 21, 38, 48, 52 ] & Số Phụ 49
+        </h5>
+        <div class="text-secondary small">
+          Khám phá chi tiết điểm số từng số, lý do tại sao ra, mạng lưới kết hợp cặp số đồng hành và lộ trình nâng cấp thuật toán toàn diện.
+        </div>
+      </div>
+    </div>
+    <a routerLink="/latest-analysis" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm flex-shrink-0">
+      🎯 Xem Trang Phân Tích Kỳ Mới Nhất &rarr;
+    </a>
+  </div>
+
+  <!-- SECTION: ĐỐI SOÁT KỲ QUAY THỰC TẾ & BẢNG ĐIỂM SỐ 48, 52, 14 -->
   <div *ngIf="payload && payload.status === 'SUCCESS' && payload.lotteryType === 'POWER'" class="card shadow-sm border-0 mb-4 focus-section-card">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
@@ -517,7 +535,9 @@
              (mouseenter)="showPopup(payload.specialNumber, $event)"
              (mousemove)="updatePopupPosition($event)"
              (mouseleave)="hidePopup()"
-             style="cursor: crosshair;">
+             (click)="pinPopup(payload.specialNumber, $event)"
+             title="Nhấn để ghim popup xem lịch sử dãy 6 số"
+             style="cursor: pointer;">
           {{ formatNumber(payload.specialNumber) }}
         </div>
       </div>
@@ -547,7 +567,9 @@
                          (mouseenter)="showPopup(num, $event)"
                          (mousemove)="updatePopupPosition($event)"
                          (mouseleave)="hidePopup()"
-                         style="transition: all 0.2s; cursor: crosshair;"
+                         (click)="pinPopup(num, $event)"
+                         title="Nhấn để ghim popup xem lịch sử dãy 6 số"
+                         style="transition: all 0.2s; cursor: pointer;"
                          [ngClass]="{
                            'ball-mega': payload.lotteryType === 'MEGA', 
                            'ball-power': payload.lotteryType === 'POWER',
@@ -608,7 +630,9 @@
                    (mouseenter)="showPopup(item.number, $event)"
                    (mousemove)="updatePopupPosition($event)"
                    (mouseleave)="hidePopup()"
-                   style="width: 48px; height: 48px; font-size: 1.15rem; cursor: crosshair; transition: all 0.2s;"
+                   (click)="pinPopup(item.number, $event)"
+                   title="Nhấn để ghim popup xem lịch sử dãy 6 số"
+                   style="width: 48px; height: 48px; font-size: 1.15rem; cursor: pointer; transition: all 0.2s;"
                    [ngClass]="{
                      'ball-important': item.tag === 'SỐ NÓNG' || item.tag === 'HỘI TỤ EV CAO', 
                      'ball-special': item.role === 'special', 
@@ -657,17 +681,41 @@
   </div>
 </div>
 
-<!-- FLOATING POPUP TỰ ĐỘNG BÁM THEO CHUỘT -->
-<div class="floating-popup shadow bg-white rounded-3 border"
+<!-- FLOATING POPUP TỰ ĐỘNG BÁM THEO CHUỘT HOẶC GIỮ NGUYÊN KHI CLICK -->
+<div class="floating-popup shadow bg-white rounded-4 border"
      [class.show]="hoveredNumber"
+     [class.pinned]="isPopupPinned"
      [ngStyle]="popupStyle">
   <div class="p-3" *ngIf="hoveredNumber">
-    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+    <!-- Header: Chỉ báo ghim & Nút Đóng -->
+    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+      <div class="d-flex align-items-center gap-2">
+        <span *ngIf="isPopupPinned" class="badge bg-danger text-white d-flex align-items-center gap-1 shadow-sm">
+          <span>📌 ĐÃ GHIM POPUP</span>
+        </span>
+        <span *ngIf="!isPopupPinned" class="badge bg-secondary text-white" style="font-size: 0.72rem;">
+          💡 Nhấn vào số để giữ popup cố định
+        </span>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill fw-bold"
+              (click)="closePopup()" title="Đóng popup">
+        ✕ Đóng
+      </button>
+    </div>
+
+    <!-- Thông tin hồ sơ số -->
+    <div class="d-flex align-items-center justify-content-between mb-2">
       <div class="d-flex align-items-center gap-2">
         <div class="ball-sm" [ngClass]="payload?.lotteryType === 'MEGA' ? 'ball-mega' : 'ball-power'">
           {{ formatNumber(hoveredNumber) }}
         </div>
-        <strong class="text-dark">Hồ sơ số {{ formatNumber(hoveredNumber) }}</strong>
+        <div>
+          <strong class="text-dark fs-6">Hồ sơ số {{ formatNumber(hoveredNumber) }}</strong>
+          <div class="small text-muted" *ngIf="hoveredNumberDetail">
+            Xác suất: <strong class="text-primary">{{ hoveredNumberDetail.probabilityPercent }}%</strong>
+            <span *ngIf="hoveredNumberDetail.rank"> &bull; Hạng #{{ hoveredNumberDetail.rank }}</span>
+          </div>
+        </div>
       </div>
       <span class="badge bg-primary" *ngIf="hoveredNumberDetail">{{ hoveredNumberDetail.tag }}</span>
     </div>
@@ -677,27 +725,61 @@
       <div class="text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.4;">
         {{ hoveredNumberDetail.reason }}
       </div>
-      <div class="d-flex justify-content-between small bg-light p-2 rounded">
+      <div class="d-flex justify-content-between small bg-light p-2 rounded border">
         <span>Xác suất: <strong>{{ hoveredNumberDetail.probabilityPercent }}%</strong></span>
         <span>Đã về: <strong>{{ hoveredNumberDetail.frequency }} lần</strong></span>
         <span>Gan: <strong>{{ hoveredNumberDetail.drawGap }} kỳ</strong></span>
       </div>
     </div>
 
-    <!-- Lịch sử các kỳ gần đây có số này -->
-    <div *ngIf="hoveredNumberHistory && hoveredNumberHistory.length > 0" class="mt-2">
-      <div class="small fw-bold text-secondary mb-1">Xuất hiện trong các kỳ gần đây:</div>
-      <div class="d-flex flex-column gap-1" style="max-height: 120px; overflow-y: auto;">
-        <div *ngFor="let h of hoveredNumberHistory | slice:0:5" class="d-flex justify-content-between align-items-center small py-1 border-bottom">
-          <span class="text-muted">{{ h.drawDate }} ({{ getDayOfWeek(h.drawDate) }})</span>
-          <span class="badge" [ngClass]="h.specialNumber === hoveredNumber ? 'bg-warning text-dark' : 'bg-secondary'">
-            {{ h.specialNumber === hoveredNumber ? '⭐ Số Phụ' : 'Số Chính' }}
-          </span>
+    <!-- Lịch sử các kỳ trước có số này: SHOW ĐẦY ĐỦ DÃY 6 SỐ VÀ LÀM NỔI BẬT SỐ ĐANG CHỌN -->
+    <div class="mt-3">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="small fw-bold text-dark">
+          📅 Xuất hiện trong các kỳ trước (Dãy 6 số):
+        </span>
+        <span class="badge bg-light text-secondary border small">
+          {{ hoveredNumberHistory.length }} kỳ
+        </span>
+      </div>
+
+      <div *ngIf="hoveredNumberHistory && hoveredNumberHistory.length > 0"
+           class="d-flex flex-column gap-2 p-1" style="max-height: 220px; overflow-y: auto;">
+        <div *ngFor="let h of hoveredNumberHistory | slice:0:8" class="p-2 rounded bg-light border">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-semibold text-secondary" style="font-size: 0.78rem;">
+              🗓️ {{ h.drawDate }} ({{ getDayOfWeek(h.drawDate) }})
+              <span *ngIf="h.note" class="text-muted ms-1 small">({{ h.note }})</span>
+            </span>
+            <span class="badge" [ngClass]="h.specialNumber === hoveredNumber ? 'bg-warning text-dark' : 'bg-primary text-white'" style="font-size: 0.7rem;">
+              {{ h.specialNumber === hoveredNumber ? '⭐ Số Phụ' : 'Số Chính' }}
+            </span>
+          </div>
+
+          <!-- Dãy 6 số của kỳ quay đó - Số đang chọn được highlight phát sáng nổi bật! -->
+          <div class="d-flex align-items-center gap-1 flex-wrap my-1">
+            <span *ngFor="let ball of h.numbers"
+                  class="history-ball"
+                  [class.active-highlight]="ball === hoveredNumber"
+                  (click)="pinPopup(ball, $event)"
+                  [title]="ball === hoveredNumber ? 'Số đang chọn (' + formatNumber(ball) + ')' : 'Nhấn để xem hồ sơ số ' + formatNumber(ball)">
+              {{ formatNumber(ball) }}
+            </span>
+            <!-- Số phụ nếu có -->
+            <span *ngIf="h.specialNumber"
+                  class="history-ball ball-special"
+                  [class.active-highlight]="h.specialNumber === hoveredNumber"
+                  (click)="pinPopup(h.specialNumber, $event)"
+                  [title]="'Số phụ đặc biệt ⭐' + formatNumber(h.specialNumber)">
+              ⭐{{ formatNumber(h.specialNumber) }}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-    <div *ngIf="!hoveredNumberHistory || hoveredNumberHistory.length === 0" class="small text-muted text-center py-2">
-      Chưa có lần về nào trong các kỳ gần đây
+
+      <div *ngIf="!hoveredNumberHistory || hoveredNumberHistory.length === 0" class="small text-muted text-center py-2 bg-light rounded border">
+        Chưa có lần về nào trong các kỳ gần đây
+      </div>
     </div>
   </div>
 </div>

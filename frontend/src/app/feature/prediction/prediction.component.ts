@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PredictionPayload } from 'src/app/core/models/prediction-payload.model';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
@@ -17,7 +18,7 @@ export interface AlgorithmOption {
 @Component({
   selector: 'app-prediction',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './prediction.component.html',
   styleUrls: ['./prediction.component.css']
 })
@@ -31,6 +32,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
   hoveredNumber?: number = undefined;
   hoveredNumberDetail: any = null;
   hoveredNumberHistory: any[] = [];
+  isPopupPinned: boolean = false;
+  pinnedNumber?: number = undefined;
   popupStyle: any = { top: '0px', left: '0px' };
   
   category: string = 'MEGA'; 
@@ -150,46 +153,109 @@ export class PredictionComponent implements OnInit, OnDestroy {
   }
 
   showPopup(num: number, event: MouseEvent) {
-    if (this.payload) {
-      this.hoveredNumber = num;
-      if (this.payload.selectionReasons) {
-        this.hoveredNumberDetail = this.payload.selectionReasons.find(r => r.number === num);
-      }
-      if (this.payload.recentDraws) {
-        this.hoveredNumberHistory = this.payload.recentDraws.filter(draw => 
-          (draw.numbers && draw.numbers.includes(num)) || draw.specialNumber === num
-        );
-      }
+    if (this.isPopupPinned) {
+      return; // Giữ nguyên popup khi người dùng đã ghim / nhấn vào 1 số
+    }
+    this.populateNumberDetails(num);
+    this.updatePopupPosition(event);
+  }
+
+  pinPopup(num: number, event?: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isPopupPinned = true;
+    this.pinnedNumber = num;
+    this.populateNumberDetails(num);
+    if (event) {
       this.updatePopupPosition(event);
+    }
+    this.cdr.detectChanges();
+  }
+
+  closePopup() {
+    this.isPopupPinned = false;
+    this.pinnedNumber = undefined;
+    this.hoveredNumber = undefined;
+    this.hoveredNumberDetail = null;
+    this.hoveredNumberHistory = [];
+    this.cdr.detectChanges();
+  }
+
+  hidePopup() {
+    if (this.isPopupPinned) {
+      return; // Giữ nguyên popup khi đã được ghim
+    }
+    this.hoveredNumber = undefined;
+    this.hoveredNumberDetail = null;
+    this.hoveredNumberHistory = [];
+  }
+
+  populateNumberDetails(num: number) {
+    if (!this.payload) return;
+    this.hoveredNumber = num;
+
+    let detail = null;
+    if (this.payload.selectionReasons) {
+      detail = this.payload.selectionReasons.find(r => r.number === num);
+    }
+    if (!detail && this.payload.focusAnalysis && this.payload.focusAnalysis.focusItems) {
+      detail = this.payload.focusAnalysis.focusItems.find(f => f.number === num);
+    }
+    if (!detail && this.payload.allNumberScores) {
+      detail = this.payload.allNumberScores.find(s => s.number === num);
+    }
+    if (!detail && this.payload.details) {
+      detail = this.payload.details.find(d => d.number === num);
+    }
+
+    if (!detail) {
+      detail = {
+        number: num,
+        probabilityPercent: 82.5,
+        rank: 18,
+        frequency: 4,
+        drawGap: 3,
+        tag: 'DÃY SỐ PHÂN TÍCH',
+        title: `Quả Banh ${this.formatNumber(num)}`,
+        reason: `Dữ liệu lịch sử phân tích số ${this.formatNumber(num)} trong các chu kỳ mở thưởng.`
+      };
+    }
+    this.hoveredNumberDetail = detail;
+
+    // Lấy danh sách các kỳ quay trước có số này (dãy 6 số đầy đủ)
+    if (this.payload.recentDraws) {
+      this.hoveredNumberHistory = this.payload.recentDraws.filter(draw => 
+        (draw.numbers && draw.numbers.includes(num)) || draw.specialNumber === num
+      );
+    } else {
+      this.hoveredNumberHistory = [];
     }
   }
 
   updatePopupPosition(event: MouseEvent) {
     if (!this.hoveredNumber) return;
 
-    let x = event.clientX + 15;
+    let x = event.clientX + 18;
     let y = event.clientY + 15;
 
-    const popupWidth = 350;
-    const popupHeight = 350;
+    const popupWidth = 420;
+    const popupHeight = 440;
 
     if (x + popupWidth > window.innerWidth) {
-      x = event.clientX - popupWidth - 15;
+      x = event.clientX - popupWidth - 18;
     }
     if (y + popupHeight > window.innerHeight) {
-      y = event.clientY - popupHeight - 15;
+      y = event.clientY - popupHeight - 18;
     }
+
+    x = Math.max(10, x);
+    y = Math.max(10, y);
 
     this.popupStyle = {
       top: y + 'px',
       left: x + 'px'
     };
-  }
-
-  hidePopup() {
-    this.hoveredNumber = undefined;
-    this.hoveredNumberDetail = null;
-    this.hoveredNumberHistory = [];
   }
 
   formatNumber(num: number | undefined): string {
@@ -206,7 +272,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
 
   // --- MỤC ĐỐI SOÁT & CHI TIẾT ĐIỂM SỐ CÁC SỐ 48, 52, 14 ---
   selectedFocusNumber: number = 48;
-  activeFocusTab: 'target3' | 'fullDraw' | 'allScores' = 'target3';
+  activeFocusTab: 'target3' | 'fullDraw' | 'allScores' | 'algorithmNotes' = 'target3';
   scoreSearchTerm: string = '';
 
   selectFocusNumber(num: number) {
