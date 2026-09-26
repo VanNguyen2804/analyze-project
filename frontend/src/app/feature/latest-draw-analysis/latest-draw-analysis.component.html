@@ -87,6 +87,221 @@
     </div>
   </div>
 
+  <!-- ======================================================== -->
+  <!-- 2. PHẦN ĐỐI CHIẾU VỚI VÉ CỦA USER ĐÃ CHƠI TRONG KỲ HÔM ĐÓ -->
+  <!-- ======================================================== -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden ticket-crosscheck-card">
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="fs-4">🎫</span>
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">
+            Đối Chiếu Vé Đã Chơi Trong Kỳ {{ latestDrawSummary.drawDate }} ({{ latestDrawSummary.title }})
+          </h5>
+          <small class="text-muted">
+            Tự động so khớp dãy số vé người dùng với kết quả mở thưởng chính thức của kỳ quay này.
+          </small>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1"
+          (click)="toggleQuickTicketInput()"
+        >
+          <span>{{ showQuickTicketInput ? '✖ Đóng khung nhập' : '➕ Nhập vé đối soát' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body p-4">
+      <!-- FORM NHẬP VÉ NHANH ĐỂ ĐỐI SOÁT (HIỂN THỊ KHI BẤM NÚT) -->
+      <div *ngIf="showQuickTicketInput" class="p-3 mb-4 bg-light rounded-4 border border-primary border-opacity-25 fade-in">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong class="text-primary small">
+            ✍️ Nhập 6 con số trên vé của bạn (Kỳ ngày {{ latestDrawSummary.drawDate }} &bull; {{ latestDrawSummary.title }}):
+          </strong>
+          <span class="badge bg-secondary">Giới hạn 1 - {{ category === 'POWER' ? 55 : 45 }}</span>
+        </div>
+
+        <div class="row g-2 align-items-center mb-3">
+          <div class="col-2" *ngFor="let n of quickTicketNumbers; let i = index">
+            <input
+              type="number"
+              class="form-control text-center fw-bold fs-5 border-2 rounded-3 shadow-none"
+              [placeholder]="'Số ' + (i + 1)"
+              [min]="1"
+              [max]="category === 'POWER' ? 55 : 45"
+              [(ngModel)]="quickTicketNumbers[i]"
+            />
+          </div>
+        </div>
+
+        <div class="row g-2 align-items-center">
+          <div class="col-md-8">
+            <input
+              type="text"
+              class="form-control rounded-pill border shadow-none"
+              placeholder="Ghi chú vé (VD: Vé tự chọn tại đại lý, vé nuôi...)"
+              [(ngModel)]="quickTicketNote"
+            />
+          </div>
+          <div class="col-md-4 d-flex gap-2">
+            <button
+              type="button"
+              class="btn btn-primary rounded-pill px-3 fw-bold w-100"
+              [disabled]="isSavingQuickTicket"
+              (click)="submitQuickTicket()"
+            >
+              <span *ngIf="isSavingQuickTicket" class="spinner-border spinner-border-sm me-1"></span>
+              🔍 Lưu & Đối Soát Ngay
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary rounded-pill px-3"
+              (click)="toggleQuickTicketInput()"
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+        <div *ngIf="quickTicketMessage" class="small text-success mt-2 fw-semibold">
+          {{ quickTicketMessage }}
+        </div>
+      </div>
+
+      <!-- TRƯỜNG HỢP 1: USER CÓ CHƠI VÉ TRONG KỲ NÀY -> HIỆN TRÚNG BAO NHIÊU SỐ -->
+      <div *ngIf="hasUserPlayed && userTickets && userTickets.length > 0" class="fade-in">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-bold">
+              ✅ Đã tìm thấy {{ userTickets.length }} vé bạn đã chơi trong kỳ này
+            </span>
+            <span class="badge" [ngClass]="winningTicketsCount > 0 ? 'bg-danger text-white' : 'bg-secondary text-white'" style="padding: 0.6rem 0.8rem; border-radius: 50rem;">
+              {{ winningTicketsCount > 0 ? ('🎉 Trúng thưởng ' + winningTicketsCount + ' vé!') : 'Chưa có vé trúng' }}
+            </span>
+          </div>
+
+          <small class="text-muted" *ngIf="category === 'POWER'">
+            Banh phụ ⭐{{ formatNumber(latestDrawSummary.specialNumber) }} kích hoạt giải Jackpot 2 khi trúng 5 số chính
+          </small>
+        </div>
+
+        <!-- DANH SÁCH CÁC VÉ CÁ NHÂN VỚI ĐỐI SOÁT TRÚNG BAO NHIÊU SỐ -->
+        <div class="row g-3">
+          <div *ngFor="let ticket of userTickets; let idx = index" class="col-lg-6">
+            <div class="card h-100 border rounded-4 shadow-sm p-3 transition-all ticket-item-card"
+                 [ngClass]="{
+                   'border-warning bg-warning bg-opacity-10 shadow': ticket.prize === 'JACKPOT 2' || ticket.prize === 'JACKPOT 1' || ticket.prize === 'JACKPOT',
+                   'border-success bg-success bg-opacity-10': ticket.prize === 'GIẢI NHẤT' || ticket.prize === 'GIẢI NHÌ' || ticket.prize === 'GIẢI BA',
+                   'border-light bg-light': ticket.prize === 'KHÔNG TRÚNG'
+                 }">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                    <span>🎫 Vé #{{ idx + 1 }}</span>
+                    <span *ngIf="ticket.note" class="badge bg-white text-secondary border fw-normal">{{ ticket.note }}</span>
+                  </div>
+                  <small class="text-muted" *ngIf="ticket.checkedAt">
+                    Lưu lúc: {{ ticket.checkedAt | date:'HH:mm dd/MM/yyyy' }}
+                  </small>
+                </div>
+
+                <!-- BADGE GIẢI THƯỞNG -->
+                <div>
+                  <span class="badge px-3 py-2 rounded-pill fw-bold shadow-sm"
+                        [ngClass]="{
+                          'bg-danger text-white': ticket.prize === 'JACKPOT 1' || ticket.prize === 'JACKPOT',
+                          'bg-warning text-dark': ticket.prize === 'JACKPOT 2',
+                          'bg-primary text-white': ticket.prize === 'GIẢI NHẤT',
+                          'bg-success text-white': ticket.prize === 'GIẢI NHÌ',
+                          'bg-info text-white': ticket.prize === 'GIẢI BA',
+                          'bg-secondary text-white': ticket.prize === 'KHÔNG TRÚNG'
+                        }">
+                    {{ ticket.prize }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- DÃY BÓNG CỦA VÉ - CÁC BÓNG TRÚNG ĐƯỢC HIGHLIGHT PHÁT SÁNG NỔI BẬT KÈM DẤU TICK -->
+              <div class="d-flex align-items-center gap-2 flex-wrap my-2">
+                <div *ngFor="let num of ticket.numbers"
+                     class="user-ticket-ball"
+                     [class.is-match]="isNumberMatched(ticket, num)"
+                     [class.is-special-match]="isSpecialMatched(ticket, num)"
+                     [title]="isNumberMatched(ticket, num) ? 'Trúng số chính: ' + formatNumber(num) : (isSpecialMatched(ticket, num) ? 'Trúng banh phụ đặc biệt: ⭐' + formatNumber(num) : 'Số ' + formatNumber(num))">
+                  <span>{{ formatNumber(num) }}</span>
+                  <span class="match-check-icon" *ngIf="isNumberMatched(ticket, num)">✓</span>
+                  <span class="special-star-icon" *ngIf="isSpecialMatched(ticket, num)">⭐</span>
+                </div>
+              </div>
+
+              <!-- DÒNG KẾT QUẢ "TRÚNG BAO NHIÊU SỐ" -->
+              <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <div class="fw-bold" [ngClass]="ticket.prize !== 'KHÔNG TRÚNG' ? 'text-success' : 'text-secondary'">
+                    <span *ngIf="ticket.matchedCount > 0 || ticket.matchedSpecial">
+                      🎯 <span class="fs-6">Trúng {{ ticket.matchedCount }}/6 số chính</span>
+                      <span *ngIf="ticket.matchedSpecial" class="text-warning"> + Banh phụ ⭐{{ formatNumber(latestDrawSummary.specialNumber) }}</span>
+                    </span>
+                    <span *ngIf="ticket.matchedCount === 0 && !ticket.matchedSpecial" class="text-muted">
+                      ❌ Trúng 0/6 số chính (Không trúng)
+                    </span>
+                  </div>
+                  <div class="small text-muted" *ngIf="ticket.prizeAmount && ticket.prize !== 'KHÔNG TRÚNG'">
+                    Giá trị giải: <strong class="text-dark">{{ ticket.prizeAmount }}</strong>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-link text-danger p-0 text-decoration-none"
+                  (click)="deleteUserTicket(ticket.id)"
+                  title="Xóa vé này"
+                >
+                  <small>🗑️ Xóa vé</small>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRƯỜNG HỢP 2: USER KHÔNG CHƠI VÉ TRONG KỲ NÀY -> CHỈ PHÂN TÍCH (KHÔNG HIỆN TRÚNG BAO NHIÊU SỐ) -->
+      <div *ngIf="!hasUserPlayed || !userTickets || userTickets.length === 0" class="fade-in">
+        <div class="alert alert-light border border-secondary border-opacity-25 rounded-4 p-4 text-center mb-0">
+          <div class="fs-1 mb-2">📋</div>
+          <h5 class="fw-bold text-dark mb-1">
+            Kỳ quay ngày {{ latestDrawSummary.drawDate }}: Bạn chưa chơi vé nào
+          </h5>
+          <p class="text-muted mb-3 mx-auto" style="max-width: 620px;">
+            Trong kỳ quay này, bạn chưa ghi nhận vé cá nhân nào vào hệ thống.
+          </p>
+
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fw-semibold mb-3">
+            <span>📊 Chế độ hiển thị: <strong>CHỈ PHÂN TÍCH</strong></span>
+            <span class="badge bg-primary text-white">Chuyên sâu</span>
+          </div>
+
+          <div class="text-secondary small mb-3 mx-auto" style="max-width: 600px;">
+            Hệ thống hiển thị toàn bộ bảng điểm xác suất, cơ chế nổ số Markov & Poisson, mạng lưới cặp số đồng hành và lộ trình nâng cấp thuật toán ở các tab phía dưới mà không có kết quả đối soát vé.
+          </div>
+
+          <div>
+            <button
+              type="button"
+              class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold shadow-sm"
+              (click)="toggleQuickTicketInput()"
+            >
+              <span>➕ Bạn có chơi vé kỳ này? Nhập vé để đối soát ngay</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- NAVIGATION TABS -->
   <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-body p-2 p-md-3">

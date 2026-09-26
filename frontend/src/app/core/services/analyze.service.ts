@@ -26,6 +26,18 @@ export class AnalyzeService {
     return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}&algorithm=${encodedAlg}`);
   }
 
+  getLatestDraw(category: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/latest-draw?category=${category}`);
+  }
+
+  saveUserTicket(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/save-user-ticket`, payload);
+  }
+
+  deleteUserTicket(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/user-ticket/${id}`);
+  }
+
   checkTickets(payload: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/check-tickets`, payload);
   }

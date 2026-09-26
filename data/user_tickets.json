@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "category": "POWER",
+    "drawDate": "2026-09-19",
+    "numbers": [
+      14,
+      18,
+      21,
+      38,
+      48,
+      49
+    ],
+    "specialNumber": 49,
+    "matchedNumbers": [
+      14,
+      18,
+      21,
+      38,
+      48
+    ],
+    "matchedCount": 5,
+    "matchedSpecial": true,
+    "prize": "JACKPOT 2",
+    "prizeAmount": "Ước tính > 3.850.000.000 đ",
+    "checkedAt": "2026-09-19T19:00:00.000Z",
+    "note": "Vé tự chọn bao gồm số phụ 49"
+  },
+  {
+    "id": 2,
+    "category": "POWER",
+    "drawDate": "2026-09-19",
+    "numbers": [
+      14,
+      18,
+      21,
+      27,
+      33,
+      48
+    ],
+    "matchedNumbers": [
+      14,
+      18,
+      21,
+      48
+    ],
+    "matchedCount": 4,
+    "matchedSpecial": false,
+    "prize": "GIẢI NHÌ",
+    "prizeAmount": "500.000 đ",
+    "checkedAt": "2026-09-19T19:00:00.000Z",
+    "note": "Vé nuôi dàn số hạt nhân"
+  }
+]

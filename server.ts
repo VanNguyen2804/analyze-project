@@ -15,10 +15,156 @@ interface LotteryNumberRecord {
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'lottery_numbers.json');
 const H2_DATA_FILE = path.join(process.cwd(), 'data', 'h2_lottery_numbers.json');
+const USER_TICKETS_FILE = path.join(process.cwd(), 'data', 'user_tickets.json');
 
 // In-memory store initialized from disk
 let records: LotteryNumberRecord[] = [];
 let nextId = 1;
+
+export interface UserCheckRecord {
+  id: number;
+  category: 'POWER' | 'MEGA';
+  drawDate: string;
+  numbers: number[];
+  specialNumber?: number;
+  matchedNumbers?: number[];
+  matchedCount?: number;
+  matchedSpecial?: boolean;
+  prize?: string;
+  prizeAmount?: string;
+  checkedAt: string;
+  note?: string;
+}
+
+let userChecks: UserCheckRecord[] = [];
+let nextUserCheckId = 1;
+
+function loadUserTicketsFromDisk(): void {
+  try {
+    if (fs.existsSync(USER_TICKETS_FILE)) {
+      const content = fs.readFileSync(USER_TICKETS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        userChecks = parsed;
+        nextUserCheckId = Math.max(...userChecks.map((t) => t.id || 0)) + 1;
+        return;
+      }
+    }
+
+    // Default sample user tickets for demonstration:
+    // User played in POWER draw 2026-09-19 (matches Jackpot 2 and Giải Nhì)
+    // User did NOT play in MEGA draw 2026-09-18 (demonstrates 'chỉ phân tích' mode)
+    userChecks = [
+      {
+        id: 1,
+        category: 'POWER',
+        drawDate: '2026-09-19',
+        numbers: [14, 18, 21, 38, 48, 49],
+        specialNumber: 49,
+        matchedNumbers: [14, 18, 21, 38, 48],
+        matchedCount: 5,
+        matchedSpecial: true,
+        prize: 'JACKPOT 2',
+        prizeAmount: 'Ước tính > 3.850.000.000 đ',
+        checkedAt: '2026-09-19T19:00:00.000Z',
+        note: 'Vé tự chọn bao gồm số phụ 49',
+      },
+      {
+        id: 2,
+        category: 'POWER',
+        drawDate: '2026-09-19',
+        numbers: [14, 18, 21, 27, 33, 48],
+        matchedNumbers: [14, 18, 21, 48],
+        matchedCount: 4,
+        matchedSpecial: false,
+        prize: 'GIẢI NHÌ',
+        prizeAmount: '500.000 đ',
+        checkedAt: '2026-09-19T19:00:00.000Z',
+        note: 'Vé nuôi dàn số hạt nhân',
+      },
+    ];
+    nextUserCheckId = 3;
+    saveUserTicketsToDisk();
+  } catch (err) {
+    console.warn('Failed to load user tickets from disk:', err);
+  }
+}
+
+function saveUserTicketsToDisk(): void {
+  try {
+    const dir = path.dirname(USER_TICKETS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(
+      USER_TICKETS_FILE,
+      JSON.stringify(userChecks, null, 2),
+      'utf-8'
+    );
+  } catch (err) {
+    console.warn('Failed to save user tickets to disk:', err);
+  }
+}
+
+function evaluateTicket(
+  ticketNumbers: number[],
+  officialNumbers: number[],
+  officialSpecial: number | undefined,
+  category: 'POWER' | 'MEGA'
+) {
+  const officialSet = new Set(officialNumbers);
+  const matchedNumbers = ticketNumbers.filter((n) => officialSet.has(n));
+  const matchedCount = matchedNumbers.length;
+  const matchedSpecial =
+    category === 'POWER' &&
+    officialSpecial !== undefined &&
+    ticketNumbers.includes(officialSpecial);
+
+  let prize = 'KHÔNG TRÚNG';
+  let prizeAmount = '0 đ';
+
+  if (category === 'POWER') {
+    if (matchedCount === 6) {
+      prize = 'JACKPOT 1';
+      prizeAmount = 'Ước tính > 30.000.000.000 đ';
+    } else if (matchedCount === 5 && matchedSpecial) {
+      prize = 'JACKPOT 2';
+      prizeAmount = 'Ước tính > 3.500.000.000 đ';
+    } else if (matchedCount === 5) {
+      prize = 'GIẢI NHẤT';
+      prizeAmount = '40.000.000 đ';
+    } else if (matchedCount === 4) {
+      prize = 'GIẢI NHÌ';
+      prizeAmount = '500.000 đ';
+    } else if (matchedCount === 3) {
+      prize = 'GIẢI BA';
+      prizeAmount = '50.000 đ';
+    }
+  } else {
+    // MEGA 6/45
+    if (matchedCount === 6) {
+      prize = 'JACKPOT';
+      prizeAmount = 'Ước tính > 12.000.000.000 đ';
+    } else if (matchedCount === 5) {
+      prize = 'GIẢI NHẤT';
+      prizeAmount = '10.000.000 đ';
+    } else if (matchedCount === 4) {
+      prize = 'GIẢI NHÌ';
+      prizeAmount = '300.000 đ';
+    } else if (matchedCount === 3) {
+      prize = 'GIẢI BA';
+      prizeAmount = '30.000 đ';
+    }
+  }
+
+  return {
+    matchedNumbers,
+    matchedCount,
+    matchedSpecial,
+    prize,
+    prizeAmount,
+  };
+}
 
 function loadInitialData(): void {
   try {
@@ -64,6 +210,7 @@ function loadInitialData(): void {
       nextId = 3;
       saveDataToDisk();
     }
+    loadUserTicketsFromDisk();
   } catch (err) {
     console.warn('Failed to load initial data:', err);
   }
@@ -1308,20 +1455,180 @@ async function startServer() {
     return res.send('Đã chỉnh sửa dãy số thành công!');
   });
 
-  interface UserCheckRecord {
-    id: number;
-    category: string;
-    drawDate: string;
-    numbers: number[];
-    prize: string;
-    checkedAt: string;
-  }
-  const userChecks: UserCheckRecord[] = [];
-  let nextUserCheckId = 1;
+  // GET LATEST DRAW AND USER TICKETS FOR CORRESPONDING CATEGORY
+  app.get('/api/analyze/latest-draw', (req: Request, res: Response) => {
+    try {
+      const category: 'POWER' | 'MEGA' =
+        req.query.category && String(req.query.category).toUpperCase() === 'MEGA'
+          ? 'MEGA'
+          : 'POWER';
+
+      const catRecords = records
+        .filter((r) => r.category === category)
+        .sort(
+          (a, b) =>
+            b.drawDate.localeCompare(a.drawDate) ||
+            (b.createdAt || '').localeCompare(a.createdAt || '')
+        );
+
+      if (catRecords.length === 0) {
+        return res.status(404).json({
+          status: 'NOT_FOUND',
+          message: `Chưa có kỳ quay nào cho ${category} trong Database.`,
+        });
+      }
+
+      const latestDraw = catRecords[0];
+
+      // Find user tickets played for this draw
+      const userTicketsForDraw = userChecks.filter(
+        (t) => t.category === category && t.drawDate === latestDraw.drawDate
+      );
+
+      // Re-evaluate each ticket against latestDraw numbers to ensure 100% accuracy
+      const evaluatedTickets = userTicketsForDraw.map((t) => {
+        const evalResult = evaluateTicket(
+          t.numbers,
+          latestDraw.numbers,
+          latestDraw.specialNumber,
+          category
+        );
+        return {
+          ...t,
+          matchedNumbers: evalResult.matchedNumbers,
+          matchedCount: evalResult.matchedCount,
+          matchedSpecial: evalResult.matchedSpecial,
+          prize: evalResult.prize,
+          prizeAmount: evalResult.prizeAmount,
+        };
+      });
+
+      const winningCount = evaluatedTickets.filter(
+        (t) => t.prize && t.prize !== 'KHÔNG TRÚNG'
+      ).length;
+
+      return res.json({
+        status: 'SUCCESS',
+        category,
+        latestDraw: {
+          id: latestDraw.id,
+          drawDate: latestDraw.drawDate,
+          numbers: latestDraw.numbers,
+          specialNumber: latestDraw.specialNumber,
+          note: latestDraw.note,
+        },
+        hasUserPlayed: evaluatedTickets.length > 0,
+        userTickets: evaluatedTickets,
+        totalTicketsPlayed: evaluatedTickets.length,
+        winningTicketsCount: winningCount,
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Lỗi server' });
+    }
+  });
+
+  // SAVE A USER TICKET FOR A SPECIFIC DRAW
+  app.post('/api/analyze/save-user-ticket', (req: Request, res: Response) => {
+    try {
+      const { category, drawDate, numbers, note } = req.body;
+      const cat: 'POWER' | 'MEGA' =
+        category && String(category).toUpperCase() === 'MEGA' ? 'MEGA' : 'POWER';
+      const maxLimit = cat === 'POWER' ? 55 : 45;
+
+      if (!Array.isArray(numbers) || numbers.length !== 6) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Dãy số vé cá nhân phải có đủ 6 số!' });
+      }
+
+      const validNums = numbers.map(Number);
+      for (const n of validNums) {
+        if (!Number.isInteger(n) || n < 1 || n > maxLimit) {
+          return res.status(400).json({
+            success: false,
+            message: `Số ${n} không hợp lệ! Với ${cat}, các số từ 1 đến ${maxLimit}.`,
+          });
+        }
+      }
+
+      if (new Set(validNums).size !== 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'Các con số trong vé cá nhân không được trùng lặp!',
+        });
+      }
+
+      const sorted = [...validNums].sort((a, b) => a - b);
+      const targetDate =
+        drawDate && typeof drawDate === 'string' && drawDate.trim()
+          ? drawDate.trim()
+          : new Date().toISOString().slice(0, 10);
+
+      // Evaluate against official draw if exists
+      const official = records.find(
+        (r) => r.category === cat && r.drawDate === targetDate
+      );
+
+      let evalResult: any = {
+        matchedNumbers: [],
+        matchedCount: 0,
+        matchedSpecial: false,
+        prize: 'CHỜ MỞ THƯỞNG',
+        prizeAmount: '--',
+      };
+
+      if (official) {
+        evalResult = evaluateTicket(
+          sorted,
+          official.numbers,
+          official.specialNumber,
+          cat
+        );
+      }
+
+      const newTicket: UserCheckRecord = {
+        id: nextUserCheckId++,
+        category: cat,
+        drawDate: targetDate,
+        numbers: sorted,
+        specialNumber: official?.specialNumber,
+        matchedNumbers: evalResult.matchedNumbers,
+        matchedCount: evalResult.matchedCount,
+        matchedSpecial: evalResult.matchedSpecial,
+        prize: evalResult.prize,
+        prizeAmount: evalResult.prizeAmount,
+        checkedAt: new Date().toISOString(),
+        note: note ? String(note).trim() : undefined,
+      };
+
+      userChecks.unshift(newTicket);
+      saveUserTicketsToDisk();
+
+      return res.status(201).json({
+        success: true,
+        message: 'Đã lưu vé cá nhân thành công!',
+        ticket: newTicket,
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message || 'Lỗi server' });
+    }
+  });
+
+  // DELETE A USER TICKET
+  app.delete('/api/analyze/user-ticket/:id', (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const index = userChecks.findIndex((t) => t.id === id);
+    if (index !== -1) {
+      userChecks.splice(index, 1);
+      saveUserTicketsToDisk();
+      return res.json({ success: true, message: 'Đã xóa vé cá nhân' });
+    }
+    return res.status(404).json({ success: false, message: 'Không tìm thấy vé' });
+  });
 
   app.post('/api/analyze/check-tickets', (req: Request, res: Response) => {
     const { category, drawDate, tickets } = req.body;
-    const cat = category === 'POWER' ? 'POWER' : 'MEGA';
+    const cat: 'POWER' | 'MEGA' = category === 'POWER' ? 'POWER' : 'MEGA';
     const official = records.find(
       (r) => r.category === cat && r.drawDate === drawDate
     );
@@ -1332,39 +1639,40 @@ async function startServer() {
       });
     }
 
-    const officialSet = new Set(official.numbers);
-    const officialSpecial = official.specialNumber;
     const results = (tickets || []).map((ticket: number[]) => {
       const valid = ticket.filter((n) => Number(n) > 0).map(Number);
-      const matchCount = valid.filter((n) => officialSet.has(n)).length;
-      const matchSpecial =
-        cat === 'POWER' &&
-        officialSpecial !== undefined &&
-        valid.includes(officialSpecial);
-      let prize = 'KHÔNG TRÚNG';
-      if (matchCount === 6) prize = 'JACKPOT 1';
-      else if (cat === 'POWER' && matchCount === 5 && matchSpecial)
-        prize = 'JACKPOT 2';
-      else if (matchCount === 5) prize = 'GIẢI NHẤT';
-      else if (matchCount === 4) prize = 'GIẢI NHÌ';
-      else if (matchCount === 3) prize = 'GIẢI BA';
+      const evalResult = evaluateTicket(
+        valid,
+        official.numbers,
+        official.specialNumber,
+        cat
+      );
 
       userChecks.unshift({
         id: nextUserCheckId++,
         category: cat,
         drawDate,
         numbers: valid,
-        prize,
+        specialNumber: official.specialNumber,
+        matchedNumbers: evalResult.matchedNumbers,
+        matchedCount: evalResult.matchedCount,
+        matchedSpecial: evalResult.matchedSpecial,
+        prize: evalResult.prize,
+        prizeAmount: evalResult.prizeAmount,
         checkedAt: new Date().toISOString(),
       });
 
       return {
         userNumbers: valid,
-        matchCount,
-        matchSpecial,
-        prize,
+        matchCount: evalResult.matchedCount,
+        matchSpecial: evalResult.matchedSpecial,
+        matchedNumbers: evalResult.matchedNumbers,
+        prize: evalResult.prize,
+        prizeAmount: evalResult.prizeAmount,
       };
     });
+
+    saveUserTicketsToDisk();
 
     return res.json({
       status: 'SUCCESS',
@@ -1375,11 +1683,21 @@ async function startServer() {
   });
 
   app.get('/api/analyze/user-history', (req: Request, res: Response) => {
-    res.json(userChecks.slice(0, 50));
+    let filtered = [...userChecks];
+    if (req.query.category) {
+      const cat = String(req.query.category).toUpperCase();
+      filtered = filtered.filter((t) => t.category === cat);
+    }
+    if (req.query.drawDate) {
+      const date = String(req.query.drawDate).trim();
+      filtered = filtered.filter((t) => t.drawDate === date);
+    }
+    res.json(filtered.slice(0, 50));
   });
 
   app.delete('/api/analyze/user-history', (req: Request, res: Response) => {
     userChecks.length = 0;
+    saveUserTicketsToDisk();
     res.send('Đã xóa lịch sử dò vé cá nhân.');
   });
 
