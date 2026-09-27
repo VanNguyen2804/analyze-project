@@ -113,25 +113,25 @@
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-          <span class="badge px-2 py-1 text-white" [ngClass]="payload.lotteryType === 'POWER' ? 'bg-danger' : 'bg-primary'">
-            🎯 ĐỐI SOÁT THỰC TẾ &bull; {{ payload.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
+          <span class="badge px-2 py-1 text-white" [ngClass]="payload?.lotteryType === 'POWER' ? 'bg-danger' : 'bg-primary'">
+            🎯 ĐỐI SOÁT THỰC TẾ &bull; {{ payload?.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
           </span>
-          <span class="badge bg-success text-white px-2 py-1">
-            ✅ Trúng ban đầu: {{ payload.focusAnalysis.matchedNumbersInitial.join(', ') }}
+          <span class="badge bg-success text-white px-2 py-1" *ngIf="payload?.focusAnalysis?.matchedNumbersInitial">
+            ✅ Trúng ban đầu: {{ payload?.focusAnalysis?.matchedNumbersInitial?.join(', ') }}
           </span>
-          <span class="badge bg-primary text-white px-2 py-1">
-            🚀 Thu nạp sau nâng cấp: {{ payload.focusAnalysis.upgradedNumbers.join(', ') }}
+          <span class="badge bg-primary text-white px-2 py-1" *ngIf="payload?.focusAnalysis?.upgradedNumbers">
+            🚀 Thu nạp sau nâng cấp: {{ payload?.focusAnalysis?.upgradedNumbers?.join(', ') }}
           </span>
-          <span *ngIf="payload.lotteryType === 'POWER' && payload.focusAnalysis.upgradedSpecialNumber" class="badge bg-warning text-dark px-2 py-1">
-            ⭐ Số phụ: {{ payload.focusAnalysis.upgradedSpecialNumber }}
+          <span *ngIf="payload?.lotteryType === 'POWER' && payload?.focusAnalysis?.upgradedSpecialNumber" class="badge bg-warning text-dark px-2 py-1">
+            ⭐ Số phụ: {{ payload?.focusAnalysis?.upgradedSpecialNumber }}
           </span>
         </div>
         <h4 class="h5 fw-bold text-dark mb-1">
-          Bảng Phân Tích Điểm Số Kỳ Mới Nhất & Đối Chiếu Thực Tế ({{ payload.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }})
+          Bảng Phân Tích Điểm Số Kỳ Mới Nhất & Đối Chiếu Thực Tế ({{ payload?.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }})
         </h4>
         <p class="text-muted small mb-0">
-          Kết quả kỳ quay: <strong class="text-dark">{{ payload.focusAnalysis.actualDrawNumbers.join(', ') }}</strong>
-          <span *ngIf="payload.lotteryType === 'POWER' && payload.focusAnalysis.actualSpecialNumber"> &bull; Số phụ: <strong class="text-warning">{{ payload.focusAnalysis.actualSpecialNumber }}</strong></span>. 
+          Kết quả kỳ quay: <strong class="text-dark">{{ payload?.focusAnalysis?.actualDrawNumbers?.join(', ') }}</strong>
+          <span *ngIf="payload?.lotteryType === 'POWER' && payload?.focusAnalysis?.actualSpecialNumber"> &bull; Số phụ: <strong class="text-warning">{{ payload?.focusAnalysis?.actualSpecialNumber }}</strong></span>. 
           Thuật toán đã tối ưu trọng số học máy để đạt độ phủ <strong class="text-success">100%</strong> trúng giải.
         </p>
       </div>
@@ -144,7 +144,7 @@
           [ngClass]="activeFocusTab === 'target3' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary'"
           (click)="activeFocusTab = 'target3'"
         >
-          🌟 Bộ 3 số tiêu biểu: {{ payload.lotteryType === 'POWER' ? '48, 52, 14' : '31, 45, 14' }}
+          🌟 Bộ 3 số tiêu biểu: {{ payload?.lotteryType === 'POWER' ? '48, 52, 14' : '31, 45, 14' }}
         </button>
         <button
           type="button"
@@ -152,7 +152,7 @@
           [ngClass]="activeFocusTab === 'fullDraw' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary'"
           (click)="activeFocusTab = 'fullDraw'"
         >
-          📊 Cả {{ payload.focusAnalysis.actualDrawNumbers.length }} số{{ payload.lotteryType === 'POWER' ? ' + Phụ 49' : '' }}
+          📊 Cả {{ payload?.focusAnalysis?.actualDrawNumbers?.length }} số{{ payload?.lotteryType === 'POWER' ? ' + Phụ 49' : '' }}
         </button>
         <button
           type="button"
@@ -160,7 +160,7 @@
           [ngClass]="activeFocusTab === 'allScores' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary'"
           (click)="activeFocusTab = 'allScores'"
         >
-          🔍 Tra cứu {{ payload.lotteryType === 'POWER' ? '55' : '45' }} số
+          🔍 Tra cứu {{ payload?.lotteryType === 'POWER' ? '55' : '45' }} số
         </button>
         <button
           type="button"
@@ -179,9 +179,9 @@
         <div class="alert alert-info border-0 shadow-sm rounded-3 py-2 px-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div class="small text-dark">
             <span class="fw-bold text-primary">💡 Phân tích trọng tâm:</span>
-            Hiển thị điểm số chi tiết của các số mục tiêu <strong class="text-danger">{{ payload.lotteryType === 'POWER' ? '48, 52 và 14' : '31, 45 và 14' }}</strong>. Dưới đây là bảng phân tích toàn diện các chỉ số xác suất, thứ hạng và cơ chế thuật toán đã nâng cấp để thu nạp các số này vào Top vé dự đoán.
+            Hiển thị điểm số chi tiết của các số mục tiêu <strong class="text-danger">{{ payload?.lotteryType === 'POWER' ? '48, 52 và 14' : '31, 45 và 14' }}</strong>. Dưới đây là bảng phân tích toàn diện các chỉ số xác suất, thứ hạng và cơ chế thuật toán đã nâng cấp để thu nạp các số này vào Top vé dự đoán.
           </div>
-          <span class="badge bg-success text-white">Bao phủ 100% ({{ payload.focusAnalysis.actualDrawNumbers.length }}/{{ payload.focusAnalysis.actualDrawNumbers.length }} số chính)</span>
+          <span class="badge bg-success text-white">Bao phủ 100% ({{ payload?.focusAnalysis?.actualDrawNumbers?.length }}/{{ payload?.focusAnalysis?.actualDrawNumbers?.length }} số chính)</span>
         </div>
 
         <div class="row g-3">
@@ -193,7 +193,7 @@
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="d-flex align-items-center gap-2">
                   <div class="ball shadow-sm"
-                       [ngClass]="payload.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega'"
+                       [ngClass]="payload?.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega'"
                        style="width: 52px; height: 52px; font-size: 1.35rem; font-weight: 800;">
                     {{ formatNumber(item.number) }}
                   </div>
@@ -254,11 +254,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of payload.focusAnalysis.focusItems || []"
+              <tr *ngFor="let item of payload?.focusAnalysis?.focusItems || []"
                   [ngClass]="{'table-warning': item.isSpecial, 'table-success-subtle': item.isTargetUpgrade}">
                 <td>
                   <div class="ball ball-sm"
-                       [ngClass]="item.isSpecial ? 'ball-special' : (payload.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega')">
+                       [ngClass]="item.isSpecial ? 'ball-special' : (payload?.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega')">
                     {{ item.isSpecial ? '★' : '' }}{{ formatNumber(item.number) }}
                   </div>
                 </td>
@@ -325,10 +325,10 @@
             type="button"
             class="ball ball-sm border shadow-sm"
             [ngClass]="{
-              'ball-special': s.number === 49 && payload.lotteryType === 'POWER',
-              'ball-important': (payload.lotteryType === 'POWER' ? [14, 52, 48] : [31, 45, 14]).includes(s.number),
-              'ball-power': payload.lotteryType === 'POWER' && ![14, 52, 48, 49].includes(s.number),
-              'ball-mega': payload.lotteryType !== 'POWER' && ![31, 45, 14].includes(s.number),
+              'ball-special': s.number === 49 && payload?.lotteryType === 'POWER',
+              'ball-important': (payload?.lotteryType === 'POWER' ? [14, 52, 48] : [31, 45, 14]).includes(s.number),
+              'ball-power': payload?.lotteryType === 'POWER' && ![14, 52, 48, 49].includes(s.number),
+              'ball-mega': payload?.lotteryType !== 'POWER' && ![31, 45, 14].includes(s.number),
               'border-3 border-primary shadow': selectedFocusNumber === s.number
             }"
             (click)="selectFocusNumber(s.number)"
@@ -342,19 +342,19 @@
         <div *ngIf="getFocusItem(selectedFocusNumber)" class="p-3 border rounded-3 bg-white shadow-sm">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom">
             <div class="d-flex align-items-center gap-2">
-              <div class="ball" [ngClass]="selectedFocusNumber === 49 && payload.lotteryType === 'POWER' ? 'ball-special' : (payload.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega')">
+              <div class="ball" [ngClass]="selectedFocusNumber === 49 && payload?.lotteryType === 'POWER' ? 'ball-special' : (payload?.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega')">
                 {{ formatNumber(selectedFocusNumber) }}
               </div>
               <div>
                 <h5 class="fw-bold text-dark mb-0">Hồ Sơ Điểm Số Banh {{ formatNumber(selectedFocusNumber) }}</h5>
                 <span class="badge bg-primary text-white">{{ getFocusItem(selectedFocusNumber)?.tag }}</span>
-                <span *ngIf="(payload.lotteryType === 'POWER' ? [14, 48, 52] : [31, 45, 14]).includes(selectedFocusNumber)" class="badge bg-success ms-1">Mục tiêu trọng tâm</span>
-                <span *ngIf="payload.focusAnalysis.actualDrawNumbers.includes(selectedFocusNumber)" class="badge bg-info ms-1 text-dark">Đã trúng kỳ quay</span>
+                <span *ngIf="(payload?.lotteryType === 'POWER' ? [14, 48, 52] : [31, 45, 14]).includes(selectedFocusNumber!)" class="badge bg-success ms-1">Mục tiêu trọng tâm</span>
+                <span *ngIf="selectedFocusNumber && payload?.focusAnalysis?.actualDrawNumbers?.includes(selectedFocusNumber)" class="badge bg-info ms-1 text-dark">Đã trúng kỳ quay</span>
               </div>
             </div>
             <div class="text-end">
               <span class="fs-4 fw-bold text-primary">{{ getFocusItem(selectedFocusNumber)?.probabilityPercent }}%</span>
-              <div class="small text-muted">Thứ hạng: #{{ getFocusItem(selectedFocusNumber)?.rank }} / {{ payload.lotteryType === 'POWER' ? 55 : 45 }}</div>
+              <div class="small text-muted">Thứ hạng: #{{ getFocusItem(selectedFocusNumber)?.rank }} / {{ payload?.lotteryType === 'POWER' ? 55 : 45 }}</div>
             </div>
           </div>
 
@@ -386,7 +386,7 @@
       <!-- 4. TAB BÁO CÁO NÂNG CẤP THUẬT TOÁN -->
       <div *ngIf="activeFocusTab === 'algorithmNotes'">
         <div class="row g-3">
-          <div class="col-md-6" *ngFor="let note of payload.focusAnalysis.algorithmUpgradeNotes || []; let i = index">
+          <div class="col-md-6" *ngFor="let note of payload?.focusAnalysis?.algorithmUpgradeNotes || []; let i = index">
             <div class="p-3 border rounded-3 bg-light h-100 shadow-sm">
               <div class="d-flex align-items-center gap-2 mb-2">
                 <span class="badge bg-primary rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">
@@ -422,29 +422,29 @@
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge" [ngClass]="payload.lotteryType === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
-            ĐỀ XUẤT TỐI ƯU &bull; {{ payload.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
+          <span class="badge" [ngClass]="payload?.lotteryType === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
+            ĐỀ XUẤT TỐI ƯU &bull; {{ payload?.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
           </span>
           <span class="badge bg-primary text-white" style="font-size: 0.8rem;">
-            {{ payload.algorithmName || getCurrentAlgorithmInfo().name }}
+            {{ payload?.algorithmName || getCurrentAlgorithmInfo().name }}
           </span>
         </div>
         <h4 class="h5 fw-bold text-dark mb-0">
           Top 5 dãy số (vé) có tổng xác suất cao nhất
         </h4>
-        <small class="text-muted">Được chọn lọc theo ma trận {{ payload.algorithmName || getCurrentAlgorithmInfo().name }}. Di chuột vào từng số để xem chi tiết.</small>
+        <small class="text-muted">Được chọn lọc theo ma trận {{ payload?.algorithmName || getCurrentAlgorithmInfo().name }}. Di chuột vào từng số để xem chi tiết.</small>
       </div>
 
-      <div *ngIf="payload.lotteryType === 'POWER' && payload.specialNumber" class="d-flex align-items-center gap-2 p-2 rounded-2 bg-light border">
+      <div *ngIf="payload?.lotteryType === 'POWER' && payload?.specialNumber" class="d-flex align-items-center gap-2 p-2 rounded-2 bg-light border">
         <span class="small text-secondary fw-semibold">⭐ Banh Phụ (Jackpot 2):</span>
         <div class="ball ball-sm ball-special" 
-             (mouseenter)="showPopup(payload.specialNumber, $event)"
+             (mouseenter)="showPopup(payload?.specialNumber, $event)"
              (mousemove)="updatePopupPosition($event)"
              (mouseleave)="hidePopup()"
-             (click)="pinPopup(payload.specialNumber, $event)"
+             (click)="pinPopup(payload?.specialNumber, $event)"
              title="Nhấn để ghim popup xem lịch sử dãy 6 số"
              style="cursor: pointer;">
-          {{ formatNumber(payload.specialNumber) }}
+          {{ formatNumber(payload?.specialNumber) }}
         </div>
       </div>
     </div>
@@ -452,21 +452,21 @@
     <div class="card-body p-3 p-md-4">
       <div class="row justify-content-center">
         <!-- CHỈ HIỂN THỊ 5 VÉ ĐẦU TIÊN -->
-        <div class="col-md-5 mb-3" *ngFor="let ticket of payload.tickets | slice:0:5; let i = index">
+        <div class="col-md-5 mb-3" *ngFor="let ticket of payload?.tickets | slice:0:5; let i = index">
             <div class="card shadow-sm border-0">
                 <div class="card-header text-start d-flex justify-content-between align-items-center flex-wrap gap-1" 
-                     [ngClass]="{'bg-info text-dark': payload.lotteryType === 'MEGA', 'bg-warning text-dark': payload.lotteryType === 'POWER'}">
+                     [ngClass]="{'bg-info text-dark': payload?.lotteryType === 'MEGA', 'bg-warning text-dark': payload?.lotteryType === 'POWER'}">
                     <div class="d-flex align-items-center gap-1">
                       <strong>🎟️ Dãy số Top {{ i + 1 }}</strong>
-                      <span *ngIf="i === 0 && payload.lotteryType === 'POWER'" class="badge bg-success text-white small">
+                      <span *ngIf="i === 0 && payload?.lotteryType === 'POWER'" class="badge bg-success text-white small">
                         🏆 Khớp trọn vẹn 6 số kỳ quay
                       </span>
                     </div>
-                    <span class="badge bg-white text-dark small">{{ payload.algorithmName ? payload.algorithmName : 'Tỷ lệ trúng cao' }}</span>
+                    <span class="badge bg-white text-dark small">{{ payload?.algorithmName ? payload?.algorithmName : 'Tỷ lệ trúng cao' }}</span>
                 </div>
                 
                 <div class="card-body d-flex justify-content-center gap-2 flex-wrap" 
-                     [ngStyle]="{'background-color': payload.lotteryType === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
+                     [ngStyle]="{'background-color': payload?.lotteryType === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
                     
                     <!-- BÓNG SỐ (TÍCH HỢP CLASS BALL-HIGHLIGHT ĐỂ ĐỔI XANH LÁ KHI HOVER) -->
                     <div class="ball shadow-sm" *ngFor="let num of ticket"
@@ -477,8 +477,8 @@
                          title="Nhấn để ghim popup xem lịch sử dãy 6 số"
                          style="transition: all 0.2s; cursor: pointer;"
                          [ngClass]="{
-                           'ball-mega': payload.lotteryType === 'MEGA', 
-                           'ball-power': payload.lotteryType === 'POWER',
+                           'ball-mega': payload?.lotteryType === 'MEGA', 
+                           'ball-power': payload?.lotteryType === 'POWER',
                            'ball-highlight': hoveredNumber === num
                          }">
                         {{ num < 10 ? '0' + num : num }}
@@ -496,22 +496,22 @@
       <div class="d-flex align-items-center gap-2">
         <span class="fs-5">💡</span>
         <h4 class="h5 fw-bold text-dark mb-0">
-          Phân tích các con số & Lý do chọn ({{ payload.algorithmName || getCurrentAlgorithmInfo().name }})
+          Phân tích các con số & Lý do chọn ({{ payload?.algorithmName || getCurrentAlgorithmInfo().name }})
         </h4>
       </div>
       <span class="badge bg-light text-secondary border">
-        Tỷ lệ chẵn/lẻ: {{ payload.oddEvenRatio }}
+        Tỷ lệ chẵn/lẻ: {{ payload?.oddEvenRatio }}
       </span>
     </div>
 
     <div class="card-body p-3 p-md-4">
       <div class="p-3 mb-4 rounded-3 border bg-light">
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-primary text-white">{{ payload.algorithmName || getCurrentAlgorithmInfo().name }}</span>
+          <span class="badge bg-primary text-white">{{ payload?.algorithmName || getCurrentAlgorithmInfo().name }}</span>
           <span class="small text-muted fw-semibold">Cơ sở toán học & nguyên lý lựa chọn:</span>
         </div>
         <div class="text-secondary small" style="line-height: 1.6;">
-          {{ payload.overallReason || payload.analysisSummary }}
+          {{ payload?.overallReason || payload?.analysisSummary }}
         </div>
       </div>
 
@@ -579,7 +579,7 @@
         
         <div class="text-center mt-3" *ngIf="payload && payload.selectionReasons && payload.selectionReasons.length > 6">
             <button class="btn btn-outline-primary rounded-pill px-4 fw-semibold" (click)="showAllReasons = !showAllReasons">
-                {{ showAllReasons ? '⬆️ Thu gọn danh sách lý do' : '⬇️ Xem chi tiết tất cả các số (' + payload.selectionReasons.length + ' số)' }}
+                {{ showAllReasons ? '⬆️ Thu gọn danh sách lý do' : '⬇️ Xem chi tiết tất cả các số (' + (payload?.selectionReasons?.length || 0) + ' số)' }}
             </button>
         </div>
       </div>

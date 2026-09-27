@@ -1,10 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PredictionPayload } from 'src/app/core/models/prediction-payload.model';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
   selector: 'app-prediction',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './prediction.component.html',
   styleUrls: ['./prediction.component.css']
 })
@@ -117,7 +122,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
   }
 
   // --- HÀM PHỤC VỤ POPUP & GHIM (ĐÃ KHÔI PHỤC) ---
-  showPopup(num: number, event: MouseEvent) {
+  showPopup(num: number | undefined | null, event: MouseEvent) {
+    if (num === undefined || num === null) return;
     if (this.isPopupPinned) return; // Nếu đang ghim số khác thì bỏ qua hover
     this.hoveredNumber = num;
     this.loadPopupData(num);
@@ -146,7 +152,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
   }
 
   // Hàm ghim Popup (Click vào bóng)
-  pinPopup(num: number, event: MouseEvent) {
+  pinPopup(num: number | undefined | null, event: MouseEvent) {
+    if (num === undefined || num === null) return;
     event.stopPropagation(); // Ngăn click lan ra ngoài
     this.isPopupPinned = true;
     this.hoveredNumber = num;
@@ -166,8 +173,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.hoveredNumberHistory = [];
   }
 
-  loadPopupData(num: number) {
-    if (!this.payload) return;
+  loadPopupData(num: number | undefined | null) {
+    if (num === undefined || num === null || !this.payload) return;
     if (this.payload.selectionReasons) {
       this.hoveredNumberDetail = this.payload.selectionReasons.find(r => r.number === num);
     }
