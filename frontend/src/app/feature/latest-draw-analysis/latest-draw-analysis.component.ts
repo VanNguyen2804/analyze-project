@@ -1192,7 +1192,10 @@ fetchAnalysis(): void {
       left: x + 'px'
     };
   }
-
+// Tự động phân tích lại khi người dùng đổi thuật toán
+  onAlgorithmChange(): void {
+    this.fetchAnalysis();
+  }
   formatNumber(num: number | undefined): string {
     if (num === undefined || num === null) return '--';
     return num < 10 ? '0' + num : num.toString();
