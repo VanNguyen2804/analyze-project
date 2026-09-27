@@ -21,10 +21,11 @@ export class AnalyzeService {
   }
 
   // API 1: Phân tích 10 số tiềm năng (Dự đoán XGBoost + Wheeling System)
-  getPrediction(category: string): Observable<PredictionPayload> {
-    return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}`);
+ // ĐÃ KHÔI PHỤC: Dự đoán 10 số, nhận đủ 2 tham số category và algorithm
+  getPrediction(category: string, algorithm: string): Observable<PredictionPayload> {
+    return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}&algorithm=${algorithm}`);
   }
-
+  
   // API 2: Phân tích 6 số đã trúng thưởng (Nhận đủ 3 tham số: category, date, algorithm)
   getOfficialDrawAnalysis(category: string, date: string, algorithm: string): Observable<any> {
     let url = `${this.apiUrl}/official-draw-analysis?category=${category}&algorithm=${algorithm}`;
