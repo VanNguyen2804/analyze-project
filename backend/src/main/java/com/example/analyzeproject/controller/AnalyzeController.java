@@ -1,10 +1,11 @@
 package com.example.analyzeproject.controller;
 
-import com.example.analyzeproject.dto.DrawRecordDto;
 import com.example.analyzeproject.dto.PredictionResponseDto;
 import com.example.analyzeproject.dto.TicketCheckRequestDto;
 import com.example.analyzeproject.dto.TicketCheckResponseDto;
+import com.example.analyzeproject.dto.DrawRecordDto;
 import com.example.analyzeproject.model.LotteryNumber;
+import com.example.analyzeproject.model.UserTicket;
 import com.example.analyzeproject.service.AnalyzeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,49 @@ public class AnalyzeController {
     public AnalyzeController(AnalyzeService analyzeService) {
         this.analyzeService = analyzeService;
     }
+    
+    @GetMapping("/predict")
+    public ResponseEntity<PredictionResponseDto> predictNumbers(
+            @RequestParam(required = false, defaultValue = "MEGA") String category,
+            @RequestParam(required = false, defaultValue = "xgboost") String algorithm) {
+        PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * PHÂN TÍCH CHÍNH XÁC 6 SỐ TRÚNG THƯỞNG CHO TRANG LATEST-DRAW-ANALYSIS
+     * Nhận đủ 3 tham số: category, date, algorithm.
+     */
+    @GetMapping("/official-draw-analysis")
+    public ResponseEntity<?> getOfficialDrawAnalysis(
+            @RequestParam(value = "category", defaultValue = "MEGA") String category,
+            @RequestParam(value = "date", required = false) String date,
+            @RequestParam(value = "algorithm", defaultValue = "XGBoost") String algorithm) {
+        try {
+            Map<String, Object> result = analyzeService.analyzeOfficialDraw(category, date, algorithm);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/latest-draw")
+    public ResponseEntity<?> getLatestDraw(
+            @RequestParam(value = "category", defaultValue = "MEGA") String category,
+            @RequestParam(value = "date", required = false) String drawDate) {
+        DrawRecordDto result = analyzeService.getLatestDraw(category, drawDate);
+        if (result != null) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(404)
+                .body(Map.of("status", "NOT_FOUND", "message", "Không tìm thấy dữ liệu " + category + " cho ngày " + drawDate));
+        }
+    }
+
+    @GetMapping("/history")
+    public List<DrawRecordDto> getHistory(@RequestParam(defaultValue = "MEGA") String category) {
+        return analyzeService.getRecentDraws(category);
+    }
 
     @PostMapping("/check-tickets")
     public TicketCheckResponseDto checkTickets(@RequestBody TicketCheckRequestDto request) {
@@ -33,34 +77,17 @@ public class AnalyzeController {
     @PostMapping("/add-result")
     public String addOfficialResult(@RequestBody LotteryNumber newDraw) {
         analyzeService.addNewDrawResult(newDraw);
-        return "Đã cập nhật kết quả mới vào hệ thống. Thuật toán đã được hiệu chỉnh mốc thống kê.";
-    }
-
-    @GetMapping("/history")
-    public List<DrawRecordDto> getHistory(@RequestParam(defaultValue = "MEGA") String category) {
-        return analyzeService.getRecentDraws(category);
-    }
-    
-    /**
-     * Phân tích theo từng dãy số theo ngày cho từng category và đề xuất 6 số tối ưu.
-     * @param category MEGA (1-45) hoặc POWER (1-55)
-     */
-    @GetMapping("/predict")
-    public ResponseEntity<PredictionResponseDto> predictNumbers(
-            @RequestParam(required = false, defaultValue = "MEGA") String category,
-            @RequestParam(required = false, defaultValue = "xgboost") String algorithm) {
-        PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm);
-        return ResponseEntity.ok(result);
+        return "Đã cập nhật kết quả mới vào hệ thống.";
     }
 
     @PutMapping("/update-result/{id}")
-    public String updateResult(@PathVariable Long id, @RequestBody com.example.analyzeproject.model.LotteryNumber updatedDraw) {
+    public String updateResult(@PathVariable Long id, @RequestBody LotteryNumber updatedDraw) {
         analyzeService.updateDrawResult(id, updatedDraw);
         return "Đã chỉnh sửa dãy số thành công!";
     }
 
     @GetMapping("/user-history")
-    public List<com.example.analyzeproject.model.UserTicket> getUserHistory() {
+    public List<UserTicket> getUserHistory() {
         return analyzeService.getUserHistory();
     }
 
@@ -68,42 +95,5 @@ public class AnalyzeController {
     public String clearUserHistory() {
         analyzeService.clearUserHistory();
         return "Đã xóa lịch sử dò vé cá nhân.";
-    }
-
-    // Thêm vào AnalyzeController.java
-// Thêm hoặc sửa lại trong AnalyzeController.java
-@GetMapping("/latest-draw")
-public ResponseEntity<?> getLatestDraw(
-        @RequestParam(value = "category", defaultValue = "MEGA") String category,
-        @RequestParam(value = "date", required = false) String drawDate) {
-    
-    // Gọi service (đã được cập nhật ở bước trước) để lấy dữ liệu
-    DrawRecordDto result = analyzeService.getLatestDraw(category, drawDate);
-    
-    if (result != null) {
-        return ResponseEntity.ok(result);
-    } else {
-        return ResponseEntity.status(404)
-            .body(Map.of("status", "NOT_FOUND", "message", "Không tìm thấy dữ liệu " + category + " cho ngày " + drawDate));
-    }
-}
-
-/**
-     * Endpoint lấy kết quả phân tích kỳ quay mới nhất.
-     */
-    @GetMapping("/latest-draw-analysis")
-    public ResponseEntity<?> getLatestDrawAnalysis(
-            @RequestParam(value = "category", defaultValue = "MEGA") String category,
-            @RequestParam(value = "algorithm", defaultValue = "xgboost") String algorithm) {
-        
-        // Truyền tham số algorithm từ Frontend xuống Service
-        PredictionResponseDto analysisResult = analyzeService.analyzeAndPredict(category, algorithm);
-        
-        if (analysisResult != null) {
-            return ResponseEntity.ok(analysisResult);
-        } else {
-            return ResponseEntity.status(404)
-                .body(Map.of("status", "NOT_FOUND", "message", "Không thể phân tích dữ liệu " + category));
-        }
     }
 }

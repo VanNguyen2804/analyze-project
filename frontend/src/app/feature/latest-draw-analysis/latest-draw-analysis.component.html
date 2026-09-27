@@ -1,184 +1,165 @@
 <style>
-  .ball-mega {
-    background: radial-gradient(circle at 15px 15px, #00b4db, #0083b0) !important;
-    color: white !important;
-    border: 2px solid #00769c !important;
+  .analysis-wrapper {
+    background-color: #244177;
+    border-radius: 12px;
+    padding: 30px;
+    color: white;
+    font-family: Arial, sans-serif;
   }
-  .ball-power {
-    background: radial-gradient(circle at 15px 15px, #f2994a, #f2c94c) !important;
-    color: white !important;
-    border: 2px solid #e2893a !important;
+  .toggle-btn {
+    border-radius: 20px;
+    padding: 8px 24px;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: white;
+    transition: all 0.3s;
   }
-  .ball-highlight {
-    background: radial-gradient(circle at 15px 15px, #28a745, #155724) !important;
-    color: white !important;
-    border: 2px solid #155724 !important;
-    transform: scale(1.15);
-    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4) !important;
-    z-index: 10;
+  .toggle-btn.active-power {
+    background: linear-gradient(180deg, #3b5998, #192f5d);
+    border-color: #5c7cfa;
+  }
+  .toggle-btn.active-mega {
+    background: linear-gradient(180deg, #d32f2f, #9a0007);
+    border-color: #ff5252;
+  }
+  .dark-card {
+    background-color: #0b0f19;
+    border: 1px solid #444;
+    border-radius: 8px;
+  }
+  .ball-drawn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    border: 2px solid white;
+  }
+  .ball-mega-style { background: linear-gradient(180deg, #ff4d4d, #b30000); }
+  .ball-power-style { background: linear-gradient(180deg, #4dabf7, #0b5ed7); }
+  
+  /* Style cho Card phân tích giống ảnh */
+  .card-analysis {
+    border-radius: 16px;
+    border: 1px solid #eaeaea;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card-analysis:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
   }
 </style>
 
-<div class="prediction-container w-100">
-  <!-- Header Card -->
-  <div class="card shadow-sm border-0 mb-4 mt-4">
-    <div class="card-body p-3 p-md-4">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-          <h3 class="card-title h4 fw-bold text-primary mb-1">
-            📊 Phân tích Kỳ quay Mới nhất
-          </h3>
-          <p class="text-muted mb-0 small">
-            Đánh giá sức mạnh của các con số xuất hiện trong kỳ quay gần đây nhất và đối chiếu với thuật toán AI.
-          </p>
-        </div>
-      </div>
+<div class="analysis-wrapper mt-4 shadow">
+  <!-- Header & Title -->
+  <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+    <span class="badge text-dark rounded-pill px-3 py-2" style="background: linear-gradient(90deg, #d4af37, #f3e5ab);">
+      🏆 ĐỐI SOÁT & PHÂN TÍCH CHUYÊN SÂU
+    </span>
+    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">KỲ MỚI NHẤT</span>
+    <span class="badge bg-light text-dark rounded-pill px-3 py-2">{{ analysisData?.drawDate || '...' }}</span>
+  </div>
 
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-3">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div class="small text-muted">
-             <span class="badge bg-secondary">MEGA 6/45</span> | <span class="badge bg-secondary">POWER 6/55</span>
-          </div>
-          
-          <!-- DROPDOWN CHỌN THUẬT TOÁN -->
-          <div class="input-group input-group-sm shadow-sm" style="width: auto;">
-            <span class="input-group-text bg-light fw-bold text-secondary border-end-0">Thuật toán</span>
-            <select class="form-select fw-semibold" [(ngModel)]="algorithm" (change)="onAlgorithmChange()">
-              <option *ngFor="let algo of availableAlgorithms" [value]="algo.id">{{ algo.name }}</option>
-            </select>
-          </div>
-        </div>
+  <h2 class="fw-bold mb-3">Phân Tích Kết Quả Trúng Kỳ Quay {{ category === 'MEGA' ? 'Mega 6/45' : 'Power 6/55' }} Mới Nhất</h2>
+  
+  <!-- Toggle Buttons -->
+  <div class="d-flex gap-3 mb-4">
+    <button class="toggle-btn d-flex align-items-center gap-2" [ngClass]="category === 'POWER' ? 'active-power' : ''" (click)="changeCategory('POWER')">
+      <span class="rounded-circle d-inline-block" style="width:12px; height:12px; background:#5c7cfa;"></span> Power 6/55
+    </button>
+    <button class="toggle-btn d-flex align-items-center gap-2" [ngClass]="category === 'MEGA' ? 'active-mega' : ''" (click)="changeCategory('MEGA')">
+      <span class="rounded-circle d-inline-block" style="width:12px; height:12px; background:#ff5252;"></span> Mega 6/45
+    </button>
+  </div>
 
-        <button
-          id="btn-fetch-latest"
-          class="btn btn-primary fw-bold px-4 py-2 shadow-sm"
-          (click)="fetchAnalysis()"
-          [disabled]="isLoading"
-        >
-          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          {{ isLoading ? 'Đang tải dữ liệu...' : '🔄 Làm mới Dữ liệu' }}
-        </button>
-      </div>
+  <!-- Thanh công cụ: ĐỦ 3 THAM SỐ (Ngày, Category, Thuật toán) -->
+  <div class="dark-card p-3 mb-4 d-flex flex-wrap align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2 text-white fw-semibold">
+      <span>📅 Tra cứu & Phân tích theo ngày:</span>
+      <input type="date" class="form-control form-control-sm text-dark fw-bold" style="width: 140px;" [(ngModel)]="selectedDate">
       
-      <div *ngIf="errorMessage" class="alert alert-warning my-3 py-2">
-        {{ errorMessage }}
-      </div>
+      <span class="ms-2">🤖 Thuật toán:</span>
+      <select class="form-select form-select-sm text-dark fw-bold" style="width: 180px;" [(ngModel)]="algorithm">
+        <option *ngFor="let algo of availableAlgorithms" [value]="algo.id">{{ algo.name }}</option>
+      </select>
     </div>
+    <button class="btn btn-warning btn-sm fw-bold px-3 rounded-pill text-dark" (click)="fetchAnalysis(false)" [disabled]="isLoading">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1"></span> 🔍 Lấy 6 số & Phân tích
+    </button>
+    <button class="btn btn-outline-light btn-sm fw-bold px-3 rounded-pill border-secondary" (click)="fetchAnalysis(true)" [disabled]="isLoading">
+      🔄 Kỳ mới nhất
+    </button>
+    <div *ngIf="errorMessage" class="w-100 mt-2 text-warning small fw-bold">{{ errorMessage }}</div>
   </div>
+</div>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="text-center py-5">
-    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-    <h5 class="text-muted">Đang phân tích dữ liệu theo thuật toán {{ algorithm }}...</h5>
-  </div>
-
-  <!-- Nội dung phân tích -->
-  <div *ngIf="!isLoading && analysisData">
-    
-    <!-- 1. KẾT QUẢ KỲ QUAY MỚI NHẤT -->
-    <div class="card shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
-      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-          <span class="badge" [ngClass]="category === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
-            KẾT QUẢ CHÍNH THỨC &bull; {{ category === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
-          </span>
-          <h4 class="h5 fw-bold text-dark mb-0 mt-1">
-            Dãy số trúng thưởng ngày {{ analysisData.drawDate }}
-          </h4>
-        </div>
-      </div>
-
-      <div class="card-body p-4 text-center">
-        <div class="d-flex justify-content-center gap-3 flex-wrap p-3 rounded" [ngStyle]="{'background-color': category === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
-          <!-- Các bóng số chính -->
-          <div class="ball shadow-sm fw-bold fs-4" 
-               *ngFor="let num of analysisData.numbers"
-               style="width: 60px; height: 60px;"
-               [ngClass]="category === 'MEGA' ? 'ball-mega' : 'ball-power'">
-            {{ num < 10 ? '0' + num : num }}
-          </div>
-          
-          <!-- Banh phụ (Nếu có) -->
-          <div class="d-flex align-items-center" *ngIf="analysisData.specialNumber">
-            <span class="fs-4 text-muted mx-2">+</span>
-            <div class="ball shadow-sm fw-bold fs-4 bg-danger text-white border-danger" 
-                 style="width: 60px; height: 60px;"
-                 title="Banh Phụ (Jackpot 2)">
-              {{ analysisData.specialNumber < 10 ? '0' + analysisData.specialNumber : analysisData.specialNumber }}
+<!-- LƯỚI PHÂN TÍCH KỸ THUẬT TỪNG QUẢ BANH (Dựa trên ảnh của bạn) -->
+<div class="row g-4 mt-2 mb-5" *ngIf="analysisData?.selectionReasons">
+  <div class="col-lg-4 col-md-6" *ngFor="let item of analysisData.selectionReasons">
+    <div class="card card-analysis h-100 bg-white shadow-sm">
+      <div class="card-body p-4 d-flex flex-column">
+        
+        <!-- Header Card: Bóng số & Xếp hạng -->
+        <div class="d-flex justify-content-between align-items-start mb-3 border-bottom pb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="ball-drawn text-white shadow-sm" [ngClass]="category === 'MEGA' ? 'ball-mega-style' : 'ball-power-style'">
+              {{ item.number < 10 ? '0' + item.number : item.number }}
+            </div>
+            <div>
+              <h6 class="fw-bold text-dark mb-1">Quả Banh {{ item.number < 10 ? '0' + item.number : item.number }}</h6>
+              <span class="badge bg-secondary text-white" style="font-size: 0.7rem;"><i class="bi bi-bullseye"></i> Số Mở Thưởng</span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. CHI TIẾT ĐÁNH GIÁ TỪNG CON SỐ -->
-    <div class="card shadow-sm border-0 mb-4" *ngIf="analysisData.selectionReasons && analysisData.selectionReasons.length > 0">
-      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-2">
-          <span class="fs-5">🤖</span>
-          <h4 class="h5 fw-bold text-dark mb-0">
-            Đánh giá sức mạnh các con số đã về
-          </h4>
-        </div>
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
-          {{ analysisData.algorithmName || 'AI Analysis Report' }}
-        </span>
-      </div>
-
-      <div class="card-body p-3 p-md-4">
-        <div class="p-3 mb-4 rounded-3 border bg-light" *ngIf="analysisData.overallReason || analysisData.analysisSummary">
-          <div class="text-secondary small" style="line-height: 1.6;">
-            {{ analysisData.overallReason || analysisData.analysisSummary }}
+          <div class="text-end">
+            <div class="fs-3 fw-bold text-primary" style="line-height: 1;">{{ item.probabilityPercent }}%</div>
+            <div class="badge bg-light text-dark border mt-1">Hạng #{{ item.rank }}/{{ category === 'MEGA' ? 45 : 55 }}</div>
           </div>
         </div>
 
-        <div class="d-flex flex-column gap-3">
-          <div
-            *ngFor="let item of analysisData.selectionReasons"
-            class="p-3 rounded-3 border bg-white shadow-sm"
-            [ngClass]="{
-              'border-start border-4 border-start-warning': item.role === 'special',
-              'border-start border-4 border-start-danger': item.tag === 'SỐ NÓNG',
-              'border-start border-4 border-start-primary': item.tag === 'LÔ GAN',
-              'border-start border-4 border-start-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM'
-            }"
-          >
-            <div class="d-flex align-items-start gap-3">
-              <div class="d-flex flex-column align-items-center">
-                <div class="ball flex-shrink-0 shadow-sm"
-                     style="width: 48px; height: 48px; font-size: 1.15rem;"
-                     [ngClass]="{
-                       'ball-mega': category === 'MEGA' && item.role !== 'special', 
-                       'ball-power': category === 'POWER' && item.role !== 'special',
-                       'bg-danger text-white border-danger': item.role === 'special'
-                     }">
-                  {{ item.role === 'special' ? '★' : '' }}{{ item.number < 10 ? '0' + item.number : item.number }}
-                </div>
-              </div>
+        <!-- Tag & Tiêu đề -->
+        <div class="mb-4">
+          <span class="badge border text-dark mb-2 px-2 py-1 fw-bold" style="background-color: #f8f9fa;">{{ item.tag }}</span>
+          <h6 class="fw-bold text-dark" style="font-size: 0.95rem;">{{ item.title }}</h6>
+        </div>
 
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
-                  <div>
-                    <span class="fw-bold fs-6 text-dark me-2">Số {{ item.number < 10 ? '0' + item.number : item.number }}</span>
-                    <span class="badge small" [ngClass]="{'bg-danger': item.tag === 'SỐ NÓNG', 'bg-primary': item.tag === 'LÔ GAN', 'bg-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM'}">
-                      {{ item.tag }}
-                    </span>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 small text-muted">
-                    <span class="badge bg-light text-dark border" *ngIf="item.probabilityPercent">
-                      Sức mạnh: <strong class="text-primary">{{ item.probabilityPercent }}%</strong>
-                    </span>
-                    <span class="badge bg-light text-secondary border">Về {{ item.frequency }} lần - Gan {{ item.drawGap }} kỳ</span>
-                  </div>
-                </div>
-                <div class="fw-semibold text-dark small mb-1">{{ item.title }}</div>
-                <p class="text-secondary small mb-0" style="line-height: 1.55;">{{ item.reason }}</p>
-              </div>
-            </div>
+        <!-- Thống kê 3 Cột (Đã về, Chu kỳ, Quán tính) -->
+        <div class="row text-center mb-4 g-2">
+          <div class="col-4">
+            <div class="text-muted" style="font-size: 0.75rem;">Đã về</div>
+            <div class="fw-bold fs-5 text-dark">{{ item.frequency }} lần</div>
+          </div>
+          <div class="col-4 border-start border-end">
+            <div class="text-muted" style="font-size: 0.75rem;">Chu kỳ Gan</div>
+            <div class="fw-bold fs-5 text-success">{{ item.drawGap }} kỳ</div>
+          </div>
+          <div class="col-4">
+            <div class="text-muted" style="font-size: 0.75rem;">Quán tính</div>
+            <div class="fw-bold fs-5 text-primary">{{ item.momentum }}</div>
           </div>
         </div>
+
+        <!-- Chỉ số Thuật toán (Markov, Poisson, Đồng hành) -->
+        <div class="d-flex justify-content-between text-muted fw-bold mb-3 border-bottom pb-3" style="font-size: 0.75rem;">
+          <span>Markov: {{ item.markov }}%</span>
+          <span>Poisson: {{ item.poisson }}%</span>
+          <span>Đồng hành: {{ item.companion }}%</span>
+        </div>
+
+        <!-- Nội dung lý do -->
+        <p class="text-secondary mb-4" style="font-size: 0.85rem; line-height: 1.6;">
+          {{ item.reason }}
+        </p>
+
+        <!-- Footer Card -->
+        <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+          <a href="javascript:void(0)" class="text-decoration-none fw-bold text-primary" style="font-size: 0.85rem;">🔍 Nhấn để xem lịch sử 6 số &rarr;</a>
+          <span class="text-muted" style="font-size: 0.8rem;">Cặp: [{{ item.pairedNumbers }}]</span>
+        </div>
+
       </div>
     </div>
   </div>
