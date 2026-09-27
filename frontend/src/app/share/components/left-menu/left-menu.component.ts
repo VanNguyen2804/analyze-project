@@ -84,7 +84,7 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
     this.currentCategory = this.categoryService.currentCategory;
     this.catSub = this.categoryService.category$.subscribe(cat => {
       this.currentCategory = cat;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     });
   }
 
@@ -95,6 +95,6 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
   selectCategory(cat: 'MEGA' | 'POWER'): void {
     this.currentCategory = cat;
     this.categoryService.setCategory(cat);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 }

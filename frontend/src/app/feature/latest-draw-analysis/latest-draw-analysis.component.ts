@@ -51,7 +51,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     this.category = cat;
     this.analyzeService.setCategory(cat);
     this.fetchAnalysis(true);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   fetchAnalysis(useLatest: boolean = false): void {
@@ -61,7 +61,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     if (useLatest) {
       this.selectedDate = ''; // Lấy ngày mới nhất từ DB
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
     // Gửi đúng 3 tham số
     this.analyzeService.getOfficialDrawAnalysis(this.category, this.selectedDate, this.algorithm).subscribe({
@@ -71,13 +71,13 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
           this.selectedDate = response.drawDate; // Map lại ngày trả về lên UI
         }
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (error) => {
         this.errorMessage = 'Không tìm thấy dữ liệu phân tích cho ngày/loại vé này.';
         this.isLoading = false;
         this.analysisData = null;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }

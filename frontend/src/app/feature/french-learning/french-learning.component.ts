@@ -323,13 +323,13 @@ export class FrenchLearningComponent implements OnInit {
     const saved = localStorage.getItem('french_user_score');
     if (saved) {
       this.totalScore = parseInt(saved, 10) || 0;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
   saveScore() {
     localStorage.setItem('french_user_score', this.totalScore.toString());
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   loadHistory() {
@@ -340,11 +340,11 @@ export class FrenchLearningComponent implements OnInit {
         } else {
           this.loadLocalHistory();
         }
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loadLocalHistory();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -358,7 +358,7 @@ export class FrenchLearningComponent implements OnInit {
     } catch (e) {
       this.attemptHistory = [];
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   saveLocalHistory(record: any) {
@@ -367,7 +367,7 @@ export class FrenchLearningComponent implements OnInit {
       this.attemptHistory = this.attemptHistory.slice(0, 50);
     }
     localStorage.setItem('french_attempt_history', JSON.stringify(this.attemptHistory));
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   // --- Chức năng Ghép từ thành câu ---
@@ -380,7 +380,7 @@ export class FrenchLearningComponent implements OnInit {
     }
     this.currentExerciseIndex = 0;
     this.resetCurrentExercise();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   get currentExercise(): SentenceExercise | undefined {
@@ -390,14 +390,14 @@ export class FrenchLearningComponent implements OnInit {
   selectExercise(index: number) {
     this.currentExerciseIndex = index;
     this.resetCurrentExercise();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   nextExercise() {
     if (this.currentExerciseIndex < this.filteredExercises.length - 1) {
       this.currentExerciseIndex++;
       this.resetCurrentExercise();
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -405,7 +405,7 @@ export class FrenchLearningComponent implements OnInit {
     if (this.currentExerciseIndex > 0) {
       this.currentExerciseIndex--;
       this.resetCurrentExercise();
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -416,7 +416,7 @@ export class FrenchLearningComponent implements OnInit {
     ex.userTokens.push(token);
     ex.scrambledTokens.splice(tokenIndex, 1);
     ex.status = 'none';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   removeTokenFromAnswer(token: string, userIndex: number) {
@@ -426,7 +426,7 @@ export class FrenchLearningComponent implements OnInit {
     ex.userTokens.splice(userIndex, 1);
     ex.scrambledTokens.push(token);
     ex.status = 'none';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   resetCurrentExercise() {
@@ -441,14 +441,14 @@ export class FrenchLearningComponent implements OnInit {
     }
     ex.status = 'none';
     ex.showHint = false;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   toggleHint() {
     const ex = this.currentExercise;
     if (ex) {
       ex.showHint = !ex.showHint;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -481,7 +481,7 @@ export class FrenchLearningComponent implements OnInit {
       attemptedAt: new Date().toISOString()
     };
     this.saveLocalHistory(historyItem);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
     // Gửi lên backend nếu có
     this.service.submitFrenchAttempt({
@@ -490,10 +490,10 @@ export class FrenchLearningComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.loadHistory();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -508,7 +508,7 @@ export class FrenchLearningComponent implements OnInit {
       this.saveScore();
       this.playAudio(q.question.replace('___', q.options[optIndex]));
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   resetQuiz() {
@@ -516,7 +516,7 @@ export class FrenchLearningComponent implements OnInit {
       q.selectedOption = undefined;
       q.isAnswered = false;
     });
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   // --- Phát âm SpeechSynthesis (fr-FR) ---

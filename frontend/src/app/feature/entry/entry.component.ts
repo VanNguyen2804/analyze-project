@@ -68,30 +68,30 @@ export class EntryComponent implements OnInit, OnDestroy {
       this.category = newCategory;
       this.analyzeService.setCategory(newCategory);
       this.loadHistory();
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
   onDateOrCategoryChange() {
     this.checkExistingOfficialDraw();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   loadHistory() {
     this.isLoadingHistory = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
     this.analyzeService.getHistory(this.category).subscribe({
       next: (res) => {
         this.isLoadingHistory = false;
         this.recentDraws = Array.isArray(res) ? res : [];
         this.checkExistingOfficialDraw();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.isLoadingHistory = false;
         console.error('Lỗi tải lịch sử database:', err);
         this.recentDraws = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -111,14 +111,14 @@ export class EntryComponent implements OnInit, OnDestroy {
     } else {
       this.existingOfficialDraw = null;
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   clearOfficialInputs() {
     this.officialNumbers = [null, null, null, null, null, null];
     this.officialSpecialNumber = null;
     this.saveOfficialMessage = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   // LƯU KẾT QUẢ VIETLOTT THEO NGÀY VÀO DATABASE
@@ -167,7 +167,7 @@ export class EntryComponent implements OnInit, OnDestroy {
 
     this.isSavingOfficial = true;
     this.saveOfficialMessage = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
     this.analyzeService.addOfficialResult(payload).subscribe({
       next: (msg) => {
@@ -175,12 +175,12 @@ export class EntryComponent implements OnInit, OnDestroy {
         this.saveOfficialMessage = `✅ Đã lưu thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
         alert(`Thành công: Đã lưu kết quả Vietlott ngày ${this.drawDate} vào Database.`);
         this.loadHistory();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.isSavingOfficial = false;
         alert('Lưu kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -189,24 +189,24 @@ export class EntryComponent implements OnInit, OnDestroy {
     this.analyzeService.getUserHistory().subscribe({
       next: (res) => {
         this.userCheckHistory = Array.isArray(res) ? res : [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Lỗi tải lịch sử cá nhân từ DB:', err);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
 
   addTicketRow() {
     this.userTickets.push([null as any, null as any, null as any, null as any, null as any, null as any]);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   removeTicketRow(index: number) {
     if (this.userTickets.length > 1) {
       this.userTickets.splice(index, 1);
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -217,7 +217,7 @@ export class EntryComponent implements OnInit, OnDestroy {
   submitCheck() {
     this.isChecking = true;
     this.checkResult = null;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
     const payload = {
       category: this.category,
       drawDate: this.drawDate,
@@ -231,12 +231,12 @@ export class EntryComponent implements OnInit, OnDestroy {
         if (res.status === 'SUCCESS') {
           this.loadUserHistory();
         }
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         alert('Lỗi kết nối Server.');
         this.isChecking = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -246,11 +246,11 @@ export class EntryComponent implements OnInit, OnDestroy {
       this.analyzeService.clearUserHistory().subscribe({
         next: () => {
           this.userCheckHistory = [];
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error(err);
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         }
       });
     }
@@ -260,14 +260,14 @@ export class EntryComponent implements OnInit, OnDestroy {
     this.editingDrawId = draw.id;
     this.editNumbers = [...draw.numbers]; 
     this.editSpecialNumber = draw.specialNumber;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   cancelEdit() {
     this.editingDrawId = null;
     this.editNumbers = [];
     this.editSpecialNumber = null;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   saveEdit(draw: any) {
@@ -281,11 +281,11 @@ export class EntryComponent implements OnInit, OnDestroy {
         alert(msg);
         this.editingDrawId = null;
         this.loadHistory(); 
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         alert('Có lỗi xảy ra khi cập nhật số!');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }

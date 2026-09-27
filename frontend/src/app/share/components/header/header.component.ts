@@ -13,23 +13,21 @@ import { AnalyzeService } from '../../../core/services/analyze.service';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   currentCategory: string = 'MEGA';
-  currentLang: string = 'vi';
+  currentLang: string = localStorage.getItem('appLang') || 'vi';
   private catSub?: Subscription;
 
   constructor(
     private analyzeService: AnalyzeService,
     public translate: TranslateService,
     private cdr: ChangeDetectorRef
-  ) {
-    const savedLang = localStorage.getItem('appLang') || 'vi';
-    this.switchLanguage(savedLang);
-  }
+  ) {}
 
   ngOnInit(): void {
+    this.translate.use(this.currentLang);
     this.catSub = this.analyzeService.currentCategory$.subscribe(category => {
       if (category && this.currentCategory !== category) {
         this.currentCategory = category;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -41,13 +39,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   selectCategory(category: string) {
     this.currentCategory = category;
     this.analyzeService.setCategory(category);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   switchLanguage(lang: string) {
     this.currentLang = lang;
     this.translate.use(lang);
     localStorage.setItem('appLang', lang);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 }

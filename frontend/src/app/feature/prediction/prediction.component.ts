@@ -69,7 +69,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.selectedFocusNumber = null;
     this.scoreSearchTerm = '';
     this.closePopup();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   // --- XỬ LÝ THUẬT TOÁN ---
@@ -88,19 +88,19 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.isSpinning = true;
     this.errorMessage = null;
     this.closePopup();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
     
     this.analyzeService.getPrediction(this.category, this.selectedAlgorithm).subscribe({
       next: (res) => {
         this.payload = res;
         this.isSpinning = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Lỗi API predict:', err);
         this.errorMessage = 'Có lỗi xảy ra khi kết nối thuật toán dự đoán. Vui lòng thử lại!';
         this.isSpinning = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -108,7 +108,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   // --- HÀM PHỤC VỤ TAB FOCUS ANALYSIS (ĐÃ KHÔI PHỤC) ---
   selectFocusNumber(num: number) {
     this.selectedFocusNumber = num;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   getTarget3Items(): any[] {
@@ -140,7 +140,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.hoveredNumber = num;
     this.loadPopupData(num);
     this.updatePopupPosition(event);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   updatePopupPosition(event: MouseEvent) {
@@ -155,7 +155,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (y + popupHeight > window.innerHeight) y = event.clientY - popupHeight - 15;
 
     this.popupStyle = { top: y + 'px', left: x + 'px' };
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   hidePopup() {
@@ -163,7 +163,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.hoveredNumber = null;
     this.hoveredNumberDetail = null;
     this.hoveredNumberHistory = [];
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   // Hàm ghim Popup (Click vào bóng)
@@ -179,7 +179,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (x + 420 > window.innerWidth) x = event.clientX - 420 - 15;
     if (y + 400 > window.innerHeight) y = event.clientY - 400 - 15;
     this.popupStyle = { top: y + 'px', left: x + 'px' };
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closePopup() {
@@ -187,7 +187,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.hoveredNumber = null;
     this.hoveredNumberDetail = null;
     this.hoveredNumberHistory = [];
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   loadPopupData(num: number | undefined | null) {
