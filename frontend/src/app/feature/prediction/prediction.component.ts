@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -42,12 +42,18 @@ export class PredictionComponent implements OnInit, OnDestroy {
   category: string = 'MEGA'; 
   private categorySub: Subscription | undefined;
 
-  constructor(private analyzeService: AnalyzeService) {}
+  constructor(
+    private analyzeService: AnalyzeService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
-      this.category = newCategory;
-      this.resetState();
+      if (newCategory) {
+        this.category = newCategory;
+        this.resetState();
+        this.predict();
+      }
     });
   }
 
@@ -63,11 +69,15 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.selectedFocusNumber = null;
     this.scoreSearchTerm = '';
     this.closePopup();
+    this.cdr.detectChanges();
   }
 
   // --- XỬ LÝ THUẬT TOÁN ---
   selectAlgorithm(id: string) {
-    this.selectedAlgorithm = id;
+    if (this.selectedAlgorithm !== id) {
+      this.selectedAlgorithm = id;
+      this.predict();
+    }
   }
 
   getCurrentAlgorithmInfo() {
@@ -78,18 +88,19 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.isSpinning = true;
     this.errorMessage = null;
     this.closePopup();
+    this.cdr.detectChanges();
     
     this.analyzeService.getPrediction(this.category, this.selectedAlgorithm).subscribe({
       next: (res) => {
-        setTimeout(() => {
-          this.payload = res;
-          this.isSpinning = false;
-        }, 1500); 
+        this.payload = res;
+        this.isSpinning = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Lỗi API predict:', err);
         this.errorMessage = 'Có lỗi xảy ra khi kết nối thuật toán dự đoán. Vui lòng thử lại!';
         this.isSpinning = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -97,6 +108,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
   // --- HÀM PHỤC VỤ TAB FOCUS ANALYSIS (ĐÃ KHÔI PHỤC) ---
   selectFocusNumber(num: number) {
     this.selectedFocusNumber = num;
+    this.cdr.detectChanges();
   }
 
   getTarget3Items(): any[] {
@@ -128,6 +140,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.hoveredNumber = num;
     this.loadPopupData(num);
     this.updatePopupPosition(event);
+    this.cdr.detectChanges();
   }
 
   updatePopupPosition(event: MouseEvent) {
@@ -142,6 +155,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (y + popupHeight > window.innerHeight) y = event.clientY - popupHeight - 15;
 
     this.popupStyle = { top: y + 'px', left: x + 'px' };
+    this.cdr.detectChanges();
   }
 
   hidePopup() {
@@ -149,6 +163,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.hoveredNumber = null;
     this.hoveredNumberDetail = null;
     this.hoveredNumberHistory = [];
+    this.cdr.detectChanges();
   }
 
   // Hàm ghim Popup (Click vào bóng)
@@ -164,6 +179,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (x + 420 > window.innerWidth) x = event.clientX - 420 - 15;
     if (y + 400 > window.innerHeight) y = event.clientY - 400 - 15;
     this.popupStyle = { top: y + 'px', left: x + 'px' };
+    this.cdr.detectChanges();
   }
 
   closePopup() {
@@ -171,6 +187,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.hoveredNumber = null;
     this.hoveredNumberDetail = null;
     this.hoveredNumberHistory = [];
+    this.cdr.detectChanges();
   }
 
   loadPopupData(num: number | undefined | null) {

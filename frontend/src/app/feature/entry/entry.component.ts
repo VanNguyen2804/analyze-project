@@ -68,11 +68,13 @@ export class EntryComponent implements OnInit, OnDestroy {
       this.category = newCategory;
       this.analyzeService.setCategory(newCategory);
       this.loadHistory();
+      this.cdr.detectChanges();
     }
   }
 
   onDateOrCategoryChange() {
     this.checkExistingOfficialDraw();
+    this.cdr.detectChanges();
   }
 
   loadHistory() {
@@ -109,12 +111,14 @@ export class EntryComponent implements OnInit, OnDestroy {
     } else {
       this.existingOfficialDraw = null;
     }
+    this.cdr.detectChanges();
   }
 
   clearOfficialInputs() {
     this.officialNumbers = [null, null, null, null, null, null];
     this.officialSpecialNumber = null;
     this.saveOfficialMessage = '';
+    this.cdr.detectChanges();
   }
 
   // LƯU KẾT QUẢ VIETLOTT THEO NGÀY VÀO DATABASE
@@ -163,6 +167,7 @@ export class EntryComponent implements OnInit, OnDestroy {
 
     this.isSavingOfficial = true;
     this.saveOfficialMessage = '';
+    this.cdr.detectChanges();
 
     this.analyzeService.addOfficialResult(payload).subscribe({
       next: (msg) => {
@@ -170,28 +175,38 @@ export class EntryComponent implements OnInit, OnDestroy {
         this.saveOfficialMessage = `✅ Đã lưu thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
         alert(`Thành công: Đã lưu kết quả Vietlott ngày ${this.drawDate} vào Database.`);
         this.loadHistory();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.isSavingOfficial = false;
         alert('Lưu kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
+        this.cdr.detectChanges();
       }
     });
   }
 
   loadUserHistory() {
     this.analyzeService.getUserHistory().subscribe({
-      next: (res) => this.userCheckHistory = res,
-      error: (err) => console.error('Lỗi tải lịch sử cá nhân từ DB:', err)
+      next: (res) => {
+        this.userCheckHistory = Array.isArray(res) ? res : [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Lỗi tải lịch sử cá nhân từ DB:', err);
+        this.cdr.detectChanges();
+      }
     });
   }
 
   addTicketRow() {
     this.userTickets.push([null as any, null as any, null as any, null as any, null as any, null as any]);
+    this.cdr.detectChanges();
   }
 
   removeTicketRow(index: number) {
     if (this.userTickets.length > 1) {
       this.userTickets.splice(index, 1);
+      this.cdr.detectChanges();
     }
   }
 
@@ -202,6 +217,7 @@ export class EntryComponent implements OnInit, OnDestroy {
   submitCheck() {
     this.isChecking = true;
     this.checkResult = null;
+    this.cdr.detectChanges();
     const payload = {
       category: this.category,
       drawDate: this.drawDate,
@@ -215,10 +231,12 @@ export class EntryComponent implements OnInit, OnDestroy {
         if (res.status === 'SUCCESS') {
           this.loadUserHistory();
         }
+        this.cdr.detectChanges();
       },
       error: (err) => {
         alert('Lỗi kết nối Server.');
         this.isChecking = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -226,8 +244,14 @@ export class EntryComponent implements OnInit, OnDestroy {
   clearUserHistory() {
     if(confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử dò vé cá nhân trong Database?')) {
       this.analyzeService.clearUserHistory().subscribe({
-        next: () => this.userCheckHistory = [],
-        error: (err) => console.error(err)
+        next: () => {
+          this.userCheckHistory = [];
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error(err);
+          this.cdr.detectChanges();
+        }
       });
     }
   }
@@ -236,12 +260,14 @@ export class EntryComponent implements OnInit, OnDestroy {
     this.editingDrawId = draw.id;
     this.editNumbers = [...draw.numbers]; 
     this.editSpecialNumber = draw.specialNumber;
+    this.cdr.detectChanges();
   }
 
   cancelEdit() {
     this.editingDrawId = null;
     this.editNumbers = [];
     this.editSpecialNumber = null;
+    this.cdr.detectChanges();
   }
 
   saveEdit(draw: any) {
@@ -255,9 +281,11 @@ export class EntryComponent implements OnInit, OnDestroy {
         alert(msg);
         this.editingDrawId = null;
         this.loadHistory(); 
+        this.cdr.detectChanges();
       },
       error: (err) => {
         alert('Có lỗi xảy ra khi cập nhật số!');
+        this.cdr.detectChanges();
       }
     });
   }

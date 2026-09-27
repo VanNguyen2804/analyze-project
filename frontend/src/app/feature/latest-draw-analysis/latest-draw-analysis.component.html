@@ -76,6 +76,19 @@
     </button>
   </div>
 
+  <!-- DÃY BÓNG SỐ MỞ THƯỞNG CỦA KỲ QUAY ĐANG XEM -->
+  <div *ngIf="analysisData?.numbers" class="d-flex align-items-center gap-2 flex-wrap mb-4 p-3 rounded-3" style="background: rgba(255,255,255,0.12);">
+    <span class="fw-bold me-2 text-white">Kết quả kỳ quay:</span>
+    <div *ngFor="let n of analysisData.numbers" class="ball-drawn text-white shadow-sm" [ngClass]="category === 'MEGA' ? 'ball-mega-style' : 'ball-power-style'">
+      {{ n < 10 ? '0' + n : n }}
+    </div>
+    <div *ngIf="category === 'POWER' && analysisData?.specialNumber" class="ball-drawn text-dark shadow-sm bg-warning border-warning ms-2" title="Banh Phụ Jackpot 2">
+      ⭐ {{ analysisData.specialNumber < 10 ? '0' + analysisData.specialNumber : analysisData.specialNumber }}
+    </div>
+    <span class="ms-auto badge bg-light text-dark fw-bold px-3 py-2" *ngIf="analysisData?.oddEvenRatio">{{ analysisData.oddEvenRatio }}</span>
+    <span class="badge bg-warning text-dark fw-bold px-3 py-2" *ngIf="analysisData?.sum">Tổng điểm: {{ analysisData.sum }}</span>
+  </div>
+
   <!-- Thanh công cụ: ĐỦ 3 THAM SỐ (Ngày, Category, Thuật toán) -->
   <div class="dark-card p-3 mb-4 d-flex flex-wrap align-items-center gap-3">
     <div class="d-flex align-items-center gap-2 text-white fw-semibold">

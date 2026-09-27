@@ -8,8 +8,8 @@ import { environment } from '../../../environments/environment'; // Import file 
   providedIn: 'root'
 })
 export class AnalyzeService {
- private apiUrl = `${environment.apiUrl}/api/analyze`;
-  private frenchApiUrl = `${environment.apiUrl}/api/french`;
+  private apiUrl = `${environment.apiUrl || ''}/api/analyze`;
+  private frenchApiUrl = `${environment.apiUrl || ''}/api/french`;
 
   private categorySource = new BehaviorSubject<string>('MEGA');
   currentCategory$ = this.categorySource.asObservable();

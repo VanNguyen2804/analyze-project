@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -72,15 +72,19 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
   @Input() activeTab?: string;
   @Output() tabChange = new EventEmitter<string>();
 
-  currentCategory: 'MEGA' | 'POWER' = 'POWER';
+  currentCategory: 'MEGA' | 'POWER' = 'MEGA';
   private catSub?: Subscription;
 
-  constructor(private categoryService: CategoryService) {}
+  constructor(
+    private categoryService: CategoryService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.currentCategory = this.categoryService.currentCategory;
     this.catSub = this.categoryService.category$.subscribe(cat => {
       this.currentCategory = cat;
+      this.cdr.detectChanges();
     });
   }
 
@@ -89,6 +93,8 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
   }
 
   selectCategory(cat: 'MEGA' | 'POWER'): void {
+    this.currentCategory = cat;
     this.categoryService.setCategory(cat);
+    this.cdr.detectChanges();
   }
 }

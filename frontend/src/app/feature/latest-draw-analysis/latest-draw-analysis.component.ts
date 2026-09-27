@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -29,12 +29,17 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   
   private categorySub: Subscription | undefined;
 
-  constructor(private analyzeService: AnalyzeService) {}
+  constructor(
+    private analyzeService: AnalyzeService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
-      this.category = newCategory;
-      this.fetchAnalysis(true);
+      if (newCategory) {
+        this.category = newCategory;
+        this.fetchAnalysis(true);
+      }
     });
   }
 
@@ -43,7 +48,10 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   }
 
   changeCategory(cat: string) {
+    this.category = cat;
     this.analyzeService.setCategory(cat);
+    this.fetchAnalysis(true);
+    this.cdr.detectChanges();
   }
 
   fetchAnalysis(useLatest: boolean = false): void {
@@ -53,18 +61,23 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     if (useLatest) {
       this.selectedDate = ''; // Lấy ngày mới nhất từ DB
     }
+    this.cdr.detectChanges();
 
     // Gửi đúng 3 tham số
     this.analyzeService.getOfficialDrawAnalysis(this.category, this.selectedDate, this.algorithm).subscribe({
       next: (response) => {
         this.analysisData = response;
-        this.selectedDate = response.drawDate; // Map lại ngày trả về lên UI
+        if (response && response.drawDate) {
+          this.selectedDate = response.drawDate; // Map lại ngày trả về lên UI
+        }
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.errorMessage = 'Không tìm thấy dữ liệu phân tích cho ngày/loại vé này.';
         this.isLoading = false;
         this.analysisData = null;
+        this.cdr.detectChanges();
       }
     });
   }
