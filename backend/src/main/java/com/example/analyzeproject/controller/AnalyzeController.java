@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analyze")
@@ -68,4 +69,21 @@ public class AnalyzeController {
         analyzeService.clearUserHistory();
         return "Đã xóa lịch sử dò vé cá nhân.";
     }
+
+    // Thêm vào AnalyzeController.java
+@PostMapping("/latest-draw")
+public ResponseEntity<?> getLatestDraw(@RequestBody Map<String, String> payload) {
+    String category = payload.getOrDefault("category", "MEGA");
+    // Tùy thuộc vào tên biến Angular truyền lên, có thể là "date" hoặc "drawDate"
+    String drawDate = payload.get("date"); 
+    
+    DrawRecordDto result = analyzeService.getLatestDraw(category, drawDate);
+    
+    if (result != null) {
+        return ResponseEntity.ok(result);
+    } else {
+        return ResponseEntity.status(404)
+            .body(Map.of("status", "NOT_FOUND", "message", "Không tìm thấy dữ liệu " + category + " cho ngày " + drawDate));
+    }
+}
 }

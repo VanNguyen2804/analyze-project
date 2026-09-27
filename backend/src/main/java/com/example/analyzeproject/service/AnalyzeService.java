@@ -543,6 +543,33 @@ public class AnalyzeService {
         userTicketRepo.deleteAll();
     }
 
+    // Thêm vào cuối AnalyzeService.java
+public DrawRecordDto getLatestDraw(String categoryInput, String drawDate) {
+    String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
+    
+    List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+    
+    // 1. Tìm chính xác ngày được yêu cầu (vd: 2026-09-25)
+    if (drawDate != null && !drawDate.trim().isEmpty()) {
+        Optional<LotteryNumber> match = records.stream()
+                .filter(r -> r.getDrawDate() != null && r.getDrawDate().toString().equals(drawDate.trim()))
+                .findFirst();
+        
+        if (match.isPresent()) {
+            LotteryNumber r = match.get();
+            return new DrawRecordDto(r.getId(), r.getDrawDate().toString(), r.getNumbers(), r.getSpecialNumber(), r.getNote());
+        }
+    }
+    
+    // 2. Fallback: Trả về kết quả mới nhất nếu DB có dữ liệu
+    if (!records.isEmpty()) {
+        LotteryNumber r = records.get(0);
+        return new DrawRecordDto(r.getId(), r.getDrawDate().toString(), r.getNumbers(), r.getSpecialNumber(), r.getNote());
+    }
+    
+    return null; // DB trống
+}
+
     private static class ScoredNumber {
         int number;
         double probability;
