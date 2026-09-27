@@ -15,7 +15,8 @@
       <button
         type="button"
         class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
-        [ngClass]="currentCategory === 'POWER' ? 'btn-primary shadow text-white' : 'btn-light text-muted'"
+        [ngClass]="currentCategory === 'POWER' ? 'btn-primary shadow text-white' : 'text-primary'"
+        [style.background-color]="currentCategory === 'POWER' ? '' : '#dbeafe'"
         (click)="selectCategory('POWER')"
       >
         {{ 'CATEGORY.POWER' | translate }}
@@ -23,7 +24,8 @@
       <button
         type="button"
         class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
-        [ngClass]="currentCategory === 'MEGA' ? 'btn-danger shadow text-white' : 'btn-light text-muted'"
+        [ngClass]="currentCategory === 'MEGA' ? 'btn-danger shadow text-white' : 'text-danger'"
+        [style.background-color]="currentCategory === 'MEGA' ? '' : '#ffe4e6'"
         (click)="selectCategory('MEGA')"
       >
         {{ 'CATEGORY.MEGA' | translate }}

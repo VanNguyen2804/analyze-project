@@ -1478,19 +1478,45 @@ async function startServer() {
         });
       }
 
-      const latestDraw = catRecords[0];
+      // Check if a specific date was requested
+      const reqDate = (req.query.date || req.query.drawDate)
+        ? String(req.query.date || req.query.drawDate).trim()
+        : '';
+      let targetDraw = catRecords[0];
+
+      if (reqDate) {
+        let normalizedDate = reqDate;
+        if (reqDate.includes('/')) {
+          const parts = reqDate.split('/');
+          if (parts.length === 3) {
+            normalizedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          }
+        }
+        const found = catRecords.find(
+          (r) => r.drawDate === normalizedDate || r.drawDate === reqDate
+        );
+        if (found) {
+          targetDraw = found;
+        } else {
+          return res.status(404).json({
+            status: 'NOT_FOUND',
+            message: `Không tìm thấy kỳ quay ngày ${reqDate} cho ${category} trong Database.`,
+            availableDates: catRecords.map((r) => r.drawDate),
+          });
+        }
+      }
 
       // Find user tickets played for this draw
       const userTicketsForDraw = userChecks.filter(
-        (t) => t.category === category && t.drawDate === latestDraw.drawDate
+        (t) => t.category === category && t.drawDate === targetDraw.drawDate
       );
 
-      // Re-evaluate each ticket against latestDraw numbers to ensure 100% accuracy
+      // Re-evaluate each ticket against targetDraw numbers to ensure 100% accuracy
       const evaluatedTickets = userTicketsForDraw.map((t) => {
         const evalResult = evaluateTicket(
           t.numbers,
-          latestDraw.numbers,
-          latestDraw.specialNumber,
+          targetDraw.numbers,
+          targetDraw.specialNumber,
           category
         );
         return {
@@ -1511,12 +1537,20 @@ async function startServer() {
         status: 'SUCCESS',
         category,
         latestDraw: {
-          id: latestDraw.id,
-          drawDate: latestDraw.drawDate,
-          numbers: latestDraw.numbers,
-          specialNumber: latestDraw.specialNumber,
-          note: latestDraw.note,
+          id: targetDraw.id,
+          drawDate: targetDraw.drawDate,
+          numbers: targetDraw.numbers,
+          specialNumber: targetDraw.specialNumber,
+          note: targetDraw.note,
         },
+        availableDates: catRecords.map((r) => r.drawDate),
+        allDraws: catRecords.map((r) => ({
+          id: r.id,
+          drawDate: r.drawDate,
+          numbers: r.numbers,
+          specialNumber: r.specialNumber,
+          note: r.note,
+        })),
         hasUserPlayed: evaluatedTickets.length > 0,
         userTickets: evaluatedTickets,
         totalTicketsPlayed: evaluatedTickets.length,

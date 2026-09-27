@@ -26,8 +26,9 @@ export class AnalyzeService {
     return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}&algorithm=${encodedAlg}`);
   }
 
-  getLatestDraw(category: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/latest-draw?category=${category}`);
+  getLatestDraw(category: string, date?: string): Observable<any> {
+    const dateParam = date ? `&date=${encodeURIComponent(date)}` : '';
+    return this.http.get<any>(`${this.apiUrl}/latest-draw?category=${category}${dateParam}`);
   }
 
   saveUserTicket(payload: any): Observable<any> {
