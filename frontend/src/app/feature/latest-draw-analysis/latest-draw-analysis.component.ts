@@ -92,6 +92,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   allHistoryDraws: any[] = [];
   dateError: string = '';
   isSearchingDate: boolean = false;
+  analysisData: any = null;
 
   calculatedWinningNumbers: WinningNumberAnalysis[] = [];
   calculatedPairSynergies: PairSynergyItem[] = [];
