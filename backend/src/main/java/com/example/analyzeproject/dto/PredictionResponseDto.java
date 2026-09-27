@@ -4,13 +4,22 @@ import java.util.List;
 
 public class PredictionResponseDto {
     private String status;
-    private String category;
-    private String lotteryType;
+    private String message;
+    private String drawDate;
+    
+    // Các thuộc tính thuật toán của bạn
     private String algorithm;
     private String algorithmName;
     private String algorithmDesc;
-    private List<Integer> numbers; // Chứa 10 số tiềm năng
-    private List<List<Integer>> tickets; // Chứa 10 vé đã xáo theo Wheeling System
+    
+    private String category;
+    private String lotteryType;
+    
+    // Chứa 10 số tiềm năng từ XGBoost
+    private List<Integer> numbers; 
+    // Chứa 10 vé đã xáo theo Wheeling System
+    private List<List<Integer>> tickets; 
+    
     private Integer specialNumber;
     private int totalDrawsAnalyzed;
     
@@ -33,11 +42,11 @@ public class PredictionResponseDto {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 
-    public String getLotteryType() { return lotteryType; }
-    public void setLotteryType(String lotteryType) { this.lotteryType = lotteryType; }
+    public String getDrawDate() { return drawDate; }
+    public void setDrawDate(String drawDate) { this.drawDate = drawDate; }
 
     public String getAlgorithm() { return algorithm; }
     public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
@@ -47,6 +56,12 @@ public class PredictionResponseDto {
 
     public String getAlgorithmDesc() { return algorithmDesc; }
     public void setAlgorithmDesc(String algorithmDesc) { this.algorithmDesc = algorithmDesc; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getLotteryType() { return lotteryType; }
+    public void setLotteryType(String lotteryType) { this.lotteryType = lotteryType; }
 
     public List<Integer> getNumbers() { return numbers; }
     public void setNumbers(List<Integer> numbers) { this.numbers = numbers; }

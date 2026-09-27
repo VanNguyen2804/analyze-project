@@ -88,18 +88,22 @@ public ResponseEntity<?> getLatestDraw(
     }
 }
 
-@GetMapping("/latest-draw-analysis")
-public ResponseEntity<?> getLatestDrawAnalysis(
-        @RequestParam(value = "category", defaultValue = "MEGA") String category) {
-    
-    // Gọi hàm analyzeAndPredict có sẵn của bạn để lấy phân tích (XGBoost, Wheeling, số nóng, lô gan...)
-    PredictionResponseDto analysisResult = analyzeService.analyzeAndPredict(category);
-    
-    if (analysisResult != null) {
-        return ResponseEntity.ok(analysisResult);
-    } else {
-        return ResponseEntity.status(404)
-            .body(Map.of("status", "NOT_FOUND", "message", "Không thể phân tích dữ liệu " + category));
+/**
+     * Endpoint lấy kết quả phân tích kỳ quay mới nhất.
+     */
+    @GetMapping("/latest-draw-analysis")
+    public ResponseEntity<?> getLatestDrawAnalysis(
+            @RequestParam(value = "category", defaultValue = "MEGA") String category,
+            @RequestParam(value = "algorithm", defaultValue = "xgboost") String algorithm) {
+        
+        // Truyền tham số algorithm từ Frontend xuống Service
+        PredictionResponseDto analysisResult = analyzeService.analyzeAndPredict(category, algorithm);
+        
+        if (analysisResult != null) {
+            return ResponseEntity.ok(analysisResult);
+        } else {
+            return ResponseEntity.status(404)
+                .body(Map.of("status", "NOT_FOUND", "message", "Không thể phân tích dữ liệu " + category));
+        }
     }
-}
 }

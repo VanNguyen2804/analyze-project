@@ -544,6 +544,17 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     }
   ];
 
+  algorithm: string = 'xgboost'; // Thuật toán mặc định
+  
+  // Danh sách các thuật toán cho Dropdown
+  availableAlgorithms = [
+    { id: 'xgboost', name: 'AI XGBoost + Wheeling' },
+    { id: 'frequency', name: 'Thống kê tần suất' },
+    { id: 'random', name: 'Chọn lọc ngẫu nhiên' }
+  ];
+
+  errorMessage: string | null = null;
+
   constructor(
     private analyzeService: AnalyzeService,
     private cdr: ChangeDetectorRef
@@ -570,17 +581,21 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     }
   }
 
-  fetchAnalysis(): void {
+fetchAnalysis(): void {
     this.isLoading = true;
-    this.analyzeService.getLatestDrawAnalysis(this.category).subscribe({
+    this.errorMessage = null; 
+    this.analysisData = null; 
+    
+    // Gửi kèm tham số thuật toán
+    this.analyzeService.getLatestDrawAnalysis(this.category, this.algorithm).subscribe({
       next: (response) => {
         this.analysisData = response;
         this.isLoading = false;
-        console.log('Dữ liệu phân tích từ Backend:', this.analysisData);
       },
       error: (error) => {
         console.error('Lỗi khi lấy dữ liệu phân tích:', error);
         this.isLoading = false;
+        this.errorMessage = 'Không tìm thấy dữ liệu phân tích cho kỳ quay mới nhất của ' + this.category + '. Vui lòng nạp kết quả vào hệ thống trước.';
       }
     });
   }

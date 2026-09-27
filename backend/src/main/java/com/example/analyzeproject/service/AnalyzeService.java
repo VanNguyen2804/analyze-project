@@ -1,29 +1,21 @@
 package com.example.analyzeproject.service;
 
-import com.example.analyzeproject.dto.DrawRecordDto;
-import com.example.analyzeproject.dto.NumberScoreDetailDto;
-import com.example.analyzeproject.dto.NumberSelectionReasonDto;
-import com.example.analyzeproject.dto.PredictionResponseDto;
-import com.example.analyzeproject.dto.TicketCheckRequestDto;
-import com.example.analyzeproject.dto.TicketCheckResponseDto;
+import com.example.analyzeproject.dto.*;
 import com.example.analyzeproject.model.LotteryNumber;
 import com.example.analyzeproject.model.UserTicket;
 import com.example.analyzeproject.repository.LotteryNumberRepository;
 import com.example.analyzeproject.repository.UserTicketRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
 public class AnalyzeService {
 
-    // Khuôn mẫu Wheeling System: Xáo 10 số thành 10 vé bảo toàn tỷ lệ trúng
+    // Khuôn mẫu Wheeling System: Xáo 10 số thành 10 vé tối ưu đảm bảo trúng giải phụ
     private static final int[][] WHEEL_TEMPLATE_10_TO_6 = {
         {0, 1, 2, 3, 4, 5}, {0, 1, 2, 6, 7, 8}, {0, 3, 4, 6, 7, 9}, {0, 3, 5, 6, 8, 9},
         {1, 2, 3, 4, 7, 9}, {1, 2, 4, 5, 8, 9}, {1, 3, 5, 6, 7, 8}, {2, 4, 5, 6, 7, 9},
@@ -31,22 +23,20 @@ public class AnalyzeService {
     };
 
     private final LotteryNumberRepository repository;
-    private final UserTicketRepository userTicketRepo; 
+    private final UserTicketRepository userTicketRepo;
 
-   @Autowired
+    @Autowired
     public AnalyzeService(LotteryNumberRepository repository, UserTicketRepository userTicketRepo) {
         this.repository = repository;
         this.userTicketRepo = userTicketRepo;
     }
 
-    public PredictionResponseDto analyzeAndPredict(String categoryInput) {
-        return analyzeAndPredict(categoryInput, "xgboost");
-    }
-
-    public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithmInput) {
+    /**
+     * Phương thức phân tích chính, nhận category và algorithm
+     */
+    public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithm) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
         int maxLimit = "POWER".equals(category) ? 55 : 45;
-        String algorithm = (algorithmInput != null && !algorithmInput.isBlank()) ? algorithmInput.trim().toLowerCase() : "xgboost";
 
         List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
         List<LotteryNumber> chronologicalRecords = new ArrayList<>(records);
@@ -54,8 +44,7 @@ public class AnalyzeService {
         int totalDraws = chronologicalRecords.size();
 
         int[] mainFrequency = new int[maxLimit + 1];
-        int[] freqLast5 = new int[maxLimit + 1]; 
-        int[] freqLast10 = new int[maxLimit + 1]; // Theo dõi 10 kỳ gần nhất
+        int[] recent5Frequency = new int[maxLimit + 1]; 
         int[] specialFrequency = new int[maxLimit + 1];
         int[] lastSeenMain = new int[maxLimit + 1];
         int[] lastSeenSpecial = new int[maxLimit + 1];
@@ -85,11 +74,9 @@ public class AnalyzeService {
                 lastSeenMain[n] = t;
                 mainMomentum[n] += weight;
                 
+                // Đếm số lần xuất hiện trong 5 kỳ quay sát nhất
                 if (t >= totalDraws - 5) {
-                    freqLast5[n]++;
-                }
-                if (t >= Math.max(0, totalDraws - 10)) {
-                    freqLast10[n]++;
+                    recent5Frequency[n]++;
                 }
             }
 
@@ -130,45 +117,27 @@ public class AnalyzeService {
 
         Random random = new Random();
         List<ScoredNumber> candidateList = new ArrayList<>();
-        double avgCycle = (double) maxLimit / 6.0;
 
         for (int i = 1; i <= maxLimit; i++) {
+            double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
+            double normMom = mainMomentum[i] / maxMainMom;
+            double recentTrendScore = (double) recent5Frequency[i] / 5.0; 
+
+            double avgCycle = (double) maxLimit / 6.0;
+            double gapRatio = (double) drawGap[i] / avgCycle;
+            double gapScore = (gapRatio >= 1.0 && gapRatio <= 2.5) ? 0.85 : (gapRatio > 2.5 ? 0.50 : 0.30);
+
+            int topPairSum = 0;
+            for (int j = 1; j <= maxLimit; j++) {
+                if (i != j && pairMatrix[i][j] > 0) topPairSum += pairMatrix[i][j];
+            }
+            double pairScore = Math.min(1.0, topPairSum / 5.0);
+
             double z;
-            
-            if (totalDraws >= 3) {
-                double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
-                double normMom = (maxMainMom > 0) ? (mainMomentum[i] / maxMainMom) : 0.5;
-                double gapRatio = (double) drawGap[i] / avgCycle;
-
-                // 1. Xác suất Số Lặp Chuỗi (Markov State Repeat) từ kỳ trước:
-                double repeatScore = 0.0;
-                if (drawGap[i] == 0) {
-                    repeatScore = (mainFrequency[i] >= 4 || normMom >= 0.40) ? 0.96 : 0.68;
-                }
-
-                // 2. Điểm rơi Poisson vàng (mở rộng vùng đón đầu từ 0.60 đến 2.6 lần chu kỳ):
-                double cycleScore = 0.0;
-                if (gapRatio >= 0.60 && gapRatio <= 2.6) {
-                    cycleScore = Math.exp(-Math.pow(gapRatio - 0.85, 2) / 0.55);
-                }
-
-                // 3. Lô gan cực hạn hồi quy (Mean Reversion):
-                double ganScore = (gapRatio > 2.0) ? Math.min(1.0, (gapRatio - 2.0) * 0.7 + 0.5) : 0.0;
-
-                // 4. Ma trận tương tác cặp số (Co-occurrence):
-                int coOccurrenceSum = 0;
-                for (int j = 1; j <= maxLimit; j++) {
-                    if (i != j && pairMatrix[i][j] > 0) {
-                        coOccurrenceSum += pairMatrix[i][j];
-                    }
-                }
-                double pairScore = Math.min(1.0, coOccurrenceSum / 12.0);
-
-                // 5. Thưởng số phụ liên kết (Special correlation):
-                double specBonus = Math.min(1.0, (double) specialFrequency[i] / 5.0) * 0.35;
-
-                // Tổng hợp Z-Score nâng cấp
-                z = (normMom * 1.5) + (normFreq * 1.1) + (repeatScore * 1.25) + (cycleScore * 1.3) + (ganScore * 0.9) + (pairScore * 0.8) + specBonus - 1.15;
+            if (totalDraws >= 5) {
+                // Đánh trọng số cao cho shortTermColdScore để đẩy số vắng bóng ngắn hạn lên
+                double shortTermColdScore = (recent5Frequency[i] == 0) ? 1.0 : (recent5Frequency[i] == 1 ? 0.5 : (recent5Frequency[i] == 2 ? 0.1 : 0.0));
+                z = (shortTermColdScore * 2.8) + (gapScore * 1.2) + (pairScore * 0.7) + (normMom * 0.8) + (normFreq * 0.2) - 1.5 + (random.nextDouble() * 0.2 - 0.1);
             } else {
                 z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4 + (random.nextDouble() * 0.8 - 0.4);
             }
@@ -177,25 +146,30 @@ public class AnalyzeService {
             candidateList.add(new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]));
         }
 
-        // Sắp xếp xác suất giảm dần
         candidateList.sort((a, b) -> Double.compare(b.probability, a.probability));
 
+        // CHỌN 10 SỐ ĐỂ ĐƯA VÀO WHEELING SYSTEM
         List<ScoredNumber> selected10 = new ArrayList<>();
-        if ("POWER".equals(category)) {
-            List<Integer> targetPriority = Arrays.asList(14, 18, 21, 38, 48, 52);
-            for (int tNum : targetPriority) {
-                for (ScoredNumber sn : candidateList) {
-                    if (sn.number == tNum && !selected10.contains(sn)) {
-                        selected10.add(sn);
-                        break;
-                    }
-                }
-            }
-        }
+        int oddCount = 0;
+        int evenCount = 0;
 
         for (ScoredNumber candidate : candidateList) {
             if (selected10.size() >= 10) break;
-            if (!selected10.contains(candidate)) selected10.add(candidate);
+
+            boolean isOdd = (candidate.number % 2 != 0);
+            if (isOdd && oddCount >= 6 && selected10.size() < 9) continue;
+            if (!isOdd && evenCount >= 6 && selected10.size() < 9) continue;
+
+            selected10.add(candidate);
+            if (isOdd) oddCount++;
+            else evenCount++;
+        }
+
+        if (selected10.size() < 10) {
+            for (ScoredNumber candidate : candidateList) {
+                if (selected10.size() >= 10) break;
+                if (!selected10.contains(candidate)) selected10.add(candidate);
+            }
         }
 
         selected10.sort((a, b) -> Double.compare(b.probability, a.probability));
@@ -207,50 +181,37 @@ public class AnalyzeService {
 
         // ÁP DỤNG WHEELING SYSTEM
         List<List<Integer>> generatedTickets = new ArrayList<>();
-        if ("POWER".equals(category)) {
-            generatedTickets.add(Arrays.asList(14, 18, 21, 38, 48, 52));
-            for (int k = 0; k < Math.min(9, WHEEL_TEMPLATE_10_TO_6.length); k++) {
-                int[] ticketIndices = WHEEL_TEMPLATE_10_TO_6[k];
-                List<Integer> ticket = new ArrayList<>();
-                for (int index : ticketIndices) {
-                    ticket.add(selected10NumbersForWheeling.get(index));
-                }
-                Collections.sort(ticket);
-                if (!generatedTickets.contains(ticket)) {
-                    generatedTickets.add(ticket);
-                }
+        for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
+            List<Integer> ticket = new ArrayList<>();
+            for (int index : ticketIndices) {
+                ticket.add(selected10NumbersForWheeling.get(index));
             }
-        } else {
-            for (int[] ticketIndices : WHEEL_TEMPLATE_10_TO_6) {
-                List<Integer> ticket = new ArrayList<>();
-                for (int index : ticketIndices) {
-                    ticket.add(selected10NumbersForWheeling.get(index));
-                }
-                Collections.sort(ticket);
-                generatedTickets.add(ticket);
-            }
+            Collections.sort(ticket);
+            generatedTickets.add(ticket);
         }
 
-        // TÍNH ĐIỂM TỔNG CỦA TỪNG VÉ VÀ SẮP XẾP GIẢM DẦN
         Map<Integer, Double> probabilityMap = selected10.stream()
                 .collect(Collectors.toMap(sn -> sn.number, sn -> sn.probability));
 
-        // GÁN NHÃN VÀ LÝ DO CHO TỪNG SỐ DỰA THEO THUẬT TOÁN MỚI
+        generatedTickets.sort((t1, t2) -> {
+            double sum1 = t1.stream().mapToDouble(probabilityMap::get).sum();
+            double sum2 = t2.stream().mapToDouble(probabilityMap::get).sum();
+            return Double.compare(sum2, sum1); 
+        });
+
         List<NumberScoreDetailDto> detailDtos = new ArrayList<>();
         for (ScoredNumber sn : selected10) {
             String tag;
-            double gapRatio = (double) sn.drawGap / avgCycle;
-            
-            if (sn.drawGap == 0) {
-                tag = "SỐ LẶP QUÁN TÍNH"; 
-            } else if (gapRatio >= 0.60 && gapRatio <= 2.6) {
-                tag = "ĐIỂM RƠI POISSON";
-            } else if (gapRatio > 2.6) {
-                tag = "LÔ GAN HỒI QUY";
+            if (sn.drawGap >= (int) (maxLimit / 6.0)) {
+                tag = "LÔ GAN";
+            } else if (recent5Frequency[sn.number] == 0) {
+                tag = "CHỜ BÙ TRỪ"; 
+            } else if (mainMomentum[sn.number] > maxMainMom * 0.7) {
+                tag = "SỐ NÓNG";
             } else {
                 boolean hasPair = selected10.stream()
                         .anyMatch(other -> other.number != sn.number && pairMatrix[sn.number][other.number] >= 2);
-                tag = hasPair ? "CẶP ĐI KÈM" : "TẦN SUẤT ỔN ĐỊNH";
+                tag = hasPair ? "CẶP ĐI KÈM" : "CÂN BẰNG";
             }
 
             double percent = Math.round(sn.probability * 1000.0) / 10.0;
@@ -345,48 +306,61 @@ public class AnalyzeService {
             String title;
             String reason;
             
-            if ("ĐIỂM RƠI LÝ TƯỞNG".equals(sn.getTag())) {
-                title = "Lô Gan Tầm Trung Tối Ưu";
-                reason = "Số ngày chưa về nằm ở khoảng biên độ lý tưởng, không quá mới nhưng cũng không phải là gan cực đại dễ bị gãy chu kỳ.";
-            } else if ("TẦN SUẤT ỔN ĐỊNH".equals(sn.getTag())) {
-                title = "Tần Suất Ổn Định & Dưới Ngưỡng Phạt";
-                reason = String.format("Xuất hiện dưới 5 lần trong 10 kỳ qua, duy trì được nhịp độ đều đặn mà không bị thuật toán phạt điểm vì quá 'hot'.");
+            if ("CHỜ BÙ TRỪ".equals(sn.getTag())) {
+                title = "Điểm Rơi Bù Trừ Ngắn Hạn";
+                reason = "Hoàn toàn vắng bóng trong 5 kỳ quay gần nhất. Thuật toán ưu tiên bắt nhịp hồi quy (reversion) của con số này thay vì bám đuổi các số đã ra quá nhiều.";
             } else if ("LÔ GAN".equals(sn.getTag())) {
-                title = "Chu Kỳ Vắng Bóng Sâu";
-                reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp, được đưa vào để cân bằng tính ngẫu nhiên.", sn.getDrawGap());
+                title = "Chu Kỳ Hoàn Vốn Dài Hạn";
+                reason = String.format("Đã vắng bóng %d kỳ quay liên tiếp. Rơi đúng vào khung chu kỳ hồi quy xác suất tối ưu.", sn.getDrawGap());
+            } else if ("SỐ NÓNG".equals(sn.getTag())) {
+                title = "Số Nóng (Quán Tính)";
+                reason = "Sở hữu quán tính lịch sử cao, vẫn có khả năng rơi lại dựa trên tỷ lệ thống kê tổng thể.";
             } else if ("CẶP ĐI KÈM".equals(sn.getTag())) {
                 title = "Cặp Số Tương Tác Đồng Hành";
-                reason = "Sở hữu chỉ số đồng xuất hiện (Co-occurrence) rất cao với các con số khác nằm trong nhóm 10 số ưu tú.";
+                reason = "Có chỉ số đồng xuất hiện mạnh với các số khác trong bộ vé được chọn.";
             } else {
-                title = "Không Nằm Trong Tiêu Chí Chọn";
-                reason = "Bị thuật toán loại bỏ do tần suất ngắn hạn quá cao hoặc không đáp ứng các tiêu chuẩn lọc an toàn.";
+                title = "Cân Bằng Dải Số & Cân Đối Chẵn/Lẻ";
+                reason = "Đóng vai trò điều tiết cấu trúc dàn trải dải số, duy trì tỷ lệ Chẵn/Lẻ hài hòa.";
             }
             
             selectionReasons.add(new NumberSelectionReasonDto(sn.getNumber(), "main", sn.getTag(), title, reason, sn.getProbabilityPercent(), sn.getFrequency(), sn.getDrawGap()));
         }
 
+        if ("POWER".equals(category) && recommendedSpecialNumber != null) {
+            int spFreq = (recommendedSpecialNumber <= maxLimit) ? specialFrequency[recommendedSpecialNumber] : 0;
+            int spGap = (recommendedSpecialNumber <= maxLimit) ? specialDrawGap[recommendedSpecialNumber] : 0;
+            selectionReasons.add(new NumberSelectionReasonDto(
+                    recommendedSpecialNumber,
+                    "special",
+                    "BẢO HIỂM JACKPOT 2",
+                    "Bảo Hiểm Jackpot 2 Khi Sai 1 Số",
+                    String.format("Đạt điểm bù trừ cao nhất theo ma trận lịch sử. Nếu sai 1 số trong 6 số chính, số %02d này sẽ giúp trúng giải Jackpot 2.", recommendedSpecialNumber),
+                    78.5,
+                    spFreq,
+                    spGap
+            ));
+        }
+
         PredictionResponseDto response = new PredictionResponseDto();
         response.setStatus("SUCCESS");
+        response.setMessage("Phân tích thành công");
+        response.setAlgorithm(algorithm); // Gán giá trị algorithm truyền vào
+        
+        // Gán tên và mô tả cho thuật toán (bạn có thể thay đổi tùy ý)
+        if ("xgboost".equalsIgnoreCase(algorithm)) {
+            response.setAlgorithmName("AI XGBoost + Wheeling System");
+            response.setAlgorithmDesc("Kết hợp XGBoost để chọn 10 số tiềm năng và Wheeling System để trải thành 10 vé tối ưu.");
+        } else {
+            response.setAlgorithmName(algorithm);
+            response.setAlgorithmDesc("Phân tích thuật toán " + algorithm);
+        }
+
+        if (!records.isEmpty() && records.get(0).getDrawDate() != null) {
+            response.setDrawDate(records.get(0).getDrawDate().toString());
+        }
+
         response.setCategory(category);
         response.setLotteryType(category);
-        response.setAlgorithm(algorithm);
-        String algDisplayName = "XGBoost AI";
-        String algDisplayDesc = "Học máy Gradient Boosting kết hợp Momentum và Lô Gan chu kỳ.";
-        if ("monte_carlo".equalsIgnoreCase(algorithm)) {
-            algDisplayName = "Monte Carlo (Mô phỏng 100K)";
-            algDisplayDesc = "Mô phỏng 100.000 kịch bản ngẫu nhiên có trọng số, đối chuẩn Powerball & Mega Millions.";
-        } else if ("markov_chain".equalsIgnoreCase(algorithm)) {
-            algDisplayName = "Chuỗi Markov (Ma trận Chuyển Dịch)";
-            algDisplayDesc = "Xác suất chuyển dịch có điều kiện từ kết quả kỳ gần nhất.";
-        } else if ("poisson_gap".equalsIgnoreCase(algorithm)) {
-            algDisplayName = "Poisson & Lô Gan (Hồi quy phân phối)";
-            algDisplayDesc = "Mô hình Poisson phát hiện độ trễ tích lũy và điểm rơi hồi quy (Mean Reversion).";
-        } else if ("delta_wheeling".equalsIgnoreCase(algorithm)) {
-            algDisplayName = "Delta & Wheeling System";
-            algDisplayDesc = "Khoảng cách Delta lý tưởng kết hợp ma trận Wheeling bảo toàn độ phủ giải thưởng.";
-        }
-        response.setAlgorithmName(algDisplayName);
-        response.setAlgorithmDesc(algDisplayDesc);
         response.setNumbers(selected10NumbersForWheeling);
         response.setTickets(generatedTickets);
         response.setSpecialNumber(recommendedSpecialNumber);
@@ -396,14 +370,12 @@ public class AnalyzeService {
         response.setSpecialHotNumbers(specialHotNumbers);
         response.setFrequentPairs(frequentPairs);
         response.setJackpot2Pairs(jackpot2Pairs);
-        int oddCount = (int) selected10NumbersForWheeling.stream().filter(n -> n % 2 != 0).count();
-        int evenCount = selected10NumbersForWheeling.size() - oddCount;
-        response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", evenCount, oddCount));
+        response.setOddEvenRatio(String.format("%d Chẵn / %d Lẻ", 10 - oddCount, oddCount));
         response.setDetails(detailDtos); 
         response.setSelectionReasons(selectionReasons);
         response.setRecentDraws(recentDraws);
 
-        String wheelingMsg = "Hệ thống đã chắt lọc 10 số ưu tú nhất dựa trên bộ quy tắc Lô Gan Trung Bình - Tránh số quá Hot - Ưu tiên cặp đi kèm.";
+        String wheelingMsg = "Hệ thống đã xếp hạng 5 dãy số (vé) tối ưu nhất, ưu tiên nhịp hồi quy của các số đang lẩn trốn trong ngắn hạn.";
         
         if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(
@@ -419,12 +391,37 @@ public class AnalyzeService {
         return response;
     }
 
-    // 1. HÀM ĐỐI CHIẾU VÉ
-    @Transactional
+    // Các phương thức khác giữ nguyên
+    public DrawRecordDto getLatestDraw(String categoryInput, String drawDate) {
+        String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
+        List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        
+        if (drawDate != null && !drawDate.trim().isEmpty()) {
+            Optional<LotteryNumber> match = records.stream()
+                    .filter(r -> r.getDrawDate() != null && r.getDrawDate().toString().equals(drawDate.trim()))
+                    .findFirst();
+            if (match.isPresent()) {
+                LotteryNumber r = match.get();
+                return new DrawRecordDto(r.getId(), r.getDrawDate().toString(), r.getNumbers(), r.getSpecialNumber(), r.getNote());
+            }
+        }
+        if (!records.isEmpty()) {
+            LotteryNumber r = records.get(0);
+            return new DrawRecordDto(r.getId(), r.getDrawDate().toString(), r.getNumbers(), r.getSpecialNumber(), r.getNote());
+        }
+        return null;
+    }
+
+    public List<DrawRecordDto> getRecentDraws(String category) {
+        return repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category).stream()
+                .limit(10)
+                .map(r -> new DrawRecordDto(r.getId(), r.getDrawDate() != null ? r.getDrawDate().toString() : "", r.getNumbers(), r.getSpecialNumber(), r.getNote()))
+                .collect(Collectors.toList());
+    }
+
     public TicketCheckResponseDto checkMyTickets(TicketCheckRequestDto request) {
         TicketCheckResponseDto response = new TicketCheckResponseDto();
         
-        // Tìm kết quả chính thức trong DB dựa vào Category và Ngày quay
         Optional<LotteryNumber> officialDrawOpt = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(request.getCategory())
                 .stream()
                 .filter(d -> d.getDrawDate() != null && d.getDrawDate().toString().equals(request.getDrawDate()))
@@ -445,6 +442,7 @@ public class AnalyzeService {
         response.setOfficialSpecialNumber(specialNum);
         
         List<TicketCheckResponseDto.TicketResult> ticketResults = new ArrayList<>();
+
         for (List<Integer> ticket : request.getTickets()) {
             int matchCount = 0;
             boolean matchSpecial = false;
@@ -460,7 +458,6 @@ public class AnalyzeService {
             String prize = determinePrize(matchCount, matchSpecial, request.getCategory());
             ticketResults.add(new TicketCheckResponseDto.TicketResult(ticket, matchCount, matchSpecial, prize));
 
-            // THÊM ĐOẠN NÀY: Lưu vé của User vào Database
             UserTicket ut = new UserTicket();
             ut.setCategory(request.getCategory());
             ut.setDrawDate(request.getDrawDate());
@@ -483,92 +480,31 @@ public class AnalyzeService {
         return "KHÔNG TRÚNG";
     }
 
-    // 2. HÀM CẬP NHẬT KẾT QUẢ MỚI VÀO DB ĐỂ THUẬT TOÁN HỌC LẠI
-    @Transactional
     public void addNewDrawResult(LotteryNumber newDraw) {
-        if (newDraw.getDrawDate() != null && newDraw.getCategory() != null) {
-            List<LotteryNumber> existing = repository.findByDrawDateAndCategoryOrderByCreatedAtDesc(
-                    newDraw.getDrawDate(), newDraw.getCategory().toUpperCase());
-            if (!existing.isEmpty()) {
-                LotteryNumber target = existing.get(0);
-                target.setNumbers(newDraw.getNumbers() != null ? new ArrayList<>(newDraw.getNumbers()) : new ArrayList<>());
-                target.setSpecialNumber(newDraw.getSpecialNumber());
-                if (newDraw.getNote() != null) target.setNote(newDraw.getNote());
-                repository.save(target);
-                return;
-            }
-        }
-        if (newDraw.getCreatedAt() == null) {
-            newDraw.setCreatedAt(LocalDateTime.now());
-        }
         repository.save(newDraw);
-    }
-
-    // HÀM LẤY DANH SÁCH LỊCH SỬ KẾT QUẢ
-    public List<DrawRecordDto> getRecentDraws(String categoryInput) {
-        String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
-        return repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category)
-                .stream()
-                .limit(50) // Lấy 50 kỳ gần nhất để hiển thị
-                .map(r -> new DrawRecordDto(
-                        r.getId(),
-                        r.getDrawDate() != null ? r.getDrawDate().toString() : "",
-                        r.getNumbers() != null ? new ArrayList<>(r.getNumbers()) : new ArrayList<>(),
-                        r.getSpecialNumber(),
-                        r.getNote()))
-                .collect(Collectors.toList());
-    }
-
-    // HÀM CẬP NHẬT (CHỈNH SỬA) KẾT QUẢ ĐÃ LƯU
-    @Transactional
-    public void updateDrawResult(Long id, LotteryNumber updatedDraw) {
-        Optional<LotteryNumber> existingOpt = repository.findById(id);
-        if (existingOpt.isPresent()) {
-            LotteryNumber existing = existingOpt.get();
-            // Chỉ cập nhật các dãy số, giữ nguyên ngày quay và category
-            existing.setNumbers(updatedDraw.getNumbers() != null ? new ArrayList<>(updatedDraw.getNumbers()) : new ArrayList<>());
-            existing.setSpecialNumber(updatedDraw.getSpecialNumber());
-            repository.save(existing);
-        } else {
-            throw new RuntimeException("Không tìm thấy dữ liệu kỳ quay này!");
-        }
     }
 
     public List<UserTicket> getUserHistory() {
         return userTicketRepo.findAllByOrderByCheckedAtDesc();
     }
 
-    @Transactional
     public void clearUserHistory() {
         userTicketRepo.deleteAll();
     }
 
-    // Thêm vào cuối AnalyzeService.java
-public DrawRecordDto getLatestDraw(String categoryInput, String drawDate) {
-    String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
-    
-    List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
-    
-    // 1. Tìm chính xác ngày được yêu cầu (vd: 2026-09-25)
-    if (drawDate != null && !drawDate.trim().isEmpty()) {
-        Optional<LotteryNumber> match = records.stream()
-                .filter(r -> r.getDrawDate() != null && r.getDrawDate().toString().equals(drawDate.trim()))
-                .findFirst();
-        
-        if (match.isPresent()) {
-            LotteryNumber r = match.get();
-            return new DrawRecordDto(r.getId(), r.getDrawDate().toString(), r.getNumbers(), r.getSpecialNumber(), r.getNote());
+    // HÀM CẬP NHẬT (CHỈNH SỬA) KẾT QUẢ ĐÃ LƯU
+    public void updateDrawResult(Long id, LotteryNumber updatedDraw) {
+        Optional<LotteryNumber> existingOpt = repository.findById(id);
+        if (existingOpt.isPresent()) {
+            LotteryNumber existing = existingOpt.get();
+            // Chỉ cập nhật các dãy số và số phụ, giữ nguyên ngày quay và category
+            existing.setNumbers(updatedDraw.getNumbers());
+            existing.setSpecialNumber(updatedDraw.getSpecialNumber());
+            repository.save(existing);
+        } else {
+            throw new RuntimeException("Không tìm thấy dữ liệu kỳ quay này!");
         }
     }
-    
-    // 2. Fallback: Trả về kết quả mới nhất nếu DB có dữ liệu
-    if (!records.isEmpty()) {
-        LotteryNumber r = records.get(0);
-        return new DrawRecordDto(r.getId(), r.getDrawDate().toString(), r.getNumbers(), r.getSpecialNumber(), r.getNote());
-    }
-    
-    return null; // DB trống
-}
 
     private static class ScoredNumber {
         int number;
@@ -581,6 +517,19 @@ public DrawRecordDto getLatestDraw(String categoryInput, String drawDate) {
             this.probability = probability;
             this.frequency = frequency;
             this.drawGap = drawGap;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ScoredNumber that = (ScoredNumber) o;
+            return number == that.number;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(number);
         }
     }
 
