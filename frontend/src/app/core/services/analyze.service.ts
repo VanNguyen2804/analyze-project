@@ -75,4 +75,10 @@ export class AnalyzeService {
   getFrenchHistory(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl.replace('/analyze', '/french')}/history`);
   }
+
+  // Thêm vào trong class AnalyzeService
+getLatestDrawAnalysis(category: string): Observable<any> {
+    // Gọi đến endpoint mới vừa tạo ở Backend
+    return this.http.get<any>(`${this.apiUrl}/latest-draw-analysis?category=${category}`);
+}
 }

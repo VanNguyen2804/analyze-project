@@ -1,1016 +1,191 @@
-<div class="latest-analysis-container py-3">
-  <!-- 1. TOP HEADER & CATEGORY SWITCHER -->
-  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden hero-card">
-    <div class="card-body p-4 p-md-5 text-white">
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+<!-- Bổ sung Style trực tiếp để đồng bộ màu sắc với toàn dự án -->
+<style>
+  .ball-mega {
+    background: radial-gradient(circle at 15px 15px, #00b4db, #0083b0) !important;
+    color: white !important;
+    border: 2px solid #00769c !important;
+  }
+  .ball-power {
+    background: radial-gradient(circle at 15px 15px, #f2994a, #f2c94c) !important;
+    color: white !important;
+    border: 2px solid #e2893a !important;
+  }
+  .ball-highlight {
+    background: radial-gradient(circle at 15px 15px, #28a745, #155724) !important;
+    color: white !important;
+    border: 2px solid #155724 !important;
+    transform: scale(1.15);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4) !important;
+    z-index: 10;
+  }
+  /* Định dạng khung Popup đi theo chuột */
+  .floating-popup {
+    position: fixed;
+    z-index: 9999;
+    width: 350px;
+    pointer-events: none; 
+    transition: opacity 0.1s ease-in-out;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .floating-popup.show {
+    opacity: 1;
+    visibility: visible;
+  }
+</style>
+
+<div class="prediction-container w-100">
+  <!-- Header Card -->
+  <div class="card shadow-sm border-0 mb-4 mt-4">
+    <div class="card-body p-3 p-md-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-          <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-25 small fw-bold mb-2">
-            <span>🏆 ĐỐI SOÁT & PHÂN TÍCH CHUYÊN SÂU</span>
-            <span class="badge bg-warning text-dark">KỲ MỚI NHẤT</span>
-            <span class="badge bg-light text-dark">{{ latestDrawSummary.drawDate }}</span>
-          </div>
-          <h1 class="h3 fw-extrabold mb-1">
-            Phân Tích Kết Quả Trúng Kỳ Quay {{ latestDrawSummary.title }} Mới Nhất
-          </h1>
-          <p class="text-white-50 mb-0" style="max-width: 780px;">
-            Giải mã toàn diện bộ số trúng thưởng ngày <strong class="text-white">{{ latestDrawSummary.drawDate }}</strong>.
-            Đánh giá điểm số xác suất thuật toán, cơ chế tại sao ra, mạng lưới kết hợp cặp số và lộ trình nâng cấp học máy.
+          <h3 class="card-title h4 fw-bold text-primary mb-1">
+            📊 Phân tích Kỳ quay Mới nhất
+          </h3>
+          <p class="text-muted mb-0 small">
+            Đánh giá sức mạnh của các con số xuất hiện trong kỳ quay gần đây nhất và đối chiếu với thuật toán AI.
           </p>
         </div>
-
-        <!-- Category Selector -->
-        <div class="category-toggle-container p-1 rounded-pill d-flex align-items-center gap-1 shadow">
-          <button
-            type="button"
-            class="btn category-toggle-btn power-option rounded-pill px-3 py-1 fw-bold transition-all"
-            [class.active-power]="category === 'POWER'"
-            (click)="setCategory('POWER')"
-          >
-            🔵 Power 6/55
-          </button>
-          <button
-            type="button"
-            class="btn category-toggle-btn mega-option rounded-pill px-3 py-1 fw-bold transition-all"
-            [class.active-mega]="category === 'MEGA'"
-            (click)="setCategory('MEGA')"
-          >
-            🔴 Mega 6/45
-          </button>
-        </div>
       </div>
 
-      <!-- DATE SELECTION & DATABASE LOOKUP BAR -->
-      <div class="bg-black bg-opacity-30 rounded-4 p-3 mb-3 border border-white border-opacity-15 shadow-sm">
-        <div class="row g-2 align-items-center">
-          <div class="col-12 col-lg-auto">
-            <span class="text-white small fw-bold d-inline-flex align-items-center gap-1">
-              <span>📅</span> Tra cứu & Phân tích theo ngày:
-            </span>
-          </div>
-
-          <!-- Date picker input -->
-          <div class="col-12 col-sm-6 col-lg-auto">
-            <div class="input-group input-group-sm">
-              <span class="input-group-text bg-white bg-opacity-20 text-white border-0">📆</span>
-              <input
-                type="date"
-                class="form-control form-control-sm bg-white text-dark fw-bold border-0"
-                [(ngModel)]="inputDate"
-                (keyup.enter)="onSearchByDate()"
-                title="Chọn ngày mở thưởng"
-              />
-            </div>
-          </div>
-
-          <!-- Dropdown of available dates in Database -->
-          <div class="col-12 col-sm-6 col-lg-auto" *ngIf="availableDates.length > 0">
-            <select
-              class="form-select form-select-sm bg-white text-dark fw-bold border-0"
-              [(ngModel)]="inputDate"
-              (change)="onSearchByDate(inputDate)"
-              title="Danh sách ngày có trong Database"
-            >
-              <option value="" disabled>-- Chọn ngày trong Database --</option>
-              <option *ngFor="let d of availableDates; let idx = index" [value]="d">
-                {{ formatDateWithDay(d) }} {{ idx === 0 ? '🏆 (Mới nhất)' : '' }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Action buttons -->
-          <div class="col-12 col-lg-auto d-flex gap-2">
-            <button
-              type="button"
-              class="btn btn-sm btn-warning text-dark fw-bold px-3 d-flex align-items-center gap-1 shadow-sm rounded-pill"
-              [disabled]="isSearchingDate"
-              (click)="onSearchByDate()"
-            >
-              <span *ngIf="!isSearchingDate">🔍 Lấy 6 số & Phân tích</span>
-              <span *ngIf="isSearchingDate">⏳ Đang truy vấn DB...</span>
-            </button>
-
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold"
-              (click)="resetToLatestDraw()"
-              title="Quay lại kỳ mở thưởng mới nhất"
-            >
-              🔄 Kỳ mới nhất
-            </button>
-          </div>
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-3">
+        <div class="small text-muted">
+           <span class="badge bg-secondary">MEGA 6/45</span> | <span class="badge bg-secondary">POWER 6/55</span>
         </div>
-
-        <!-- Alert if date is not found in database -->
-        <div *ngIf="dateError" class="alert alert-danger py-2 px-3 mt-3 mb-0 rounded-3 small">
-          <div class="fw-bold mb-1">⚠️ {{ dateError }}</div>
-          <div *ngIf="availableDates.length > 0" class="text-white-50">
-            <span class="text-white fw-bold">Gợi ý các ngày có sẵn dữ liệu trong Database: </span>
-            <div class="d-flex flex-wrap gap-1 mt-1">
-              <button
-                *ngFor="let avDate of availableDates.slice(0, 8)"
-                type="button"
-                class="btn btn-xs btn-light py-0 px-2 rounded-pill small fw-bold"
-                (click)="selectAvailableDate(avDate)"
-              >
-                👉 {{ formatDateWithDay(avDate) }}
-              </button>
-            </div>
-          </div>
-        </div>
+        <button
+          id="btn-fetch-latest"
+          class="btn btn-primary fw-bold px-4 py-2 shadow-sm"
+          (click)="fetchAnalysis()"
+          [disabled]="isLoading"
+        >
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          {{ isLoading ? 'Đang tải dữ liệu...' : '🔄 Làm mới Dữ liệu' }}
+        </button>
       </div>
+      
+      <!-- Thông báo khi không tìm thấy dữ liệu -->
+      <div *ngIf="errorMessage" class="alert alert-warning my-3 py-2">
+        {{ errorMessage }}
+      </div>
+    </div>
+  </div>
 
-      <!-- WINNING NUMBERS BANNER DISPLAY -->
-      <div class="bg-black bg-opacity-30 rounded-4 p-3 p-md-4 mt-1 border border-white border-opacity-15">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-          <span class="text-white-50 small fw-bold text-uppercase tracking-wider">
-            🎯 Dãy số mở thưởng từ Database ngày {{ latestDrawSummary.drawDate }} (Nhấn vào số để xem lịch sử):
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <h5 class="text-muted">Đang phân tích dữ liệu kỳ quay mới nhất...</h5>
+  </div>
+
+  <!-- Nội dung phân tích -->
+  <div *ngIf="!isLoading && analysisData">
+    
+    <!-- 1. KẾT QUẢ KỲ QUAY MỚI NHẤT -->
+    <div class="card shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
+      <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="badge" [ngClass]="category === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
+            KẾT QUẢ CHÍNH THỨC &bull; {{ category === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
           </span>
-          <div class="d-flex gap-2 flex-wrap" *ngIf="hasUserPlayed && latestDrawSummary.initialHits">
-            <span class="badge bg-success text-white px-2 py-1 shadow-sm">
-              Trúng ban đầu: {{ latestDrawSummary.initialHits }}
-            </span>
-            <span class="badge bg-warning text-dark px-2 py-1 shadow-sm">
-              Thu nạp 100%: {{ latestDrawSummary.upgradedHits }}
-            </span>
-          </div>
-          <div class="d-flex gap-2 flex-wrap" *ngIf="!hasUserPlayed">
-            <span class="badge bg-dark bg-opacity-50 text-white border border-light border-opacity-25 px-3 py-1 shadow-sm">
-              🔬 Chế độ: Phân tích chuyên sâu (Bạn chưa chơi vé kỳ này)
-            </span>
-          </div>
-        </div>
-
-        <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap">
-          <div *ngFor="let item of currentWinningNumbers"
-               class="ball-wrapper text-center"
-               (click)="pinPopup(item.number, $event)"
-               (mouseenter)="showPopup(item.number, $event)"
-               (mouseleave)="hidePopup()"
-               style="cursor: pointer;">
-            <div class="ball-lg shadow"
-                 [ngClass]="{
-                   'ball-special-lg': item.role === 'special',
-                   'ball-power-lg': item.role !== 'special' && category === 'POWER',
-                   'ball-mega-lg': item.role !== 'special' && category === 'MEGA'
-                 }">
-              {{ formatNumber(item.number) }}
-            </div>
-            <div class="mt-1 small fw-bold text-white text-opacity-75" style="font-size: 0.72rem;">
-              {{ item.role === 'special' ? '⭐ Phụ' : '#' + item.rank }}
-            </div>
-          </div>
-
-          <div class="ms-auto d-none d-lg-block text-end">
-            <div class="text-white-50 small">Tổng giải (Sum)</div>
-            <div class="fs-4 fw-bold text-warning">{{ latestDrawSummary.totalSum }}</div>
-            <div class="small text-white-50">Cơ cấu: {{ latestDrawSummary.parity }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======================================================== -->
-  <!-- 2. PHẦN ĐỐI CHIẾU VỚI VÉ CỦA USER ĐÃ CHƠI TRONG KỲ HÔM ĐÓ -->
-  <!-- ======================================================== -->
-  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden ticket-crosscheck-card">
-    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <span class="fs-4">🎫</span>
-        <div>
-          <h5 class="fw-bold mb-0 text-dark">
-            Đối Chiếu Vé Đã Chơi Trong Kỳ {{ latestDrawSummary.drawDate }} ({{ latestDrawSummary.title }})
-          </h5>
-          <small class="text-muted">
-            Tự động so khớp dãy số vé người dùng với kết quả mở thưởng chính thức của kỳ quay này.
-          </small>
+          <h4 class="h5 fw-bold text-dark mb-0 mt-1">
+            Dãy số trúng thưởng ngày {{ analysisData.drawDate }}
+          </h4>
         </div>
       </div>
 
-      <div class="d-flex align-items-center gap-2">
-        <button
-          type="button"
-          class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1"
-          (click)="toggleQuickTicketInput()"
-        >
-          <span>{{ showQuickTicketInput ? '✖ Đóng khung nhập' : '➕ Nhập vé đối soát' }}</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="card-body p-4">
-      <!-- FORM NHẬP VÉ NHANH ĐỂ ĐỐI SOÁT (HIỂN THỊ KHI BẤM NÚT) -->
-      <div *ngIf="showQuickTicketInput" class="p-3 mb-4 bg-light rounded-4 border border-primary border-opacity-25 fade-in">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <strong class="text-primary small">
-            ✍️ Nhập 6 con số trên vé của bạn (Kỳ ngày {{ latestDrawSummary.drawDate }} &bull; {{ latestDrawSummary.title }}):
-          </strong>
-          <span class="badge bg-secondary">Giới hạn 1 - {{ category === 'POWER' ? 55 : 45 }}</span>
-        </div>
-
-        <div class="row g-2 align-items-center mb-3">
-          <div class="col-2" *ngFor="let n of quickTicketNumbers; let i = index">
-            <input
-              type="number"
-              class="form-control text-center fw-bold fs-5 border-2 rounded-3 shadow-none"
-              [placeholder]="'Số ' + (i + 1)"
-              [min]="1"
-              [max]="category === 'POWER' ? 55 : 45"
-              [(ngModel)]="quickTicketNumbers[i]"
-            />
+      <div class="card-body p-4 text-center">
+        <div class="d-flex justify-content-center gap-3 flex-wrap p-3 rounded" [ngStyle]="{'background-color': category === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
+          <!-- Các bóng số chính -->
+          <div class="ball shadow-sm fw-bold fs-4" 
+               *ngFor="let num of analysisData.numbers"
+               style="width: 60px; height: 60px;"
+               [ngClass]="category === 'MEGA' ? 'ball-mega' : 'ball-power'">
+            {{ num < 10 ? '0' + num : num }}
           </div>
-        </div>
-
-        <div class="row g-2 align-items-center">
-          <div class="col-md-8">
-            <input
-              type="text"
-              class="form-control rounded-pill border shadow-none"
-              placeholder="Ghi chú vé (VD: Vé tự chọn tại đại lý, vé nuôi...)"
-              [(ngModel)]="quickTicketNote"
-            />
-          </div>
-          <div class="col-md-4 d-flex gap-2">
-            <button
-              type="button"
-              class="btn btn-primary rounded-pill px-3 fw-bold w-100"
-              [disabled]="isSavingQuickTicket"
-              (click)="submitQuickTicket()"
-            >
-              <span *ngIf="isSavingQuickTicket" class="spinner-border spinner-border-sm me-1"></span>
-              🔍 Lưu & Đối Soát Ngay
-            </button>
-            <button
-              type="button"
-              class="btn btn-outline-secondary rounded-pill px-3"
-              (click)="toggleQuickTicketInput()"
-            >
-              Hủy
-            </button>
-          </div>
-        </div>
-        <div *ngIf="quickTicketMessage" class="small text-success mt-2 fw-semibold">
-          {{ quickTicketMessage }}
-        </div>
-      </div>
-
-      <!-- TRƯỜNG HỢP 1: USER CÓ CHƠI VÉ TRONG KỲ NÀY -> HIỆN TRÚNG BAO NHIÊU SỐ -->
-      <div *ngIf="hasUserPlayed && userTickets && userTickets.length > 0" class="fade-in">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-bold">
-              ✅ Đã tìm thấy {{ userTickets.length }} vé bạn đã chơi trong kỳ này
-            </span>
-            <span class="badge" [ngClass]="winningTicketsCount > 0 ? 'bg-danger text-white' : 'bg-secondary text-white'" style="padding: 0.6rem 0.8rem; border-radius: 50rem;">
-              {{ winningTicketsCount > 0 ? ('🎉 Trúng thưởng ' + winningTicketsCount + ' vé!') : 'Chưa có vé trúng' }}
-            </span>
-          </div>
-
-          <small class="text-muted" *ngIf="category === 'POWER'">
-            Banh phụ ⭐{{ formatNumber(latestDrawSummary.specialNumber) }} kích hoạt giải Jackpot 2 khi trúng 5 số chính
-          </small>
-        </div>
-
-        <!-- DANH SÁCH CÁC VÉ CÁ NHÂN VỚI ĐỐI SOÁT TRÚNG BAO NHIÊU SỐ -->
-        <div class="row g-3">
-          <div *ngFor="let ticket of userTickets; let idx = index" class="col-lg-6">
-            <div class="card h-100 border rounded-4 shadow-sm p-3 transition-all ticket-item-card"
-                 [ngClass]="{
-                   'border-warning bg-warning bg-opacity-10 shadow': ticket.prize === 'JACKPOT 2' || ticket.prize === 'JACKPOT 1' || ticket.prize === 'JACKPOT',
-                   'border-success bg-success bg-opacity-10': ticket.prize === 'GIẢI NHẤT' || ticket.prize === 'GIẢI NHÌ' || ticket.prize === 'GIẢI BA',
-                   'border-light bg-light': ticket.prize === 'KHÔNG TRÚNG'
-                 }">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                  <div class="fw-bold text-dark d-flex align-items-center gap-2">
-                    <span>🎫 Vé #{{ idx + 1 }}</span>
-                    <span *ngIf="ticket.note" class="badge bg-white text-secondary border fw-normal">{{ ticket.note }}</span>
-                  </div>
-                  <small class="text-muted" *ngIf="ticket.checkedAt">
-                    Lưu lúc: {{ ticket.checkedAt | date:'HH:mm dd/MM/yyyy' }}
-                  </small>
-                </div>
-
-                <!-- BADGE GIẢI THƯỞNG -->
-                <div>
-                  <span class="badge px-3 py-2 rounded-pill fw-bold shadow-sm"
-                        [ngClass]="{
-                          'bg-danger text-white': ticket.prize === 'JACKPOT 1' || ticket.prize === 'JACKPOT',
-                          'bg-warning text-dark': ticket.prize === 'JACKPOT 2',
-                          'bg-primary text-white': ticket.prize === 'GIẢI NHẤT',
-                          'bg-success text-white': ticket.prize === 'GIẢI NHÌ',
-                          'bg-info text-white': ticket.prize === 'GIẢI BA',
-                          'bg-secondary text-white': ticket.prize === 'KHÔNG TRÚNG'
-                        }">
-                    {{ ticket.prize }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- DÃY BÓNG CỦA VÉ - CÁC BÓNG TRÚNG ĐƯỢC HIGHLIGHT PHÁT SÁNG NỔI BẬT KÈM DẤU TICK -->
-              <div class="d-flex align-items-center gap-2 flex-wrap my-2">
-                <div *ngFor="let num of ticket.numbers"
-                     class="user-ticket-ball"
-                     [class.is-match]="isNumberMatched(ticket, num)"
-                     [class.is-special-match]="isSpecialMatched(ticket, num)"
-                     [title]="isNumberMatched(ticket, num) ? 'Trúng số chính: ' + formatNumber(num) : (isSpecialMatched(ticket, num) ? 'Trúng banh phụ đặc biệt: ⭐' + formatNumber(num) : 'Số ' + formatNumber(num))">
-                  <span>{{ formatNumber(num) }}</span>
-                  <span class="match-check-icon" *ngIf="isNumberMatched(ticket, num)">✓</span>
-                  <span class="special-star-icon" *ngIf="isSpecialMatched(ticket, num)">⭐</span>
-                </div>
-              </div>
-
-              <!-- DÒNG KẾT QUẢ "TRÚNG BAO NHIÊU SỐ" -->
-              <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div>
-                  <div class="fw-bold" [ngClass]="ticket.prize !== 'KHÔNG TRÚNG' ? 'text-success' : 'text-secondary'">
-                    <span *ngIf="ticket.matchedCount > 0 || ticket.matchedSpecial">
-                      🎯 <span class="fs-6">Trúng {{ ticket.matchedCount }}/6 số chính</span>
-                      <span *ngIf="ticket.matchedSpecial" class="text-warning"> + Banh phụ ⭐{{ formatNumber(latestDrawSummary.specialNumber) }}</span>
-                    </span>
-                    <span *ngIf="ticket.matchedCount === 0 && !ticket.matchedSpecial" class="text-muted">
-                      ❌ Trúng 0/6 số chính (Không trúng)
-                    </span>
-                  </div>
-                  <div class="small text-muted" *ngIf="ticket.prizeAmount && ticket.prize !== 'KHÔNG TRÚNG'">
-                    Giá trị giải: <strong class="text-dark">{{ ticket.prizeAmount }}</strong>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  class="btn btn-sm btn-link text-danger p-0 text-decoration-none"
-                  (click)="deleteUserTicket(ticket.id)"
-                  title="Xóa vé này"
-                >
-                  <small>🗑️ Xóa vé</small>
-                </button>
-              </div>
+          
+          <!-- Banh phụ (Nếu có) -->
+          <div class="d-flex align-items-center" *ngIf="analysisData.specialNumber">
+            <span class="fs-4 text-muted mx-2">+</span>
+            <div class="ball shadow-sm fw-bold fs-4 bg-danger text-white border-danger" 
+                 style="width: 60px; height: 60px;"
+                 title="Banh Phụ (Jackpot 2)">
+              {{ analysisData.specialNumber < 10 ? '0' + analysisData.specialNumber : analysisData.specialNumber }}
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- TRƯỜNG HỢP 2: USER KHÔNG CHƠI VÉ TRONG KỲ NÀY -> CHỈ PHÂN TÍCH (KHÔNG HIỆN TRÚNG BAO NHIÊU SỐ) -->
-      <div *ngIf="!hasUserPlayed || !userTickets || userTickets.length === 0" class="fade-in">
-        <div class="alert alert-light border border-secondary border-opacity-25 rounded-4 p-4 text-center mb-0">
-          <div class="fs-1 mb-2">📋</div>
-          <h5 class="fw-bold text-dark mb-1">
-            Kỳ quay ngày {{ latestDrawSummary.drawDate }}: Bạn chưa chơi vé nào
-          </h5>
-          <p class="text-muted mb-3 mx-auto" style="max-width: 620px;">
-            Trong kỳ quay này, bạn chưa ghi nhận vé cá nhân nào vào hệ thống.
-          </p>
+    <!-- 2. CHI TIẾT ĐÁNH GIÁ TỪNG CON SỐ (AI ANALYSIS) -->
+    <div class="card shadow-sm border-0 mb-4" *ngIf="analysisData.selectionReasons && analysisData.selectionReasons.length > 0">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">🤖</span>
+          <h4 class="h5 fw-bold text-dark mb-0">
+            Đánh giá sức mạnh các con số đã về
+          </h4>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
+          AI Analysis Report
+        </span>
+      </div>
 
-          <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fw-semibold mb-3">
-            <span>📊 Chế độ hiển thị: <strong>CHỈ PHÂN TÍCH</strong></span>
-            <span class="badge bg-primary text-white">Chuyên sâu</span>
-          </div>
-
-          <div class="text-secondary small mb-3 mx-auto" style="max-width: 600px;">
-            Hệ thống hiển thị toàn bộ bảng điểm xác suất, cơ chế nổ số Markov & Poisson, mạng lưới cặp số đồng hành và lộ trình nâng cấp thuật toán ở các tab phía dưới mà không có kết quả đối soát vé.
-          </div>
-
-          <div>
-            <button
-              type="button"
-              class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold shadow-sm"
-              (click)="toggleQuickTicketInput()"
-            >
-              <span>➕ Bạn có chơi vé kỳ này? Nhập vé để đối soát ngay</span>
-            </button>
+      <div class="card-body p-3 p-md-4">
+        <!-- Tóm tắt nhận định chung (nếu có từ Backend) -->
+        <div class="p-3 mb-4 rounded-3 border bg-light" *ngIf="analysisData.overallReason || analysisData.analysisSummary">
+          <div class="text-secondary small" style="line-height: 1.6;">
+            {{ analysisData.overallReason || analysisData.analysisSummary }}
           </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- NAVIGATION TABS -->
-  <div class="card border-0 shadow-sm rounded-4 mb-4">
-    <div class="card-body p-2 p-md-3">
-      <div class="d-flex gap-2 overflow-auto pb-1">
-        <button
-          type="button"
-          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
-          [class.active]="activeTab === 'scorecards'"
-          (click)="activeTab = 'scorecards'"
-        >
-          📊 1. Điểm số từng số trúng ({{ latestDrawSummary.title }})
-        </button>
-        <button
-          type="button"
-          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
-          [class.active]="activeTab === 'whyAppeared'"
-          (click)="activeTab = 'whyAppeared'"
-        >
-          💡 2. Tại sao lại ra? (Giải mã {{ currentWinningNumbers.length }} số)
-        </button>
-        <button
-          type="button"
-          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
-          [class.active]="activeTab === 'combinations'"
-          (click)="activeTab = 'combinations'"
-        >
-          🔗 3. Sự kết hợp của các số (Cặp & Cụm)
-        </button>
-        <button
-          type="button"
-          class="btn tab-btn px-3 py-2 rounded-3 fw-bold flex-shrink-0"
-          [class.active]="activeTab === 'algorithmRoadmap'"
-          (click)="activeTab = 'algorithmRoadmap'"
-        >
-          ⚙️ 4. Cách thuật toán nên cập nhật
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- TAB 1: BẢNG ĐIỂM SỐ CHI TIẾT TỪNG SỐ TRÚNG -->
-  <!-- ========================================== -->
-  <div *ngIf="activeTab === 'scorecards'" class="fade-in">
-    <div class="alert alert-primary border-0 shadow-sm rounded-4 d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-      <div>
-        <h5 class="fw-bold mb-1 text-primary">📊 Bảng Điểm Số & Chỉ Số Xác Suất Kỳ Mới Nhất: {{ latestDrawSummary.title }}</h5>
-        <div class="small text-secondary">
-          Bảng đối chuẩn các trọng số xác suất, thứ hạng trong {{ category === 'POWER' ? 55 : 45 }} số, tần suất lịch sử, chu kỳ gan và quán tính động lượng.
-          <strong class="text-dark">Nhấn vào bất kỳ số nào để mở popup giữ nguyên xem dãy 6 số ở các kỳ quay trước.</strong>
-        </div>
-      </div>
-      <a routerLink="/analyze" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold">
-        ⚡ Sang trang Dự đoán AI &rarr;
-      </a>
-    </div>
-
-    <!-- COMPARISON CARDS FOR NUMBERS -->
-    <div class="row g-3 mb-4">
-      <div *ngFor="let item of currentWinningNumbers" class="col-md-6 col-xl-4">
-        <div class="card h-100 border-0 shadow-sm rounded-4 score-card"
-             (click)="pinPopup(item.number, $event)"
-             style="cursor: pointer;">
-          <div class="card-body p-3 p-md-4">
-            <!-- Header of card -->
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <div class="d-flex align-items-center gap-2">
-                <div class="ball-md shadow-sm"
+        <div class="d-flex flex-column gap-3">
+          <div
+            *ngFor="let item of analysisData.selectionReasons"
+            class="p-3 rounded-3 border bg-white shadow-sm"
+            [ngClass]="{
+              'border-start border-4 border-start-warning': item.role === 'special',
+              'border-start border-4 border-start-danger': item.tag === 'SỐ NÓNG',
+              'border-start border-4 border-start-primary': item.tag === 'LÔ GAN',
+              'border-start border-4 border-start-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM'
+            }"
+          >
+            <div class="d-flex align-items-start gap-3">
+              <div class="d-flex flex-column align-items-center">
+                <!-- Bóng hiển thị bên trái của mục đánh giá -->
+                <div class="ball flex-shrink-0 shadow-sm"
+                     style="width: 48px; height: 48px; font-size: 1.15rem;"
                      [ngClass]="{
-                       'ball-special-md': item.role === 'special',
-                       'ball-power-md': item.role !== 'special' && category === 'POWER',
-                       'ball-mega-md': item.role !== 'special' && category === 'MEGA'
+                       'ball-mega': category === 'MEGA' && item.role !== 'special', 
+                       'ball-power': category === 'POWER' && item.role !== 'special',
+                       'bg-danger text-white border-danger': item.role === 'special'
                      }">
-                  {{ formatNumber(item.number) }}
-                </div>
-                <div>
-                  <h6 class="fw-bold mb-0 text-dark">
-                    Quả Banh {{ formatNumber(item.number) }}
-                    <span *ngIf="item.role === 'special'" class="text-warning small ms-1">(Số Phụ ⭐)</span>
-                  </h6>
-                  <span class="badge small"
-                        *ngIf="hasUserPlayed"
-                        [ngClass]="{
-                          'bg-success': item.status === 'initial_hit',
-                          'bg-primary': item.status === 'upgraded_hit',
-                          'bg-warning text-dark': item.status === 'special_hit'
-                        }">
-                    {{ item.status === 'initial_hit' ? 'Trúng Ban Đầu' : (item.status === 'upgraded_hit' ? 'Thu Nạp Sau Nâng Cấp' : 'Bảo Hiểm Jackpot 2') }}
-                  </span>
-                  <span class="badge small bg-secondary text-white" *ngIf="!hasUserPlayed">
-                    {{ item.role === 'special' ? '⭐ Banh Phụ Đặc Biệt' : '🎯 Số Mở Thưởng' }}
-                  </span>
+                  {{ item.role === 'special' ? '★' : '' }}{{ item.number < 10 ? '0' + item.number : item.number }}
                 </div>
               </div>
 
-              <div class="text-end">
-                <div class="fs-4 fw-extrabold text-primary">{{ item.probabilityPercent }}%</div>
-                <span class="badge bg-light text-secondary border small">Hạng #{{ item.rank }}/{{ category === 'POWER' ? 55 : 45 }}</span>
-              </div>
-            </div>
-
-            <!-- Title & Tag -->
-            <div class="mb-2">
-              <span class="badge bg-light text-dark border small me-1 mb-1">{{ item.tag }}</span>
-              <div class="fw-bold text-dark small">{{ item.title }}</div>
-            </div>
-
-            <!-- Key metrics grid -->
-            <div class="bg-light rounded-3 p-2 mb-3 border small">
-              <div class="row g-1 text-center">
-                <div class="col-4 border-end">
-                  <div class="text-muted" style="font-size: 0.72rem;">Đã về</div>
-                  <strong class="text-dark">{{ item.frequency }} lần</strong>
-                </div>
-                <div class="col-4 border-end">
-                  <div class="text-muted" style="font-size: 0.72rem;">Chu kỳ Gan</div>
-                  <strong [ngClass]="item.drawGap > 10 ? 'text-danger' : 'text-success'">{{ item.drawGap === 0 ? 'Lặp (0)' : item.drawGap + ' kỳ' }}</strong>
-                </div>
-                <div class="col-4">
-                  <div class="text-muted" style="font-size: 0.72rem;">Quán tính</div>
-                  <strong class="text-primary">{{ item.momentumScore }}</strong>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sub scores breakdown -->
-            <div class="mb-3 small">
-              <div class="d-flex justify-content-between text-muted mb-1" style="font-size: 0.76rem;">
-                <span>Markov: <strong>{{ (item.markovScore * 100) | number:'1.0-0' }}%</strong></span>
-                <span>Poisson: <strong>{{ (item.poissonScore * 100) | number:'1.0-0' }}%</strong></span>
-                <span>Đồng hành: <strong>{{ (item.coOccurrenceScore * 100) | number:'1.0-0' }}%</strong></span>
-              </div>
-              <div class="progress" style="height: 6px;">
-                <div class="progress-bar bg-primary" [style.width.%]="item.probabilityPercent"></div>
-              </div>
-            </div>
-
-            <p class="text-secondary small mb-0 line-clamp-2" style="font-size: 0.82rem; line-height: 1.45;">
-              {{ item.whyItAppeared }}
-            </p>
-
-            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
-              <span class="text-primary small fw-semibold">🔍 Nhấn để xem lịch sử 6 số &rarr;</span>
-              <span class="text-muted small" style="font-size: 0.72rem;">Cặp: [{{ item.synergyPartners.join(', ') }}]</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DETAILED COMPARATIVE TABLE -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-      <div class="card-header bg-white py-3 border-0">
-        <h6 class="fw-bold mb-0 text-dark">📋 Bảng Tổng Hợp Thông Số Kỹ Thuật {{ latestDrawSummary.title }}</h6>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 text-center">
-          <thead class="table-light text-muted small text-uppercase">
-            <tr>
-              <th class="text-start ps-3">Số</th>
-              <th>Xác Suất</th>
-              <th>Thứ Hạng</th>
-              <th>Tổng Lần Về</th>
-              <th>Về 10 Kỳ Gần Nhất</th>
-              <th>Kỳ Gan</th>
-              <th>Quán Tính (Mom)</th>
-              <th>Poisson Fit</th>
-              <th>Trạng Thái</th>
-              <th>Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of currentWinningNumbers" (click)="pinPopup(item.number, $event)" style="cursor: pointer;">
-              <td class="text-start ps-3">
-                <div class="d-flex align-items-center gap-2">
-                  <div class="ball-sm" [ngClass]="{
-                    'ball-special': item.role === 'special',
-                    'ball-power': item.role !== 'special' && category === 'POWER',
-                    'ball-mega': item.role !== 'special' && category === 'MEGA'
-                  }">
-                    {{ formatNumber(item.number) }}
-                  </div>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
                   <div>
-                    <strong class="text-dark">{{ formatNumber(item.number) }}</strong>
-                    <div class="small text-muted" style="font-size: 0.72rem;">{{ item.tag }}</div>
+                    <span class="fw-bold fs-6 text-dark me-2">Số {{ item.number < 10 ? '0' + item.number : item.number }}</span>
+                    <span class="badge small" [ngClass]="{'bg-danger': item.tag === 'SỐ NÓNG', 'bg-primary': item.tag === 'LÔ GAN', 'bg-success': item.tag === 'CÂN BẰNG' || item.tag === 'CẶP ĐI KÈM'}">
+                      {{ item.tag }}
+                    </span>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 small text-muted">
+                    <span class="badge bg-light text-dark border" *ngIf="item.probabilityPercent">
+                      Sức mạnh: <strong class="text-primary">{{ item.probabilityPercent }}%</strong>
+                    </span>
+                    <span class="badge bg-light text-secondary border">Về {{ item.frequency }} lần - Gan {{ item.drawGap }} kỳ</span>
                   </div>
                 </div>
-              </td>
-              <td>
-                <span class="fw-bold text-primary">{{ item.probabilityPercent }}%</span>
-              </td>
-              <td>
-                <span class="badge bg-light text-dark border">#{{ item.rank }}</span>
-              </td>
-              <td>{{ item.frequency }} lần</td>
-              <td>
-                <span class="badge" [ngClass]="item.freqLast10 >= 3 ? 'bg-danger text-white' : 'bg-light text-dark border'">
-                  {{ item.freqLast10 }} / 10
-                </span>
-              </td>
-              <td>
-                <span class="badge" [ngClass]="item.drawGap === 0 ? 'bg-warning text-dark' : (item.drawGap >= 20 ? 'bg-danger text-white' : 'bg-success text-white')">
-                  {{ item.drawGap === 0 ? 'Lặp (0)' : item.drawGap + ' kỳ' }}
-                </span>
-              </td>
-              <td>{{ item.momentumScore }}</td>
-              <td>
-                <span class="badge bg-info-subtle text-info-emphasis border">{{ (item.poissonScore * 100) | number:'1.0-0' }}%</span>
-              </td>
-              <td>
-                <span *ngIf="hasUserPlayed" class="badge" [ngClass]="item.status === 'initial_hit' ? 'bg-success text-white' : 'bg-primary text-white'">
-                  {{ item.status === 'initial_hit' ? 'Trúng Ban Đầu' : 'Bắt Sau Nâng Cấp' }}
-                </span>
-                <span *ngIf="!hasUserPlayed" class="badge bg-secondary text-white">
-                  {{ item.role === 'special' ? '⭐ Số Phụ' : '🎯 Số Mở Thưởng' }}
-                </span>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0"
-                        (click)="pinPopup(item.number, $event)">
-                  📌 Xem lịch sử
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- TAB 2: GIẢI MÃ "TẠI SAO LẠI RA?"           -->
-  <!-- ========================================== -->
-  <div *ngIf="activeTab === 'whyAppeared'" class="fade-in">
-    <div class="alert alert-info border-0 shadow-sm rounded-4 mb-4">
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="fs-5">💡</span>
-        <h5 class="fw-bold mb-0 text-dark">Chuyên Sâu: Tại Sao Các Con Số Này Xuất Hiện Trong Kỳ Quay {{ latestDrawSummary.title }}?</h5>
-      </div>
-      <p class="text-secondary small mb-0">
-        Khác với suy đoán cảm tính, mỗi con số xuất hiện đều tuân theo các quy luật toán học thống kê cụ thể: từ hiện tượng bảo toàn quán tính lặp (Markov), điểm rơi vàng phân phối Poisson, điểm kỳ dị phá ngưỡng Lô Gan, cho đến lực hút ma trận cặp số đồng hành.
-      </p>
-    </div>
-
-    <div class="d-flex flex-column gap-3 mb-4">
-      <div *ngFor="let item of currentWinningNumbers" class="card border-0 shadow-sm rounded-4 why-card overflow-hidden">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
-            <div class="d-flex align-items-center gap-3">
-              <div class="ball-lg shadow"
-                   [ngClass]="{
-                     'ball-special-lg': item.role === 'special',
-                     'ball-power-lg': item.role !== 'special' && category === 'POWER',
-                     'ball-mega-lg': item.role !== 'special' && category === 'MEGA'
-                   }"
-                   (click)="pinPopup(item.number, $event)"
-                   style="cursor: pointer;"
-                   title="Nhấn để xem dãy 6 số ở các kỳ trước">
-                {{ formatNumber(item.number) }}
-              </div>
-              <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
-                  <h4 class="h5 fw-bold text-dark mb-0">Quả Banh {{ formatNumber(item.number) }}</h4>
-                  <span class="badge bg-primary text-white">{{ item.tag }}</span>
-                  <span class="badge bg-light text-dark border">Rank #{{ item.rank }}</span>
-                </div>
-                <div class="text-primary fw-semibold">{{ item.title }}</div>
-              </div>
-            </div>
-
-            <div class="text-end">
-              <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"
-                      (click)="pinPopup(item.number, $event)">
-                📌 Xem dãy 6 số các kỳ trước
-              </button>
-            </div>
-          </div>
-
-          <!-- Why it appeared -->
-          <div class="mb-3">
-            <h6 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-              <span>🎯 Cơ Chế Xuất Hiện Thực Nghiệm:</span>
-            </h6>
-            <p class="text-secondary mb-0" style="line-height: 1.6;">
-              {{ item.whyItAppeared }}
-            </p>
-          </div>
-
-          <!-- Mathematical reason & formula -->
-          <div class="bg-light rounded-3 p-3 mb-3 border">
-            <div class="small fw-bold text-dark mb-1">📐 Phân Tích Cơ Sở Toán Học & Thống Kê:</div>
-            <div class="text-muted small" style="line-height: 1.55;">
-              {{ item.mathematicalReason }}
-            </div>
-          </div>
-
-          <!-- Synergy Partners & Recommendation -->
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top small">
-            <div>
-              <span class="text-muted">Cụm số liên kết chặt chẽ: </span>
-              <span *ngFor="let p of item.synergyPartners"
-                    class="badge bg-secondary text-white me-1"
-                    (click)="pinPopup(p, $event)"
-                    style="cursor: pointer;">
-                {{ formatNumber(p) }}
-              </span>
-            </div>
-            <div class="text-success fw-semibold">
-              💡 Giải pháp: {{ item.recommendation }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- TAB 3: SỰ KẾT HỢP CỦA CÁC SỐ (TỔ HỢP & CẶP) -->
-  <!-- ========================================== -->
-  <div *ngIf="activeTab === 'combinations'" class="fade-in">
-    <div class="row g-4 mb-4">
-      <!-- 1. MA TRẬN CẶP SỐ ĐỒNG HÀNH -->
-      <div class="col-lg-7">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-          <div class="card-header bg-white py-3 border-0">
-            <div class="d-flex justify-content-between align-items-center">
-              <h5 class="fw-bold mb-0 text-dark">🔗 Ma Trận Cặp Số Đồng Hành ({{ latestDrawSummary.title }})</h5>
-              <span class="badge bg-primary text-white">Trọng số liên kết</span>
-            </div>
-            <p class="text-muted small mb-0 mt-1">
-              Các cặp số hay về cùng nhau trong kỳ quay mới nhất và lực hút ma trận tương hỗ.
-            </p>
-          </div>
-
-          <div class="card-body p-3 p-md-4">
-            <div class="d-flex flex-column gap-3">
-              <div *ngFor="let pair of currentPairSynergies" class="p-3 bg-light rounded-4 border">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="ball-sm" [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
-                         (click)="pinPopup(pair.n1, $event)" style="cursor: pointer;">
-                      {{ formatNumber(pair.n1) }}
-                    </div>
-                    <span class="fw-bold text-muted">&harr;</span>
-                    <div class="ball-sm" [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
-                         (click)="pinPopup(pair.n2, $event)" style="cursor: pointer;">
-                      {{ formatNumber(pair.n2) }}
-                    </div>
-                    <span class="badge bg-primary text-white ms-1">{{ pair.type }}</span>
-                  </div>
-
-                  <div class="text-end">
-                    <span class="badge bg-success text-white fw-bold">+{{ pair.synergyPercent }}% Synergy</span>
-                  </div>
-                </div>
-
-                <p class="text-secondary small mb-1" style="line-height: 1.5;">
-                  {{ pair.description }}
-                </p>
-                <div class="small text-muted">
-                  Tần suất nổ chung trong các kỳ gần đây: <strong class="text-dark">{{ pair.coCount }} lần</strong>
-                </div>
+                <div class="fw-semibold text-dark small mb-1">{{ item.title }}</div>
+                <p class="text-secondary small mb-0" style="line-height: 1.55;">{{ item.reason }}</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- 2. ĐẶC TRƯNG VĨ MÔ DÃY SỐ (CƠ CẤU CHẴN LẺ & DELTA) -->
-      <div class="col-lg-5">
-        <div class="d-flex flex-column gap-4">
-          <!-- CƠ CẤU CHẴN / LẺ -->
-          <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-4">
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge" [ngClass]="category === 'POWER' ? 'bg-danger text-white' : 'bg-success text-white'">
-                  {{ category === 'POWER' ? 'Đột Biến 5:1' : 'Tỷ Lệ Vàng 4:2' }}
-                </span>
-                <h5 class="fw-bold mb-0 text-dark">Cơ Cấu: {{ latestDrawSummary.parity }}</h5>
-              </div>
-              <p class="text-secondary small mb-3">
-                Phân tích tỷ lệ số chẵn và lẻ trong kỳ quay {{ latestDrawSummary.title }}:
-              </p>
-
-              <div class="bg-light rounded-3 p-3 border mb-3">
-                <div class="d-flex justify-content-between small text-muted mb-2">
-                  <span>Số Chẵn: {{ calculatedParity.evenPercent }}% ({{ calculatedParity.evenCount }} số)</span>
-                  <span>Số Lẻ: {{ calculatedParity.oddPercent }}% ({{ calculatedParity.oddCount }} số)</span>
-                </div>
-                <div class="progress" style="height: 10px;">
-                  <div class="progress-bar" [ngClass]="category === 'POWER' ? 'bg-primary' : 'bg-danger'"
-                       [style.width.%]="calculatedParity.evenPercent"></div>
-                  <div class="progress-bar" [ngClass]="category === 'POWER' ? 'bg-info' : 'bg-warning'"
-                       [style.width.%]="calculatedParity.oddPercent"></div>
-                </div>
-              </div>
-
-              <div class="small text-muted" style="line-height: 1.5;">
-                💡 <strong>Ý nghĩa thuật toán:</strong> 
-                {{ category === 'POWER' 
-                  ? 'Cấu trúc chẵn/lẻ của kỳ quay cho thấy sự phân bổ động lượng giữa hai nhóm số. Mô hình XGBoost tự động thích ứng với cấu trúc ' + calculatedParity.label + ' này.' 
-                  : 'Cấu trúc ' + calculatedParity.label + ' của kỳ quay Mega phản ánh trạng thái cân bằng nhịp dao động giữa các nhóm bóng.' }}
-              </div>
-            </div>
-          </div>
-
-          <!-- PHÂN BỐ KHOẢNG CÁCH DELTA SPACING -->
-          <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-4">
-              <h5 class="fw-bold mb-2 text-dark">📐 Phân Bố Bước Nhảy Delta</h5>
-              <p class="text-secondary small mb-3">
-                Khoảng cách giữa các con số theo thứ tự tăng dần từ kỳ mở thưởng này:
-              </p>
-
-              <div class="d-flex align-items-center gap-1 flex-wrap mb-3 p-2 bg-light rounded-3 border">
-                <ng-container *ngFor="let delta of calculatedDeltaSpacing; let idx = index; let isLast = last">
-                  <span class="badge px-2 py-1" [ngClass]="category === 'POWER' ? 'bg-primary' : 'bg-danger'">
-                    {{ formatNumber(delta.from) }}
-                  </span>
-                  <span class="small fw-bold" [ngClass]="delta.delta > 10 ? 'text-danger' : 'text-muted'">
-                    +{{ delta.delta }} &rarr;
-                  </span>
-                  <span *ngIf="isLast" class="badge px-2 py-1" [ngClass]="category === 'POWER' ? 'bg-primary' : 'bg-danger'">
-                    {{ formatNumber(delta.to) }}
-                  </span>
-                </ng-container>
-              </div>
-
-              <div class="small text-muted" style="line-height: 1.5;">
-                {{ category === 'POWER' 
-                  ? 'Bước nhảy Delta giữa 6 số chính của kỳ quay Power 6/55 được tính toán trực tiếp từ cơ sở dữ liệu thực tế.' 
-                  : 'Bước nhảy Delta giữa 6 số của kỳ quay Mega 6/45 được tính toán trực tiếp từ cơ sở dữ liệu thực tế.' }}
-              </div>
-            </div>
-          </div>
-
-          <!-- TỔNG GIẢI -->
-          <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="fw-bold mb-0 text-dark">🎯 Tổng Dãy Số: {{ latestDrawSummary.totalSum }}</h5>
-                <span class="badge bg-warning text-dark fw-bold">Chuẩn Gaussian</span>
-              </div>
-              <p class="text-secondary small mb-0" style="line-height: 1.5;">
-                Tổng 6 số đạt <strong>{{ latestDrawSummary.totalSum }}</strong>, nằm chính xác trong dải kỳ vọng lý thuyết của giải {{ latestDrawSummary.title }}.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- TAB 4: CÁCH THUẬT TOÁN NÊN CẬP NHẬT        -->
-  <!-- ========================================== -->
-  <div *ngIf="activeTab === 'algorithmRoadmap'" class="fade-in">
-    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="fs-4">🚀</span>
-        <h5 class="fw-bold mb-0 text-dark">Lộ Trình Cập Nhật Thuật Toán Học Máy Cho {{ latestDrawSummary.title }}</h5>
-      </div>
-      <p class="text-secondary small mb-0">
-        Dưới đây là 5 trụ cột kiến trúc thuật toán chuyên biệt cho {{ latestDrawSummary.title }} đã và đang được cập nhật vào hệ thống:
-      </p>
-    </div>
-
-    <div class="d-flex flex-column gap-3 mb-4">
-      <div *ngFor="let up of currentAlgorithmUpgrades" class="card border-0 shadow-sm rounded-4 p-3 p-md-4">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary rounded-circle p-2 fs-6" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;">
-              {{ up.step }}
-            </span>
-            <h5 class="h6 fw-bold text-dark mb-0">{{ up.title }}</h5>
-          </div>
-          <code class="bg-light text-primary px-3 py-1 rounded-pill small border fw-semibold">
-            {{ up.formula }}
-          </code>
-        </div>
-
-        <div class="row g-3 mt-1">
-          <div class="col-md-6">
-            <div class="p-3 bg-danger-subtle rounded-3 border border-danger-subtle h-100">
-              <strong class="text-danger small d-block mb-1">⚠️ Vấn đề của thuật toán cũ:</strong>
-              <div class="text-secondary small" style="line-height: 1.5;">
-                {{ up.problem }}
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle h-100">
-              <strong class="text-success small d-block mb-1">✅ Giải pháp sau khi cập nhật:</strong>
-              <div class="text-secondary small" style="line-height: 1.5;">
-                {{ up.solution }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ACTION BUTTONS -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-light">
-      <h5 class="fw-bold text-dark mb-2">Sẵn Sàng Kiểm Thử Thuật Toán?</h5>
-      <p class="text-muted small mb-3">
-        Mô hình XGBoost và Monte Carlo 100K đã được đồng bộ hóa với các trọng số mới nhất cho {{ latestDrawSummary.title }}.
-      </p>
-      <div class="d-flex justify-content-center gap-3 flex-wrap">
-        <a routerLink="/analyze" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
-          ⚡ Chạy Dự Đoán AI Ngay &rarr;
-        </a>
-        <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" (click)="activeTab = 'scorecards'">
-          📊 Quay lại xem bảng điểm
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ======================================================== -->
-<!-- FLOATING / PINNED POPUP: GIỮ NGUYÊN KHI NHẤN VÀO 1 SỐ     -->
-<!-- SHOW SỐ ĐÓ TRONG DÃY 6 SỐ Ở CÁC KỲ QUAY TRƯỚC            -->
-<!-- ======================================================== -->
-<div class="floating-popup shadow bg-white rounded-4 border"
-     [class.show]="hoveredNumber"
-     [class.pinned]="isPopupPinned"
-     [ngStyle]="popupStyle">
-  <div class="p-3 p-md-4" *ngIf="hoveredNumber">
-    <!-- Header: Pinned indicator & Close button -->
-    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
-      <div class="d-flex align-items-center gap-2">
-        <span *ngIf="isPopupPinned" class="badge bg-danger text-white d-flex align-items-center gap-1 shadow-sm">
-          <span>📌 ĐÃ GHIM POPUP</span>
-        </span>
-        <span *ngIf="!isPopupPinned" class="badge bg-secondary text-white" style="font-size: 0.72rem;">
-          💡 Nhấn vào số để giữ cố định
-        </span>
-      </div>
-      <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill fw-bold"
-              (click)="closePopup()" title="Đóng popup">
-        ✕ Đóng
-      </button>
-    </div>
-
-    <!-- Number profile info -->
-    <div class="d-flex align-items-center justify-content-between mb-2">
-      <div class="d-flex align-items-center gap-2">
-        <div class="ball-sm" [ngClass]="{
-          'ball-special': hoveredNumberDetail?.isSpecial,
-          'ball-power': !hoveredNumberDetail?.isSpecial && category === 'POWER',
-          'ball-mega': !hoveredNumberDetail?.isSpecial && category === 'MEGA'
-        }">
-          {{ formatNumber(hoveredNumber) }}
-        </div>
-        <div>
-          <strong class="text-dark fs-6">Hồ sơ số {{ formatNumber(hoveredNumber) }}</strong>
-          <div class="small text-muted" *ngIf="hoveredNumberDetail">
-            Xác suất: <strong class="text-primary">{{ hoveredNumberDetail.probabilityPercent }}%</strong>
-            <span *ngIf="hoveredNumberDetail.rank"> &bull; Hạng #{{ hoveredNumberDetail.rank }}</span>
-          </div>
-        </div>
-      </div>
-      <span class="badge bg-primary" *ngIf="hoveredNumberDetail">{{ hoveredNumberDetail.tag }}</span>
-    </div>
-
-    <!-- Details and metrics -->
-    <div *ngIf="hoveredNumberDetail" class="mb-2">
-      <div class="small fw-semibold text-dark mb-1">{{ hoveredNumberDetail.title }}</div>
-      <div class="text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.4;">
-        {{ hoveredNumberDetail.reason }}
-      </div>
-      <div class="d-flex justify-content-between small bg-light p-2 rounded border">
-        <span>Đã về: <strong>{{ hoveredNumberDetail.frequency }} lần</strong></span>
-        <span>Gan: <strong>{{ hoveredNumberDetail.drawGap }} kỳ</strong></span>
-        <span *ngIf="hoveredNumberDetail.momentumScore !== undefined">Quán tính: <strong>{{ hoveredNumberDetail.momentumScore }}</strong></span>
-      </div>
-    </div>
-
-    <!-- SHOW SỐ ĐÓ TRONG DÃY 6 SỐ Ở CÁC KỲ QUAY TRƯỚC -->
-    <div class="mt-3">
-      <div class="d-flex align-items-center justify-content-between mb-1">
-        <span class="small fw-bold text-dark">
-          📅 Xuất hiện trong các kỳ trước ({{ category }} - Dãy 6 số):
-        </span>
-        <span class="badge bg-light text-secondary border small">
-          {{ hoveredNumberHistory.length }} kỳ
-        </span>
-      </div>
-
-      <div *ngIf="hoveredNumberHistory && hoveredNumberHistory.length > 0"
-           class="d-flex flex-column gap-2 p-1" style="max-height: 240px; overflow-y: auto;">
-        <div *ngFor="let h of hoveredNumberHistory | slice:0:8" class="p-2 rounded bg-light border">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span class="small fw-semibold text-secondary" style="font-size: 0.78rem;">
-              🗓️ {{ h.drawDate }} ({{ getDayOfWeek(h.drawDate) }})
-              <span *ngIf="h.note" class="text-muted ms-1 small">({{ h.note }})</span>
-            </span>
-            <span class="badge" [ngClass]="h.specialNumber === hoveredNumber ? 'bg-warning text-dark' : 'bg-primary text-white'" style="font-size: 0.7rem;">
-              {{ h.specialNumber === hoveredNumber ? '⭐ Số Phụ' : 'Số Chính' }}
-            </span>
-          </div>
-
-          <!-- Dãy 6 số của kỳ quay đó - Số đang chọn được highlight phát sáng nổi bật! -->
-          <div class="d-flex align-items-center gap-1 flex-wrap my-1">
-            <span *ngFor="let ball of h.numbers"
-                  class="history-ball"
-                  [class.active-highlight]="ball === hoveredNumber"
-                  (click)="pinPopup(ball, $event)"
-                  [title]="ball === hoveredNumber ? 'Số đang chọn (' + formatNumber(ball) + ')' : 'Nhấn để xem hồ sơ số ' + formatNumber(ball)">
-              {{ formatNumber(ball) }}
-            </span>
-            <!-- Số phụ nếu có -->
-            <span *ngIf="h.specialNumber"
-                  class="history-ball ball-special"
-                  [class.active-highlight]="h.specialNumber === hoveredNumber"
-                  (click)="pinPopup(h.specialNumber, $event)"
-                  [title]="'Số phụ đặc biệt ⭐' + formatNumber(h.specialNumber)">
-              ⭐{{ formatNumber(h.specialNumber) }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!hoveredNumberHistory || hoveredNumberHistory.length === 0" class="small text-muted text-center py-2 bg-light rounded border">
-        Chưa có lần về nào trong các kỳ gần đây
       </div>
     </div>
   </div>

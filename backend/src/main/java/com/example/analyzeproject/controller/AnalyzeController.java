@@ -71,12 +71,13 @@ public class AnalyzeController {
     }
 
     // Thêm vào AnalyzeController.java
-@PostMapping("/latest-draw")
-public ResponseEntity<?> getLatestDraw(@RequestBody Map<String, String> payload) {
-    String category = payload.getOrDefault("category", "MEGA");
-    // Tùy thuộc vào tên biến Angular truyền lên, có thể là "date" hoặc "drawDate"
-    String drawDate = payload.get("date"); 
+// Thêm hoặc sửa lại trong AnalyzeController.java
+@GetMapping("/latest-draw")
+public ResponseEntity<?> getLatestDraw(
+        @RequestParam(value = "category", defaultValue = "MEGA") String category,
+        @RequestParam(value = "date", required = false) String drawDate) {
     
+    // Gọi service (đã được cập nhật ở bước trước) để lấy dữ liệu
     DrawRecordDto result = analyzeService.getLatestDraw(category, drawDate);
     
     if (result != null) {
@@ -84,6 +85,21 @@ public ResponseEntity<?> getLatestDraw(@RequestBody Map<String, String> payload)
     } else {
         return ResponseEntity.status(404)
             .body(Map.of("status", "NOT_FOUND", "message", "Không tìm thấy dữ liệu " + category + " cho ngày " + drawDate));
+    }
+}
+
+@GetMapping("/latest-draw-analysis")
+public ResponseEntity<?> getLatestDrawAnalysis(
+        @RequestParam(value = "category", defaultValue = "MEGA") String category) {
+    
+    // Gọi hàm analyzeAndPredict có sẵn của bạn để lấy phân tích (XGBoost, Wheeling, số nóng, lô gan...)
+    PredictionResponseDto analysisResult = analyzeService.analyzeAndPredict(category);
+    
+    if (analysisResult != null) {
+        return ResponseEntity.ok(analysisResult);
+    } else {
+        return ResponseEntity.status(404)
+            .body(Map.of("status", "NOT_FOUND", "message", "Không thể phân tích dữ liệu " + category));
     }
 }
 }

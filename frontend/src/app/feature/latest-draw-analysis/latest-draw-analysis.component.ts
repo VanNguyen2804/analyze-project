@@ -560,12 +560,28 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     });
 
     this.loadData();
+    this.fetchAnalysis();
   }
 
   ngOnDestroy(): void {
     if (this.categorySub) {
       this.categorySub.unsubscribe();
     }
+  }
+
+  fetchAnalysis(): void {
+    this.isLoading = true;
+    this.analyzeService.getLatestDrawAnalysis(this.category).subscribe({
+      next: (response) => {
+        this.analysisData = response;
+        this.isLoading = false;
+        console.log('Dữ liệu phân tích từ Backend:', this.analysisData);
+      },
+      error: (error) => {
+        console.error('Lỗi khi lấy dữ liệu phân tích:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   // Khi người dùng bấm nút Power 6/55 hoặc Mega 6/45 trên trang:
