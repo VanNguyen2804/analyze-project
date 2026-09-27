@@ -1,266 +1,186 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { PredictionPayload } from 'src/app/core/models/prediction-payload.model';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
-export interface AlgorithmOption {
-  id: string;
-  name: string;
-  badge: string;
-  description: string;
-  icon: string;
-  formula: string;
-}
-
 @Component({
   selector: 'app-prediction',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './prediction.component.html',
   styleUrls: ['./prediction.component.css']
 })
 export class PredictionComponent implements OnInit, OnDestroy {
   payload: PredictionPayload | null = null;
   isSpinning = false;
-  isLoadingHistory = false;
+  errorMessage: string | null = null;
   showAllReasons = false;
-  errorMessage = '';
-  
-  hoveredNumber?: number = undefined;
+
+  // --- 1. BIẾN QUẢN LÝ THUẬT TOÁN (TỪ HTML) ---
+  selectedAlgorithm: string = 'xgboost';
+  algorithms = [
+    { id: 'xgboost', name: 'AI XGBoost + Wheeling', icon: '🧠', badge: 'Khuyên dùng', formula: 'Tối ưu Z-Score + Trộn vé', description: 'Phân tích tần suất, lô gan và tương tác cặp để lọc 10 số ưu tú.' },
+    { id: 'montecarlo', name: 'Monte Carlo 100K', icon: '🎲', badge: 'Mô phỏng', formula: 'Random walk simulation', description: 'Chạy mô phỏng 100.000 lồng cầu ngẫu nhiên.' },
+    { id: 'markov', name: 'Mô hình Markov', icon: '🔗', badge: 'Xác suất', formula: 'P(State A -> State B)', description: 'Dự đoán bước nhảy không gian trạng thái giữa các kỳ quay.' }
+  ];
+
+  // --- 2. BIẾN QUẢN LÝ TAB & FOCUS ANALYSIS (TỪ HTML) ---
+  activeFocusTab: string = 'target3'; 
+  selectedFocusNumber: number | null = null;
+  scoreSearchTerm: string = '';
+
+  // --- 3. BIẾN QUẢN LÝ POPUP HOVER & GHIM (TỪ HTML) ---
+  hoveredNumber: number | null = null;
   hoveredNumberDetail: any = null;
   hoveredNumberHistory: any[] = [];
-  isPopupPinned: boolean = false;
-  pinnedNumber?: number = undefined;
+  isPopupPinned: boolean = false; // Phục vụ class .pinned
   popupStyle: any = { top: '0px', left: '0px' };
-  
+
   category: string = 'MEGA'; 
   private categorySub: Subscription | undefined;
 
-  selectedAlgorithm: string = 'xgboost';
-
-  algorithms: AlgorithmOption[] = [
-    {
-      id: 'xgboost',
-      name: 'XGBoost AI',
-      badge: 'Đa biến kết hợp',
-      description: 'Học máy Gradient Boosted kết hợp Quán tính (Momentum) + Lô Gan chu kỳ + Ma trận cặp số đồng hành.',
-      icon: '⚡',
-      formula: 'Gradient Boost & Momentum'
-    },
-    {
-      id: 'monte_carlo',
-      name: 'Monte Carlo 100K',
-      badge: 'Mô phỏng 100.000 kịch bản',
-      description: 'Mô phỏng 100.000 lượt quay có trọng số xác suất, đối chuẩn các giải thưởng lớn toàn cầu (Powerball & Mega Millions).',
-      icon: '🎲',
-      formula: 'Expected Value (EV) Convergence'
-    },
-    {
-      id: 'markov_chain',
-      name: 'Chuỗi Markov',
-      badge: 'Ma trận chuyển dịch',
-      description: 'Tính xác suất chuyển dịch có điều kiện P(St | St-1) từ kết quả kỳ mở thưởng gần nhất, dự báo bước nhảy tiếp theo.',
-      icon: '🔗',
-      formula: '1st-Order Transition Probability'
-    },
-    {
-      id: 'poisson_gap',
-      name: 'Poisson & Lô Gan',
-      badge: 'Hồi quy phân phối',
-      description: 'Mô hình phân phối Poisson phát hiện độ trễ tích lũy cực hạn và kích hoạt điểm rơi hồi quy (Mean Reversion).',
-      icon: '🎯',
-      formula: 'Poisson Process Mean Reversion'
-    },
-    {
-      id: 'delta_wheeling',
-      name: 'Delta & Wheeling',
-      badge: 'Cân bằng khoảng cách',
-      description: 'Phân tích khoảng cách Delta lý tưởng giữa các số liền kề, lọc bẫy số quá nóng và bọc lót qua ma trận Wheeling 10-to-6.',
-      icon: '🛡️',
-      formula: 'Delta Distance Spacing & Wheel'
-    }
-  ];
-
-  recentDraws: any[] = [];
-  visibleDraws: any[] = [];
-
-  constructor(
-    private analyzeService: AnalyzeService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(private analyzeService: AnalyzeService) {}
 
   ngOnInit() {
-    // BehaviorSubject sẽ emit giá trị hiện tại ngay lập tức khi subscribe -> tự động chạy predict() lần đầu tiên vào trang
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
       this.category = newCategory;
-      this.selectedFocusNumber = this.category === 'POWER' ? 48 : 31;
-      this.predict(); 
+      this.resetState();
     });
   }
 
   ngOnDestroy() {
-    if (this.categorySub) {
-      this.categorySub.unsubscribe();
-    }
+    if (this.categorySub) this.categorySub.unsubscribe();
   }
 
-  selectAlgorithm(algId: string) {
-    if (this.selectedAlgorithm === algId && !this.isSpinning) {
-      return;
-    }
-    this.selectedAlgorithm = algId;
-    this.predict();
+  resetState() {
+    this.payload = null;
+    this.errorMessage = null;
+    this.showAllReasons = false;
+    this.activeFocusTab = 'target3';
+    this.selectedFocusNumber = null;
+    this.scoreSearchTerm = '';
+    this.closePopup();
   }
 
-  getCurrentAlgorithmInfo(): AlgorithmOption {
+  // --- XỬ LÝ THUẬT TOÁN ---
+  selectAlgorithm(id: string) {
+    this.selectedAlgorithm = id;
+  }
+
+  getCurrentAlgorithmInfo() {
     return this.algorithms.find(a => a.id === this.selectedAlgorithm) || this.algorithms[0];
   }
 
   predict() {
     this.isSpinning = true;
-    this.isLoadingHistory = true;
-    this.errorMessage = '';
-    this.payload = null;
-    this.showAllReasons = false;
-    this.hidePopup();
-    this.cdr.detectChanges();
+    this.errorMessage = null;
+    this.closePopup();
     
     this.analyzeService.getPrediction(this.category, this.selectedAlgorithm).subscribe({
       next: (res) => {
         setTimeout(() => {
           this.payload = res;
-          
-          if (res && res.recentDraws) {
-            this.recentDraws = res.recentDraws;
-            this.visibleDraws = this.recentDraws.slice(0, 10);
-          }
-          
           this.isSpinning = false;
-          this.isLoadingHistory = false;
-          this.cdr.detectChanges();
-        }, 300); 
+        }, 1500); 
       },
       error: (err) => {
-        console.error('Lỗi khi phân tích dữ liệu:', err);
-        this.errorMessage = 'Không thể kết nối đến máy chủ phân tích. Vui lòng thử lại sau.';
+        console.error('Lỗi API predict:', err);
+        this.errorMessage = 'Có lỗi xảy ra khi kết nối thuật toán dự đoán. Vui lòng thử lại!';
         this.isSpinning = false;
-        this.isLoadingHistory = false;
-        this.cdr.detectChanges();
       }
     });
   }
 
-  showPopup(num: number, event: MouseEvent) {
-    if (this.isPopupPinned) {
-      return; // Giữ nguyên popup khi người dùng đã ghim / nhấn vào 1 số
+  // --- HÀM PHỤC VỤ TAB FOCUS ANALYSIS (ĐÃ KHÔI PHỤC) ---
+  selectFocusNumber(num: number) {
+    this.selectedFocusNumber = num;
+  }
+
+  getTarget3Items(): any[] {
+    if (!this.payload?.focusAnalysis?.focusItems) return [];
+    const targets = this.category === 'POWER' ? [48, 52, 14] : [31, 45, 14];
+    return this.payload.focusAnalysis.focusItems.filter((item: any) => targets.includes(item.number));
+  }
+
+  // HÀM BẠN ĐÃ HỎI: Lọc danh sách thẻ tra cứu
+  getFilteredScores(): any[] {
+    if (!this.payload?.focusAnalysis?.focusItems) return [];
+    let items = this.payload.focusAnalysis.focusItems;
+    
+    if (this.scoreSearchTerm && this.scoreSearchTerm.trim() !== '') {
+      items = items.filter((item: any) => item.number.toString().includes(this.scoreSearchTerm.trim()));
     }
-    this.populateNumberDetails(num);
+    return items;
+  }
+
+  getFocusItem(num: number | null): any {
+    if (!num || !this.payload?.focusAnalysis?.focusItems) return null;
+    return this.payload.focusAnalysis.focusItems.find((item: any) => item.number === num);
+  }
+
+  // --- HÀM PHỤC VỤ POPUP & GHIM (ĐÃ KHÔI PHỤC) ---
+  showPopup(num: number, event: MouseEvent) {
+    if (this.isPopupPinned) return; // Nếu đang ghim số khác thì bỏ qua hover
+    this.hoveredNumber = num;
+    this.loadPopupData(num);
     this.updatePopupPosition(event);
   }
 
-  pinPopup(num: number, event?: MouseEvent) {
-    if (event) {
-      event.stopPropagation();
-    }
+  updatePopupPosition(event: MouseEvent) {
+    if (this.isPopupPinned || !this.hoveredNumber) return; // Đã ghim thì không di chuyển theo chuột nữa
+    
+    let x = event.clientX + 15;
+    let y = event.clientY + 15;
+    const popupWidth = 420; // Khớp với CSS .floating-popup width 420px
+    const popupHeight = 400;
+
+    if (x + popupWidth > window.innerWidth) x = event.clientX - popupWidth - 15;
+    if (y + popupHeight > window.innerHeight) y = event.clientY - popupHeight - 15;
+
+    this.popupStyle = { top: y + 'px', left: x + 'px' };
+  }
+
+  hidePopup() {
+    if (this.isPopupPinned) return;
+    this.hoveredNumber = null;
+    this.hoveredNumberDetail = null;
+    this.hoveredNumberHistory = [];
+  }
+
+  // Hàm ghim Popup (Click vào bóng)
+  pinPopup(num: number, event: MouseEvent) {
+    event.stopPropagation(); // Ngăn click lan ra ngoài
     this.isPopupPinned = true;
-    this.pinnedNumber = num;
-    this.populateNumberDetails(num);
-    if (event) {
-      this.updatePopupPosition(event);
-    }
-    this.cdr.detectChanges();
+    this.hoveredNumber = num;
+    this.loadPopupData(num);
+    // Tính lại vị trí ghim 1 lần
+    let x = event.clientX + 15;
+    let y = event.clientY + 15;
+    if (x + 420 > window.innerWidth) x = event.clientX - 420 - 15;
+    if (y + 400 > window.innerHeight) y = event.clientY - 400 - 15;
+    this.popupStyle = { top: y + 'px', left: x + 'px' };
   }
 
   closePopup() {
     this.isPopupPinned = false;
-    this.pinnedNumber = undefined;
-    this.hoveredNumber = undefined;
-    this.hoveredNumberDetail = null;
-    this.hoveredNumberHistory = [];
-    this.cdr.detectChanges();
-  }
-
-  hidePopup() {
-    if (this.isPopupPinned) {
-      return; // Giữ nguyên popup khi đã được ghim
-    }
-    this.hoveredNumber = undefined;
+    this.hoveredNumber = null;
     this.hoveredNumberDetail = null;
     this.hoveredNumberHistory = [];
   }
 
-  populateNumberDetails(num: number) {
+  loadPopupData(num: number) {
     if (!this.payload) return;
-    this.hoveredNumber = num;
-
-    let detail = null;
     if (this.payload.selectionReasons) {
-      detail = this.payload.selectionReasons.find(r => r.number === num);
+      this.hoveredNumberDetail = this.payload.selectionReasons.find(r => r.number === num);
     }
-    if (!detail && this.payload.focusAnalysis && this.payload.focusAnalysis.focusItems) {
-      detail = this.payload.focusAnalysis.focusItems.find(f => f.number === num);
-    }
-    if (!detail && this.payload.allNumberScores) {
-      detail = this.payload.allNumberScores.find(s => s.number === num);
-    }
-    if (!detail && this.payload.details) {
-      detail = this.payload.details.find(d => d.number === num);
-    }
-
-    if (!detail) {
-      detail = {
-        number: num,
-        probabilityPercent: 82.5,
-        rank: 18,
-        frequency: 4,
-        drawGap: 3,
-        tag: 'DÃY SỐ PHÂN TÍCH',
-        title: `Quả Banh ${this.formatNumber(num)}`,
-        reason: `Dữ liệu lịch sử phân tích số ${this.formatNumber(num)} trong các chu kỳ mở thưởng.`
-      };
-    }
-    this.hoveredNumberDetail = detail;
-
-    // Lấy danh sách các kỳ quay trước có số này (dãy 6 số đầy đủ)
     if (this.payload.recentDraws) {
       this.hoveredNumberHistory = this.payload.recentDraws.filter(draw => 
         (draw.numbers && draw.numbers.includes(num)) || draw.specialNumber === num
       );
-    } else {
-      this.hoveredNumberHistory = [];
     }
   }
 
-  updatePopupPosition(event: MouseEvent) {
-    if (!this.hoveredNumber) return;
-
-    let x = event.clientX + 18;
-    let y = event.clientY + 15;
-
-    const popupWidth = 420;
-    const popupHeight = 440;
-
-    if (x + popupWidth > window.innerWidth) {
-      x = event.clientX - popupWidth - 18;
-    }
-    if (y + popupHeight > window.innerHeight) {
-      y = event.clientY - popupHeight - 18;
-    }
-
-    x = Math.max(10, x);
-    y = Math.max(10, y);
-
-    this.popupStyle = {
-      top: y + 'px',
-      left: x + 'px'
-    };
-  }
-
-  formatNumber(num: number | undefined): string {
-    if (num === undefined) return '--';
+  // --- UTILS ---
+  formatNumber(num: number | undefined | null): string {
+    if (num === undefined || num === null) return '--';
     return num < 10 ? '0' + num : num.toString();
   }
 
@@ -269,46 +189,5 @@ export class PredictionComponent implements OnInit, OnDestroy {
     const date = new Date(dateString);
     const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
     return days[date.getDay()];
-  }
-
-  // --- MỤC ĐỐI SOÁT & CHI TIẾT ĐIỂM SỐ CÁC SỐ 48, 52, 14 ---
-  selectedFocusNumber: number = 48;
-  activeFocusTab: 'target3' | 'fullDraw' | 'allScores' | 'algorithmNotes' = 'target3';
-  scoreSearchTerm: string = '';
-
-  selectFocusNumber(num: number) {
-    this.selectedFocusNumber = num;
-  }
-
-  getFocusItem(num: number): any {
-    if (!this.payload) return null;
-    if (this.payload.focusAnalysis && this.payload.focusAnalysis.focusItems) {
-      const found = this.payload.focusAnalysis.focusItems.find(f => f.number === num);
-      if (found) return found;
-    }
-    if (this.payload.allNumberScores) {
-      return this.payload.allNumberScores.find(s => s.number === num) || null;
-    }
-    return null;
-  }
-
-  getTarget3Items(): any[] {
-    const targetNumbers = this.category === 'POWER' ? [48, 52, 14] : [31, 45, 14];
-    return targetNumbers.map(n => this.getFocusItem(n)).filter(item => item !== null);
-  }
-
-  getFilteredScores(): any[] {
-    if (!this.payload || !this.payload.allNumberScores) return [];
-    if (!this.scoreSearchTerm.trim()) {
-      return this.payload.allNumberScores;
-    }
-    const term = this.scoreSearchTerm.trim().toLowerCase();
-    const termNum = parseInt(term, 10);
-    return this.payload.allNumberScores.filter(s => 
-      s.number === termNum ||
-      s.number.toString().includes(term) ||
-      s.tag.toLowerCase().includes(term) ||
-      s.title.toLowerCase().includes(term)
-    );
   }
 }

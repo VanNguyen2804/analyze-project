@@ -32,13 +32,9 @@ export interface PredictionPayload {
   message?: string;
   category?: string;
   lotteryType?: string;
-  algorithm?: string;
-  algorithmName?: string;
-  algorithmDesc?: string;
   tickets?: number[][];
   details?: NumberScoreDetail[];
-  
-  // Bổ sung thêm các field từ Backend
+  focusAnalysis?: FocusAnalysis;
   numbers?: number[];
   specialNumber?: number;
   totalDrawsAnalyzed?: number;
@@ -48,13 +44,16 @@ export interface PredictionPayload {
   frequentPairs?: string[];
   jackpot2Pairs?: string[];
   oddEvenRatio?: string;
-  selectionReasons?: NumberSelectionReason[];
+  selectionReasons?: NumberSelectionReason[]; 
   recentDraws?: any[];
-  analysisSummary?: string;
   overallReason?: string;
-  focusAnalysis?: FocusAnalysis;
-  allNumberScores?: FocusNumberDetail[];
+  analysisSummary?: string;
+  drawDate?: string;
+  algorithm?: string;
+  algorithmName?: string;
+  algorithmDesc?: string;
 }
+
 
 export interface NumberScoreDetail {
   number: number;
@@ -63,6 +62,7 @@ export interface NumberScoreDetail {
   drawGap: number;
   tag: string;
 }
+
 
 export interface NumberSelectionReason {
   number: number;
@@ -73,4 +73,11 @@ export interface NumberSelectionReason {
   probabilityPercent: number;
   frequency: number;
   drawGap: number;
+  rank?: number;
+  momentum?: number;
+  markov?: number;
+  poisson?: number;
+  companion?: number;
+  pairedNumbers?: string;
+  showFreq?: boolean;
 }
