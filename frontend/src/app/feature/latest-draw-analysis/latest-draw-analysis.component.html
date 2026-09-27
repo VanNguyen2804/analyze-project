@@ -110,6 +110,372 @@
   </div>
 </div>
 
+<!-- ======================================================== -->
+<!-- 1. PHẦN VÉ CỦA USER & KẾT QUẢ ĐỐI SOÁT TRỰC QUAN         -->
+<!-- ======================================================== -->
+<div class="card shadow-sm border-0 rounded-4 mb-4 mt-4 overflow-hidden" *ngIf="analysisData">
+  <div class="card-header bg-gradient py-3 px-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-2"
+       style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 2px solid #3b82f6;">
+    <div class="d-flex align-items-center gap-2">
+      <span class="fs-4">🎟️</span>
+      <div>
+        <h5 class="fw-bold mb-0 text-white">Vé Của User & Kết Quả Đối Soát Kỳ Quay</h5>
+        <small class="text-info">
+          {{ userTickets.length > 0 ? ('Đã tìm thấy ' + userTickets.length + ' vé cá nhân cho kỳ ' + selectedDate) : 'Chưa có vé lưu cho kỳ này - Bạn có thể nhập vé để đối chiếu ngay!' }}
+        </small>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold" *ngIf="userTickets.length > 0">
+        {{ userTickets.length }} vé tham gia
+      </span>
+      <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold" *ngIf="userTickets.length === 0">
+        Chưa có vé
+      </span>
+    </div>
+  </div>
+
+  <div class="card-body p-4 bg-light">
+    <!-- Danh sách vé của user -->
+    <div *ngIf="userTickets.length > 0" class="mb-4">
+      <div class="row g-3">
+        <div class="col-12" *ngFor="let ticket of userTickets; let idx = index">
+          <div class="card border rounded-3 shadow-sm bg-white p-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+              <!-- Label vé -->
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-dark px-3 py-2 text-white fw-bold rounded-pill">
+                  Vé #{{ idx + 1 }}
+                </span>
+                <span class="badge px-3 py-2 rounded-pill fw-bold"
+                      [ngClass]="ticket.matchedCount >= 3 ? 'bg-success text-white' : 'bg-secondary text-white'">
+                  🎯 Khớp {{ ticket.matchedCount }}/6 số
+                </span>
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold"
+                      *ngIf="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG'">
+                  🏆 {{ ticket.prize }} ({{ ticket.prizeAmount }})
+                </span>
+                <span class="badge bg-light text-muted border px-2 py-1 small" *ngIf="ticket.source === 'manual'">
+                  Vé nhập thủ công
+                </span>
+              </div>
+
+              <!-- Dãy 6 bóng của vé -->
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div *ngFor="let n of ticket.numbers" class="d-flex flex-column align-items-center">
+                  <div class="ball-drawn text-white shadow-sm"
+                       [style.background]="ticket.matchedNumbers.includes(n) ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#64748b'"
+                       [style.border]="ticket.matchedNumbers.includes(n) ? '2px solid #34d399' : '2px solid #cbd5e1'"
+                       [style.boxShadow]="ticket.matchedNumbers.includes(n) ? '0 0 12px rgba(16, 185, 129, 0.7)' : 'none'">
+                    {{ n < 10 ? '0' + n : n }}
+                  </div>
+                  <span class="small fw-bold mt-1" style="font-size: 0.7rem;"
+                        [ngClass]="ticket.matchedNumbers.includes(n) ? 'text-success' : 'text-muted'">
+                    {{ ticket.matchedNumbers.includes(n) ? '✅ Khớp' : '❌ Trượt' }}
+                  </span>
+                </div>
+
+                <!-- Banh phụ nếu có -->
+                <div *ngIf="category === 'POWER' && ticket.specialNumber" class="d-flex flex-column align-items-center ms-2 border-start ps-2">
+                  <div class="ball-drawn text-dark shadow-sm bg-warning border-warning">
+                    ⭐ {{ ticket.specialNumber < 10 ? '0' + ticket.specialNumber : ticket.specialNumber }}
+                  </div>
+                  <span class="small fw-bold mt-1 text-warning" style="font-size: 0.7rem;">
+                    {{ ticket.matchedSpecial ? '✅ Khớp Phụ' : 'Phụ' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Nút xóa nếu là vé thử nghiệm -->
+              <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                      *ngIf="ticket.source === 'manual'"
+                      (click)="removeTicket(idx)">
+                ✕ Bỏ vé này
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thông báo nếu chưa có vé -->
+    <div *ngIf="userTickets.length === 0" class="alert alert-info border-0 rounded-3 p-3 mb-4 d-flex align-items-center gap-3">
+      <span class="fs-2">💡</span>
+      <div>
+        <div class="fw-bold">Bạn chưa lưu vé nào cho kỳ quay ngày {{ selectedDate }}!</div>
+        <div class="small text-secondary">
+          Bạn có thể nhập 6 con số vé của mình ở khung dưới đây để hệ thống chạy thuật toán đối chiếu ngay lập tức.
+        </div>
+      </div>
+    </div>
+
+    <!-- Khung nhập / thử nghiệm vé cá nhân nhanh -->
+    <div class="card border rounded-3 bg-white p-3 shadow-sm">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <span class="fw-bold text-dark me-2">➕ Thử nghiệm / Nhập thêm vé cá nhân của bạn để đối chiếu:</span>
+          <small class="text-muted d-block">Nhập 6 số từ 1 đến {{ category === 'POWER' ? 55 : 45 }} để thuật toán phân tích điểm lệch</small>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <input *ngFor="let val of manualTicketInputs; let i = index"
+                 type="number"
+                 class="form-control text-center fw-bold text-dark border-primary"
+                 style="width: 48px; height: 48px; border-radius: 50%; font-size: 1.05rem;"
+                 [placeholder]="'#' + (i + 1)"
+                 [min]="1"
+                 [max]="category === 'POWER' ? 55 : 45"
+                 [(ngModel)]="manualTicketInputs[i]">
+
+          <input *ngIf="category === 'POWER'"
+                 type="number"
+                 class="form-control text-center fw-bold text-dark border-warning bg-warning bg-opacity-10"
+                 style="width: 48px; height: 48px; border-radius: 50%; font-size: 1.05rem;"
+                 placeholder="⭐"
+                 title="Số phụ Jackpot 2 (nếu có)"
+                 [min]="1"
+                 [max]="55"
+                 [(ngModel)]="manualSpecialInput">
+
+          <button class="btn btn-primary fw-bold px-3 py-2 rounded-pill shadow-sm" (click)="addManualTicket()">
+            🔍 Đối Chiếu Vé Này
+          </button>
+        </div>
+      </div>
+      <div *ngIf="manualInputError" class="text-danger small fw-bold mt-2">
+        ⚠️ {{ manualInputError }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- 2. ĐỐI CHIẾU THUẬT TOÁN: LÝ DO KHÔNG RA SỐ CỦA USER       -->
+<!-- ======================================================== -->
+<div class="mt-4 mb-4" *ngIf="missedNumberReasons.length > 0">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div>
+      <h4 class="fw-bold text-dark mb-1">
+        🔬 Đối Chiếu Thuật Toán: Tại Sao Các Con Số Của Bạn Không Ra?
+      </h4>
+      <p class="text-muted mb-0 small">
+        Phân tích chuyên sâu {{ missedNumberReasons.length }} con số trượt từ các vé của bạn dựa trên mô hình {{ analysisData?.algorithmName || algorithm }}.
+      </p>
+    </div>
+    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill fw-bold">
+      ⚠️ Có {{ missedNumberReasons.length }} số không nổ trong kỳ quay này
+    </span>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-4 col-md-6" *ngFor="let item of missedNumberReasons">
+      <div class="card h-100 border shadow-sm rounded-4 bg-white hover-shadow transition-all"
+           style="border-left: 5px solid #ef4444 !important;">
+        <div class="card-body p-3 d-flex flex-column">
+          <!-- Card Header -->
+          <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+              <div class="ball-drawn shadow-sm text-white"
+                   style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">
+                {{ item.number < 10 ? '0' + item.number : item.number }}
+              </div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 0.95rem;">Số {{ item.number < 10 ? '0' + item.number : item.number }} (Số của bạn)</div>
+                <span class="badge bg-danger bg-opacity-10 text-danger fw-bold" style="font-size: 0.7rem;">
+                  ❌ Không Ra Trong Kỳ
+                </span>
+              </div>
+            </div>
+            <div class="text-end">
+              <span class="badge bg-light text-dark border">
+                Hạng #{{ item.rank }}/{{ category === 'POWER' ? 55 : 45 }}
+              </span>
+              <div class="small text-muted fw-bold mt-1" style="font-size: 0.75rem;">
+                Xác suất: {{ item.probabilityPercent }}%
+              </div>
+            </div>
+          </div>
+
+          <!-- Tag & Tiêu đề chẩn đoán -->
+          <div class="mb-2">
+            <span class="badge bg-warning bg-opacity-25 text-dark fw-bold mb-1 px-2 py-1" style="font-size: 0.75rem;">
+              {{ item.tag }}
+            </span>
+            <div class="fw-bold text-dark" style="font-size: 0.88rem;">{{ item.title }}</div>
+          </div>
+
+          <!-- 3 Chỉ số kỹ thuật -->
+          <div class="row text-center g-1 py-2 px-1 rounded-2 mb-2 bg-light border">
+            <div class="col-4">
+              <span class="text-muted d-block" style="font-size: 0.7rem;">Tần suất</span>
+              <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ item.frequency }} lần</span>
+            </div>
+            <div class="col-4 border-start border-end">
+              <span class="text-muted d-block" style="font-size: 0.7rem;">Chu kỳ Gan</span>
+              <span class="fw-bold text-danger" style="font-size: 0.85rem;">{{ item.drawGap }} kỳ</span>
+            </div>
+            <div class="col-4">
+              <span class="text-muted d-block" style="font-size: 0.7rem;">Quán tính</span>
+              <span class="fw-bold text-primary" style="font-size: 0.85rem;">{{ item.momentum }}</span>
+            </div>
+          </div>
+
+          <!-- Lý do không ra theo thuật toán -->
+          <div class="mt-auto p-2 rounded-2 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+            <div class="fw-bold text-danger mb-1" style="font-size: 0.75rem;">
+              📌 Lý do thuật toán loại trừ số này:
+            </div>
+            <div class="text-dark small" style="line-height: 1.5; font-size: 0.8rem;">
+              {{ item.reason }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- 3. KẾT LUẬN & KIẾN NGHỊ CẬP NHẬT THUẬT TOÁN (COPY TO CHAT)-->
+<!-- ======================================================== -->
+<div class="card shadow rounded-4 border-0 mb-5 overflow-hidden" *ngIf="tuningReport"
+     style="border: 2px solid #2563eb !important; background: #ffffff;">
+  <div class="card-header p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3"
+       style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="fs-4">📋</span>
+        <h4 class="fw-bold mb-0 text-white">Kết Luận Chẩn Đoán & Kiến Nghị Cập Nhật Thuật Toán</h4>
+      </div>
+      <p class="text-blue-100 mb-0 small opacity-75">
+        Báo cáo tổng hợp sai số & tham số đề xuất tối ưu hóa mô hình AI để bạn copy và tinh chỉnh trọng số.
+      </p>
+    </div>
+
+    <!-- Nút Copy chính -->
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-warning btn-lg fw-bold px-4 py-2 rounded-pill text-dark shadow d-flex align-items-center gap-2"
+              (click)="copyConclusion()">
+        <span>{{ copiedSuccess ? '✅ Đã Sao Chép Báo Cáo!' : '📋 Copy Kết Luận & Cập Nhật Thuật Toán' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body p-4">
+    <!-- Banner thông báo copy thành công -->
+    <div *ngIf="copiedSuccess" class="alert alert-success d-flex align-items-center gap-2 py-2 px-3 mb-4 rounded-3 shadow-sm">
+      <span class="fs-5">🎉</span>
+      <span class="fw-bold">Đã sao chép toàn bộ kết luận và cấu hình tham số JSON vào bộ nhớ tạm (Clipboard)! Bạn có thể dán (Paste) để cập nhật thuật toán ngay.</span>
+    </div>
+
+    <!-- 4 Khối Chỉ số Hiệu Suất Tổng Quan -->
+    <div class="row g-3 mb-4 text-center">
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="text-muted small">Tỷ lệ khớp trúng bóng</div>
+          <div class="fs-3 fw-bold" [ngClass]="tuningReport.hitRatePercent >= 30 ? 'text-success' : 'text-danger'">
+            {{ tuningReport.hitRatePercent }}%
+          </div>
+          <small class="text-secondary">{{ tuningReport.totalMatched }}/{{ tuningReport.totalNumbersChecked }} bóng trúng</small>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="text-muted small">Xếp hạng TB số trượt</div>
+          <div class="fs-3 fw-bold text-warning">
+            #{{ tuningReport.averageRank }}
+          </div>
+          <small class="text-secondary">Trên tổng {{ category === 'POWER' ? 55 : 45 }} số</small>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="text-muted small">Tổng số vé đối soát</div>
+          <div class="fs-3 fw-bold text-primary">
+            {{ tuningReport.totalTickets }} vé
+          </div>
+          <small class="text-secondary">{{ tuningReport.totalMissed }} bóng trượt</small>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="text-muted small">Dãy trúng kỳ này</div>
+          <div class="fs-5 fw-bold text-dark text-truncate mt-1">
+            {{ analysisData?.oddEvenRatio || 'Cân bằng' }}
+          </div>
+          <small class="text-secondary">Tổng = {{ analysisData?.sum }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chi tiết chẩn đoán nguyên nhân -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="p-3 rounded-3 border bg-light h-100">
+          <h6 class="fw-bold text-danger mb-3 d-flex align-items-center gap-2">
+            <span>🚨</span> Chẩn Đoán Nguyên Nhân Lệch Số:
+          </h6>
+          <ul class="list-unstyled mb-0">
+            <li *ngFor="let diag of tuningReport.keyDiagnoses" class="mb-2 d-flex align-items-start gap-2">
+              <span class="text-danger mt-1">●</span>
+              <span class="small text-dark" style="line-height: 1.5;">{{ diag }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="p-3 rounded-3 border bg-light h-100">
+          <h6 class="fw-bold text-success mb-3 d-flex align-items-center gap-2">
+            <span>💡</span> Khuyến Nghị Điều Chỉnh Thuật Toán Kỳ Tới:
+          </h6>
+          <ul class="list-unstyled mb-0">
+            <li *ngFor="let rec of tuningReport.tuningRecommendations" class="mb-2 d-flex align-items-start gap-2">
+              <span class="text-success mt-1">✔</span>
+              <span class="small text-dark" style="line-height: 1.5;">{{ rec }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Khối Code JSON tham số thuật toán -->
+    <div class="mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-bold text-dark small">⚙️ Bộ Siêu Tham Số Khuyến Nghị Cập Nhật (Model Hyperparameters JSON):</span>
+        <button class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill fw-bold" (click)="copyConclusion()">
+          {{ copiedSuccess ? '✅ Đã Copy' : '📋 Copy JSON' }}
+        </button>
+      </div>
+      <div class="position-relative">
+        <pre class="p-3 rounded-3 text-success font-monospace mb-0 overflow-auto"
+             style="background-color: #0f172a; max-height: 280px; font-size: 0.85rem; border: 1px solid #334155;">{{ tuningReport.hyperparametersJson }}</pre>
+      </div>
+    </div>
+
+    <!-- Nút Copy phía dưới cùng -->
+    <div class="text-center pt-2">
+      <button class="btn btn-primary btn-lg fw-bold px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2"
+              (click)="copyConclusion()">
+        <span class="fs-5">📋</span>
+        <span>{{ copiedSuccess ? '✅ Đã Sao Chép Toàn Bộ Báo Cáo!' : 'Copy Toàn Bộ Báo Cáo & Khuyến Nghị Thuật Toán' }}</span>
+      </button>
+      <div class="text-muted small mt-2">
+        Văn bản đã định dạng chuẩn Markdown sẵn sàng để gửi vào cuộc trò chuyện hoặc dán vào hệ thống huấn luyện mô hình.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4 mb-3" *ngIf="analysisData?.selectionReasons">
+  <h4 class="fw-bold text-dark mb-1">
+    🎯 Chi Tiết Kỹ Thuật 6 Quả Banh Mở Thưởng Kỳ Này
+  </h4>
+  <p class="text-muted small mb-3">
+    Đối soát các tham số thuật toán AI đã ghi nhận cho các quả banh trúng thưởng trong kỳ quay ngày {{ analysisData?.drawDate }}
+  </p>
+</div>
+
 <!-- LƯỚI PHÂN TÍCH KỸ THUẬT TỪNG QUẢ BANH (Dựa trên ảnh của bạn) -->
 <div class="row g-4 mt-2 mb-5" *ngIf="analysisData?.selectionReasons">
   <div class="col-lg-4 col-md-6" *ngFor="let item of analysisData.selectionReasons">
