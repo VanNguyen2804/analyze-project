@@ -362,8 +362,19 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
     categoryInput && categoryInput.trim().toUpperCase() === 'POWER' ? 'POWER' : 'MEGA';
   const maxLimit = category === 'POWER' ? 55 : 45;
 
-  const validAlgorithms = ['xgboost', 'monte_carlo', 'markov_chain', 'poisson_gap', 'delta_wheeling'];
-  const algorithm = validAlgorithms.includes(algorithmInput) ? algorithmInput : 'xgboost';
+  const cleanAlg = (algorithmInput || '').toLowerCase().replace(/[-_ ]/g, '');
+  let algorithm = 'xgboost';
+  if (cleanAlg.includes('monte')) {
+    algorithm = 'monte_carlo';
+  } else if (cleanAlg.includes('markov')) {
+    algorithm = 'markov_chain';
+  } else if (cleanAlg.includes('poisson')) {
+    algorithm = 'poisson_gap';
+  } else if (cleanAlg.includes('delta')) {
+    algorithm = 'delta_wheeling';
+  } else {
+    algorithm = 'xgboost';
+  }
 
   const categoryRecords = records
     .filter((r) => r.category === category)
@@ -1333,14 +1344,21 @@ async function startServer() {
     }
   });
 
-  app.get('/api/analyze/predict', (req: Request, res: Response) => {
-    const category =
-      typeof req.query.category === 'string' ? req.query.category : 'MEGA';
-    const algorithm =
-      typeof req.query.algorithm === 'string' ? req.query.algorithm : 'xgboost';
+  const handlePredict = (req: Request, res: Response) => {
+    const rawCategory = (req.query.category || req.body?.category || 'MEGA') as string;
+    const rawAlgorithm = (req.query.algorithm || req.body?.algorithm || 'xgboost') as string;
+    const category = typeof rawCategory === 'string' ? rawCategory : 'MEGA';
+    const algorithm = typeof rawAlgorithm === 'string' ? rawAlgorithm : 'xgboost';
     const result = analyzeAndPredict(category, algorithm);
     res.json(result);
-  });
+  };
+
+  app.get('/api/analyze/predict', handlePredict);
+  app.post('/api/analyze/predict', handlePredict);
+  app.get('/api/predict', handlePredict);
+  app.post('/api/predict', handlePredict);
+  app.get('/predict', handlePredict);
+  app.post('/predict', handlePredict);
 
   // Analyze Project matching endpoints
   app.get('/api/analyze/history', (req: Request, res: Response) => {

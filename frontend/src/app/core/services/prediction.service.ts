@@ -26,6 +26,7 @@ export interface NumberSelectionReason {
 export interface PredictionResponse {
   category: 'MEGA' | 'POWER';
   numbers: number[];
+  tickets?: number[][];
   specialNumber?: number | null;
   totalDrawsAnalyzed: number;
   hotNumbers: number[];

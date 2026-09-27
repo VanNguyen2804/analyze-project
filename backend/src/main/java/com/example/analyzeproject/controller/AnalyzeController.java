@@ -26,7 +26,7 @@ public class AnalyzeController {
         this.analyzeService = analyzeService;
     }
     
-    @GetMapping("/predict")
+    @RequestMapping(value = "/predict", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<PredictionResponseDto> predictNumbers(
             @RequestParam(required = false, defaultValue = "MEGA") String category,
             @RequestParam(required = false, defaultValue = "xgboost") String algorithm) {
