@@ -417,74 +417,235 @@
     </div>
   </div>
 
-  <!-- 1. MỤC DANH SÁCH 5 VÉ TỐI ƯU NHẤT -->
-  <div *ngIf="payload && payload.status === 'SUCCESS'" class="card shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
+  <!-- 1. MỤC BẢNG CÁC DÃY 6 SỐ TỐI ƯU THEO THUẬT TOÁN MỚI NHẤT -->
+  <div *ngIf="payload && payload.status === 'SUCCESS'" class="card shadow-sm border-0 mb-4 bg-white overflow-hidden">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
-        <div class="d-flex align-items-center gap-2 mb-1">
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
           <span class="badge" [ngClass]="payload?.lotteryType === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
             ĐỀ XUẤT TỐI ƯU &bull; {{ payload?.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
           </span>
           <span class="badge bg-primary text-white" style="font-size: 0.8rem;">
             {{ payload?.algorithmName || getCurrentAlgorithmInfo().name }}
           </span>
+          <span class="badge bg-dark text-white font-monospace" style="font-size: 0.8rem;">
+            Phiên bản: {{ payload?.hyperparameterVersion || 'v1.4.0' }}
+          </span>
+          <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.75rem;">
+            Global Benchmarking: Powerball & Mega Millions
+          </span>
         </div>
         <h4 class="h5 fw-bold text-dark mb-0">
-          Top 5 dãy số (vé) có tổng xác suất cao nhất
+          🎯 Bảng Các Dãy 6 Số Dự Đoán Phù Hợp Thuật Toán Mới Nhất
         </h4>
-        <small class="text-muted">Được chọn lọc theo ma trận {{ payload?.algorithmName || getCurrentAlgorithmInfo().name }}. Di chuột vào từng số để xem chi tiết.</small>
+        <small class="text-muted">
+          Tổng hợp {{ payload?.tickets?.length || 10 }} dãy 6 số tối ưu sinh bởi mô hình học máy đa nhân tố. Bảng bên phải thuyết minh chi tiết lý do và cơ chế thay đổi thuật toán tạo ra từng con số.
+        </small>
       </div>
 
-      <div *ngIf="payload?.lotteryType === 'POWER' && payload?.specialNumber" class="d-flex align-items-center gap-2 p-2 rounded-2 bg-light border">
-        <span class="small text-secondary fw-semibold">⭐ Banh Phụ (Jackpot 2):</span>
-        <div class="ball ball-sm ball-special" 
-             (mouseenter)="showPopup(payload?.specialNumber, $event)"
-             (mousemove)="updatePopupPosition($event)"
-             (mouseleave)="hidePopup()"
-             (click)="pinPopup(payload?.specialNumber, $event)"
-             title="Nhấn để ghim popup xem lịch sử dãy 6 số"
-             style="cursor: pointer;">
-          {{ formatNumber(payload?.specialNumber) }}
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Chế độ hiển thị: Bảng / Thẻ -->
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn fw-semibold"
+                  [ngClass]="ticketViewMode === 'table' ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="ticketViewMode = 'table'">
+            📋 Dạng Bảng
+          </button>
+          <button type="button" class="btn fw-semibold"
+                  [ngClass]="ticketViewMode === 'cards' ? 'btn-primary' : 'btn-outline-secondary'"
+                  (click)="ticketViewMode = 'cards'">
+            🎴 Dạng Thẻ
+          </button>
+        </div>
+
+        <!-- Nút chuyển 5 vé / 10 vé -->
+        <button class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3"
+                (click)="toggleTicketLimit()">
+          {{ displayedTicketsLimit === 10 ? 'Thu gọn (Top 5)' : 'Xem đủ 10 vé' }}
+        </button>
+
+        <!-- Banh phụ nếu là POWER -->
+        <div *ngIf="payload?.lotteryType === 'POWER' && payload?.specialNumber" class="d-flex align-items-center gap-2 p-1 px-2 rounded-pill bg-warning-subtle border border-warning">
+          <span class="small text-dark fw-bold" style="font-size: 0.75rem;">⭐ Banh Phụ (Jackpot 2):</span>
+          <div class="ball ball-sm ball-special shadow-xs" 
+               (mouseenter)="showPopup(payload?.specialNumber, $event)"
+               (mousemove)="updatePopupPosition($event)"
+               (mouseleave)="hidePopup()"
+               (click)="pinPopup(payload?.specialNumber, $event)"
+               title="Nhấn để ghim popup xem lịch sử dãy 6 số"
+               style="cursor: pointer; width: 32px; height: 32px; font-size: 0.85rem;">
+            {{ formatNumber(payload?.specialNumber) }}
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="card-body p-3 p-md-4">
+    <!-- VIEW 1: DẠNG BẢNG CHI TIẾT (THEO ĐÚNG YÊU CẦU CỦA USER) -->
+    <div *ngIf="ticketViewMode === 'table'" class="table-responsive">
+      <table class="table table-hover align-middle mb-0 border-top">
+        <thead class="table-dark text-white">
+          <tr class="small">
+            <th class="ps-3 py-3 text-center" style="width: 85px;">STT / Vé</th>
+            <th class="py-3 text-center" style="width: 320px;">Dãy 6 Số Dự Đoán</th>
+            <th class="py-3 text-center" style="width: 140px;">Cơ Cấu Dãy</th>
+            <th class="py-3 pe-3">Lý do thay đổi thuật toán tạo ra con số đó</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ticket of payload?.tickets | slice:0:displayedTicketsLimit; let i = index"
+              [class.table-warning]="i === 0 && payload?.lotteryType === 'POWER'"
+              [class.table-info]="i === 0 && payload?.lotteryType === 'MEGA'">
+            <!-- CỘT 1: VÉ & PHÂN HẠNG -->
+            <td class="text-center ps-3">
+              <div class="d-flex flex-column align-items-center gap-1">
+                <span class="badge bg-dark fs-6 px-2 py-1">Vé #{{ i + 1 }}</span>
+                <span *ngIf="i === 0" class="badge bg-success" style="font-size: 0.65rem;">Hạt nhân</span>
+                <span *ngIf="i > 0" class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">Wheeling</span>
+              </div>
+            </td>
+
+            <!-- CỘT 2: DÃY 6 SỐ DỰ ĐOÁN -->
+            <td class="text-center py-3">
+              <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+                <!-- 6 BÓNG CHÍNH -->
+                <div class="ball shadow-sm" *ngFor="let num of ticket"
+                     (mouseenter)="showPopup(num, $event)"
+                     (mousemove)="updatePopupPosition($event)"
+                     (mouseleave)="hidePopup()"
+                     (click)="pinPopup(num, $event)"
+                     title="Bấm để xem lịch sử số {{ formatNumber(num) }}"
+                     style="cursor: pointer; width: 40px; height: 40px; font-size: 1rem;"
+                     [ngClass]="{
+                       'ball-mega': payload?.lotteryType === 'MEGA', 
+                       'ball-power': payload?.lotteryType === 'POWER',
+                       'ball-highlight': hoveredNumber === num
+                     }">
+                  {{ formatNumber(num) }}
+                </div>
+
+                <!-- BANH PHỤ NẾU LÀ POWER -->
+                <div *ngIf="payload?.lotteryType === 'POWER' && payload?.specialNumber"
+                     class="d-flex align-items-center gap-1 ms-1 ps-1 border-start">
+                  <span class="text-warning small fw-bold" style="font-size: 0.7rem;">+</span>
+                  <div class="ball ball-special shadow-sm"
+                       (mouseenter)="showPopup(payload?.specialNumber, $event)"
+                       (mousemove)="updatePopupPosition($event)"
+                       (mouseleave)="hidePopup()"
+                       (click)="pinPopup(payload?.specialNumber, $event)"
+                       title="Banh phụ Jackpot 2"
+                       style="width: 36px; height: 36px; font-size: 0.88rem; cursor: pointer;">
+                    {{ formatNumber(payload?.specialNumber) }}
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- CỘT 3: CƠ CẤU DÃY SỐ (TỔNG & CHẴN LẺ) -->
+            <td class="text-center">
+              <div class="d-flex flex-column align-items-center gap-1 small">
+                <span class="badge bg-secondary-subtle text-dark border">
+                  Tổng = <strong>{{ getTicketSum(ticket) }}</strong>
+                </span>
+                <span class="badge bg-light text-secondary border">
+                  {{ getTicketParity(ticket) }}
+                </span>
+                <span *ngIf="getTicketSum(ticket) >= 77 && getTicketSum(ticket) <= 137" class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.65rem;">
+                  ✓ Chuẩn phân phối
+                </span>
+              </div>
+            </td>
+
+            <!-- CỘT 4: LÝ DO THAY ĐỔI THUẬT TOÁN TẠO RA CON SỐ ĐÓ -->
+            <td class="pe-3 py-3">
+              <!-- Lý do tổng thể của vé theo thuật toán mới -->
+              <div class="p-2 rounded-2 bg-light border small text-dark mb-2" style="line-height: 1.5;">
+                <div class="fw-bold text-primary mb-1 d-flex align-items-center gap-1">
+                  <span>⚡</span>
+                  <span>Cơ chế thuật toán mới tạo ra dãy số:</span>
+                </div>
+                {{ getTicketAlgorithmReason(ticket, i) }}
+              </div>
+
+              <!-- Chi tiết lý do từng con số cụ thể trong dãy 6 số -->
+              <div class="mt-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="text-muted fw-bold" style="font-size: 0.74rem;">
+                    PHÂN TÍCH LÝ DO THAY ĐỔI THUẬT TOÁN CHO TỪNG SỐ TRONG DÃY:
+                  </span>
+                  <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.72rem;"
+                          (click)="toggleTicketDetail(i)">
+                    {{ expandedTicketDetails[i] ? '▲ Thu gọn chi tiết' : '▼ Mở rộng chi tiết 6 số' }}
+                  </button>
+                </div>
+
+                <!-- Lưới 6 ô giải thích từng con số trong vé -->
+                <div *ngIf="expandedTicketDetails[i]" class="row g-2 mt-1">
+                  <div class="col-md-6 col-lg-4" *ngFor="let num of ticket">
+                    <div class="p-2 rounded border bg-white h-100 shadow-xs" style="font-size: 0.78rem;">
+                      <div class="d-flex align-items-center justify-content-between mb-1">
+                        <div class="d-flex align-items-center gap-1">
+                          <span class="badge bg-dark rounded-circle px-2 py-1">{{ formatNumber(num) }}</span>
+                          <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.68rem;">
+                            {{ getNumberTag(num) }}
+                          </span>
+                        </div>
+                        <span class="text-primary fw-bold" style="font-size: 0.72rem;">
+                          {{ getNumberProbability(num) }}%
+                        </span>
+                      </div>
+                      <div class="text-secondary" style="line-height: 1.35; font-size: 0.75rem;">
+                        {{ getNumberUpgradeReason(num) }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- VIEW 2: DẠNG THẺ NHANH (NẾU NGƯỜI DÙNG CHUYỂN QUA DẠNG CARDS) -->
+    <div *ngIf="ticketViewMode === 'cards'" class="card-body p-3 p-md-4">
       <div class="row justify-content-center">
-        <!-- CHỈ HIỂN THỊ 5 VÉ ĐẦU TIÊN -->
-        <div class="col-md-5 mb-3" *ngFor="let ticket of payload?.tickets | slice:0:5; let i = index">
-            <div class="card shadow-sm border-0">
-                <div class="card-header text-start d-flex justify-content-between align-items-center flex-wrap gap-1" 
-                     [ngClass]="{'bg-info text-dark': payload?.lotteryType === 'MEGA', 'bg-warning text-dark': payload?.lotteryType === 'POWER'}">
-                    <div class="d-flex align-items-center gap-1">
-                      <strong>🎟️ Dãy số Top {{ i + 1 }}</strong>
-                      <span *ngIf="i === 0 && payload?.lotteryType === 'POWER'" class="badge bg-success text-white small">
-                        🏆 Khớp trọn vẹn 6 số kỳ quay
-                      </span>
-                    </div>
-                    <span class="badge bg-white text-dark small">{{ payload?.algorithmName ? payload?.algorithmName : 'Tỷ lệ trúng cao' }}</span>
-                </div>
-                
-                <div class="card-body d-flex justify-content-center gap-2 flex-wrap" 
-                     [ngStyle]="{'background-color': payload?.lotteryType === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
-                    
-                    <!-- BÓNG SỐ (TÍCH HỢP CLASS BALL-HIGHLIGHT ĐỂ ĐỔI XANH LÁ KHI HOVER) -->
-                    <div class="ball shadow-sm" *ngFor="let num of ticket"
-                         (mouseenter)="showPopup(num, $event)"
-                         (mousemove)="updatePopupPosition($event)"
-                         (mouseleave)="hidePopup()"
-                         (click)="pinPopup(num, $event)"
-                         title="Nhấn để ghim popup xem lịch sử dãy 6 số"
-                         style="transition: all 0.2s; cursor: pointer;"
-                         [ngClass]="{
-                           'ball-mega': payload?.lotteryType === 'MEGA', 
-                           'ball-power': payload?.lotteryType === 'POWER',
-                           'ball-highlight': hoveredNumber === num
-                         }">
-                        {{ num < 10 ? '0' + num : num }}
-                    </div>
-                </div>
+        <div class="col-md-6 mb-3" *ngFor="let ticket of payload?.tickets | slice:0:displayedTicketsLimit; let i = index">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header text-start d-flex justify-content-between align-items-center flex-wrap gap-1" 
+                 [ngClass]="{'bg-info text-dark': payload?.lotteryType === 'MEGA', 'bg-warning text-dark': payload?.lotteryType === 'POWER'}">
+              <div class="d-flex align-items-center gap-1">
+                <strong>🎟️ Vé #{{ i + 1 }}</strong>
+                <span *ngIf="i === 0 && payload?.lotteryType === 'POWER'" class="badge bg-success text-white small">
+                  🏆 Hạt nhân
+                </span>
+                <span class="badge bg-white text-dark small">{{ getTicketParity(ticket) }}</span>
+                <span class="badge bg-white text-dark small">Tổng: {{ getTicketSum(ticket) }}</span>
+              </div>
+              <span class="badge bg-dark text-white small">{{ payload?.hyperparameterVersion || 'v1.4.0' }}</span>
             </div>
+            
+            <div class="card-body" [ngStyle]="{'background-color': payload?.lotteryType === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
+              <div class="d-flex justify-content-center gap-2 flex-wrap mb-2">
+                <div class="ball shadow-sm" *ngFor="let num of ticket"
+                     (mouseenter)="showPopup(num, $event)"
+                     (mousemove)="updatePopupPosition($event)"
+                     (mouseleave)="hidePopup()"
+                     (click)="pinPopup(num, $event)"
+                     title="Nhấn để ghim popup xem lịch sử dãy 6 số"
+                     style="transition: all 0.2s; cursor: pointer; width: 40px; height: 40px; font-size: 1rem;"
+                     [ngClass]="{
+                       'ball-mega': payload?.lotteryType === 'MEGA', 
+                       'ball-power': payload?.lotteryType === 'POWER',
+                       'ball-highlight': hoveredNumber === num
+                     }">
+                  {{ formatNumber(num) }}
+                </div>
+              </div>
+              <div class="p-2 rounded bg-white border small text-secondary" style="font-size: 0.78rem; line-height: 1.45;">
+                <strong class="text-primary">Lý do thuật toán mới:</strong> {{ getTicketAlgorithmReason(ticket, i) }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

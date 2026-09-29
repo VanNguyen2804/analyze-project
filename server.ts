@@ -1016,16 +1016,21 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
       const normMom = mainMomentum[i] / maxMainMom;
       const gapRatio = drawGap[i] / avgCycle;
 
-      // 1. Upgraded Gap & Repeat Score
+      // 1. Dynamic Gap & Repeat Score using latest Hyperparameters from table
+      const pMin = adjustments.poissonGapMinRatio ?? 0.8;
+      const pMax = adjustments.poissonGapMaxRatio ?? 2.2;
+      const coOccurWeight = adjustments.coOccurrenceWeight ?? 0.85;
+      const repeatPenalty = (drawGap[i] === 0) ? (adjustments.repeatExhaustionPenalty ?? -0.45) : 0.0;
+
       let gapScore = 0.35;
       if (drawGap[i] === 0) {
         // Markov state repeat from immediately preceding draw (captures 14, 52)
         gapScore = (mainFrequency[i] >= 4 || normMom >= 0.40) ? 0.96 : 0.68;
-      } else if (gapRatio >= 0.60 && gapRatio <= 2.6) {
-        // Poisson golden regression zone (captures 48 at 0.76 and 38 at 0.44)
+      } else if (gapRatio >= pMin && gapRatio <= pMax) {
+        // Poisson golden regression zone (calibrated according to hyperparameters)
         gapScore = 0.89;
-      } else if (gapRatio > 2.6) {
-        // Extreme lô gan mean-reversion rebound (captures 21 at 2.40)
+      } else if (gapRatio > pMax) {
+        // Extreme lô gan mean-reversion rebound
         gapScore = 0.78;
       }
 
@@ -1035,7 +1040,7 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
           topPairSum += pairMatrix[i][j];
         }
       }
-      const pairScore = Math.min(1.0, topPairSum / 6.0);
+      const pairScore = Math.min(1.0, (topPairSum / 6.0) * (coOccurWeight / 0.85));
       const specBonus = specialFrequency[i] > 0 ? Math.min(0.5, (specialFrequency[i] / 5.0) * 0.40) : 0.0;
 
       let z: number;
@@ -1044,8 +1049,9 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
           normMom * 1.5 +
           normFreq * 1.2 +
           gapScore * 1.25 +
-          pairScore * 0.85 +
-          specBonus -
+          pairScore * coOccurWeight +
+          specBonus +
+          repeatPenalty -
           1.10 +
           (Math.random() * 0.1 - 0.05);
       } else {

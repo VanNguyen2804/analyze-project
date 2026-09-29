@@ -257,6 +257,24 @@ public class AnalyzeService {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
         int maxLimit = "POWER".equals(category) ? 55 : 45;
 
+        AlgorithmHyperparameter latestHyp = getLatestHyperparameter(category);
+        double decayRate = 0.16;
+        double gapMinRatio = 0.8;
+        double gapMaxRatio = 2.2;
+        double coOccurrenceWeight = 0.85;
+        double repeatExhaustionPenalty = -0.45;
+        int sumMin = "POWER".equals(category) ? 77 : 84;
+        int sumMax = "POWER".equals(category) ? 137 : 144;
+
+        if (latestHyp != null && latestHyp.getHyperparametersJson() != null) {
+            String json = latestHyp.getHyperparametersJson();
+            decayRate = parseDoubleFromJson(json, "momentumDecayRate", decayRate);
+            gapMinRatio = parseDoubleFromJson(json, "poissonGapMinRatio", gapMinRatio);
+            gapMaxRatio = parseDoubleFromJson(json, "poissonGapMaxRatio", gapMaxRatio);
+            coOccurrenceWeight = parseDoubleFromJson(json, "coOccurrenceWeight", coOccurrenceWeight);
+            repeatExhaustionPenalty = parseDoubleFromJson(json, "repeatExhaustionPenalty", repeatExhaustionPenalty);
+        }
+
         List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
         List<LotteryNumber> chronologicalRecords = new ArrayList<>(records);
         Collections.reverse(chronologicalRecords);
@@ -286,8 +304,8 @@ public class AnalyzeService {
                     .distinct()
                     .collect(Collectors.toList());
 
-            // UPDATE: Hệ số suy giảm quán tính chuỗi (Momentum Decay Rate λ) tăng lên 0.16
-            double weight = Math.exp(-0.16 * (totalDraws - 1 - t));
+            // Tự động sử dụng hệ số suy giảm quán tính chuỗi từ siêu tham số đang kích hoạt
+            double weight = Math.exp(-decayRate * (totalDraws - 1 - t));
 
             for (int n : validNums) {
                 mainFrequency[n]++;
@@ -351,10 +369,10 @@ public class AnalyzeService {
                 double gapRatio = (double) drawGap[i] / avgCycle;
                 double moderateGapScore = 0.0;
                 
-                // UPDATE: Ngưỡng điểm rơi Poisson thu hẹp về [0.8 - 2.2]
-                if (gapRatio >= 0.8 && gapRatio <= 2.2) {
+                // Áp dụng ngưỡng điểm rơi Poisson từ siêu tham số đang kích hoạt
+                if (gapRatio >= gapMinRatio && gapRatio <= gapMaxRatio) {
                     moderateGapScore = 1.0; 
-                } else if (gapRatio > 2.2 && gapRatio <= 4.0) {
+                } else if (gapRatio > gapMaxRatio && gapRatio <= 4.0) {
                     moderateGapScore = 0.5; 
                 } else {
                     moderateGapScore = 0.2; 
@@ -369,13 +387,13 @@ public class AnalyzeService {
                 
                 double pairScore = Math.min(1.0, coOccurrenceSum / 10.0);
                 
-                // UPDATE: Hình phạt lỗi kiệt sức lặp (Repeat Exhaustion Penalty) = -0.45 nếu vừa ra kỳ trước
-                double repeatPenalty = (drawGap[i] == 0) ? -0.45 : 0.0;
+                // Áp dụng hình phạt lỗi kiệt sức lặp (Repeat Exhaustion Penalty)
+                double repeatPenalty = (drawGap[i] == 0) ? repeatExhaustionPenalty : 0.0;
 
-                // UPDATE: Trọng số ma trận cặp số (Co-occurrence Weight) nâng lên 0.85
+                // Áp dụng trọng số ma trận cặp số (Co-occurrence Weight)
                 z = (moderateFreqScore * 1.3) + 
                     (moderateGapScore * 1.5) + 
-                    (pairScore * 0.85) - 1.2 + 
+                    (pairScore * coOccurrenceWeight) - 1.2 + 
                     repeatPenalty +
                     (random.nextDouble() * 0.15 - 0.075);
             } else {
@@ -608,11 +626,14 @@ public class AnalyzeService {
         
         if ("xgboost".equalsIgnoreCase(algorithm)) {
             response.setAlgorithmName("AI XGBoost + Wheeling System");
-            response.setAlgorithmDesc("Kết hợp XGBoost để chọn 10 số tiềm năng và Wheeling System để trải thành 10 vé tối ưu.");
+            response.setAlgorithmDesc("Kết hợp XGBoost để chọn 10 số tiềm năng và Wheeling System để trải thành 10 vé tối ưu đối chuẩn US Powerball/Mega Millions.");
         } else {
             response.setAlgorithmName(algorithm);
             response.setAlgorithmDesc("Phân tích thuật toán " + algorithm);
         }
+
+        response.setModelVersion(latestHyp != null ? latestHyp.getModel() : "XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)");
+        response.setHyperparameterVersion(latestHyp != null ? latestHyp.getVersion() : "v1.1.0");
 
         if (!records.isEmpty() && records.get(0).getDrawDate() != null) {
             response.setDrawDate(records.get(0).getDrawDate().toString());
@@ -860,6 +881,27 @@ public class AnalyzeService {
         target.setCreatedAt(LocalDateTime.now());
         target.setNote((target.getNote() != null ? target.getNote() + " | " : "") + "Kích hoạt lại lúc " + LocalDateTime.now());
         return hyperparameterRepo.save(target);
+    }
+
+    private double parseDoubleFromJson(String json, String key, double defaultVal) {
+        if (json == null || json.trim().isEmpty()) return defaultVal;
+        try {
+            int idx = json.indexOf("\"" + key + "\"");
+            if (idx == -1) idx = json.indexOf("'" + key + "'");
+            if (idx != -1) {
+                int colonIdx = json.indexOf(":", idx);
+                if (colonIdx != -1) {
+                    int commaIdx = json.indexOf(",", colonIdx);
+                    int braceIdx = json.indexOf("}", colonIdx);
+                    int endIdx = json.length();
+                    if (commaIdx != -1 && commaIdx < endIdx) endIdx = commaIdx;
+                    if (braceIdx != -1 && braceIdx < endIdx) endIdx = braceIdx;
+                    String valStr = json.substring(colonIdx + 1, endIdx).replace("\"", "").replace("'", "").trim();
+                    return Double.parseDouble(valStr);
+                }
+            }
+        } catch (Exception ignored) {}
+        return defaultVal;
     }
 
     // =========================================================================================

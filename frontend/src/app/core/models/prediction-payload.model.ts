@@ -52,6 +52,8 @@ export interface PredictionPayload {
   algorithm?: string;
   algorithmName?: string;
   algorithmDesc?: string;
+  modelVersion?: string;
+  hyperparameterVersion?: string;
 }
 
 

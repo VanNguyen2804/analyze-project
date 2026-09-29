@@ -11,6 +11,8 @@ public class PredictionResponseDto {
     private String algorithm;
     private String algorithmName;
     private String algorithmDesc;
+    private String modelVersion;
+    private String hyperparameterVersion;
     
     private String category;
     private String lotteryType;
@@ -56,6 +58,12 @@ public class PredictionResponseDto {
 
     public String getAlgorithmDesc() { return algorithmDesc; }
     public void setAlgorithmDesc(String algorithmDesc) { this.algorithmDesc = algorithmDesc; }
+
+    public String getModelVersion() { return modelVersion; }
+    public void setModelVersion(String modelVersion) { this.modelVersion = modelVersion; }
+
+    public String getHyperparameterVersion() { return hyperparameterVersion; }
+    public void setHyperparameterVersion(String hyperparameterVersion) { this.hyperparameterVersion = hyperparameterVersion; }
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
