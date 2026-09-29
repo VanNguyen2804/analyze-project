@@ -5,10 +5,13 @@ import com.example.analyzeproject.model.LotteryNumber;
 import com.example.analyzeproject.model.UserTicket;
 import com.example.analyzeproject.model.FrenchAttempt;
 import com.example.analyzeproject.model.FrenchExercise;
+import com.example.analyzeproject.model.AlgorithmHyperparameter;
 import com.example.analyzeproject.repository.LotteryNumberRepository;
 import com.example.analyzeproject.repository.UserTicketRepository;
 import com.example.analyzeproject.repository.FrenchAttemptRepository;
 import com.example.analyzeproject.repository.FrenchExerciseRepository;
+import com.example.analyzeproject.repository.AlgorithmHyperparameterRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,14 +32,88 @@ public class AnalyzeService {
     private final UserTicketRepository userTicketRepo;
     private final FrenchExerciseRepository frenchExerciseRepo;
     private final FrenchAttemptRepository frenchAttemptRepo;
+    private final AlgorithmHyperparameterRepository hyperparameterRepo;
 
     @Autowired
     public AnalyzeService(LotteryNumberRepository repository, UserTicketRepository userTicketRepo,
-                          FrenchExerciseRepository frenchExerciseRepo, FrenchAttemptRepository frenchAttemptRepo) {
+                          FrenchExerciseRepository frenchExerciseRepo, FrenchAttemptRepository frenchAttemptRepo,
+                          AlgorithmHyperparameterRepository hyperparameterRepo) {
         this.repository = repository;
         this.userTicketRepo = userTicketRepo;
         this.frenchExerciseRepo = frenchExerciseRepo;
         this.frenchAttemptRepo = frenchAttemptRepo;
+        this.hyperparameterRepo = hyperparameterRepo;
+    }
+
+    @PostConstruct
+    public void initHyperparameters() {
+        if (hyperparameterRepo.count() == 0) {
+            String readmeV100 = "# Thuật toán Dự đoán Xổ số XGBoost AI (v1.0.0 Baseline)\n\n" +
+                    "## 1. Kiến trúc mô hình\n" +
+                    "- Kết hợp Frequency Counting và Gradient Boosting XGBoost.\n" +
+                    "- Đối chuẩn xác suất toàn cầu từ dữ liệu US Powerball & Mega Millions.\n\n" +
+                    "## 2. Các tham số chính\n" +
+                    "- Momentum Decay Rate λ: 0.12\n" +
+                    "- Poisson Gap Window: [0.6, 2.6]\n" +
+                    "- Ma trận liên kết cặp số: 0.70\n" +
+                    "- Bộ lọc Chẵn/Lẻ: 2:4, 3:3, 4:2";
+
+            String v100Json = "{\n" +
+                    "  \"model\": \"XGBoost Multi-Factor Optimization\",\n" +
+                    "  \"targetCategory\": \"ALL\",\n" +
+                    "  \"drawDate\": \"2026-09-20\",\n" +
+                    "  \"evaluationSummary\": {\n" +
+                    "    \"totalTickets\": 10,\n" +
+                    "    \"hitRatePercent\": 20.0,\n" +
+                    "    \"matchedCount\": 4,\n" +
+                    "    \"missedCount\": 56,\n" +
+                    "    \"averageMissedRank\": 28\n" +
+                    "  },\n" +
+                    "  \"recommendedAdjustments\": {\n" +
+                    "    \"momentumDecayRate\": 0.12,\n" +
+                    "    \"poissonGapMinRatio\": 0.6,\n" +
+                    "    \"poissonGapMaxRatio\": 2.6,\n" +
+                    "    \"coOccurrenceWeight\": 0.70,\n" +
+                    "    \"repeatExhaustionPenalty\": -0.20,\n" +
+                    "    \"parityDistributionFilter\": [\"2:4\", \"3:3\", \"4:2\"],\n" +
+                    "    \"sumRangeFilter\": [84, 144],\n" +
+                    "    \"maxConsecutivePairsAllowed\": 2\n" +
+                    "  },\n" +
+                    "  \"actionableAdvice\": \"Baseline XGBoost configuration.\"\n" +
+                    "}";
+            hyperparameterRepo.save(new AlgorithmHyperparameter("v1.0.0", "2026-09-20", "ALL", "XGBoost Multi-Factor Optimization", v100Json, readmeV100, "Baseline model parameters"));
+
+            String readmeV110 = "# Báo cáo Cập nhật Thuật toán & Đối chuẩn Toàn cầu (v1.1.0)\n\n" +
+                    "## 1. Bối cảnh hiệu chỉnh kỳ 2026-09-28\n" +
+                    "- Đối chiếu kết quả kỳ quay Power 6/55 ngày 2026-09-28.\n" +
+                    "- Cải tiến: Nâng trọng số liên kết cặp đồng xuất hiện lên 0.85, phạt số lặp kiệt sức -0.45.\n" +
+                    "- Tích hợp dữ liệu dị biệt ngẫu nhiên từ giải Powerball Mỹ để kích hoạt điểm rơi hồi quy.";
+
+            String v110Json = "{\n" +
+                    "  \"model\": \"XGBoost Multi-Factor Optimization\",\n" +
+                    "  \"targetCategory\": \"POWER\",\n" +
+                    "  \"drawDate\": \"2026-09-28\",\n" +
+                    "  \"evaluationSummary\": {\n" +
+                    "    \"totalTickets\": 2,\n" +
+                    "    \"hitRatePercent\": 0,\n" +
+                    "    \"matchedCount\": 0,\n" +
+                    "    \"missedCount\": 12,\n" +
+                    "    \"averageMissedRank\": 25\n" +
+                    "  },\n" +
+                    "  \"recommendedAdjustments\": {\n" +
+                    "    \"momentumDecayRate\": 0.16,\n" +
+                    "    \"poissonGapMinRatio\": 0.8,\n" +
+                    "    \"poissonGapMaxRatio\": 2.2,\n" +
+                    "    \"coOccurrenceWeight\": 0.85,\n" +
+                    "    \"repeatExhaustionPenalty\": -0.45,\n" +
+                    "    \"parityDistributionFilter\": [\"2:4\", \"3:3\", \"4:2\"],\n" +
+                    "    \"sumRangeFilter\": [77, 137],\n" +
+                    "    \"maxConsecutivePairsAllowed\": 2\n" +
+                    "  },\n" +
+                    "  \"actionableAdvice\": \"Cập nhật lại trọng số thuật toán XGBoost cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện.\"\n" +
+                    "}";
+            hyperparameterRepo.save(new AlgorithmHyperparameter("v1.1.0", "2026-09-28", "POWER", "XGBoost Multi-Factor Optimization", v110Json, readmeV110, "Cập nhật trọng số theo báo cáo đối chiếu vé kỳ 2026-09-28"));
+        }
     }
 
     // =========================================================================================
@@ -355,9 +432,9 @@ public class AnalyzeService {
             long evenCountInTicket = ticket.stream().filter(n -> n % 2 == 0).count();
             if (evenCountInTicket < 2 || evenCountInTicket > 4) continue;
             
-            // 2. Bộ lọc tổng giới hạn (Sum Range Filter: 84 - 144)
+            // 2. Bộ lọc tổng giới hạn (Sum Range Filter: 77 - 137 theo tham số khuyến nghị v1.1.0)
             int sum = ticket.stream().mapToInt(Integer::intValue).sum();
-            if (sum < 84 || sum > 144) continue;
+            if (sum < 77 || sum > 137) continue;
             
             // 3. Bộ lọc cặp số liên tiếp (Max Consecutive Pairs Allowed: <= 2)
             int consecutivePairs = 0;
@@ -718,6 +795,71 @@ public class AnalyzeService {
     
     public List<FrenchAttempt> getFrenchHistory() {
         return frenchAttemptRepo.findAllByOrderByAttemptedAtDesc();
+    }
+
+    // =========================================================================================
+    // 5. CHỨC NĂNG QUẢN LÝ SIÊU THAM SỐ THUẬT TOÁN (ALGORITHM HYPERPARAMETERS)
+    // =========================================================================================
+    public List<AlgorithmHyperparameter> getAllHyperparameters(String category) {
+        if (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("ALL")) {
+            return hyperparameterRepo.findByCategoryOrderByCreatedAtDesc(category.toUpperCase());
+        }
+        return hyperparameterRepo.findAllByOrderByCreatedAtDesc();
+    }
+
+    public AlgorithmHyperparameter getLatestHyperparameter(String category) {
+        if (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("ALL")) {
+            Optional<AlgorithmHyperparameter> catLatest = hyperparameterRepo.findFirstByCategoryOrderByCreatedAtDesc(category.toUpperCase());
+            if (catLatest.isPresent()) return catLatest.get();
+        }
+        return hyperparameterRepo.findFirstByOrderByCreatedAtDesc().orElse(null);
+    }
+
+    public AlgorithmHyperparameter saveHyperparameter(AlgorithmHyperparameter hyperparameter) {
+        if (hyperparameter.getVersion() == null || hyperparameter.getVersion().trim().isEmpty()) {
+            long count = hyperparameterRepo.count();
+            hyperparameter.setVersion("v1." + (count + 1) + ".0");
+        }
+        if (hyperparameter.getDrawDate() == null || hyperparameter.getDrawDate().trim().isEmpty()) {
+            hyperparameter.setDrawDate(java.time.LocalDate.now().toString());
+        }
+        if (hyperparameter.getCreatedAt() == null) {
+            hyperparameter.setCreatedAt(LocalDateTime.now());
+        }
+        return hyperparameterRepo.save(hyperparameter);
+    }
+
+    public AlgorithmHyperparameter updateAlgorithm(String hyperparametersJson, String category, String drawDate, String readmeContent, String note) {
+        long count = hyperparameterRepo.count();
+        String newVersion = "v1." + (count + 1) + ".0";
+        String effectiveDate = (drawDate != null && !drawDate.trim().isEmpty()) ? drawDate : java.time.LocalDate.now().toString();
+        String effectiveCat = (category != null && !category.trim().isEmpty()) ? category.toUpperCase() : "POWER";
+        String effectiveNote = (note != null && !note.trim().isEmpty()) ? note : "Cập nhật thuật toán XGBoost tối ưu đa nhân tố đối chuẩn US Powerball & Mega Millions";
+        String modelName = "XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)";
+
+        AlgorithmHyperparameter newParam = new AlgorithmHyperparameter(
+            newVersion,
+            effectiveDate,
+            effectiveCat,
+            modelName,
+            hyperparametersJson,
+            readmeContent,
+            effectiveNote
+        );
+        newParam.setCreatedAt(LocalDateTime.now());
+        return hyperparameterRepo.save(newParam);
+    }
+
+    public AlgorithmHyperparameter activateHyperparameter(Long id) {
+        Optional<AlgorithmHyperparameter> targetOpt = hyperparameterRepo.findById(id);
+        if (targetOpt.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy siêu tham số ID #" + id);
+        }
+        AlgorithmHyperparameter target = targetOpt.get();
+        // Cập nhật lại createdAt để trở thành phiên bản mới nhất đang hoạt động
+        target.setCreatedAt(LocalDateTime.now());
+        target.setNote((target.getNote() != null ? target.getNote() + " | " : "") + "Kích hoạt lại lúc " + LocalDateTime.now());
+        return hyperparameterRepo.save(target);
     }
 
     // =========================================================================================

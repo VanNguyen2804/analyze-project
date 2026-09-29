@@ -83,6 +83,14 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   tuningReport: TuningReport | null = null;
   copiedSuccess: boolean = false;
 
+  // Hyperparameters Table & Update Algorithm State
+  hyperparameterHistory: any[] = [];
+  isLoadingHyperparameters: boolean = false;
+  isUpdatingAlgorithm: boolean = false;
+  algorithmUpdateMessage: string | null = null;
+  selectedHyperparameterForView: any | null = null;
+  activeModalTab: 'json' | 'readme' = 'json';
+
   private categorySub: Subscription | undefined;
 
   constructor(
@@ -95,6 +103,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
       if (newCategory) {
         this.category = newCategory;
         this.fetchAnalysis(true);
+        this.loadHyperparameters();
       }
     });
   }
@@ -496,5 +505,90 @@ ${hyperJson}
       console.error('Copy failed:', e);
     }
     document.body.removeChild(textarea);
+  }
+
+  // =========================================================================================
+  // QUẢN LÝ BẢNG SIÊU THAM SỐ THUẬT TOÁN (ALGORITHM HYPERPARAMETERS TABLE)
+  // =========================================================================================
+  loadHyperparameters(): void {
+    this.isLoadingHyperparameters = true;
+    this.cdr.markForCheck();
+    this.analyzeService.getHyperparameters(this.category).subscribe({
+      next: (list) => {
+        this.hyperparameterHistory = list || [];
+        this.isLoadingHyperparameters = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Failed to load hyperparameters:', err);
+        this.isLoadingHyperparameters = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  updateAlgorithmAndSaveTable(): void {
+    if (!this.tuningReport?.hyperparametersJson) return;
+    this.isUpdatingAlgorithm = true;
+    this.algorithmUpdateMessage = null;
+    this.cdr.markForCheck();
+
+    const payload = {
+      hyperparametersJson: this.tuningReport.hyperparametersJson,
+      category: this.category,
+      drawDate: this.selectedDate,
+      readmeContent: this.tuningReport.fullReportText,
+      note: `Cập nhật trọng số thuật toán XGBoost đối chuẩn Powerball/Mega Millions theo đối soát vé kỳ quay ${this.selectedDate} (${this.category})`
+    };
+
+    this.analyzeService.updateAlgorithm(payload).subscribe({
+      next: (res: any) => {
+        this.isUpdatingAlgorithm = false;
+        const version = res.record?.version || res.version || 'mới';
+        this.algorithmUpdateMessage = `✅ Cập nhật thuật toán thành công! Đã lưu phiên bản ${version} kèm tài liệu README vào bảng hyperparameters lúc ${new Date().toLocaleTimeString('vi-VN')}.`;
+        this.loadHyperparameters();
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.algorithmUpdateMessage = null;
+          this.cdr.markForCheck();
+        }, 6000);
+      },
+      error: (err: any) => {
+        this.isUpdatingAlgorithm = false;
+        this.algorithmUpdateMessage = '❌ Lỗi khi cập nhật thuật toán: ' + (err.message || 'Lỗi kết nối máy chủ');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  activateHyperparameter(id: number): void {
+    this.analyzeService.activateHyperparameter(id).subscribe({
+      next: (res: any) => {
+        const ver = res.record?.version || res.version || '';
+        this.algorithmUpdateMessage = `✅ Đã kích hoạt lại phiên bản siêu tham số ${ver} cho thuật toán!`;
+        this.loadHyperparameters();
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.algorithmUpdateMessage = null;
+          this.cdr.markForCheck();
+        }, 5000);
+      },
+      error: (err: any) => {
+        console.error('Failed to activate hyperparameter:', err);
+        this.algorithmUpdateMessage = '❌ Lỗi khi kích hoạt phiên bản';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  viewHyperparameterJson(item: any, tab: 'json' | 'readme' = 'json'): void {
+    this.selectedHyperparameterForView = item;
+    this.activeModalTab = tab;
+    this.cdr.markForCheck();
+  }
+
+  closeHyperparameterModal(): void {
+    this.selectedHyperparameterForView = null;
+    this.cdr.markForCheck();
   }
 }

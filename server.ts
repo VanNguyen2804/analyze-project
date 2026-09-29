@@ -16,10 +16,27 @@ interface LotteryNumberRecord {
 const DATA_FILE = path.join(process.cwd(), 'data', 'lottery_numbers.json');
 const H2_DATA_FILE = path.join(process.cwd(), 'data', 'h2_lottery_numbers.json');
 const USER_TICKETS_FILE = path.join(process.cwd(), 'data', 'user_tickets.json');
+const HYPERPARAMETERS_FILE = path.join(process.cwd(), 'data', 'algorithm_hyperparameters.json');
 
 // In-memory store initialized from disk
 let records: LotteryNumberRecord[] = [];
 let nextId = 1;
+
+export interface AlgorithmHyperparameterRecord {
+  id: number;
+  version: string;
+  drawDate: string;
+  category: 'POWER' | 'MEGA' | 'ALL';
+  model: string;
+  hyperparameters: any;
+  hyperparametersJson: string;
+  readmeContent?: string;
+  createdAt: string;
+  note?: string;
+}
+
+let hyperparameters: AlgorithmHyperparameterRecord[] = [];
+let nextHyperparameterId = 1;
 
 export interface UserCheckRecord {
   id: number;
@@ -104,6 +121,189 @@ function saveUserTicketsToDisk(): void {
   } catch (err) {
     console.warn('Failed to save user tickets to disk:', err);
   }
+}
+
+function loadHyperparametersFromDisk(): void {
+  try {
+    if (fs.existsSync(HYPERPARAMETERS_FILE)) {
+      const content = fs.readFileSync(HYPERPARAMETERS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        hyperparameters = parsed;
+        nextHyperparameterId = Math.max(...hyperparameters.map((h) => h.id || 0)) + 1;
+        return;
+      }
+    }
+
+    const baselineJson = {
+      model: 'XGBoost Multi-Factor Optimization',
+      targetCategory: 'ALL',
+      drawDate: '2026-09-20',
+      evaluationSummary: {
+        totalTickets: 10,
+        hitRatePercent: 20.0,
+        matchedCount: 4,
+        missedCount: 56,
+        averageMissedRank: 28,
+      },
+      recommendedAdjustments: {
+        momentumDecayRate: 0.12,
+        poissonGapMinRatio: 0.6,
+        poissonGapMaxRatio: 2.6,
+        coOccurrenceWeight: 0.70,
+        repeatExhaustionPenalty: -0.20,
+        parityDistributionFilter: ['2:4', '3:3', '4:2'],
+        sumRangeFilter: [84, 144],
+        maxConsecutivePairsAllowed: 2,
+      },
+      actionableAdvice: 'Baseline model configuration',
+    };
+
+    const v110Json = {
+      model: 'XGBoost Multi-Factor Optimization',
+      targetCategory: 'POWER',
+      drawDate: '2026-09-28',
+      evaluationSummary: {
+        totalTickets: 2,
+        hitRatePercent: 0,
+        matchedCount: 0,
+        missedCount: 12,
+        averageMissedRank: 25,
+      },
+      recommendedAdjustments: {
+        momentumDecayRate: 0.16,
+        poissonGapMinRatio: 0.8,
+        poissonGapMaxRatio: 2.2,
+        coOccurrenceWeight: 0.85,
+        repeatExhaustionPenalty: -0.45,
+        parityDistributionFilter: ['2:4', '3:3', '4:2'],
+        sumRangeFilter: [77, 137],
+        maxConsecutivePairsAllowed: 2,
+      },
+      actionableAdvice:
+        'Cập nhật lại trọng số thuật toán XGBoost cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện.',
+    };
+
+    const readmeV100 = `# Thuật toán Dự đoán Xổ số XGBoost AI (v1.0.0 Baseline)
+
+## 1. Kiến trúc mô hình
+- Kết hợp Frequency Counting và Gradient Boosting XGBoost.
+- Đối chuẩn xác suất toàn cầu từ dữ liệu US Powerball & Mega Millions.
+
+## 2. Các tham số chính
+- Momentum Decay Rate λ: 0.12
+- Poisson Gap Window: [0.6, 2.6]
+- Ma trận liên kết cặp số: 0.70
+- Bộ lọc Chẵn/Lẻ: 2:4, 3:3, 4:2`;
+
+    const readmeV110 = `# Báo cáo Cập nhật Thuật toán & Đối chuẩn Toàn cầu (v1.1.0)
+
+## 1. Bối cảnh hiệu chỉnh kỳ 2026-09-28
+- Đối chiếu kết quả kỳ quay Power 6/55 ngày 2026-09-28.
+- Cải tiến: Nâng trọng số liên kết cặp đồng xuất hiện lên 0.85, phạt số lặp kiệt sức -0.45.
+- Tích hợp dữ liệu dị biệt ngẫu nhiên từ giải Powerball Mỹ để kích hoạt điểm rơi hồi quy.`;
+
+    hyperparameters = [
+      {
+        id: 2,
+        version: 'v1.1.0',
+        drawDate: '2026-09-28',
+        category: 'POWER',
+        model: 'XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)',
+        hyperparameters: v110Json,
+        hyperparametersJson: JSON.stringify(v110Json, null, 2),
+        readmeContent: readmeV110,
+        createdAt: '2026-09-28T19:00:00.000Z',
+        note: 'Cập nhật trọng số theo báo cáo đối chiếu vé kỳ quay 2026-09-28',
+      },
+      {
+        id: 1,
+        version: 'v1.0.0',
+        drawDate: '2026-09-20',
+        category: 'ALL',
+        model: 'XGBoost Multi-Factor Optimization',
+        hyperparameters: baselineJson,
+        hyperparametersJson: JSON.stringify(baselineJson, null, 2),
+        readmeContent: readmeV100,
+        createdAt: '2026-09-20T18:00:00.000Z',
+        note: 'Baseline model parameters',
+      },
+    ];
+    nextHyperparameterId = 3;
+    saveHyperparametersToDisk();
+  } catch (err) {
+    console.warn('Failed to load hyperparameters from disk:', err);
+  }
+}
+
+function saveHyperparametersToDisk(): void {
+  try {
+    const dir = path.dirname(HYPERPARAMETERS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(
+      HYPERPARAMETERS_FILE,
+      JSON.stringify(hyperparameters, null, 2),
+      'utf-8'
+    );
+  } catch (err) {
+    console.warn('Failed to save hyperparameters to disk:', err);
+  }
+}
+
+function getLatestHyperparameters(category?: string): AlgorithmHyperparameterRecord {
+  const cat = category ? category.toUpperCase() : 'POWER';
+  const match = hyperparameters.find(
+    (h) => h.category === cat || h.category === 'ALL'
+  );
+  return match || hyperparameters[0];
+}
+
+function recordAlgorithmUpdate(
+  params: any,
+  category: 'POWER' | 'MEGA' | 'ALL' = 'POWER',
+  drawDate?: string,
+  note?: string,
+  readmeContent?: string
+): AlgorithmHyperparameterRecord {
+  const dateStr = drawDate || new Date().toISOString().slice(0, 10);
+  const versionNum = hyperparameters.length + 1;
+  const versionStr = `v1.${versionNum}.0`;
+
+  const defaultReadme = `# Tài liệu Thuật toán Dự đoán Xổ số XGBoost AI (${versionStr})
+
+## 1. Tổng quan phiên bản
+- Áp dụng cho: Vietlott ${category} (Kỳ quay: ${dateStr})
+- Mô hình: XGBoost Multi-Factor Optimization kết hợp đối chuẩn quốc tế US Powerball & Mega Millions.
+
+## 2. Các tham số trọng số chính
+- Hệ số suy giảm quán tính chuỗi (Momentum Decay Rate): ${params.recommendedAdjustments?.momentumDecayRate ?? 0.16}
+- Cửa sổ điểm rơi Poisson: [${params.recommendedAdjustments?.poissonGapMinRatio ?? 0.8}, ${params.recommendedAdjustments?.poissonGapMaxRatio ?? 2.2}]
+- Trọng số liên kết cặp đồng xuất hiện (Co-occurrence Weight): ${params.recommendedAdjustments?.coOccurrenceWeight ?? 0.85}
+- Phạt số lặp kiệt sức (Repeat Exhaustion Penalty): ${params.recommendedAdjustments?.repeatExhaustionPenalty ?? -0.45}
+- Giới hạn tổng giải đấu: [${params.recommendedAdjustments?.sumRangeFilter?.[0] ?? 77}, ${params.recommendedAdjustments?.sumRangeFilter?.[1] ?? 137}]
+
+## 3. Ghi chú hiệu chỉnh
+${note || 'Tự động đồng bộ và tối ưu hóa trọng số thuật toán theo kết quả mở thưởng.'}`;
+
+  const newRec: AlgorithmHyperparameterRecord = {
+    id: nextHyperparameterId++,
+    version: versionStr,
+    drawDate: dateStr,
+    category,
+    model: params.model || 'XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)',
+    hyperparameters: params,
+    hyperparametersJson:
+      typeof params === 'string' ? params : JSON.stringify(params, null, 2),
+    readmeContent: readmeContent || defaultReadme,
+    createdAt: new Date().toISOString(),
+    note: note || `Cập nhật thuật toán cho kỳ quay ${dateStr}`,
+  };
+
+  hyperparameters.unshift(newRec);
+  saveHyperparametersToDisk();
+  return newRec;
 }
 
 function evaluateTicket(
@@ -210,7 +410,26 @@ function loadInitialData(): void {
       nextId = 3;
       saveDataToDisk();
     }
+
+    // Ensure 2026-09-28 POWER draw from the report is present
+    const power28 = records.find(
+      (r) => r.category === 'POWER' && r.drawDate === '2026-09-28'
+    );
+    if (!power28) {
+      records.unshift({
+        id: nextId++,
+        drawDate: '2026-09-28',
+        category: 'POWER',
+        numbers: [2, 4, 13, 17, 35, 36],
+        specialNumber: 11,
+        createdAt: '2026-09-28T18:00:00.000Z',
+        note: 'Kết quả mở thưởng chính thức Vietlott Power 6/55',
+      });
+      saveDataToDisk();
+    }
+
     loadUserTicketsFromDisk();
+    loadHyperparametersFromDisk();
   } catch (err) {
     console.warn('Failed to load initial data:', err);
   }
@@ -323,6 +542,9 @@ interface PredictionResult {
   algorithm: string;
   algorithmName: string;
   algorithmDesc: string;
+  modelVersion?: string;
+  hyperparameterVersion?: string;
+  activeAdjustments?: any;
   numbers: number[];
   tickets: number[][];
   specialNumber?: number; // Provided for POWER
@@ -412,12 +634,25 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
     new Array(maxLimit + 1).fill(0)
   );
 
+  const activeHyp = getLatestHyperparameters(category);
+  const adjustments = activeHyp.hyperparameters?.recommendedAdjustments || {
+    momentumDecayRate: 0.16,
+    poissonGapMinRatio: 0.8,
+    poissonGapMaxRatio: 2.2,
+    coOccurrenceWeight: 0.85,
+    repeatExhaustionPenalty: -0.45,
+    parityDistributionFilter: ['2:4', '3:3', '4:2'],
+    sumRangeFilter: [77, 137],
+    maxConsecutivePairsAllowed: 2,
+  };
+  const decayRate = adjustments.momentumDecayRate || 0.16;
+
   for (let t = 0; t < totalDraws; t++) {
     const draw = categoryRecords[t];
     const validNums = Array.from(
       new Set(draw.numbers.filter((n) => n >= 1 && n <= maxLimit))
     );
-    const weight = Math.exp(-0.12 * (totalDraws - 1 - t));
+    const weight = Math.exp(-decayRate * (totalDraws - 1 - t));
 
     for (const n of validNums) {
       mainFrequency[n]++;
@@ -1168,6 +1403,9 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
     algorithm,
     algorithmName: algName,
     algorithmDesc: algDesc,
+    modelVersion: activeHyp.model || 'XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)',
+    hyperparameterVersion: activeHyp.version || 'v1.1.0',
+    activeAdjustments: adjustments,
     numbers: top10Numbers,
     tickets: generatedTickets,
     specialNumber: recommendedSpecialNumber,
@@ -1975,6 +2213,112 @@ async function startServer() {
     userChecks.length = 0;
     saveUserTicketsToDisk();
     res.send('Đã xóa lịch sử dò vé cá nhân.');
+  });
+
+  // =========================================================================================
+  // ALGORITHM HYPERPARAMETERS TABLE & UPDATE ENGINE
+  // Bảng lưu trữ siêu tham số mô hình học máy XGBoost kết hợp đối chuẩn quốc tế Powerball & Mega Millions
+  // =========================================================================================
+  app.get('/api/analyze/hyperparameters', (req: Request, res: Response) => {
+    let list = [...hyperparameters];
+    if (req.query.category && String(req.query.category).toUpperCase() !== 'ALL') {
+      const cat = String(req.query.category).toUpperCase();
+      list = list.filter((h) => h.category === cat || h.category === 'ALL');
+    }
+    return res.json(list);
+  });
+
+  app.get('/api/analyze/hyperparameters/latest', (req: Request, res: Response) => {
+    const cat = req.query.category ? String(req.query.category).toUpperCase() : undefined;
+    const latest = getLatestHyperparameters(cat);
+    return res.json(latest);
+  });
+
+  app.post('/api/analyze/hyperparameters', (req: Request, res: Response) => {
+    try {
+      const { version, drawDate, category, model, hyperparametersJson, hyperparameters: params, readmeContent, readme, note } = req.body;
+      let parsedParams = params;
+      if (!parsedParams && hyperparametersJson) {
+        try {
+          parsedParams = typeof hyperparametersJson === 'string' ? JSON.parse(hyperparametersJson) : hyperparametersJson;
+        } catch (e) {
+          parsedParams = { raw: hyperparametersJson };
+        }
+      }
+      const saved = recordAlgorithmUpdate(
+        parsedParams || {},
+        category || 'POWER',
+        drawDate,
+        note,
+        readmeContent || readme
+      );
+      if (version) saved.version = version;
+      if (model) saved.model = model;
+      saveHyperparametersToDisk();
+      return res.json(saved);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message || 'Lỗi lưu siêu tham số' });
+    }
+  });
+
+  app.post('/api/analyze/update-algorithm', (req: Request, res: Response) => {
+    try {
+      const { hyperparametersJson, category, drawDate, note, readmeContent, readme } = req.body;
+      let parsed = {};
+      try {
+        parsed = typeof hyperparametersJson === 'string' ? JSON.parse(hyperparametersJson) : hyperparametersJson;
+      } catch (e) {
+        parsed = { rawJson: hyperparametersJson };
+      }
+      const cat: 'POWER' | 'MEGA' | 'ALL' = (category === 'MEGA' || category === 'POWER') ? category : 'POWER';
+      const effDate = drawDate || new Date().toISOString().slice(0, 10);
+      const effNote = note || `Cập nhật thuật toán XGBoost tối ưu đa nhân tố đối chuẩn US Powerball & Mega Millions (${effDate})`;
+      const effReadme = readmeContent || readme;
+
+      const newRecord = recordAlgorithmUpdate(
+        parsed,
+        cat,
+        effDate,
+        effNote,
+        effReadme
+      );
+      newRecord.model = 'XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)';
+      saveHyperparametersToDisk();
+
+      return res.json({
+        success: true,
+        message: `Đã cập nhật thuật toán & lưu phiên bản ${newRecord.version} vào bảng hyperparameters thành công!`,
+        record: newRecord
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message || 'Lỗi cập nhật thuật toán' });
+    }
+  });
+
+  app.post('/api/analyze/hyperparameters/activate/:id', (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const index = hyperparameters.findIndex((h) => h.id === id);
+    if (index === -1) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy siêu tham số ID: ' + id });
+    }
+    const item = hyperparameters[index];
+    item.createdAt = new Date().toISOString();
+    item.note = (item.note ? item.note + ' | ' : '') + `Kích hoạt lại lúc ${new Date().toLocaleTimeString('vi-VN')}`;
+    hyperparameters.splice(index, 1);
+    hyperparameters.unshift(item);
+    saveHyperparametersToDisk();
+    return res.json({ success: true, message: `Đã kích hoạt lại phiên bản ${item.version}`, record: item });
+  });
+
+  app.delete('/api/analyze/hyperparameters/:id', (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const index = hyperparameters.findIndex((h) => h.id === id);
+    if (index !== -1) {
+      const removed = hyperparameters.splice(index, 1)[0];
+      saveHyperparametersToDisk();
+      return res.json({ success: true, message: `Đã xóa bản ghi ${removed.version}` });
+    }
+    return res.status(404).json({ success: false, message: 'Không tìm thấy bản ghi' });
   });
 
   // French Learning API

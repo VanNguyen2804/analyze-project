@@ -6,6 +6,7 @@ import com.example.analyzeproject.dto.TicketCheckResponseDto;
 import com.example.analyzeproject.dto.DrawRecordDto;
 import com.example.analyzeproject.model.LotteryNumber;
 import com.example.analyzeproject.model.UserTicket;
+import com.example.analyzeproject.model.AlgorithmHyperparameter;
 import com.example.analyzeproject.service.AnalyzeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -95,5 +96,42 @@ public class AnalyzeController {
     public String clearUserHistory() {
         analyzeService.clearUserHistory();
         return "Đã xóa lịch sử dò vé cá nhân.";
+    }
+
+    @GetMapping("/hyperparameters")
+    public List<AlgorithmHyperparameter> getHyperparameters(@RequestParam(required = false) String category) {
+        return analyzeService.getAllHyperparameters(category);
+    }
+
+    @GetMapping("/hyperparameters/latest")
+    public ResponseEntity<?> getLatestHyperparameters(@RequestParam(required = false) String category) {
+        AlgorithmHyperparameter latest = analyzeService.getLatestHyperparameter(category);
+        if (latest != null) {
+            return ResponseEntity.ok(latest);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/hyperparameters")
+    public ResponseEntity<AlgorithmHyperparameter> saveHyperparameters(@RequestBody AlgorithmHyperparameter hyperparameter) {
+        AlgorithmHyperparameter saved = analyzeService.saveHyperparameter(hyperparameter);
+        return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/update-algorithm")
+    public ResponseEntity<AlgorithmHyperparameter> updateAlgorithm(@RequestBody Map<String, String> request) {
+        String json = request.getOrDefault("hyperparametersJson", "{}");
+        String category = request.getOrDefault("category", "POWER");
+        String drawDate = request.getOrDefault("drawDate", "");
+        String readme = request.getOrDefault("readmeContent", request.getOrDefault("readme", ""));
+        String note = request.getOrDefault("note", "Cập nhật thuật toán theo phân tích đối soát");
+        AlgorithmHyperparameter saved = analyzeService.updateAlgorithm(json, category, drawDate, readme, note);
+        return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/hyperparameters/activate/{id}")
+    public ResponseEntity<AlgorithmHyperparameter> activateHyperparameter(@PathVariable Long id) {
+        AlgorithmHyperparameter activated = analyzeService.activateHyperparameter(id);
+        return ResponseEntity.ok(activated);
     }
 }

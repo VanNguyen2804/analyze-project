@@ -1,0 +1,111 @@
+[
+  {
+    "id": 4,
+    "version": "v1.4.0",
+    "drawDate": "2026-09-29",
+    "category": "POWER",
+    "model": "XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)",
+    "hyperparameters": {
+      "momentumDecayRate": 0.16
+    },
+    "hyperparametersJson": "{\n  \"momentumDecayRate\": 0.16\n}",
+    "readmeContent": "# README THUẬT TOÁN KỲ QUAY 2026-09-29\n\n- Mô hình: XGBoost AI + Đối chuẩn US Powerball\n- Cải tiến: Tối ưu hoá cột lưu trữ README.",
+    "createdAt": "2026-09-29T18:44:45.658Z",
+    "note": "Kiểm tra lưu cột nội dung README"
+  },
+  {
+    "id": 3,
+    "version": "v1.3.0",
+    "drawDate": "2026-09-29",
+    "category": "POWER",
+    "model": "XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)",
+    "hyperparameters": {
+      "model": "XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)",
+      "learningRate": 0.05,
+      "momentumDecayRate": 0.16
+    },
+    "hyperparametersJson": "{\n  \"model\": \"XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)\",\n  \"learningRate\": 0.05,\n  \"momentumDecayRate\": 0.16\n}",
+    "createdAt": "2026-09-29T18:40:10.524Z",
+    "note": "Test cập nhật thuật toán đối chuẩn US Mega Millions & Powerball"
+  },
+  {
+    "id": 2,
+    "version": "v1.1.0",
+    "drawDate": "2026-09-28",
+    "category": "POWER",
+    "model": "XGBoost Multi-Factor Optimization",
+    "hyperparameters": {
+      "model": "XGBoost Multi-Factor Optimization",
+      "targetCategory": "POWER",
+      "drawDate": "2026-09-28",
+      "evaluationSummary": {
+        "totalTickets": 2,
+        "hitRatePercent": 0,
+        "matchedCount": 0,
+        "missedCount": 12,
+        "averageMissedRank": 25
+      },
+      "recommendedAdjustments": {
+        "momentumDecayRate": 0.16,
+        "poissonGapMinRatio": 0.8,
+        "poissonGapMaxRatio": 2.2,
+        "coOccurrenceWeight": 0.85,
+        "repeatExhaustionPenalty": -0.45,
+        "parityDistributionFilter": [
+          "2:4",
+          "3:3",
+          "4:2"
+        ],
+        "sumRangeFilter": [
+          77,
+          137
+        ],
+        "maxConsecutivePairsAllowed": 2
+      },
+      "actionableAdvice": "Cập nhật lại trọng số thuật toán XGBoost cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện."
+    },
+    "hyperparametersJson": "{\n  \"model\": \"XGBoost Multi-Factor Optimization\",\n  \"targetCategory\": \"POWER\",\n  \"drawDate\": \"2026-09-28\",\n  \"evaluationSummary\": {\n    \"totalTickets\": 2,\n    \"hitRatePercent\": 0,\n    \"matchedCount\": 0,\n    \"missedCount\": 12,\n    \"averageMissedRank\": 25\n  },\n  \"recommendedAdjustments\": {\n    \"momentumDecayRate\": 0.16,\n    \"poissonGapMinRatio\": 0.8,\n    \"poissonGapMaxRatio\": 2.2,\n    \"coOccurrenceWeight\": 0.85,\n    \"repeatExhaustionPenalty\": -0.45,\n    \"parityDistributionFilter\": [\n      \"2:4\",\n      \"3:3\",\n      \"4:2\"\n    ],\n    \"sumRangeFilter\": [\n      77,\n      137\n    ],\n    \"maxConsecutivePairsAllowed\": 2\n  },\n  \"actionableAdvice\": \"Cập nhật lại trọng số thuật toán XGBoost cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện.\"\n}",
+    "createdAt": "2026-09-28T19:00:00.000Z",
+    "note": "Cập nhật trọng số theo báo cáo đối chiếu vé kỳ quay 2026-09-28"
+  },
+  {
+    "id": 1,
+    "version": "v1.0.0",
+    "drawDate": "2026-09-20",
+    "category": "ALL",
+    "model": "XGBoost Multi-Factor Optimization",
+    "hyperparameters": {
+      "model": "XGBoost Multi-Factor Optimization",
+      "targetCategory": "ALL",
+      "drawDate": "2026-09-20",
+      "evaluationSummary": {
+        "totalTickets": 10,
+        "hitRatePercent": 20,
+        "matchedCount": 4,
+        "missedCount": 56,
+        "averageMissedRank": 28
+      },
+      "recommendedAdjustments": {
+        "momentumDecayRate": 0.12,
+        "poissonGapMinRatio": 0.6,
+        "poissonGapMaxRatio": 2.6,
+        "coOccurrenceWeight": 0.7,
+        "repeatExhaustionPenalty": -0.2,
+        "parityDistributionFilter": [
+          "2:4",
+          "3:3",
+          "4:2"
+        ],
+        "sumRangeFilter": [
+          84,
+          144
+        ],
+        "maxConsecutivePairsAllowed": 2
+      },
+      "actionableAdvice": "Baseline model configuration"
+    },
+    "hyperparametersJson": "{\n  \"model\": \"XGBoost Multi-Factor Optimization\",\n  \"targetCategory\": \"ALL\",\n  \"drawDate\": \"2026-09-20\",\n  \"evaluationSummary\": {\n    \"totalTickets\": 10,\n    \"hitRatePercent\": 20,\n    \"matchedCount\": 4,\n    \"missedCount\": 56,\n    \"averageMissedRank\": 28\n  },\n  \"recommendedAdjustments\": {\n    \"momentumDecayRate\": 0.12,\n    \"poissonGapMinRatio\": 0.6,\n    \"poissonGapMaxRatio\": 2.6,\n    \"coOccurrenceWeight\": 0.7,\n    \"repeatExhaustionPenalty\": -0.2,\n    \"parityDistributionFilter\": [\n      \"2:4\",\n      \"3:3\",\n      \"4:2\"\n    ],\n    \"sumRangeFilter\": [\n      84,\n      144\n    ],\n    \"maxConsecutivePairsAllowed\": 2\n  },\n  \"actionableAdvice\": \"Baseline model configuration\"\n}",
+    "createdAt": "2026-09-20T18:00:00.000Z",
+    "note": "Baseline model parameters"
+  }
+]

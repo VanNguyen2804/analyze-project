@@ -62,6 +62,37 @@ export class AnalyzeService {
   }
 
   // ==========================================
+  // API SIÊU THAM SỐ THUẬT TOÁN (HYPERPARAMETERS TABLE)
+  // ==========================================
+  getHyperparameters(category?: string): Observable<any[]> {
+    let url = `${this.apiUrl}/hyperparameters`;
+    if (category && category !== 'ALL') {
+      url += `?category=${category}`;
+    }
+    return this.http.get<any[]>(url);
+  }
+
+  getLatestHyperparameters(category?: string): Observable<any> {
+    let url = `${this.apiUrl}/hyperparameters/latest`;
+    if (category && category !== 'ALL') {
+      url += `?category=${category}`;
+    }
+    return this.http.get<any>(url);
+  }
+
+  saveHyperparameters(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/hyperparameters`, payload);
+  }
+
+  updateAlgorithm(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/update-algorithm`, payload);
+  }
+
+  activateHyperparameter(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/hyperparameters/activate/${id}`, {});
+  }
+
+  // ==========================================
   // API TIẾNG PHÁP
   // ==========================================
 

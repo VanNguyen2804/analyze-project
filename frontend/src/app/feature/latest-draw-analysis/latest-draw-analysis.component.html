@@ -441,11 +441,19 @@
 
     <!-- Khối Code JSON tham số thuật toán -->
     <div class="mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <span class="fw-bold text-dark small">⚙️ Bộ Siêu Tham Số Khuyến Nghị Cập Nhật (Model Hyperparameters JSON):</span>
-        <button class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill fw-bold" (click)="copyConclusion()">
-          {{ copiedSuccess ? '✅ Đã Copy' : '📋 Copy JSON' }}
-        </button>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill fw-bold" (click)="copyConclusion()">
+            {{ copiedSuccess ? '✅ Đã Copy' : '📋 Copy JSON' }}
+          </button>
+          <button class="btn btn-sm btn-success py-1 px-3 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-1"
+                  (click)="updateAlgorithmAndSaveTable()"
+                  [disabled]="isUpdatingAlgorithm">
+            <span *ngIf="isUpdatingAlgorithm" class="spinner-border spinner-border-sm me-1" role="status"></span>
+            <span>{{ isUpdatingAlgorithm ? 'Đang lưu vào bảng...' : '🚀 Cập Nhật Thuật Toán & Lưu Vào Bảng' }}</span>
+          </button>
+        </div>
       </div>
       <div class="position-relative">
         <pre class="p-3 rounded-3 text-success font-monospace mb-0 overflow-auto"
@@ -453,8 +461,17 @@
       </div>
     </div>
 
+    <!-- Thông báo kết quả cập nhật thuật toán -->
+    <div *ngIf="algorithmUpdateMessage" class="alert alert-success border-0 shadow-sm rounded-3 py-2 px-3 mb-3 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2 small fw-bold">
+        <span>🎉</span>
+        <span>{{ algorithmUpdateMessage }}</span>
+      </div>
+      <button type="button" class="btn-close btn-sm" (click)="algorithmUpdateMessage = null"></button>
+    </div>
+
     <!-- Nút Copy phía dưới cùng -->
-    <div class="text-center pt-2">
+    <div class="text-center pt-2 pb-3">
       <button class="btn btn-primary btn-lg fw-bold px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2"
               (click)="copyConclusion()">
         <span class="fs-5">📋</span>
@@ -462,6 +479,175 @@
       </button>
       <div class="text-muted small mt-2">
         Văn bản đã định dạng chuẩn Markdown sẵn sàng để gửi vào cuộc trò chuyện hoặc dán vào hệ thống huấn luyện mô hình.
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- BẢNG LƯU TRỮ SIÊU THAM SỐ THUẬT TOÁN (ALGORITHM HYPERPARAMETERS TABLE) -->
+    <!-- ========================================================================= -->
+    <div class="card border-0 shadow-sm rounded-4 mt-3 bg-white overflow-hidden">
+      <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">📊</span>
+          <div>
+            <h6 class="mb-0 fw-bold text-white">Bảng Quản Lý Siêu Tham Số Thuật Toán (Hyperparameters Table)</h6>
+            <div class="text-light small opacity-75" style="font-size: 0.75rem;">
+              Lưu trữ mọi lần cập nhật thuật toán kèm Ngày (Date), Phiên bản (Version) & Cấu hình JSON đối chuẩn US Powerball/Mega Millions
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary px-3 py-2 rounded-pill">
+            {{ hyperparameterHistory.length }} Phiên bản đã lưu
+          </span>
+          <button class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill" (click)="loadHyperparameters()" title="Tải lại">
+            🔄
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3 py-3" style="width: 10%;">Phiên bản</th>
+              <th style="width: 10%;">Kỳ quay</th>
+              <th style="width: 8%;">Loại vé</th>
+              <th style="width: 20%;">Mô hình AI</th>
+              <th style="width: 18%;">Tài liệu README</th>
+              <th style="width: 13%;">Thời điểm lưu</th>
+              <th style="width: 12%;">Ghi chú</th>
+              <th class="text-center pe-3" style="width: 9%;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoadingHyperparameters">
+              <td colspan="8" class="text-center py-4 text-muted">
+                <span class="spinner-border spinner-border-sm me-2 text-primary" role="status"></span>
+                Đang tải dữ liệu bảng siêu tham số...
+              </td>
+            </tr>
+            <tr *ngIf="!isLoadingHyperparameters && hyperparameterHistory.length === 0">
+              <td colspan="8" class="text-center py-4 text-muted">
+                Chưa có phiên bản nào trong bảng. Hãy bấm "Cập Nhật Thuật Toán & Lưu Vào Bảng" ở trên.
+              </td>
+            </tr>
+            <tr *ngFor="let item of hyperparameterHistory; let idx = index" [class.table-active]="idx === 0">
+              <td class="ps-3 py-2">
+                <div class="d-flex align-items-center gap-1">
+                  <span class="badge bg-dark fw-bold">{{ item.version }}</span>
+                  <span *ngIf="idx === 0" class="badge bg-success" style="font-size: 0.65rem;">Đang dùng</span>
+                </div>
+              </td>
+              <td>
+                <span class="font-monospace fw-semibold">{{ item.drawDate }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="item.category === 'POWER' ? 'bg-primary' : (item.category === 'MEGA' ? 'bg-danger' : 'bg-secondary')">
+                  {{ item.category }}
+                </span>
+              </td>
+              <td>
+                <div class="fw-semibold text-truncate" style="max-width: 200px;" [title]="item.model">
+                  {{ item.model || 'XGBoost Multi-Factor Optimization' }}
+                </div>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-1">
+                  <button class="btn btn-sm btn-outline-info py-0 px-2 rounded-pill fw-bold"
+                          style="font-size: 0.72rem;"
+                          (click)="viewHyperparameterJson(item, 'readme')"
+                          title="Xem nội dung tài liệu README">
+                    📖 README
+                  </button>
+                  <span class="text-muted small text-truncate" style="max-width: 120px;" [title]="item.readmeContent || 'Tài liệu mô hình'">
+                    {{ (item.readmeContent || item.note || '').slice(0, 25) }}...
+                  </span>
+                </div>
+              </td>
+              <td class="text-muted small">
+                {{ item.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}
+              </td>
+              <td class="small text-truncate" style="max-width: 150px;" [title]="item.note">
+                {{ item.note || '-' }}
+              </td>
+              <td class="text-center pe-3">
+                <div class="d-flex justify-content-center gap-1">
+                  <button class="btn btn-sm btn-outline-primary py-0 px-2 rounded"
+                          (click)="viewHyperparameterJson(item, 'json')"
+                          title="Xem chi tiết JSON">
+                    ⚙️ JSON
+                  </button>
+                  <button *ngIf="idx !== 0"
+                          class="btn btn-sm btn-outline-success py-0 px-2 rounded"
+                          (click)="activateHyperparameter(item.id)"
+                          title="Kích hoạt lại phiên bản này">
+                    ⚡ Dùng
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT JSON & README CỦA PHIÊN BẢN ĐÃ CHỌN -->
+    <div *ngIf="selectedHyperparameterForView"
+         class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+         style="background-color: rgba(0, 0, 0, 0.65); z-index: 1060;">
+      <div class="card shadow-lg border-0 rounded-4 w-75 overflow-hidden" style="max-width: 800px; max-height: 88vh;">
+        <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary fs-6">{{ selectedHyperparameterForView.version }}</span>
+            <span class="fw-bold">Chi Tiết Phiên Bản Siêu Tham Số (Kỳ: {{ selectedHyperparameterForView.drawDate }} - {{ selectedHyperparameterForView.category }})</span>
+          </div>
+          <button type="button" class="btn-close btn-close-white" (click)="closeHyperparameterModal()"></button>
+        </div>
+
+        <!-- TABS CHỌN GIỮA JSON VÀ README -->
+        <div class="bg-light border-bottom px-3 pt-2 d-flex gap-2">
+          <button class="btn btn-sm py-2 px-3 fw-bold border-bottom-0 rounded-top"
+                  [ngClass]="activeModalTab === 'json' ? 'btn-primary text-white' : 'btn-outline-secondary bg-white'"
+                  (click)="activeModalTab = 'json'">
+            ⚙️ JSON Siêu Tham Số
+          </button>
+          <button class="btn btn-sm py-2 px-3 fw-bold border-bottom-0 rounded-top"
+                  [ngClass]="activeModalTab === 'readme' ? 'btn-primary text-white' : 'btn-outline-secondary bg-white'"
+                  (click)="activeModalTab = 'readme'">
+            📖 Nội Dung README / Tài Liệu Mô Hình
+          </button>
+        </div>
+
+        <div class="card-body p-3 overflow-auto" style="max-height: calc(88vh - 170px);">
+          <div class="small text-muted mb-3 p-2 bg-light rounded border">
+            <div><strong>Mô hình AI:</strong> {{ selectedHyperparameterForView.model }}</div>
+            <div><strong>Ghi chú:</strong> {{ selectedHyperparameterForView.note || 'Không có ghi chú' }}</div>
+            <div><strong>Thời điểm lưu:</strong> {{ selectedHyperparameterForView.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}</div>
+          </div>
+
+          <!-- TAB JSON -->
+          <div *ngIf="activeModalTab === 'json'">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small fw-bold text-secondary">Mã cấu hình JSON:</span>
+            </div>
+            <pre class="p-3 rounded-3 text-success font-monospace mb-0"
+                 style="background-color: #0f172a; font-size: 0.82rem; border: 1px solid #334155; white-space: pre-wrap;">{{ selectedHyperparameterForView.hyperparametersJson || (selectedHyperparameterForView.hyperparameters | json) }}</pre>
+          </div>
+
+          <!-- TAB README -->
+          <div *ngIf="activeModalTab === 'readme'">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small fw-bold text-secondary">Nội dung tệp README / Tài liệu thuyết minh thuật toán:</span>
+            </div>
+            <pre class="p-3 rounded-3 text-light font-monospace mb-0"
+                 style="background-color: #1e293b; font-size: 0.84rem; border: 1px solid #475569; white-space: pre-wrap; line-height: 1.6;">{{ selectedHyperparameterForView.readmeContent || 'Chưa có nội dung README cho phiên bản này.' }}</pre>
+          </div>
+        </div>
+
+        <div class="card-footer bg-light p-2 px-3 d-flex justify-content-end gap-2">
+          <button class="btn btn-secondary btn-sm rounded-pill px-4" (click)="closeHyperparameterModal()">Đóng</button>
+        </div>
       </div>
     </div>
   </div>
