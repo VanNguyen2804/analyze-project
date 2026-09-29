@@ -1137,27 +1137,70 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
     probMap.set(c.number, c.probability);
   }
 
-  // Generate 10 tickets via Wheeling System 10-to-6
+  // Generate up to 25 diverse tickets via Wheeling System 10-to-6 and Combinatorial Optimization
   const generatedTickets: number[][] = [];
+  const addedSet = new Set<string>();
+
+  const addTicket = (t: number[]) => {
+    const sorted = [...t].sort((a, b) => a - b);
+    const key = sorted.join(',');
+    if (!addedSet.has(key)) {
+      addedSet.add(key);
+      generatedTickets.push(sorted);
+    }
+  };
+
   if (category === 'POWER') {
-    // Ticket 1 is the 6-number combination
-    generatedTickets.push([14, 18, 21, 38, 48, 52]);
-    for (const indices of WHEEL_TEMPLATE_10_TO_6.slice(0, 9)) {
-      const t = indices.map((idx) => top10Numbers[idx]).sort((a, b) => a - b);
-      if (!generatedTickets.some(existing => existing.join(',') === t.join(','))) {
-        generatedTickets.push(t);
-      }
+    // Ticket 1 is the 6-number core combination
+    addTicket([14, 18, 21, 38, 48, 52]);
+    for (const indices of WHEEL_TEMPLATE_10_TO_6) {
+      addTicket(indices.map((idx) => top10Numbers[idx]));
     }
   } else {
     for (const indices of WHEEL_TEMPLATE_10_TO_6) {
-      const t = indices.map((idx) => top10Numbers[idx]).sort((a, b) => a - b);
-      generatedTickets.push(t);
+      addTicket(indices.map((idx) => top10Numbers[idx]));
     }
-    generatedTickets.sort((t1, t2) => {
-      const sum1 = t1.reduce((acc, n) => acc + (probMap.get(n) || 0), 0);
-      const sum2 = t2.reduce((acc, n) => acc + (probMap.get(n) || 0), 0);
-      return sum2 - sum1;
-    });
+  }
+
+  // Extend with top combinations from top 14 candidates to reach up to 25 tickets
+  const top14 = scoredCandidates.slice(0, 14).map(c => c.number).sort((a, b) => a - b);
+  const extraCombos: { ticket: number[]; score: number }[] = [];
+
+  const findCombos = (arr: number[], k: number, start: number, current: number[]) => {
+    if (extraCombos.length > 250) return;
+    if (current.length === k) {
+      const odd = current.filter(n => n % 2 !== 0).length;
+      const sum = current.reduce((a, b) => a + b, 0);
+      let consecutive = 0;
+      for (let i = 0; i < current.length - 1; i++) {
+        if (current[i + 1] - current[i] === 1) consecutive++;
+      }
+      if (odd >= 2 && odd <= 4 && sum >= 75 && sum <= 145 && consecutive <= 2) {
+        let pairSum = 0;
+        for (let i = 0; i < current.length; i++) {
+          for (let j = i + 1; j < current.length; j++) {
+            pairSum += pairMatrix[current[i]][current[j]] || 0;
+          }
+        }
+        const probSum = current.reduce((acc, n) => acc + (probMap.get(n) || 0.5), 0);
+        const score = probSum * 1.5 + pairSum * 0.4;
+        extraCombos.push({ ticket: [...current], score });
+      }
+      return;
+    }
+    for (let i = start; i < arr.length; i++) {
+      current.push(arr[i]);
+      findCombos(arr, k, i + 1, current);
+      current.pop();
+    }
+  };
+
+  findCombos(top14, 6, 0, []);
+  extraCombos.sort((a, b) => b.score - a.score);
+
+  for (const item of extraCombos) {
+    if (generatedTickets.length >= 25) break;
+    addTicket(item.ticket);
   }
 
   const selected6Numbers = generatedTickets[0] || top10Numbers.slice(0, 6);

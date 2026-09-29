@@ -218,11 +218,36 @@ export class PredictionComponent implements OnInit, OnDestroy {
   // --- 4. HÀM PHỤC VỤ BẢNG CÁC DÃY 6 SỐ VÀ LÝ DO THAY ĐỔI THUẬT TOÁN ---
   ticketViewMode: 'table' | 'cards' = 'table';
   displayedTicketsLimit: number = 10;
+  ticketLimitOptions: number[] = [5, 10, 15, 20, 25];
   expandedTicketDetails: { [key: number]: boolean } = { 0: true };
+
+  setTicketLimit(limit: number) {
+    this.displayedTicketsLimit = limit;
+    this.cdr.markForCheck();
+  }
 
   toggleTicketLimit() {
     this.displayedTicketsLimit = this.displayedTicketsLimit === 5 ? 10 : 5;
     this.cdr.markForCheck();
+  }
+
+  getTicketStrategyBadge(index: number): { text: string; class: string } {
+    if (index === 0 && this.category === 'POWER') {
+      return { text: '🏆 Hạt Nhân Điểm Vàng', class: 'bg-success text-white' };
+    }
+    if (index < 5) {
+      return { text: '🎯 Top Xác Suất Cao', class: 'bg-primary text-white' };
+    }
+    if (index < 10) {
+      return { text: '🔗 Wheeling Cặp Đôi', class: 'bg-info text-dark' };
+    }
+    if (index < 15) {
+      return { text: '🌊 Điểm Rơi Poisson', class: 'bg-warning text-dark' };
+    }
+    if (index < 20) {
+      return { text: '⚖️ Cân Bằng Parity', class: 'bg-secondary text-white' };
+    }
+    return { text: '⚡ Phủ Rộng Đa Vùng', class: 'bg-dark text-white' };
   }
 
   toggleTicketDetail(index: number) {
