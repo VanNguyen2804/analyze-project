@@ -1456,13 +1456,39 @@ async function startServer() {
     }
   });
 
+  app.put('/api/numbers/:id', (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const target = records.find((r) => r.id === id);
+    if (!target) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy dữ liệu!' });
+    }
+    const { numbers, specialNumber, drawDate, note } = req.body;
+    if (drawDate && typeof drawDate === 'string' && drawDate.trim()) {
+      target.drawDate = drawDate.trim();
+    }
+    if (Array.isArray(numbers) && numbers.length === 6) {
+      target.numbers = [...numbers.map(Number)].sort((a, b) => a - b);
+    }
+    if (target.category === 'POWER') {
+      target.specialNumber = specialNumber ? Number(specialNumber) : undefined;
+    }
+    if (note !== undefined) {
+      target.note = note ? String(note).trim() : undefined;
+    }
+    saveDataToDisk();
+    return res.json({ success: true, message: 'Đã chỉnh sửa ngày và dãy số thành công!', record: target });
+  });
+
   app.put('/api/analyze/update-result/:id', (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
     const target = records.find((r) => r.id === id);
     if (!target) {
       return res.status(404).send('Không tìm thấy dữ liệu kỳ quay này!');
     }
-    const { numbers, specialNumber } = req.body;
+    const { numbers, specialNumber, drawDate } = req.body;
+    if (drawDate && typeof drawDate === 'string' && drawDate.trim()) {
+      target.drawDate = drawDate.trim();
+    }
     if (Array.isArray(numbers) && numbers.length === 6) {
       target.numbers = [...numbers.map(Number)].sort((a, b) => a - b);
     }
@@ -1470,7 +1496,7 @@ async function startServer() {
       target.specialNumber = specialNumber ? Number(specialNumber) : undefined;
     }
     saveDataToDisk();
-    return res.send('Đã chỉnh sửa dãy số thành công!');
+    return res.send('Đã chỉnh sửa ngày và dãy số thành công!');
   });
 
   // OFFICIAL DRAW ANALYSIS FOR LATEST-DRAW-ANALYSIS PAGE

@@ -49,16 +49,33 @@
         </div>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <span *ngIf="existingOfficialDraw" class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm">
+        <span *ngIf="editingOfficialDrawId" class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm">
+          ✏️ Đang sửa kỳ quay ID #{{ editingOfficialDrawId }} ({{ drawDate }})
+        </span>
+        <span *ngIf="!editingOfficialDrawId && existingOfficialDraw" class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm">
           ✅ Đã có KQ trong Database ({{ existingOfficialDraw.drawDate }})
         </span>
-        <span *ngIf="!existingOfficialDraw" class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
+        <span *ngIf="!editingOfficialDrawId && !existingOfficialDraw" class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
           ⚠️ Chưa có KQ ngày {{ drawDate }}
         </span>
       </div>
     </div>
 
     <div class="card-body p-4 p-md-5 bg-light">
+      <!-- BANNER CHẾ ĐỘ CHỈNH SỬA KỲ QUAY (CHO PHÉP SỬA CẢ NGÀY MỞ THƯỞNG VÀ DÃY SỐ) -->
+      <div *ngIf="editingOfficialDrawId" class="alert alert-info py-3 px-4 rounded-4 border-0 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+        <div class="d-flex align-items-center gap-3">
+          <span class="fs-3">✏️</span>
+          <div>
+            <div class="fw-bold fs-6">Đang chỉnh sửa kỳ quay ID #{{ editingOfficialDrawId }}</div>
+            <div class="small text-muted">Bạn có thể chỉnh sửa lại <strong>Ngày mở thưởng</strong> và <strong>Dãy số trúng thưởng</strong> bên dưới, sau đó bấm <strong>"Cập nhật kết quả"</strong> để lưu vào Database.</div>
+          </div>
+        </div>
+        <button class="btn btn-outline-secondary rounded-pill px-3 py-1 shadow-sm fw-semibold" (click)="cancelOfficialEdit()">
+          ✖ Hủy chế độ sửa
+        </button>
+      </div>
+
       <div class="row g-4 mb-4 align-items-end">
         <div class="col-md-4">
           <label class="form-label fw-bold text-secondary">Loại xổ số Vietlott</label>
@@ -68,7 +85,17 @@
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label fw-bold text-secondary">Ngày mở thưởng</label>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label fw-bold text-secondary mb-0">Ngày mở thưởng</label>
+            <span *ngIf="editingOfficialDrawId" class="badge bg-primary text-white" style="font-size: 0.72rem;">✏️ Có thể sửa ngày</span>
+            <button *ngIf="!editingOfficialDrawId && existingOfficialDraw" 
+                    type="button" 
+                    class="btn btn-sm btn-link text-primary p-0 text-decoration-none" 
+                    style="font-size: 0.78rem;" 
+                    (click)="loadDrawToMainForm(existingOfficialDraw)">
+              ✏️ Sửa kỳ quay này
+            </button>
+          </div>
           <input type="date" class="form-control form-control-lg border-0 shadow-sm" [(ngModel)]="drawDate" (ngModelChange)="onDateOrCategoryChange()">
         </div>
         <div class="col-md-4 text-md-end">
@@ -122,7 +149,13 @@
                 (click)="saveOfficialVietlottResult()" 
                 [disabled]="isSavingOfficial">
           <span *ngIf="isSavingOfficial" class="spinner-border spinner-border-sm"></span>
-          💾 Lưu kết quả Vietlott vào Database
+          <span>{{ editingOfficialDrawId ? '💾 Cập nhật kết quả (Ngày & Dãy số)' : '💾 Lưu kết quả Vietlott vào Database' }}</span>
+        </button>
+
+        <button *ngIf="editingOfficialDrawId" 
+                class="btn btn-outline-secondary btn-lg fw-semibold px-4 py-2 rounded-pill shadow-sm"
+                (click)="cancelOfficialEdit()">
+          ✖ Hủy sửa
         </button>
 
         <span *ngIf="saveOfficialMessage" class="badge bg-success-subtle text-success border border-success fs-6 px-3 py-2 rounded-pill shadow-sm">
@@ -286,7 +319,19 @@
                   </td>
                 </tr>
                 <tr *ngFor="let draw of recentDraws">
-                  <td class="ps-4 fw-semibold text-muted" style="width: 25%;">{{ draw.drawDate }}</td>
+                  <td class="ps-4 fw-semibold text-muted" style="width: 32%;">
+                    <!-- CHẾ ĐỘ XEM NGÀY -->
+                    <span *ngIf="editingDrawId !== draw.id">{{ draw.drawDate }}</span>
+
+                    <!-- CHẾ ĐỘ CHỈNH SỬA NGÀY -->
+                    <div *ngIf="editingDrawId === draw.id" class="d-flex flex-column gap-1 pe-2">
+                      <label class="form-label text-secondary mb-0 fw-bold" style="font-size: 0.72rem;">📅 Sửa ngày:</label>
+                      <input type="date" 
+                             class="form-control form-control-sm border shadow-sm fw-bold text-primary" 
+                             [(ngModel)]="editDrawDate" 
+                             title="Chỉnh sửa ngày mở thưởng">
+                    </div>
+                  </td>
                   
                   <td>
                     <!-- CHẾ ĐỘ XEM (CHỈ ĐỌC) -->
@@ -299,9 +344,14 @@
                           ★{{ (draw.specialNumber < 10 ? '0' + draw.specialNumber : draw.specialNumber) }}
                         </span>
                       </div>
-                      <button class="btn btn-sm btn-light border text-primary rounded-circle shadow-sm ms-2" (click)="startEdit(draw)" title="Chỉnh sửa dãy số này">
-                        ✏️
-                      </button>
+                      <div class="d-flex align-items-center gap-1 ms-2">
+                        <button class="btn btn-sm btn-light border text-primary rounded-circle shadow-sm" (click)="startEdit(draw)" title="Chỉnh sửa ngày và dãy số tại dòng này">
+                          ✏️
+                        </button>
+                        <button class="btn btn-sm btn-light border text-secondary rounded-circle shadow-sm" (click)="loadDrawToMainForm(draw)" title="Nạp lên khung nhập trên cùng để sửa">
+                          ⬆️
+                        </button>
+                      </div>
                     </div>
 
                     <!-- CHẾ ĐỘ CHỈNH SỬA VỚI INPUT HÌNH QUẢ BÓNG NHỎ -->
@@ -312,7 +362,7 @@
                                class="form-control ball-input bg-white" 
                                style="width: 32px; height: 32px; font-size: 0.8rem; border-width: 1px;" 
                                [(ngModel)]="editNumbers[k]" 
-                               min="1" max="55">
+                               min="1" [max]="category === 'POWER' ? 55 : 45">
                       </div>
                       
                       <input *ngIf="category === 'POWER'" 
@@ -320,10 +370,11 @@
                              class="form-control ball-input bg-white border-warning ms-1" 
                              style="width: 32px; height: 32px; font-size: 0.8rem; border-width: 1px;" 
                              [(ngModel)]="editSpecialNumber" 
-                             min="1" max="55">
+                             min="1" max="55"
+                             title="Số phụ Jackpot 2">
 
                       <div class="ms-auto d-flex gap-1">
-                        <button class="btn btn-sm btn-success fw-semibold shadow-sm px-2" (click)="saveEdit(draw)">Lưu</button>
+                        <button class="btn btn-sm btn-success fw-semibold shadow-sm px-2" (click)="saveEdit(draw)" title="Lưu ngày và số">Lưu</button>
                         <button class="btn btn-sm btn-secondary fw-semibold shadow-sm px-2" (click)="cancelEdit()">Hủy</button>
                       </div>
                     </div>

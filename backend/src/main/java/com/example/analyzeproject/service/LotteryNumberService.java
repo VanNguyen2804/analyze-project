@@ -108,6 +108,67 @@ public class LotteryNumberService {
         return repository.save(entity);
     }
 
+    public LotteryNumber updateNumbers(Long id, NumberEntryRequest request) {
+        LotteryNumber existing = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bản ghi có ID: " + id));
+
+        if (request.getCategory() != null && !request.getCategory().trim().isEmpty()) {
+            String cat = request.getCategory().trim().toUpperCase();
+            if (!"MEGA".equals(cat) && !"POWER".equals(cat)) {
+                throw new IllegalArgumentException("Category không hợp lệ! Chỉ chấp nhận MEGA hoặc POWER.");
+            }
+            existing.setCategory(cat);
+        }
+
+        if (request.getDrawDate() != null) {
+            existing.setDrawDate(request.getDrawDate());
+        }
+
+        if (request.getNumbers() != null) {
+            List<Integer> numbers = request.getNumbers();
+            if (numbers.size() != 6) {
+                throw new IllegalArgumentException("Yêu cầu nhập chính xác đúng 6 con số chính!");
+            }
+            Set<Integer> uniqueCheck = new HashSet<>(numbers);
+            if (uniqueCheck.size() != 6) {
+                throw new IllegalArgumentException("Các con số chính không được trùng nhau!");
+            }
+            int maxLimit = "POWER".equals(existing.getCategory()) ? 55 : 45;
+            for (Integer num : numbers) {
+                if (num == null || num < 1 || num > maxLimit) {
+                    throw new IllegalArgumentException(
+                            String.format("Với danh mục %s, mỗi số phải từ 1 đến %d! (Số không hợp lệ: %d)",
+                                    existing.getCategory(), maxLimit, num));
+                }
+            }
+            Collections.sort(numbers);
+            existing.setNumbers(numbers);
+        }
+
+        if ("POWER".equals(existing.getCategory())) {
+            if (request.getSpecialNumber() != null) {
+                int sp = request.getSpecialNumber();
+                if (sp < 1 || sp > 55) {
+                    throw new IllegalArgumentException("Số phụ của Power 6/55 phải là số nguyên từ 1 đến 55!");
+                }
+                if (existing.getNumbers() != null && existing.getNumbers().contains(sp)) {
+                    throw new IllegalArgumentException(String.format("Số phụ (%d) không được trùng với 6 số chính!", sp));
+                }
+                existing.setSpecialNumber(sp);
+            } else {
+                existing.setSpecialNumber(null);
+            }
+        } else {
+            existing.setSpecialNumber(null);
+        }
+
+        if (request.getNote() != null) {
+            existing.setNote(request.getNote().trim());
+        }
+
+        return repository.save(existing);
+    }
+
     public boolean deleteNumber(Long id) {
         if (repository.existsById(id)) {
             repository.deleteById(id);

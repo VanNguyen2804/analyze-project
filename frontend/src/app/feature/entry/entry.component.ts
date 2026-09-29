@@ -32,8 +32,10 @@ export class EntryComponent implements OnInit, OnDestroy {
   isLoadingHistory: boolean = false;
 
   editingDrawId: number | null = null;
+  editDrawDate: string = '';
   editNumbers: number[] = [];
   editSpecialNumber: number | null = null;
+  editingOfficialDrawId: number | null = null;
 
   // Khai báo biến lưu trữ Subscription để hủy khi rời trang
   private categorySub: Subscription | undefined;
@@ -73,6 +75,25 @@ export class EntryComponent implements OnInit, OnDestroy {
   }
 
   onDateOrCategoryChange() {
+    if (!this.editingOfficialDrawId) {
+      this.checkExistingOfficialDraw();
+    }
+    this.cdr.markForCheck();
+  }
+
+  loadDrawToMainForm(draw: any) {
+    this.editingOfficialDrawId = draw.id;
+    this.drawDate = draw.drawDate;
+    this.category = draw.category || this.category;
+    this.officialNumbers = draw.numbers ? [...draw.numbers] : [null, null, null, null, null, null];
+    this.officialSpecialNumber = draw.specialNumber ?? null;
+    this.existingOfficialDraw = draw;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.cdr.markForCheck();
+  }
+
+  cancelOfficialEdit() {
+    this.editingOfficialDrawId = null;
     this.checkExistingOfficialDraw();
     this.cdr.markForCheck();
   }
@@ -169,20 +190,38 @@ export class EntryComponent implements OnInit, OnDestroy {
     this.saveOfficialMessage = '';
     this.cdr.markForCheck();
 
-    this.analyzeService.addOfficialResult(payload).subscribe({
-      next: (msg) => {
-        this.isSavingOfficial = false;
-        this.saveOfficialMessage = `✅ Đã lưu thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
-        alert(`Thành công: Đã lưu kết quả Vietlott ngày ${this.drawDate} vào Database.`);
-        this.loadHistory();
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.isSavingOfficial = false;
-        alert('Lưu kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
-        this.cdr.markForCheck();
-      }
-    });
+    if (this.editingOfficialDrawId) {
+      this.analyzeService.editOfficialResult(this.editingOfficialDrawId, payload).subscribe({
+        next: (msg) => {
+          this.isSavingOfficial = false;
+          this.saveOfficialMessage = `✅ Đã cập nhật thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
+          alert(`Thành công: Đã cập nhật kết quả Vietlott ngày ${this.drawDate} vào Database.`);
+          this.editingOfficialDrawId = null;
+          this.loadHistory();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isSavingOfficial = false;
+          alert('Cập nhật kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      this.analyzeService.addOfficialResult(payload).subscribe({
+        next: (msg) => {
+          this.isSavingOfficial = false;
+          this.saveOfficialMessage = `✅ Đã lưu thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
+          alert(`Thành công: Đã lưu kết quả Vietlott ngày ${this.drawDate} vào Database.`);
+          this.loadHistory();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isSavingOfficial = false;
+          alert('Lưu kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
   loadUserHistory() {
@@ -258,33 +297,71 @@ export class EntryComponent implements OnInit, OnDestroy {
 
   startEdit(draw: any) {
     this.editingDrawId = draw.id;
-    this.editNumbers = [...draw.numbers]; 
-    this.editSpecialNumber = draw.specialNumber;
+    this.editDrawDate = draw.drawDate;
+    this.editNumbers = draw.numbers ? [...draw.numbers] : []; 
+    this.editSpecialNumber = draw.specialNumber ?? null;
     this.cdr.markForCheck();
   }
 
   cancelEdit() {
     this.editingDrawId = null;
+    this.editDrawDate = '';
     this.editNumbers = [];
     this.editSpecialNumber = null;
     this.cdr.markForCheck();
   }
 
   saveEdit(draw: any) {
+    if (!this.editDrawDate || !this.editDrawDate.trim()) {
+      alert('Vui lòng chọn ngày mở thưởng!');
+      return;
+    }
+    const maxLimit = this.category === 'POWER' ? 55 : 45;
+    const filledNums = this.editNumbers.map(n => Number(n));
+    for (let i = 0; i < 6; i++) {
+      const val = filledNums[i];
+      if (!val || isNaN(val) || val < 1 || val > maxLimit) {
+        alert(`Vui lòng nhập đầy đủ 6 số chính từ 1 đến ${maxLimit} cho ô số ${i + 1}!`);
+        return;
+      }
+    }
+    const uniqueSet = new Set(filledNums);
+    if (uniqueSet.size !== 6) {
+      alert('Các con số trong kết quả mở thưởng không được trùng nhau!');
+      return;
+    }
+
+    let specialNum: number | null = null;
+    if (this.category === 'POWER') {
+      if (this.editSpecialNumber !== null && this.editSpecialNumber !== undefined && this.editSpecialNumber !== ('' as any)) {
+        specialNum = Number(this.editSpecialNumber);
+        if (isNaN(specialNum) || specialNum < 1 || specialNum > 55) {
+          alert('Banh phụ của Power 6/55 phải là số từ 1 đến 55!');
+          return;
+        }
+        if (uniqueSet.has(specialNum)) {
+          alert(`Banh phụ (${specialNum}) không được trùng với bất kỳ số nào trong 6 số chính!`);
+          return;
+        }
+      }
+    }
+
     const payload = {
-      numbers: this.editNumbers.map(n => Number(n) || 0),
-      specialNumber: this.category === 'POWER' ? Number(this.editSpecialNumber || 0) : null
+      drawDate: this.editDrawDate.trim(),
+      numbers: filledNums.sort((a, b) => a - b),
+      specialNumber: this.category === 'POWER' ? specialNum : null
     };
 
     this.analyzeService.editOfficialResult(draw.id, payload).subscribe({
       next: (msg) => {
-        alert(msg);
+        alert(msg || 'Đã chỉnh sửa ngày và dãy số thành công!');
         this.editingDrawId = null;
+        this.editDrawDate = '';
         this.loadHistory(); 
         this.cdr.markForCheck();
       },
       error: (err) => {
-        alert('Có lỗi xảy ra khi cập nhật số!');
+        alert('Có lỗi xảy ra khi cập nhật ngày và dãy số!');
         this.cdr.markForCheck();
       }
     });

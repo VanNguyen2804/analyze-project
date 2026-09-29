@@ -83,6 +83,7 @@ let selectedSpecialNumber: number | null = null;
 let activeSelectionTarget: 'main' | 'special' = 'main';
 let noteText: string = '';
 let isSaving: boolean = false;
+let editingRecordId: number | null = null;
 let savedRecords: SavedRecord[] = [];
 let filterDate: string = '';
 let filterCategory: string = 'POWER';
@@ -190,8 +191,12 @@ async function saveToH2(): Promise<void> {
   render();
 
   try {
-    const res = await fetch('/api/numbers', {
-      method: 'POST',
+    const isEdit = editingRecordId !== null;
+    const url = isEdit ? `/api/numbers/${editingRecordId}` : '/api/numbers';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         numbers: selectedNumbers,
@@ -204,15 +209,19 @@ async function saveToH2(): Promise<void> {
 
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error || 'Lỗi khi lưu bộ số');
+      throw new Error(err.message || err.error || 'Lỗi khi lưu bộ số');
     }
 
-    const saved: SavedRecord = await res.json();
+    const savedResponse = await res.json();
+    const saved: SavedRecord = savedResponse.record || savedResponse;
     const specialInfo = saved.specialNumber ? ` + Số phụ ⭐ ${saved.specialNumber < 10 ? '0' + saved.specialNumber : saved.specialNumber}` : '';
     statusMessage = {
       type: 'success',
-      text: `Đã lưu thành công bộ số ${saved.category}${specialInfo} cho ngày ${saved.drawDate} (${getDayOfWeekName(saved.drawDate)}) (#${saved.id})!`,
+      text: isEdit 
+        ? `Đã cập nhật thành công ngày & bộ số ${saved.category}${specialInfo} cho ngày ${saved.drawDate} (#${saved.id})!`
+        : `Đã lưu thành công bộ số ${saved.category}${specialInfo} cho ngày ${saved.drawDate} (${getDayOfWeekName(saved.drawDate)}) (#${saved.id})!`,
     };
+    editingRecordId = null;
     selectedNumbers = [];
     selectedSpecialNumber = null;
     activeSelectionTarget = 'main';
@@ -224,6 +233,33 @@ async function saveToH2(): Promise<void> {
     isSaving = false;
     render();
   }
+}
+
+function editRecord(record: SavedRecord): void {
+  editingRecordId = record.id;
+  selectedDate = record.drawDate;
+  selectedCategory = record.category;
+  predictionCategory = record.category;
+  filterCategory = record.category;
+  selectedNumbers = [...record.numbers];
+  selectedSpecialNumber = record.specialNumber ?? null;
+  noteText = record.note || '';
+  activeTab = 'manual';
+  statusMessage = {
+    type: 'warning',
+    text: `Đang chỉnh sửa bản ghi #${record.id} (Ngày: ${record.drawDate}). Bạn có thể sửa ngày mở thưởng hoặc dãy số rồi bấm 'Cập nhật bộ số'.`,
+  };
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  render();
+}
+
+function cancelEditRecord(): void {
+  editingRecordId = null;
+  selectedNumbers = [];
+  selectedSpecialNumber = null;
+  noteText = '';
+  statusMessage = null;
+  render();
 }
 
 async function deleteRecord(id: number): Promise<void> {
@@ -589,6 +625,19 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
             </span>
           </div>
 
+          ${editingRecordId ? `
+            <!-- Banner Chỉnh sửa Ngày & Dãy số -->
+            <div class="alert alert-info py-2 px-3 rounded-3 mb-3 d-flex justify-content-between align-items-center shadow-sm">
+              <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">✏️</span>
+                <div>
+                  <strong>Đang chỉnh sửa bản ghi #${editingRecordId} (Ngày: ${selectedDate})</strong>: Bạn có thể sửa ngày mở thưởng, chọn lại 6 số hoặc số phụ rồi nhấn "Cập nhật".
+                </div>
+              </div>
+              <button type="button" id="btn-cancel-edit-record" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Hủy sửa</button>
+            </div>
+          ` : ''}
+
           <!-- Date Selector -->
           <div class="p-3 mb-4 rounded-3 border bg-white shadow-sm">
             <div class="row align-items-center g-3">
@@ -775,7 +824,7 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                 class="btn btn-primary w-100 fw-bold py-2 shadow-sm"
                 ${isSaving || selectedNumbers.length !== 6 ? 'disabled' : ''}
               >
-                ${isSaving ? 'Đang lưu...' : '💾 Lưu bộ số vào hệ thống'}
+                ${isSaving ? 'Đang lưu...' : (editingRecordId ? '💾 Cập nhật bộ số (Ngày & Số)' : '💾 Lưu bộ số vào hệ thống')}
               </button>
             </div>
           </div>
@@ -889,7 +938,10 @@ function renderManualView(maxLimit: number, gridNumbers: number[], dayName: stri
                       <td>
                         ${r.note ? `<span class="badge bg-light text-dark border">${r.note}</span>` : '<span class="text-muted small fst-italic">--</span>'}
                       </td>
-                      <td class="text-end">
+                      <td class="text-end text-nowrap">
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-edit-record me-1" data-id="${r.id}" title="Chỉnh sửa ngày và dãy số">
+                          ✏️ Sửa
+                        </button>
                         <button type="button" class="btn btn-sm btn-outline-danger btn-delete-record" data-id="${r.id}">
                           Xóa
                         </button>
@@ -1512,6 +1564,16 @@ function attachEventListeners(): void {
     });
 
     document.getElementById('btn-refresh-list')?.addEventListener('click', () => fetchSavedRecords());
+
+    document.getElementById('btn-cancel-edit-record')?.addEventListener('click', cancelEditRecord);
+
+    document.querySelectorAll('.btn-edit-record').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = parseInt((e.currentTarget as HTMLElement).getAttribute('data-id') || '', 10);
+        const record = savedRecords.find(r => r.id === id);
+        if (record) editRecord(record);
+      });
+    });
 
     document.querySelectorAll('.btn-delete-record').forEach(btn => {
       btn.addEventListener('click', (e) => {

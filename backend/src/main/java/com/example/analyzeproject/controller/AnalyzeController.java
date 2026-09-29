@@ -83,7 +83,7 @@ public class AnalyzeController {
     @PutMapping("/update-result/{id}")
     public String updateResult(@PathVariable Long id, @RequestBody LotteryNumber updatedDraw) {
         analyzeService.updateDrawResult(id, updatedDraw);
-        return "Đã chỉnh sửa dãy số thành công!";
+        return "Đã chỉnh sửa ngày và dãy số thành công!";
     }
 
     @GetMapping("/user-history")

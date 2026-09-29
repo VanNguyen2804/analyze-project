@@ -672,7 +672,12 @@ public class AnalyzeService {
         Optional<LotteryNumber> existingOpt = repository.findById(id);
         if (existingOpt.isPresent()) {
             LotteryNumber existing = existingOpt.get();
-            existing.setNumbers(updatedDraw.getNumbers());
+            if (updatedDraw.getDrawDate() != null) {
+                existing.setDrawDate(updatedDraw.getDrawDate());
+            }
+            if (updatedDraw.getNumbers() != null && !updatedDraw.getNumbers().isEmpty()) {
+                existing.setNumbers(updatedDraw.getNumbers());
+            }
             existing.setSpecialNumber(updatedDraw.getSpecialNumber());
             repository.save(existing);
         } else {

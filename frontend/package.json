@@ -2,10 +2,10 @@
   "name": "frontend",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "build:sync": "ng build && rm -rf ../backend/src/main/resources/static/* && cp -r dist/analyzeproject/* ../backend/src/main/resources/static/",
+    "ng": "node ./node_modules/@angular/cli/bin/ng.js",
+    "start": "node ./node_modules/@angular/cli/bin/ng.js serve",
+    "build": "node ./node_modules/@angular/cli/bin/ng.js build",
+    "build:sync": "node ./node_modules/@angular/cli/bin/ng.js build && rm -rf ../backend/src/main/resources/static/* && cp -r dist/analyzeproject/* ../backend/src/main/resources/static/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

@@ -43,6 +43,18 @@ public class LotteryNumberController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody NumberEntryRequest request) {
+        try {
+            LotteryNumber updated = service.updateNumbers(id, request);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException ex) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", ex.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         boolean deleted = service.deleteNumber(id);
