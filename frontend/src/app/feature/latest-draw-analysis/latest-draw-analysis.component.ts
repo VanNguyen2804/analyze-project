@@ -91,6 +91,13 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   selectedHyperparameterForView: any | null = null;
   activeModalTab: 'json' | 'readme' = 'json';
 
+  // 5-Draws Reconciliation & Diagnosis State
+  reconciliationData: any = null;
+  isLoadingReconciliation: boolean = false;
+  selected5DrawIndex: number = 0;
+  activeReconciliationTab: 'comparison' | 'winningBalls' | 'algorithmFlaws' | 'tuningPlan' = 'comparison';
+  isApplyingV150: boolean = false;
+
   private categorySub: Subscription | undefined;
 
   constructor(
@@ -104,6 +111,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
         this.category = newCategory;
         this.fetchAnalysis(true);
         this.loadHyperparameters();
+        this.load5DrawsReconciliation();
       }
     });
   }
@@ -590,5 +598,95 @@ ${hyperJson}
   closeHyperparameterModal(): void {
     this.selectedHyperparameterForView = null;
     this.cdr.markForCheck();
+  }
+
+  // =========================================================================================
+  // 5-DRAWS RECONCILIATION & ROOT CAUSE DIAGNOSIS
+  // =========================================================================================
+  load5DrawsReconciliation(): void {
+    this.isLoadingReconciliation = true;
+    this.cdr.markForCheck();
+    this.analyzeService.get5DrawsReconciliation(this.category).subscribe({
+      next: (data) => {
+        this.reconciliationData = data;
+        this.isLoadingReconciliation = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Failed to load 5-draws reconciliation:', err);
+        this.isLoadingReconciliation = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  select5Draw(index: number): void {
+    this.selected5DrawIndex = index;
+    this.cdr.markForCheck();
+  }
+
+  getCurrent5Draw(): any {
+    if (!this.reconciliationData?.draws || this.reconciliationData.draws.length === 0) return null;
+    return this.reconciliationData.draws[this.selected5DrawIndex] || this.reconciliationData.draws[0];
+  }
+
+  applyV150Tuning(): void {
+    if (!this.reconciliationData?.recommendedHyperparameters) return;
+    const hyp = this.reconciliationData.recommendedHyperparameters;
+    this.isApplyingV150 = true;
+    this.algorithmUpdateMessage = null;
+    this.cdr.markForCheck();
+
+    const readmeV150 = `# Báo Cáo Hiệu Chỉnh Thuật Toán v1.5.0 (Khắc Phục Sai Lệch 5 Kỳ Gần Nhất)
+
+## 1. Bối cảnh & Dữ liệu Đối soát Thực Tế (5 Kỳ Gần Nhất: 28/09, 19/09, 17/09, 15/09, 12/09)
+- Tổng số vé đối chiếu thực tế: ${this.reconciliationData.overallSummary.totalTickets} vé
+- Số vé trúng thưởng: ${this.reconciliationData.overallSummary.winningTickets} vé (Bao gồm Jackpot 2 & Giải Nhì ngày 19/09)
+- Số vé trượt: ${this.reconciliationData.overallSummary.missedTickets} vé
+- Tỷ lệ khớp: ${this.reconciliationData.overallSummary.hitRatePercent}%
+
+## 2. 5 Nguyên Nhân Cốt Lõi Gây Sai Lệch Kết Quả:
+${this.reconciliationData.overallSummary.dominantFlaws.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}
+
+## 3. Các Hiệu Chỉnh Tham Số Trọng Yếu Trong Phiên Bản v1.5.0:
+- Hệ số suy giảm quán tính: 0.14
+- Cửa sổ Poisson 2 tầng mở rộng: [0.70 - 2.80]
+- Điểm thưởng bật lò xo Lô Gan sâu (> 10 kỳ): +0.85 (Khắc phục việc bỏ sót các số 02, 13, 21, 29, 54)
+- Trọng số chuyển vị bóng phụ sang bóng chính: +0.75 (Tận dụng bước nhảy của các số 14, 18, 23)
+- Trọng số quán tính thích ứng: +0.65
+- Bộ lọc tổng mở rộng: [75, 195] (loại trừ triệt để lỗi cắt bỏ tổ hợp dải cao như kỳ 19/09 và 15/09)
+- Trọng số ma trận cặp số đồng hành: 0.88`;
+
+    const payload = {
+      hyperparametersJson: JSON.stringify(hyp.adjustments, null, 2),
+      category: this.category,
+      drawDate: hyp.drawDate || '2026-10-02',
+      readmeContent: readmeV150,
+      note: 'Hiệu chỉnh thuật toán v1.5.0: Khắc phục bẫy số lặp trễ pha, chuyển vị banh phụ sang chính (+0.75), nới rộng dải tổng [75-195] và kích hoạt Lô Gan Poisson 2 tầng.'
+    };
+
+    this.analyzeService.updateAlgorithm(payload).subscribe({
+      next: (res: any) => {
+        this.isApplyingV150 = false;
+        const version = res.record?.version || res.version || 'v1.5.0';
+        this.algorithmUpdateMessage = `✅ Đã áp dụng thành công bộ tham số ${version} khắc phục sai lệch 5 kỳ vào hệ thống!`;
+        this.loadHyperparameters();
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.algorithmUpdateMessage = null;
+          this.cdr.markForCheck();
+        }, 6000);
+      },
+      error: (err: any) => {
+        this.isApplyingV150 = false;
+        this.algorithmUpdateMessage = '❌ Lỗi khi cập nhật thuật toán: ' + (err.message || 'Lỗi server');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  formatNumber(num: number | null | undefined): string {
+    if (num === null || num === undefined) return '--';
+    return num < 10 ? '0' + num : num.toString();
   }
 }

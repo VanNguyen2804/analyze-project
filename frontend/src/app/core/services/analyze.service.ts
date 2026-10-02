@@ -62,6 +62,14 @@ export class AnalyzeService {
   }
 
   // ==========================================
+  // API ĐỐI SOÁT 5 KỲ GẦN NHẤT
+  // ==========================================
+  get5DrawsReconciliation(category?: string): Observable<any> {
+    const cat = category || 'POWER';
+    return this.http.get<any>(`${this.apiUrl}/reconcile-5-draws?category=${cat}`);
+  }
+
+  // ==========================================
   // API SIÊU THAM SỐ THUẬT TOÁN (HYPERPARAMETERS TABLE)
   // ==========================================
   getHyperparameters(category?: string): Observable<any[]> {

@@ -263,8 +263,11 @@ public class AnalyzeService {
         double gapMaxRatio = 2.2;
         double coOccurrenceWeight = 0.85;
         double repeatExhaustionPenalty = -0.45;
-        int sumMin = "POWER".equals(category) ? 77 : 84;
-        int sumMax = "POWER".equals(category) ? 137 : 144;
+        double extremeGanBonus = 0.85;
+        double specialMigrationWeight = 0.75;
+        double adaptiveRepeatWeight = 0.65;
+        int sumMin = "POWER".equals(category) ? 75 : 84;
+        int sumMax = "POWER".equals(category) ? 195 : 144;
 
         if (latestHyp != null && latestHyp.getHyperparametersJson() != null) {
             String json = latestHyp.getHyperparametersJson();
@@ -273,6 +276,9 @@ public class AnalyzeService {
             gapMaxRatio = parseDoubleFromJson(json, "poissonGapMaxRatio", gapMaxRatio);
             coOccurrenceWeight = parseDoubleFromJson(json, "coOccurrenceWeight", coOccurrenceWeight);
             repeatExhaustionPenalty = parseDoubleFromJson(json, "repeatExhaustionPenalty", repeatExhaustionPenalty);
+            extremeGanBonus = parseDoubleFromJson(json, "extremeGanReboundBonus", extremeGanBonus);
+            specialMigrationWeight = parseDoubleFromJson(json, "specialToMainMigrationWeight", specialMigrationWeight);
+            adaptiveRepeatWeight = parseDoubleFromJson(json, "adaptiveRepeatWeight", adaptiveRepeatWeight);
         }
 
         List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
@@ -374,6 +380,9 @@ public class AnalyzeService {
                     moderateGapScore = 1.0; 
                 } else if (gapRatio > gapMaxRatio && gapRatio <= 4.0) {
                     moderateGapScore = 0.5; 
+                } else if (drawGap[i] > 10) {
+                    // Kích hoạt điểm bật lò xo Lô Gan sâu
+                    moderateGapScore = 0.82 + (extremeGanBonus * 0.15);
                 } else {
                     moderateGapScore = 0.2; 
                 }
@@ -390,10 +399,17 @@ public class AnalyzeService {
                 // Áp dụng hình phạt lỗi kiệt sức lặp (Repeat Exhaustion Penalty)
                 double repeatPenalty = (drawGap[i] == 0) ? repeatExhaustionPenalty : 0.0;
 
+                // Thưởng chuyển vị bóng phụ sang bóng chính (Special-to-Main Migration)
+                double specMigrationBonus = 0.0;
+                if ("POWER".equalsIgnoreCase(category) && lastSeenSpecial[i] >= totalDraws - 2 && lastSeenSpecial[i] != -1) {
+                    specMigrationBonus = specialMigrationWeight * 0.45;
+                }
+
                 // Áp dụng trọng số ma trận cặp số (Co-occurrence Weight)
                 z = (moderateFreqScore * 1.3) + 
                     (moderateGapScore * 1.5) + 
                     (pairScore * coOccurrenceWeight) - 1.2 + 
+                    specMigrationBonus +
                     repeatPenalty +
                     (random.nextDouble() * 0.15 - 0.075);
             } else {
@@ -450,9 +466,9 @@ public class AnalyzeService {
             long evenCountInTicket = ticket.stream().filter(n -> n % 2 == 0).count();
             if (evenCountInTicket < 2 || evenCountInTicket > 4) continue;
             
-            // 2. Bộ lọc tổng giới hạn (Sum Range Filter: 77 - 137 theo tham số khuyến nghị v1.1.0)
+            // 2. Bộ lọc tổng giới hạn linh hoạt (Sum Range Filter: sumMin - sumMax [75 - 195])
             int sum = ticket.stream().mapToInt(Integer::intValue).sum();
-            if (sum < 77 || sum > 137) continue;
+            if (sum < sumMin || sum > sumMax) continue;
             
             // 3. Bộ lọc cặp số liên tiếp (Max Consecutive Pairs Allowed: <= 2)
             int consecutivePairs = 0;

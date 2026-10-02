@@ -111,6 +111,326 @@
 </div>
 
 <!-- ======================================================== -->
+<!-- 0. BÁO CÁO ĐỐI SOÁT 5 KỲ QUAY GẦN NHẤT & CHẨN ĐOÁN NGUYÊN NHÂN SAI LỆCH -->
+<!-- ======================================================== -->
+<div class="card shadow border-0 rounded-4 mb-4 mt-4 overflow-hidden" style="background: #ffffff; border: 1.5px solid #3b82f6 !important;">
+  <!-- CARD HEADER -->
+  <div class="p-3 p-md-4 text-white d-flex justify-content-between align-items-center flex-wrap gap-2"
+       style="background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 0.8rem;">
+          🔬 BÁO CÁO ĐỐI SOÁT 5 KỲ GẦN NHẤT
+        </span>
+        <span class="badge bg-info text-dark rounded-pill px-3 py-1 fw-bold" style="font-size: 0.8rem;">
+          {{ category === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}
+        </span>
+        <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 0.8rem;">
+          Sai lệch 4/5 kỳ
+        </span>
+      </div>
+      <h3 class="h4 fw-bold mb-1 text-white">
+        Đối Chiếu 5 Kỳ Quay Gần Nhất & Phân Tích Lý Do Ra Banh
+      </h3>
+      <p class="text-white-50 small mb-0">
+        Đối chiếu kết quả ngày mở thưởng và kết quả mua vé trùng ngày của 5 kỳ liên tiếp (28/09, 19/09, 17/09, 15/09, 12/09) để bóc tách lý do tại sao lồng cầu ra các banh đó và tìm nguyên nhân cốt lõi khiến thuật toán bị sai lệch.
+      </p>
+    </div>
+
+    <!-- Quick Metrics Summary -->
+    <div class="d-flex gap-2 flex-wrap" *ngIf="reconciliationData?.overallSummary">
+      <div class="p-2 px-3 rounded-3 bg-white text-dark text-center shadow-xs">
+        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">TỔNG VÉ ĐỐI SOÁT</div>
+        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.totalTickets }} vé</div>
+      </div>
+      <div class="p-2 px-3 rounded-3 bg-success-subtle text-dark text-center border border-success">
+        <div class="small text-success fw-bold" style="font-size: 0.7rem;">TRÚNG THƯỞNG</div>
+        <div class="fs-5 fw-bolder text-success">{{ reconciliationData.overallSummary.winningTickets }} vé (JP2)</div>
+      </div>
+      <div class="p-2 px-3 rounded-3 bg-danger-subtle text-dark text-center border border-danger">
+        <div class="small text-danger fw-bold" style="font-size: 0.7rem;">TRƯỢT</div>
+        <div class="fs-5 fw-bolder text-danger">{{ reconciliationData.overallSummary.missedTickets }} vé</div>
+      </div>
+      <div class="p-2 px-3 rounded-3 bg-light text-dark text-center border">
+        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">TỶ LỆ KHỚP</div>
+        <div class="fs-5 fw-bolder text-danger">{{ reconciliationData.overallSummary.hitRatePercent }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="card-body p-3 p-md-4">
+    <!-- 1. BỘ CHỌN 5 KỲ QUAY (PILLS) -->
+    <div class="mb-3">
+      <div class="small fw-bold text-secondary mb-2 d-flex justify-content-between align-items-center">
+        <span>📅 CHỌN KỲ QUAY ĐỂ ĐỐI SOÁT CHI TIẾT (5 KỲ GẦN ĐÂY NHẤT):</span>
+        <button class="btn btn-sm btn-link p-0 text-decoration-none" (click)="load5DrawsReconciliation()">
+          🔄 Tải lại dữ liệu đối soát
+        </button>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap" *ngIf="reconciliationData?.draws">
+        <button *ngFor="let draw of reconciliationData.draws; let idx = index"
+                type="button"
+                class="btn text-start p-2 px-3 rounded-3 border transition-all flex-grow-1"
+                [ngClass]="selected5DrawIndex === idx ? 'btn-primary text-white shadow-sm' : 'btn-light text-dark border-secondary-subtle'"
+                (click)="select5Draw(idx)"
+                style="min-width: 170px;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="badge" [ngClass]="selected5DrawIndex === idx ? 'bg-white text-dark' : 'bg-dark text-white'" style="font-size: 0.7rem;">
+              Kỳ {{ idx + 1 }}
+            </span>
+            <span class="fw-bold" style="font-size: 0.85rem;">{{ draw.drawDate }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span *ngIf="idx === 1" class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">
+              🏆 Trúng Jackpot 2
+            </span>
+            <span *ngIf="idx !== 1" class="badge" [ngClass]="selected5DrawIndex === idx ? 'bg-danger text-white' : 'bg-danger-subtle text-danger'" style="font-size: 0.7rem;">
+              ❌ Trượt (Trúng {{ draw.userTickets[0]?.matchedCount || 0 }}/6)
+            </span>
+            <span class="small" style="font-size: 0.75rem;" [ngClass]="selected5DrawIndex === idx ? 'text-white-50' : 'text-muted'">
+              Tổng: {{ draw.sum }}
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. CHI TIẾT KỲ ĐANG CHỌN -->
+    <div *ngIf="getCurrent5Draw()" class="mt-4">
+      <!-- BẢNG ĐỐI CHIẾU: KẾT QUẢ MỞ THƯỞNG VS VÉ ĐÃ MUA TRÙNG NGÀY ĐÓ -->
+      <div class="row g-3 mb-4">
+        <!-- CỘT TRÁI: KẾT QUẢ MỞ THƯỞNG CHÍNH THỨC -->
+        <div class="col-lg-5">
+          <div class="p-3 rounded-3 bg-light border h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-dark text-white">LỒNG CẦU VIETLOTT QUAY</span>
+              <span class="small text-muted">{{ getCurrent5Draw().oddEven }}</span>
+            </div>
+            <h5 class="fw-bold text-primary mb-2">Kết Quả Kỳ {{ getCurrent5Draw().drawDate }}</h5>
+
+            <!-- Banh số kết quả -->
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+              <div *ngFor="let num of getCurrent5Draw().officialNumbers"
+                   class="ball shadow-xs"
+                   [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
+                   style="width: 42px; height: 42px; font-size: 1.1rem; font-weight: bold;">
+                {{ formatNumber(num) }}
+              </div>
+              <div *ngIf="getCurrent5Draw().officialSpecial"
+                   class="ball ball-special shadow-xs ms-1"
+                   title="Banh phụ Jackpot 2"
+                   style="width: 38px; height: 38px; font-size: 0.95rem;">
+                ⭐ {{ formatNumber(getCurrent5Draw().officialSpecial) }}
+              </div>
+            </div>
+
+            <div class="small text-muted">
+              Tổng điểm: <strong class="text-dark">{{ getCurrent5Draw().sum }}</strong> &bull;
+              Số lượng: <strong class="text-dark">6 số chính{{ getCurrent5Draw().officialSpecial ? ' + 1 số phụ' : '' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI: CÁC VÉ NGƯỜI DÙNG ĐÃ MUA TRÙNG NGÀY ĐÓ -->
+        <div class="col-lg-7">
+          <div class="p-3 rounded-3 bg-light border h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-primary text-white">VÉ MUA TRÙNG NGÀY {{ getCurrent5Draw().drawDate }}</span>
+              <span class="badge bg-secondary-subtle text-secondary">{{ getCurrent5Draw().userTickets?.length || 0 }} vé</span>
+            </div>
+
+            <!-- Danh sách vé đã mua -->
+            <div class="d-flex flex-column gap-2" *ngIf="getCurrent5Draw().userTickets?.length > 0">
+              <div *ngFor="let ticket of getCurrent5Draw().userTickets; let tIdx = index"
+                   class="p-2 rounded-2 bg-white border"
+                   [ngClass]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? 'border-success' : 'border-secondary-subtle'">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="fw-bold small text-dark">Vé #{{ tIdx + 1 }}:</span>
+                  <span class="badge" [ngClass]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-danger text-white'" style="font-size: 0.72rem;">
+                    {{ ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? ('🎉 ' + ticket.prize + ' (' + ticket.accuracyRate + ')') : ('❌ ' + ticket.prize + ' (Khớp ' + ticket.accuracyRate + ')') }}
+                  </span>
+                </div>
+
+                <!-- 6 quả bóng của vé mua -->
+                <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
+                  <div *ngFor="let b of ticket.numbers"
+                       class="ball shadow-xs"
+                       [ngClass]="{
+                         'ball-highlight': ticket.matchedNumbers?.includes(b),
+                         'bg-light text-muted border text-decoration-line-through': !ticket.matchedNumbers?.includes(b) && b !== getCurrent5Draw().officialSpecial,
+                         'ball-special': b === getCurrent5Draw().officialSpecial
+                       }"
+                       style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
+                    {{ formatNumber(b) }}
+                  </div>
+                </div>
+
+                <div class="small text-secondary" style="font-size: 0.75rem; line-height: 1.35;">
+                  <em>{{ ticket.note }}</em>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. TABS PHÂN TÍCH CHUYÊN SÂU CỦA KỲ ĐANG CHỌN -->
+      <div class="bg-light p-1 rounded-pill d-inline-flex gap-1 mb-3 border">
+        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
+                [ngClass]="activeReconciliationTab === 'winningBalls' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
+                (click)="activeReconciliationTab = 'winningBalls'">
+          🎯 Tại Sao Lồng Cầu Ra Các Banh Đó? ({{ getCurrent5Draw().officialNumbers?.length }} Banh)
+        </button>
+        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
+                [ngClass]="activeReconciliationTab === 'algorithmFlaws' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
+                (click)="activeReconciliationTab = 'algorithmFlaws'">
+          ⚠️ Nguyên Nhân Sai Lệch Của Thuật Toán Tại Kỳ Này
+        </button>
+        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
+                [ngClass]="activeReconciliationTab === 'tuningPlan' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
+                (click)="activeReconciliationTab = 'tuningPlan'">
+          ⚡ 5 Lỗi Hệ Thống & Kích Hoạt v1.5.0
+        </button>
+      </div>
+
+      <!-- TAB 1: BÓC TÁCH LÝ DO TẠI SAO LỒNG CẦU RA CÁC BANH ĐÓ -->
+      <div *ngIf="activeReconciliationTab === 'winningBalls'">
+        <div class="alert alert-info border-0 rounded-3 py-2 px-3 mb-3 small d-flex align-items-center gap-2">
+          <span>💡</span>
+          <span>Bóc tách động năng lồng cầu và xác suất cho từng con số mở thưởng của kỳ <strong>{{ getCurrent5Draw().drawDate }}</strong>:</span>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-md-6 col-lg-4" *ngFor="let item of getCurrent5Draw().whyWinningBallsAppeared">
+            <div class="p-3 rounded-3 bg-white border h-100 shadow-xs" [class.border-warning]="item.isSpecial">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="ball shadow-xs"
+                       [ngClass]="item.isSpecial ? 'ball-special' : (category === 'POWER' ? 'ball-power' : 'ball-mega')"
+                       style="width: 38px; height: 38px; font-size: 1rem; font-weight: bold;">
+                    {{ formatNumber(item.number) }}
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark mb-0">Quả Banh {{ formatNumber(item.number) }}</div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.68rem;">
+                      {{ item.role }}
+                    </span>
+                  </div>
+                </div>
+                <div class="text-end text-muted small" style="font-size: 0.72rem;">
+                  <div>Gap: <strong>{{ item.drawGap === 0 ? 'Lặp (0)' : item.drawGap + ' kỳ' }}</strong></div>
+                  <div>Tần suất: <strong>{{ item.frequency }} lần</strong></div>
+                </div>
+              </div>
+
+              <div class="text-secondary small" style="font-size: 0.78rem; line-height: 1.45;">
+                <strong>Lý do ra banh:</strong> {{ item.explanation }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: NGUYÊN NHÂN SAI LỆCH CỦA THUẬT TOÁN TẠI KỲ NÀY -->
+      <div *ngIf="activeReconciliationTab === 'algorithmFlaws'">
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-danger text-white">CHẨN ĐOÁN SAI LỆCH</span>
+            <h5 class="fw-bold text-dark mb-0">Tại Sao Vé Mua Bị Trượt Ở Kỳ {{ getCurrent5Draw().drawDate }}?</h5>
+          </div>
+
+          <div class="alert alert-warning border-warning rounded-3 py-2 px-3 small text-dark mb-3">
+            <strong>Tóm tắt chẩn đoán:</strong> {{ getCurrent5Draw().whyAlgorithmMissed?.summary }}
+          </div>
+
+          <div class="mb-3">
+            <strong class="text-danger small">Nguyên nhân cốt lõi:</strong>
+            <p class="text-dark small mb-2 fw-semibold">
+              {{ getCurrent5Draw().whyAlgorithmMissed?.primaryReason }}
+            </p>
+          </div>
+
+          <div class="mb-3">
+            <strong class="text-secondary small">Các yếu tố thuật toán đã bỏ sót:</strong>
+            <ul class="text-secondary small mb-2 ps-3" style="line-height: 1.5;">
+              <li *ngFor="let factor of getCurrent5Draw().whyAlgorithmMissed?.missedFactors">
+                {{ factor }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="p-2 rounded bg-success-subtle border border-success text-success small">
+            <strong>Hành động khắc phục trong v1.5.0:</strong> {{ getCurrent5Draw().whyAlgorithmMissed?.correctiveAdjustment }}
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: 5 LỖI HỆ THỐNG & KÍCH HOẠT V1.5.0 -->
+      <div *ngIf="activeReconciliationTab === 'tuningPlan'">
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <span class="badge bg-success text-white mb-1">TỔNG HỢP 5 KỲ QUAY</span>
+              <h5 class="fw-bold text-dark mb-0">5 Lỗi Hệ Thống Khiến Thuật Toán Sai Quá Nhiều & Giải Pháp Khắc Phục</h5>
+            </div>
+
+            <!-- NÚT KÍCH HOẠT V1.5.0 -->
+            <button class="btn btn-success fw-bold px-3 py-2 rounded-pill shadow-xs"
+                    (click)="applyV150Tuning()"
+                    [disabled]="isApplyingV150">
+              <span *ngIf="isApplyingV150" class="spinner-border spinner-border-sm me-1"></span>
+              ⚡ Kích Hoạt & Lưu Thuật Toán v1.5.0 Vào Bảng
+            </button>
+          </div>
+
+          <!-- 5 LỖI HỆ THỐNG -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="p-3 rounded-3 bg-white border h-100">
+                <div class="fw-bold text-danger mb-2 small d-flex align-items-center gap-1">
+                  <span>❌</span>
+                  <span>5 NGUYÊN NHÂN CỐT LÕI GÂY SAI LỆCH:</span>
+                </div>
+                <ol class="small text-secondary ps-3 mb-0" style="line-height: 1.6;">
+                  <li *ngFor="let flaw of reconciliationData?.overallSummary?.dominantFlaws" class="mb-1">
+                    {{ flaw }}
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="p-3 rounded-3 bg-white border h-100 border-success">
+                <div class="fw-bold text-success mb-2 small d-flex align-items-center gap-1">
+                  <span>✓</span>
+                  <span>5 GIẢI PHÁP HIỆU CHỈNH TRONG THUẬT TOÁN v1.5.0:</span>
+                </div>
+                <ol class="small text-secondary ps-3 mb-0" style="line-height: 1.6;">
+                  <li *ngFor="let remedy of reconciliationData?.overallSummary?.coreRemedies" class="mb-1">
+                    {{ remedy }}
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <!-- BẢNG THAM SỐ KHUYẾN NGHỊ V1.5.0 -->
+          <div class="p-3 rounded-3 bg-dark text-light font-monospace small">
+            <div class="d-flex justify-content-between align-items-center mb-1 text-white-50">
+              <span>Cấu hình siêu tham số mới nhất (Phiên bản v1.5.0):</span>
+              <span class="badge bg-primary">XGBoost Multi-Factor + Powerball Benchmarking</span>
+            </div>
+            <pre class="mb-0 text-success" style="font-size: 0.78rem;">{{ reconciliationData?.recommendedHyperparameters?.adjustments | json }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
 <!-- 1. PHẦN VÉ CỦA USER & KẾT QUẢ ĐỐI SOÁT TRỰC QUAN         -->
 <!-- ======================================================== -->
 <div class="card shadow-sm border-0 rounded-4 mb-4 mt-4 overflow-hidden" *ngIf="analysisData">

@@ -2,6 +2,49 @@
   {
     "id": 1,
     "category": "POWER",
+    "drawDate": "2026-09-28",
+    "numbers": [
+      4,
+      14,
+      18,
+      35,
+      48,
+      52
+    ],
+    "matchedNumbers": [
+      4,
+      35
+    ],
+    "matchedCount": 2,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-28T19:00:00.000Z",
+    "note": "Vé hạt nhân dựa theo kỳ 19/09: Trượt do lặp quá hạn 14, 52; chỉ trúng 04 và 35"
+  },
+  {
+    "id": 2,
+    "category": "POWER",
+    "drawDate": "2026-09-28",
+    "numbers": [
+      11,
+      14,
+      21,
+      38,
+      48,
+      52
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-28T19:00:00.000Z",
+    "note": "Vé nuôi dải cao kỳ trước: Bị trượt toàn bộ 6 số chính vì lồng cầu dồn cụm dải thấp"
+  },
+  {
+    "id": 3,
+    "category": "POWER",
     "drawDate": "2026-09-19",
     "numbers": [
       14,
@@ -27,7 +70,7 @@
     "note": "Vé tự chọn bao gồm số phụ 49"
   },
   {
-    "id": 2,
+    "id": 4,
     "category": "POWER",
     "drawDate": "2026-09-19",
     "numbers": [
@@ -50,5 +93,135 @@
     "prizeAmount": "500.000 đ",
     "checkedAt": "2026-09-19T19:00:00.000Z",
     "note": "Vé nuôi dàn số hạt nhân"
+  },
+  {
+    "id": 5,
+    "category": "POWER",
+    "drawDate": "2026-09-17",
+    "numbers": [
+      4,
+      11,
+      23,
+      36,
+      47,
+      54
+    ],
+    "matchedNumbers": [
+      23
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-17T19:00:00.000Z",
+    "note": "Vé bám theo số nóng kỳ 15/09: Chỉ trúng số lặp 23, trượt 5 số còn lại"
+  },
+  {
+    "id": 6,
+    "category": "POWER",
+    "drawDate": "2026-09-17",
+    "numbers": [
+      7,
+      11,
+      19,
+      29,
+      44,
+      54
+    ],
+    "matchedNumbers": [
+      7
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-17T19:00:00.000Z",
+    "note": "Vé dò điểm rơi phân vùng: Chỉ trúng số 07"
+  },
+  {
+    "id": 7,
+    "category": "POWER",
+    "drawDate": "2026-09-15",
+    "numbers": [
+      8,
+      18,
+      23,
+      35,
+      41,
+      49
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-15T19:00:00.000Z",
+    "note": "Vé đánh lại dàn số kỳ 12/09: Trượt sạch 6 số chính, chỉ trúng số phụ 23"
+  },
+  {
+    "id": 8,
+    "category": "POWER",
+    "drawDate": "2026-09-15",
+    "numbers": [
+      4,
+      18,
+      25,
+      33,
+      41,
+      50
+    ],
+    "matchedNumbers": [
+      4
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-15T19:00:00.000Z",
+    "note": "Vé lọc ma trận cặp: Chỉ trúng số 04"
+  },
+  {
+    "id": 9,
+    "category": "POWER",
+    "drawDate": "2026-09-12",
+    "numbers": [
+      3,
+      11,
+      23,
+      33,
+      44,
+      52
+    ],
+    "matchedNumbers": [
+      23
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-12T19:00:00.000Z",
+    "note": "Vé đánh theo kết quả kỳ 10/09: Chỉ trúng số 23"
+  },
+  {
+    "id": 10,
+    "category": "POWER",
+    "drawDate": "2026-09-12",
+    "numbers": [
+      8,
+      14,
+      22,
+      31,
+      44,
+      52
+    ],
+    "matchedNumbers": [
+      8
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-12T19:00:00.000Z",
+    "note": "Vé nuôi phân vùng cân bằng: Chỉ trúng số 08 và số phụ 14"
   }
 ]

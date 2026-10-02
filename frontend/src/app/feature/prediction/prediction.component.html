@@ -86,26 +86,27 @@
     <button class="btn btn-sm btn-outline-danger rounded-pill px-3" (click)="predict()">Thử lại</button>
   </div>
 
-  <!-- BANNER LIÊN KẾT TRANG PHÂN TÍCH KẾT QUẢ KỲ QUAY MỚI NHẤT -->
+  <!-- BANNER LIÊN KẾT TRANG PHÂN TÍCH KẾT QUẢ KỲ QUAY MỚI NHẤT & ĐỐI SOÁT 5 KỲ -->
   <div class="alert border-0 shadow-sm rounded-4 d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 p-3 p-md-4"
        [ngClass]="payload?.lotteryType === 'POWER' ? 'alert-warning' : 'alert-danger bg-danger-subtle'">
     <div class="d-flex align-items-center gap-3">
-      <span class="fs-2">🏆</span>
+      <span class="fs-2">📊</span>
       <div>
         <h5 class="fw-bold text-dark mb-1">
-          Trang Mới: Phân Tích Kết Quả Trúng Kỳ Quay {{ payload?.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }} Mới Nhất
-          <span class="text-primary fw-extrabold" *ngIf="payload?.lotteryType === 'POWER'">[ 14, 18, 21, 38, 48, 52 ] & Số Phụ 49</span>
-          <span class="text-danger fw-extrabold" *ngIf="payload?.lotteryType !== 'POWER'">[ 03, 14, 22, 31, 39, 45 ]</span>
+          Đối Soát 5 Kỳ Gần Nhất & Phân Tích Lỗi Thuật Toán {{ payload?.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}
+          <span class="badge bg-primary ms-1" *ngIf="payload?.lotteryType === 'POWER'">Kỳ 28/09: [ 02, 04, 13, 17, 35, 36 ] ⭐ 11</span>
         </h5>
         <div class="text-secondary small">
-          Khám phá chi tiết điểm số từng số, lý do tại sao ra, mạng lưới kết hợp cặp số đồng hành và lộ trình nâng cấp thuật toán cho {{ payload?.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}.
+          Đối chiếu kết quả ngày mở thưởng và kết quả mua vé trùng ngày của 5 kỳ liên tiếp (28/09, 19/09, 17/09, 15/09, 12/09) để bóc tách lý do ra các banh đó và tìm nguyên nhân sai lệch thuật toán.
         </div>
       </div>
     </div>
-    <a routerLink="/latest-analysis" class="btn rounded-pill px-4 py-2 fw-bold shadow-sm flex-shrink-0"
-       [ngClass]="payload?.lotteryType === 'POWER' ? 'btn-primary' : 'btn-danger text-white'">
-      🎯 Xem Trang Phân Tích {{ payload?.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }} &rarr;
-    </a>
+    <div class="d-flex gap-2">
+      <a routerLink="/latest-analysis" class="btn rounded-pill px-4 py-2 fw-bold shadow-sm flex-shrink-0"
+         [ngClass]="payload?.lotteryType === 'POWER' ? 'btn-primary' : 'btn-danger text-white'">
+        🔍 Xem Đối Soát 5 Kỳ & Tài Liệu v1.5.0 &rarr;
+      </a>
+    </div>
   </div>
 
   <!-- 1. MỤC BẢNG CÁC DÃY 6 SỐ TỐI ƯU THEO THUẬT TOÁN MỚI NHẤT (ĐẶT Ở VỊ TRÍ TRỌNG TÂM ĐẦU TRANG) -->
