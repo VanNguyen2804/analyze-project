@@ -62,11 +62,12 @@ export class AnalyzeService {
   }
 
   // ==========================================
-  // API ĐỐI SOÁT 5 KỲ GẦN NHẤT
+  // API ĐỐI SOÁT & KIỂM THỬ CÁC KỲ TRƯỚC (HISTORICAL BACKTEST)
   // ==========================================
-  get5DrawsReconciliation(category?: string): Observable<any> {
+  get5DrawsReconciliation(category?: string, algorithm?: string, limit: number = 5): Observable<any> {
     const cat = category || 'POWER';
-    return this.http.get<any>(`${this.apiUrl}/reconcile-5-draws?category=${cat}`);
+    const alg = algorithm || 'deep_stacking';
+    return this.http.get<any>(`${this.apiUrl}/reconcile-5-draws?category=${cat}&algorithm=${alg}&limit=${limit}`);
   }
 
   // ==========================================

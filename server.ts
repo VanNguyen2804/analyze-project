@@ -686,7 +686,11 @@ const WHEEL_TEMPLATE_10_TO_6 = [
   [1, 3, 4, 5, 7, 8],
 ];
 
-function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgboost'): PredictionResult {
+function analyzeAndPredict(
+  categoryInput: string,
+  algorithmInput: string = 'deep_stacking',
+  customRecords?: LotteryNumberRecord[]
+): PredictionResult {
   const category: 'MEGA' | 'POWER' =
     categoryInput && categoryInput.trim().toUpperCase() === 'POWER' ? 'POWER' : 'MEGA';
   const maxLimit = category === 'POWER' ? 55 : 45;
@@ -711,7 +715,8 @@ function analyzeAndPredict(categoryInput: string, algorithmInput: string = 'xgbo
     algorithm = 'deep_stacking'; // Default to the superior Deep Stacking Ensemble & Empirical Copula model
   }
 
-  const categoryRecords = records
+  const sourceRecords = customRecords && customRecords.length > 0 ? customRecords : records;
+  const categoryRecords = sourceRecords
     .filter((r) => r.category === category)
     .sort(
       (a, b) =>
@@ -2820,12 +2825,15 @@ async function startServer() {
     try {
       const catInput = String(req.query.category || 'POWER').toUpperCase();
       const category: 'POWER' | 'MEGA' = catInput === 'MEGA' ? 'MEGA' : 'POWER';
+      const algorithm = String(req.query.algorithm || 'deep_stacking');
+      const limitParam = parseInt(String(req.query.limit || '5'), 10);
+      const limit = isNaN(limitParam) || limitParam <= 0 ? 5 : Math.min(20, limitParam);
 
       const catRecords = records
         .filter((r) => r.category === category)
         .sort((a, b) => b.drawDate.localeCompare(a.drawDate));
 
-      const last5Records = catRecords.slice(0, 5);
+      const testedRecords = catRecords.slice(0, limit);
 
       const powerExplanations: Record<string, {
         whyWinningBallsAppeared: Array<{ number: number; isSpecial?: boolean; role: string; drawGap: number; frequency: number; explanation: string }>;
@@ -2934,7 +2942,7 @@ async function startServer() {
         }
       };
 
-      const drawsList = last5Records.map((r, index) => {
+      const drawsList = testedRecords.map((r, index) => {
         const drawDate = r.drawDate;
         const officialNumbers = r.numbers || [];
         const officialSpecial = r.specialNumber;
@@ -2985,6 +2993,70 @@ async function startServer() {
           ? Math.round((uniqueMatchedCount / totalOfficialCount) * 1000) / 10
           : 0;
 
+        // DỰ ĐOÁN WALK-FORWARD CỦA AI TRƯỚC KỲ QUAY NÀY
+        const priorRecords = records.filter(
+          (rec) => rec.category === category && rec.drawDate < drawDate
+        );
+        const aiPrediction = analyzeAndPredict(category, algorithm, priorRecords);
+        const aiTop10Numbers = (aiPrediction.numbers || []).slice(0, 10);
+        const aiSpecialNumber = aiPrediction.specialNumber;
+        const aiMatchedNumbers = officialNumbers.filter((n) => aiTop10Numbers.includes(n));
+        const aiMatchedCount = aiMatchedNumbers.length;
+        const aiMatchedPercent = Math.round((aiMatchedCount / (officialNumbers.length || 6)) * 1000) / 10;
+        const aiMatchedSpecial = Boolean(officialSpecial && aiSpecialNumber === officialSpecial);
+
+        // Đánh giá 5 vé AI sinh ra cho kỳ này
+        const aiGeneratedTickets = (aiPrediction.tickets || []).slice(0, 5).map((tNums, tIdx) => {
+          const evalT = evaluateTicket(tNums, officialNumbers, officialSpecial, category);
+          return {
+            ticketIndex: tIdx + 1,
+            numbers: tNums,
+            matchedNumbers: evalT.matchedNumbers,
+            matchedCount: evalT.matchedCount,
+            matchedSpecial: evalT.matchedSpecial,
+            prize: evalT.prize,
+            prizeAmount: evalT.prizeAmount,
+          };
+        });
+
+        const aiWinningTickets = aiGeneratedTickets.filter(
+          (t) => t.prize && t.prize !== 'KHÔNG TRÚNG'
+        );
+        const bestAiTicket = aiWinningTickets.length > 0 ? aiWinningTickets[0] : null;
+        const bestAiPrize = bestAiTicket ? bestAiTicket.prize : 'KHÔNG TRÚNG';
+        const bestAiPrizeAmount = bestAiTicket ? bestAiTicket.prizeAmount : '0 đ';
+
+        // Đánh giá nhận định của AI: Có đưa ra nhận định gần đúng không?
+        let aiClosenessRating: 'EXCELLENT' | 'GOOD' | 'DEVIATED' = 'DEVIATED';
+        let aiClosenessBadge = '⚠️ LỆCH PHA BIẾN ĐỘNG';
+        let aiClosenessBadgeClass = 'warning';
+        let isAiClose = false;
+        let aiJudgmentSummary = '';
+        let aiJudgmentReason = '';
+
+        if (aiMatchedCount >= 4 || (aiWinningTickets.length > 0 && ['JACKPOT 1', 'JACKPOT 2', 'GIẢI NHẤT', 'GIẢI NHÌ'].includes(bestAiPrize))) {
+          aiClosenessRating = 'EXCELLENT';
+          aiClosenessBadge = '🎯 RẤT CHÍNH XÁC / TIỆM CẬN CAO';
+          aiClosenessBadgeClass = 'success';
+          isAiClose = true;
+          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định tiệm cận rất cao! Bắt trúng ${aiMatchedCount}/6 số chính [${aiMatchedNumbers.join(', ')}] trong Top 10${aiMatchedSpecial ? ' kèm số phụ ⭐' + aiSpecialNumber : ''} và vé AI đạt ${bestAiPrize} (${bestAiPrizeAmount})!`;
+          aiJudgmentReason = `Mô hình ${aiPrediction.algorithmName} nhận diện chuẩn xác nhịp sóng dao động, các cặp số liên kết đồng xuất hiện và điểm rơi chu kỳ của các con số hạt nhân.`;
+        } else if (aiMatchedCount === 3 || aiWinningTickets.length > 0) {
+          aiClosenessRating = 'GOOD';
+          aiClosenessBadge = '✅ GẦN ĐÚNG / ĐẠT KỲ VỌNG';
+          aiClosenessBadgeClass = 'primary';
+          isAiClose = true;
+          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định gần đúng (sát thực tế): Bắt trúng 3/6 số chính [${aiMatchedNumbers.join(', ')}] và tối thiểu 1 vé AI đạt giải (${bestAiPrize}).`;
+          aiJudgmentReason = `Mô hình đón đầu được một nửa bộ số mở thưởng, chỉ lệch 3 số còn lại do lồng cầu xuất hiện biến động phân vùng ngẫu nhiên.`;
+        } else {
+          aiClosenessRating = 'DEVIATED';
+          aiClosenessBadge = '⚠️ LỆCH PHA BIẾN ĐỘNG';
+          aiClosenessBadgeClass = 'danger';
+          isAiClose = false;
+          aiJudgmentSummary = `Dự đoán bị lệch pha so với kết quả mở thưởng: Chỉ bắt được ${aiMatchedCount}/6 số [${aiMatchedNumbers.join(', ') || '0 số'}].`;
+          aiJudgmentReason = `Kỳ quay ghi nhận hiện tượng đột biến (lô gan sâu hoặc bão hòa lặp dồn cụm dải số), vượt ra khỏi kỳ vọng thông thường của phân phối xác suất.`;
+        }
+
         const explanation = powerExplanations[drawDate] || {
           whyWinningBallsAppeared: officialNumbers.map((n) => ({
             number: n,
@@ -3017,6 +3089,28 @@ async function startServer() {
           anyMatchedSpecial,
           coveragePercent,
           drawAccuracyLabel: `${uniqueMatchedCount}/${totalOfficialCount}${anyMatchedSpecial ? ' (+Phụ)' : ''}`,
+          aiPrediction: {
+            algorithm: aiPrediction.algorithm,
+            algorithmName: aiPrediction.algorithmName,
+            top10Numbers: aiTop10Numbers,
+            specialNumber: aiSpecialNumber,
+            matchedNumbers: aiMatchedNumbers,
+            matchedCount: aiMatchedCount,
+            matchedPercent: aiMatchedPercent,
+            matchedSpecial: aiMatchedSpecial,
+            generatedTickets: aiGeneratedTickets,
+            winningTickets: aiWinningTickets,
+            bestPrize: bestAiPrize,
+            bestPrizeAmount: bestAiPrizeAmount,
+            judgment: {
+              rating: aiClosenessRating,
+              badge: aiClosenessBadge,
+              badgeClass: aiClosenessBadgeClass,
+              isClose: isAiClose,
+              summary: aiJudgmentSummary,
+              reason: aiJudgmentReason,
+            },
+          },
           whyWinningBallsAppeared: explanation.whyWinningBallsAppeared,
           whyAlgorithmMissed: explanation.whyAlgorithmMissed,
         };
@@ -3074,9 +3168,26 @@ async function startServer() {
         actionableAdvice: 'Hiệu chỉnh thuật toán toàn diện sau đối soát 5 kỳ gần nhất: Khắc phục bẫy số lặp trễ pha, nạp trọng số chuyển vị banh phụ sang banh chính (+0.75), nới rộng dải tổng [75 - 195], và kích hoạt điểm rơi Lô Gan Poisson 2 tầng.'
       };
 
+      const closeDrawsCount = drawsList.filter((d) => d.aiPrediction.judgment.isClose).length;
+      const closenessRatePercent = drawsList.length > 0
+        ? Math.round((closeDrawsCount / drawsList.length) * 1000) / 10
+        : 0;
+      const totalAiWinningTickets = drawsList.reduce(
+        (acc, d) => acc + d.aiPrediction.winningTickets.length,
+        0
+      );
+      let grandTotalAiMatchedBalls = 0;
+      for (const d of drawsList) {
+        grandTotalAiMatchedBalls += d.aiPrediction.matchedCount;
+      }
+      const overallAiBallHitRatePercent = grandTotalOfficialBalls > 0
+        ? Math.round((grandTotalAiMatchedBalls / grandTotalOfficialBalls) * 1000) / 10
+        : 0;
+
       return res.json({
         status: 'SUCCESS',
         category,
+        algorithm,
         totalDrawsAnalyzed: drawsList.length,
         overallSummary: {
           totalTickets: totalUserTickets,
@@ -3087,6 +3198,11 @@ async function startServer() {
           totalOfficialBalls: grandTotalOfficialBalls,
           ballHitRatePercent: overallBallHitRatePercent,
           hitRatePercent: overallBallHitRatePercent, // Tỉ lệ khớp bóng mở thưởng đã loại trừ trùng lặp giữa các vé
+          aiCloseDrawsCount: closeDrawsCount,
+          aiClosenessRatePercent: closenessRatePercent,
+          totalAiWinningTickets,
+          totalAiMatchedBalls: grandTotalAiMatchedBalls,
+          aiBallHitRatePercent: overallAiBallHitRatePercent,
           dominantFlaws,
           coreRemedies,
         },

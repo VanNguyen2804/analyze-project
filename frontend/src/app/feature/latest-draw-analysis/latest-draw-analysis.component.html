@@ -120,54 +120,103 @@
     <div>
       <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
         <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 0.8rem;">
-          🔬 BÁO CÁO ĐỐI SOÁT 5 KỲ GẦN NHẤT
+          🔬 KIỂM THỬ HỒI QUY LỊCH SỬ & ĐỐI SOÁT VÉ MUA
         </span>
         <span class="badge bg-info text-dark rounded-pill px-3 py-1 fw-bold" style="font-size: 0.8rem;">
           {{ category === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}
         </span>
-        <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 0.8rem;">
-          Sai lệch 4/5 kỳ
+        <span class="badge bg-success text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 0.8rem;" *ngIf="reconciliationData?.overallSummary">
+          Nhận định gần đúng: {{ reconciliationData.overallSummary.aiClosenessRatePercent }}% ({{ reconciliationData.overallSummary.aiCloseDrawsCount }}/{{ reconciliationData.draws?.length }} kỳ)
         </span>
       </div>
       <h3 class="h4 fw-bold mb-1 text-white">
-        Đối Chiếu 5 Kỳ Quay Gần Nhất & Phân Tích Lý Do Ra Banh
+        Kiểm Thử Các Kỳ Trước, Kiểm Tra Vé Mua & Đánh Giá Nhận Định Dự Đoán AI
       </h3>
       <p class="text-white-50 small mb-0">
-        Đối chiếu kết quả ngày mở thưởng và kết quả mua vé trùng ngày của 5 kỳ liên tiếp (28/09, 19/09, 17/09, 15/09, 12/09) để bóc tách lý do tại sao lồng cầu ra các banh đó và tìm nguyên nhân cốt lõi khiến thuật toán bị sai lệch.
+        Chạy kiểm thử ngược (Walk-Forward Historical Testing) đối chiếu kết quả mở thưởng chính thức, các vé bạn đã mua và dự đoán của mô hình AI để kiểm tra xem dự đoán có đưa ra nhận định gần đúng không.
       </p>
     </div>
 
     <!-- Quick Metrics Summary -->
     <div class="d-flex gap-2 flex-wrap" *ngIf="reconciliationData?.overallSummary">
       <div class="p-2 px-3 rounded-3 bg-white text-dark text-center shadow-xs">
-        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">TỔNG VÉ ĐỐI SOÁT</div>
-        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.totalTickets }} vé</div>
+        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">NHẬN ĐỊNH GẦN ĐÚNG</div>
+        <div class="fs-5 fw-bolder text-success">{{ reconciliationData.overallSummary.aiClosenessRatePercent }}%</div>
+        <div class="small text-muted" style="font-size: 0.65rem;">({{ reconciliationData.overallSummary.aiCloseDrawsCount }}/{{ reconciliationData.draws?.length }} kỳ đạt)</div>
       </div>
       <div class="p-2 px-3 rounded-3 bg-success-subtle text-dark text-center border border-success">
-        <div class="small text-success fw-bold" style="font-size: 0.7rem;">TRÚNG THƯỞNG</div>
-        <div class="fs-5 fw-bolder text-success">{{ reconciliationData.overallSummary.winningTickets }} vé (JP2)</div>
+        <div class="small text-success fw-bold" style="font-size: 0.7rem;">VÉ AI TRÚNG THƯỞNG</div>
+        <div class="fs-5 fw-bolder text-success">{{ reconciliationData.overallSummary.totalAiWinningTickets }} vé</div>
+        <div class="small text-muted" style="font-size: 0.65rem;">(Vé tối ưu AI sinh ra)</div>
       </div>
-      <div class="p-2 px-3 rounded-3 bg-danger-subtle text-dark text-center border border-danger">
-        <div class="small text-danger fw-bold" style="font-size: 0.7rem;">VÉ TRƯỢT</div>
-        <div class="fs-5 fw-bolder text-danger">{{ reconciliationData.overallSummary.missedTickets }} vé</div>
+      <div class="p-2 px-3 rounded-3 bg-primary-subtle text-dark text-center border border-primary">
+        <div class="small text-primary fw-bold" style="font-size: 0.7rem;">VÉ MUA TRÚNG GIẢI</div>
+        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.winningTickets }}/{{ reconciliationData.overallSummary.totalTickets }} vé</div>
+        <div class="small text-muted" style="font-size: 0.65rem;">(Vé bạn mua thực tế)</div>
       </div>
       <div class="p-2 px-3 rounded-3 bg-light text-dark text-center border">
-        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">KHỚP BÓNG DUY NHẤT</div>
-        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.totalDistinctMatchedBalls }}/{{ reconciliationData.overallSummary.totalOfficialBalls }}</div>
-        <div class="small text-muted" style="font-size: 0.65rem;">({{ reconciliationData.overallSummary.ballHitRatePercent }}% bóng mở thưởng)</div>
+        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">ĐỘ PHỦ BÓNG AI (TOP 10)</div>
+        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.totalAiMatchedBalls }}/{{ reconciliationData.overallSummary.totalOfficialBalls }}</div>
+        <div class="small text-muted" style="font-size: 0.65rem;">({{ reconciliationData.overallSummary.aiBallHitRatePercent }}% bóng mở thưởng)</div>
       </div>
     </div>
   </div>
 
   <!-- BODY -->
   <div class="card-body p-3 p-md-4">
-    <!-- 1. BỘ CHỌN 5 KỲ QUAY (PILLS) -->
+    <!-- TOOLBAR: BỘ ĐIỀU KHIỂN KIỂM THỬ HỒI QUY -->
+    <div class="p-3 bg-light rounded-3 border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <!-- Chọn số lượng kỳ kiểm thử -->
+        <div class="d-flex align-items-center gap-2">
+          <span class="small fw-bold text-dark">📊 Số kỳ kiểm thử:</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button"
+                    class="btn fw-semibold"
+                    [ngClass]="reconcileLimit === 5 ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
+                    (click)="setReconcileLimit(5)">
+              5 Kỳ
+            </button>
+            <button type="button"
+                    class="btn fw-semibold"
+                    [ngClass]="reconcileLimit === 8 ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
+                    (click)="setReconcileLimit(8)">
+              8 Kỳ
+            </button>
+            <button type="button"
+                    class="btn fw-semibold"
+                    [ngClass]="reconcileLimit === 10 ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
+                    (click)="setReconcileLimit(10)">
+              10 Kỳ
+            </button>
+          </div>
+        </div>
+
+        <!-- Chọn thuật toán kiểm thử -->
+        <div class="d-flex align-items-center gap-2">
+          <span class="small fw-bold text-dark">🤖 Thuật toán kiểm thử:</span>
+          <select class="form-select form-select-sm fw-bold text-dark" style="min-width: 210px;" [(ngModel)]="reconcileAlgorithm" (change)="load5DrawsReconciliation()">
+            <option value="deep_stacking">⚡ Xếp Chồng AI & Copula</option>
+            <option value="bayesian_graph">🔮 Mạng Đồ Thị Bayes (BEGN)</option>
+            <option value="xgboost">🧠 AI XGBoost + Poisson</option>
+            <option value="markov">🔗 Mô hình Chuỗi Markov</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-warning btn-sm fw-bold rounded-pill px-3 text-dark shadow-xs" (click)="load5DrawsReconciliation()" [disabled]="isLoadingReconciliation">
+          <span *ngIf="isLoadingReconciliation" class="spinner-border spinner-border-sm me-1"></span>
+          🧪 Chạy Lại Kiểm Thử
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. BỘ CHỌN KỲ QUAY ĐỂ XEM CHI TIẾT (PILLS) -->
     <div class="mb-3">
       <div class="small fw-bold text-secondary mb-2 d-flex justify-content-between align-items-center">
-        <span>📅 CHỌN KỲ QUAY ĐỂ ĐỐI SOÁT CHI TIẾT (5 KỲ GẦN ĐÂY NHẤT):</span>
-        <button class="btn btn-sm btn-link p-0 text-decoration-none" (click)="load5DrawsReconciliation()">
-          🔄 Tải lại dữ liệu đối soát
-        </button>
+        <span>📅 BẤM CHỌN KỲ QUAY ĐỂ ĐỐI SOÁT CHI TIẾT (ĐANG XEM {{ reconciliationData?.draws?.length || 5 }} KỲ):</span>
+        <span class="small text-muted" *ngIf="isLoadingReconciliation">Đang tính toán mô hình...</span>
       </div>
 
       <div class="d-flex gap-2 flex-wrap" *ngIf="reconciliationData?.draws">
@@ -176,22 +225,21 @@
                 class="btn text-start p-2 px-3 rounded-3 border transition-all flex-grow-1"
                 [ngClass]="selected5DrawIndex === idx ? 'btn-primary text-white shadow-sm' : 'btn-light text-dark border-secondary-subtle'"
                 (click)="select5Draw(idx)"
-                style="min-width: 170px;">
+                style="min-width: 190px;">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="badge" [ngClass]="selected5DrawIndex === idx ? 'bg-white text-dark' : 'bg-dark text-white'" style="font-size: 0.7rem;">
-              Kỳ {{ idx + 1 }}
+              Kỳ {{ idx + 1 }}: {{ draw.drawDate }}
             </span>
-            <span class="fw-bold" style="font-size: 0.85rem;">{{ draw.drawDate }}</span>
+            <span class="badge" [ngClass]="'bg-' + (draw.aiPrediction?.judgment?.badgeClass || 'secondary')" style="font-size: 0.68rem;">
+              {{ draw.aiPrediction?.judgment?.badge || 'Đang tính' }}
+            </span>
           </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <span *ngIf="idx === 1" class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">
-              🏆 Trúng Jackpot 2 (5/6 + Phụ)
+          <div class="d-flex justify-content-between align-items-center small" style="font-size: 0.75rem;">
+            <span [ngClass]="selected5DrawIndex === idx ? 'text-white' : 'text-primary fw-bold'">
+              🎯 AI: {{ draw.aiPrediction?.matchedCount }}/6
             </span>
-            <span *ngIf="idx !== 1" class="badge" [ngClass]="selected5DrawIndex === idx ? 'bg-danger text-white' : 'bg-danger-subtle text-danger'" style="font-size: 0.7rem;">
-              {{ draw.uniqueMatchedCount > 0 ? ('Khớp ' + draw.uniqueMatchedCount + '/6 bóng') : 'Trượt 0/6' }}{{ draw.anyMatchedSpecial ? ' (+Phụ)' : '' }}
-            </span>
-            <span class="small" style="font-size: 0.75rem;" [ngClass]="selected5DrawIndex === idx ? 'text-white-50' : 'text-muted'">
-              Độc nhất: {{ draw.uniqueMatchedCount }}/6
+            <span [ngClass]="selected5DrawIndex === idx ? 'text-white-50' : 'text-muted'">
+              🎟️ Vé mua: {{ draw.uniqueMatchedCount }}/6
             </span>
           </div>
         </button>
@@ -200,105 +248,198 @@
 
     <!-- 2. CHI TIẾT KỲ ĐANG CHỌN -->
     <div *ngIf="getCurrent5Draw()" class="mt-4">
-      <!-- BẢNG ĐỐI CHIẾU: KẾT QUẢ MỞ THƯỞNG VS VÉ ĐÃ MUA TRÙNG NGÀY ĐÓ -->
-      <div class="row g-3 mb-4">
-        <!-- CỘT TRÁI: KẾT QUẢ MỞ THƯỞNG CHÍNH THỨC -->
-        <div class="col-lg-5">
-          <div class="p-3 rounded-3 bg-light border h-100">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge bg-dark text-white">LỒNG CẦU VIETLOTT QUAY</span>
-              <span class="small text-muted">{{ getCurrent5Draw().oddEven }}</span>
-            </div>
-            <h5 class="fw-bold text-primary mb-2">Kết Quả Kỳ {{ getCurrent5Draw().drawDate }}</h5>
-
-            <!-- Banh số kết quả -->
-            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-              <div *ngFor="let num of getCurrent5Draw().officialNumbers"
-                   class="ball shadow-xs"
-                   [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
-                   style="width: 42px; height: 42px; font-size: 1.1rem; font-weight: bold;">
-                {{ formatNumber(num) }}
-              </div>
-              <div *ngIf="getCurrent5Draw().officialSpecial"
-                   class="ball ball-special shadow-xs ms-1"
-                   title="Banh phụ Jackpot 2"
-                   style="width: 38px; height: 38px; font-size: 0.95rem;">
-                ⭐ {{ formatNumber(getCurrent5Draw().officialSpecial) }}
-              </div>
-            </div>
-
-            <div class="small text-muted">
-              Tổng điểm: <strong class="text-dark">{{ getCurrent5Draw().sum }}</strong> &bull;
-              Số lượng: <strong class="text-dark">6 số chính{{ getCurrent5Draw().officialSpecial ? ' + 1 số phụ' : '' }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- CỘT PHẢI: CÁC VÉ NGƯỜI DÙNG ĐÃ MUA TRÙNG NGÀY ĐÓ -->
-        <div class="col-lg-7">
-          <div class="p-3 rounded-3 bg-light border h-100">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary text-white">VÉ MUA TRÙNG NGÀY {{ getCurrent5Draw().drawDate }}</span>
-                <span class="badge bg-secondary-subtle text-secondary">{{ getCurrent5Draw().userTickets?.length || 0 }} vé</span>
-              </div>
-              <span class="badge bg-success-subtle text-success border border-success" *ngIf="getCurrent5Draw().uniqueMatchedCount > 0" style="font-size: 0.75rem;">
-                🎯 Khớp {{ getCurrent5Draw().uniqueMatchedCount }}/{{ getCurrent5Draw().officialNumbers?.length || 6 }} bóng duy nhất: [ {{ getCurrent5Draw().uniqueMatchedNumbers?.join(', ') }} ]
-              </span>
-            </div>
-
-            <!-- Danh sách vé đã mua -->
-            <div class="d-flex flex-column gap-2" *ngIf="getCurrent5Draw().userTickets?.length > 0">
-              <div *ngFor="let ticket of getCurrent5Draw().userTickets; let tIdx = index"
-                   class="p-2 rounded-2 bg-white border"
-                   [ngClass]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? 'border-success' : 'border-secondary-subtle'">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-bold small text-dark">Vé #{{ tIdx + 1 }}:</span>
-                  <span class="badge" [ngClass]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-danger text-white'" style="font-size: 0.72rem;">
-                    {{ ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? ('🎉 ' + ticket.prize + ' (' + ticket.accuracyRate + ')') : ('❌ ' + ticket.prize + ' (Khớp ' + ticket.accuracyRate + ')') }}
-                  </span>
-                </div>
-
-                <!-- 6 quả bóng của vé mua -->
-                <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
-                  <div *ngFor="let b of ticket.numbers"
-                       class="ball shadow-xs"
-                       [ngClass]="{
-                         'ball-highlight': ticket.matchedNumbers?.includes(b),
-                         'bg-light text-muted border text-decoration-line-through': !ticket.matchedNumbers?.includes(b) && b !== getCurrent5Draw().officialSpecial,
-                         'ball-special': b === getCurrent5Draw().officialSpecial
-                       }"
-                       style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
-                    {{ formatNumber(b) }}
-                  </div>
-                </div>
-
-                <div class="small text-secondary" style="font-size: 0.75rem; line-height: 1.35;">
-                  <em>{{ ticket.note }}</em>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 3. TABS PHÂN TÍCH CHUYÊN SÂU CỦA KỲ ĐANG CHỌN -->
-      <div class="bg-light p-1 rounded-pill d-inline-flex gap-1 mb-3 border">
+      <div class="bg-light p-1 rounded-pill d-inline-flex gap-1 mb-3 border flex-wrap">
+        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
+                [ngClass]="activeReconciliationTab === 'aiPredictionJudgment' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
+                (click)="activeReconciliationTab = 'aiPredictionJudgment'">
+          🎯 Đối Soát Dự Đoán AI & Đánh Giá Nhận Định ({{ getCurrent5Draw().drawDate }})
+        </button>
         <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
                 [ngClass]="activeReconciliationTab === 'winningBalls' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
                 (click)="activeReconciliationTab = 'winningBalls'">
-          🎯 Tại Sao Lồng Cầu Ra Các Banh Đó? ({{ getCurrent5Draw().officialNumbers?.length }} Banh)
+          💡 Động Năng Lồng Cầu & Lý Do Ra Banh ({{ getCurrent5Draw().officialNumbers?.length }} Banh)
         </button>
         <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
                 [ngClass]="activeReconciliationTab === 'algorithmFlaws' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
                 (click)="activeReconciliationTab = 'algorithmFlaws'">
-          ⚠️ Nguyên Nhân Sai Lệch Của Thuật Toán Tại Kỳ Này
+          ⚠️ Chẩn Đoán Nguyên Nhân Sai Lệch
         </button>
         <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
                 [ngClass]="activeReconciliationTab === 'tuningPlan' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
                 (click)="activeReconciliationTab = 'tuningPlan'">
-          ⚡ 5 Lỗi Hệ Thống & Kích Hoạt v1.5.0
+          ⚡ Kế Hoạch Hiệu Chỉnh Siêu Tham Số
         </button>
+      </div>
+
+      <!-- TAB 0: ĐỐI SOÁT DỰ ĐOÁN AI & ĐÁNH GIÁ NHẬN ĐỊNH CÓ GẦN ĐÚNG KHÔNG (TAB CHÍNH MỚI) -->
+      <div *ngIf="activeReconciliationTab === 'aiPredictionJudgment'">
+        <!-- BANNER ĐÁNH GIÁ NHẬN ĐỊNH CỦA AI -->
+        <div class="p-3 rounded-4 mb-3 border shadow-xs"
+             [ngClass]="{
+               'bg-success-subtle border-success': getCurrent5Draw().aiPrediction?.judgment?.rating === 'EXCELLENT',
+               'bg-primary-subtle border-primary': getCurrent5Draw().aiPrediction?.judgment?.rating === 'GOOD',
+               'bg-warning-subtle border-warning': getCurrent5Draw().aiPrediction?.judgment?.rating === 'DEVIATED'
+             }">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">
+                {{ getCurrent5Draw().aiPrediction?.judgment?.rating === 'EXCELLENT' ? '🌟' : getCurrent5Draw().aiPrediction?.judgment?.rating === 'GOOD' ? '🎯' : '⚠️' }}
+              </span>
+              <div>
+                <h5 class="fw-bold mb-0 text-dark">
+                  Đánh Giá Nhận Định Dự Đoán Của AI Kỳ Ngày {{ getCurrent5Draw().drawDate }}:
+                </h5>
+                <span class="badge" [ngClass]="'bg-' + (getCurrent5Draw().aiPrediction?.judgment?.badgeClass || 'secondary')" style="font-size: 0.78rem;">
+                  {{ getCurrent5Draw().aiPrediction?.judgment?.badge }}
+                </span>
+              </div>
+            </div>
+            <div class="text-end">
+              <span class="badge bg-dark text-white rounded-pill px-3 py-1">
+                Thuật toán: {{ getCurrent5Draw().aiPrediction?.algorithmName || reconcileAlgorithm }}
+              </span>
+            </div>
+          </div>
+          <div class="alert bg-white border rounded-3 p-2 px-3 mb-2 small text-dark">
+            <strong>Nhận định tổng quan:</strong> {{ getCurrent5Draw().aiPrediction?.judgment?.summary }}
+          </div>
+          <div class="small text-secondary">
+            <strong>Phân tích cơ chế:</strong> {{ getCurrent5Draw().aiPrediction?.judgment?.reason }}
+          </div>
+        </div>
+
+        <!-- SO SÁNH 3 CỘT: KẾT QUẢ MỞ THƯỞNG vs DỰ ĐOÁN AI vs VÉ ĐÃ MUA TRÙNG NGÀY -->
+        <div class="row g-3">
+          <!-- CỘT 1: KẾT QUẢ MỞ THƯỞNG CHÍNH THỨC -->
+          <div class="col-lg-4 col-md-6">
+            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-dark text-white">LỒNG CẦU QUAY THỰC TẾ</span>
+                <span class="small text-muted">{{ getCurrent5Draw().oddEven }}</span>
+              </div>
+              <h6 class="fw-bold text-primary mb-2">Kết Quả Kỳ {{ getCurrent5Draw().drawDate }}</h6>
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                <div *ngFor="let num of getCurrent5Draw().officialNumbers"
+                     class="ball shadow-xs"
+                     [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
+                     style="width: 38px; height: 38px; font-size: 1rem; font-weight: bold;">
+                  {{ formatNumber(num) }}
+                </div>
+                <div *ngIf="getCurrent5Draw().officialSpecial"
+                     class="ball ball-special shadow-xs"
+                     title="Banh phụ Jackpot 2"
+                     style="width: 36px; height: 36px; font-size: 0.9rem;">
+                  ⭐ {{ formatNumber(getCurrent5Draw().officialSpecial) }}
+                </div>
+              </div>
+              <div class="small text-muted p-2 rounded bg-white border">
+                <div>Tổng điểm: <strong>{{ getCurrent5Draw().sum }}</strong></div>
+                <div>Tỷ lệ: <strong>{{ getCurrent5Draw().oddEven }}</strong></div>
+                <div>Số lượng banh: <strong>{{ getCurrent5Draw().officialNumbers?.length }} banh chính{{ getCurrent5Draw().officialSpecial ? ' + 1 banh phụ' : '' }}</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CỘT 2: DỰ ĐOÁN CỦA AI TRƯỚC KỲ QUAY NÀY -->
+          <div class="col-lg-4 col-md-6">
+            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs" style="border-left: 3px solid #3b82f6 !important;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary text-white">AI DỰ ĐOÁN (WALK-FORWARD)</span>
+                <span class="badge" [ngClass]="getCurrent5Draw().aiPrediction?.matchedCount >= 3 ? 'bg-success text-white' : 'bg-warning text-dark'">
+                  Khớp {{ getCurrent5Draw().aiPrediction?.matchedCount }}/6 bóng ({{ getCurrent5Draw().aiPrediction?.matchedPercent }}%)
+                </span>
+              </div>
+              <h6 class="fw-bold text-dark mb-1">Top 10 Số Gợi Ý Của AI:</h6>
+              <div class="d-flex align-items-center gap-1 flex-wrap mb-2">
+                <div *ngFor="let b of getCurrent5Draw().aiPrediction?.top10Numbers"
+                     class="ball shadow-xs"
+                     [ngClass]="{
+                       'ball-highlight': getCurrent5Draw().aiPrediction?.matchedNumbers?.includes(b),
+                       'bg-light text-muted border text-decoration-line-through': !getCurrent5Draw().aiPrediction?.matchedNumbers?.includes(b)
+                     }"
+                     style="width: 30px; height: 30px; font-size: 0.8rem; font-weight: bold;">
+                  {{ formatNumber(b) }}
+                </div>
+                <div *ngIf="getCurrent5Draw().aiPrediction?.specialNumber"
+                     class="ball ball-special shadow-xs ms-1"
+                     title="Banh phụ AI gợi ý"
+                     style="width: 30px; height: 30px; font-size: 0.8rem;">
+                  ⭐{{ formatNumber(getCurrent5Draw().aiPrediction?.specialNumber) }}
+                </div>
+              </div>
+              <div class="mb-2">
+                <div class="fw-bold small text-muted mb-1">Dàn Vé Tự Chọn Do AI Sinh Ra:</div>
+                <div class="d-flex flex-column gap-1">
+                  <div *ngFor="let t of getCurrent5Draw().aiPrediction?.generatedTickets"
+                       class="p-1 px-2 rounded bg-white border d-flex justify-content-between align-items-center"
+                       [class.border-success]="t.prize && t.prize !== 'KHÔNG TRÚNG'">
+                    <div class="d-flex gap-1 flex-wrap">
+                      <span *ngFor="let num of t.numbers"
+                            class="badge"
+                            [ngClass]="t.matchedNumbers?.includes(num) ? 'bg-success text-white' : 'bg-light text-secondary border'"
+                            style="font-size: 0.7rem; padding: 2px 4px;">
+                        {{ formatNumber(num) }}
+                      </span>
+                    </div>
+                    <span class="badge" [ngClass]="t.prize && t.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-secondary text-white'" style="font-size: 0.65rem;">
+                      {{ t.prize && t.prize !== 'KHÔNG TRÚNG' ? t.prize : 'Trượt' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="small p-2 rounded bg-white border text-secondary" style="font-size: 0.75rem;">
+                Giải cao nhất vé AI: <strong class="text-success">{{ getCurrent5Draw().aiPrediction?.bestPrize }}</strong> ({{ getCurrent5Draw().aiPrediction?.bestPrizeAmount }})
+              </div>
+            </div>
+          </div>
+
+          <!-- CỘT 3: VÉ BẠN ĐÃ MUA THỰC TẾ -->
+          <div class="col-lg-4 col-12">
+            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-secondary text-white">VÉ MUA TRÙNG NGÀY</span>
+                <span class="badge bg-info-subtle text-dark border">
+                  {{ getCurrent5Draw().userTickets?.length || 0 }} vé mua
+                </span>
+              </div>
+              <h6 class="fw-bold text-dark mb-1">Kết Quả Vé Bạn Mua:</h6>
+              <div *ngIf="getCurrent5Draw().userTickets?.length === 0" class="text-muted small p-3 text-center bg-white rounded border my-2">
+                Chưa có vé cá nhân lưu cho ngày này. Bạn có thể nhập vé ở phần bên dưới để so khớp!
+              </div>
+              <div class="d-flex flex-column gap-2" *ngIf="getCurrent5Draw().userTickets?.length > 0">
+                <div *ngFor="let ticket of getCurrent5Draw().userTickets; let tIdx = index"
+                     class="p-2 rounded bg-white border"
+                     [class.border-success]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG'">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold small text-dark">Vé #{{ tIdx + 1 }}:</span>
+                    <span class="badge" [ngClass]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-danger text-white'" style="font-size: 0.7rem;">
+                      {{ ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? ('🎉 ' + ticket.prize) : '❌ Không trúng' }}
+                    </span>
+                  </div>
+                  <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
+                    <div *ngFor="let b of ticket.numbers"
+                         class="ball shadow-xs"
+                         [ngClass]="{
+                           'ball-highlight': ticket.matchedNumbers?.includes(b),
+                           'bg-light text-muted border text-decoration-line-through': !ticket.matchedNumbers?.includes(b) && b !== getCurrent5Draw().officialSpecial,
+                           'ball-special': b === getCurrent5Draw().officialSpecial
+                         }"
+                         style="width: 28px; height: 28px; font-size: 0.75rem; font-weight: bold;">
+                      {{ formatNumber(b) }}
+                    </div>
+                  </div>
+                  <div class="small text-muted" style="font-size: 0.7rem;">
+                    Khớp: <strong>{{ ticket.matchedCount }}/6</strong>{{ ticket.matchedSpecial ? ' (+Phụ)' : '' }} &bull; <em>{{ ticket.note }}</em>
+                  </div>
+                </div>
+              </div>
+              <div class="small p-2 rounded bg-white border mt-2" *ngIf="getCurrent5Draw().userTickets?.length > 0">
+                Tổng kết vé mua: <strong class="text-primary">Khớp {{ getCurrent5Draw().uniqueMatchedCount }}/6 bóng duy nhất</strong>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- TAB 1: BÓC TÁCH LÝ DO TẠI SAO LỒNG CẦU RA CÁC BANH ĐÓ -->

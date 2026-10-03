@@ -163,11 +163,13 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   selectedHyperparameterForView: any | null = null;
   activeModalTab: 'json' | 'readme' = 'json';
 
-  // 5-Draws Reconciliation & Diagnosis State
+  // Backtesting & Reconciliation State
   reconciliationData: any = null;
   isLoadingReconciliation: boolean = false;
   selected5DrawIndex: number = 0;
-  activeReconciliationTab: 'comparison' | 'winningBalls' | 'algorithmFlaws' | 'tuningPlan' = 'comparison';
+  activeReconciliationTab: 'aiPredictionJudgment' | 'comparison' | 'winningBalls' | 'algorithmFlaws' | 'tuningPlan' = 'aiPredictionJudgment';
+  reconcileLimit: number = 5;
+  reconcileAlgorithm: string = 'deep_stacking';
   isApplyingV150: boolean = false;
 
   private categorySub: Subscription | undefined;
@@ -810,18 +812,33 @@ ${hyperJson}
   load5DrawsReconciliation(): void {
     this.isLoadingReconciliation = true;
     this.cdr.markForCheck();
-    this.analyzeService.get5DrawsReconciliation(this.category).subscribe({
+    this.analyzeService.get5DrawsReconciliation(this.category, this.reconcileAlgorithm, this.reconcileLimit).subscribe({
       next: (data) => {
         this.reconciliationData = data;
+        if (this.selected5DrawIndex >= (data?.draws?.length || 0)) {
+          this.selected5DrawIndex = 0;
+        }
         this.isLoadingReconciliation = false;
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Failed to load 5-draws reconciliation:', err);
+        console.error('Failed to load reconciliation backtest:', err);
         this.isLoadingReconciliation = false;
         this.cdr.markForCheck();
       }
     });
+  }
+
+  setReconcileLimit(lim: number): void {
+    if (this.reconcileLimit === lim) return;
+    this.reconcileLimit = lim;
+    this.load5DrawsReconciliation();
+  }
+
+  setReconcileAlgorithm(alg: string): void {
+    if (this.reconcileAlgorithm === alg) return;
+    this.reconcileAlgorithm = alg;
+    this.load5DrawsReconciliation();
   }
 
   select5Draw(index: number): void {
