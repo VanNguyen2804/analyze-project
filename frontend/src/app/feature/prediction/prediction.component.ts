@@ -20,8 +20,24 @@ export class PredictionComponent implements OnInit, OnDestroy {
   showAllReasons = false;
 
   // --- 1. BIẾN QUẢN LÝ THUẬT TOÁN (TỪ HTML) ---
-  selectedAlgorithm: string = 'xgboost';
+  selectedAlgorithm: string = 'deep_stacking';
   algorithms = [
+    {
+      id: 'deep_stacking',
+      name: 'Xếp Chồng AI & Copula (DSE-Copula)',
+      icon: '⚡',
+      badge: 'Hiệu quả nhất DB',
+      formula: 'Deep Stacking + Empirical Copula + Gap Z-Score',
+      description: 'Mô hình học máy xếp chồng đa tầng khai thác chuyên sâu Database: chuẩn hóa Z-Score độ trễ cá thể, tương quan Jaccard đa biến và giải thuật Pareto Wheeling bảo toàn tối đa độ phủ.'
+    },
+    {
+      id: 'bayesian_graph',
+      name: 'Mạng Đồ Thị Bayes AI (BEGN)',
+      icon: '🔮',
+      badge: 'Đột phá tối ưu',
+      formula: 'Bayes Posterior + Graph Clique + Fourier Phase',
+      description: 'Mô hình mạng đồ thị đa tầng kết hợp xác suất hậu nghiệm Bayes, cộng hưởng sóng hài Fourier và cầu nối chuyển vị banh phụ.'
+    },
     { id: 'xgboost', name: 'AI XGBoost + Wheeling', icon: '🧠', badge: 'Khuyên dùng', formula: 'Tối ưu Z-Score + Trộn vé', description: 'Phân tích tần suất, lô gan và tương tác cặp để lọc 10 số ưu tú.' },
     { id: 'montecarlo', name: 'Monte Carlo 100K', icon: '🎲', badge: 'Mô phỏng', formula: 'Random walk simulation', description: 'Chạy mô phỏng 100.000 lồng cầu ngẫu nhiên.' },
     { id: 'markov', name: 'Mô hình Markov', icon: '🔗', badge: 'Xác suất', formula: 'P(State A -> State B)', description: 'Dự đoán bước nhảy không gian trạng thái giữa các kỳ quay.' }

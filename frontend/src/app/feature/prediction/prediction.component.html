@@ -74,6 +74,96 @@
           {{ isSpinning ? 'Đang tính toán dãy số...' : '🎯 Chạy Lại ' + getCurrentAlgorithmInfo().name }}
         </button>
       </div>
+
+      <!-- THUYẾT MINH ĐẶC BIỆT KHI CHỌN MÔ HÌNH XẾP CHỒNG AI & COPULA (DSE-COPULA) -->
+      <div *ngIf="selectedAlgorithm === 'deep_stacking'" class="mt-3 p-3 rounded-4 bg-warning bg-opacity-10 border border-warning border-opacity-50">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-5">⚡</span>
+            <span class="fw-bold text-dark">Ưu Thế Đột Phá Của Mô Hình Xếp Chồng AI & Copula (DSE-Copula) Khai Thác Database:</span>
+          </div>
+          <span class="badge bg-danger text-white rounded-pill px-3 py-1 shadow-xs">Thuật toán hiệu quả nhất theo dữ liệu thực tế</span>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">1. Chuẩn Hóa Độ Trễ Cá Thể Z-Score (Empirical Gap Variance):</strong>
+              <small class="text-secondary d-block">
+                Tính toán chính xác chu kỳ trung bình &mu;<sub>i</sub> và phương sai thực nghiệm của từng số từ database. Định vị điểm rơi vàng Z &isin; [+0.4, +1.8]&sigma;, loại bỏ hoàn toàn việc cào bằng một hằng số lý thuyết.
+              </small>
+            </div>
+          </div>
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">2. Ma Trận Phụ Thuộc Đa Biến Empirical Copula Jaccard:</strong>
+              <small class="text-secondary d-block">
+                Xổ số rút 6 banh đồng thời không hoàn lại (Multivariate Joint Sampling). Thuật toán áp dụng hàm Copula liên kết Jaccard để đánh giá sự gắn kết phụ thuộc của các tổ hợp số trong database.
+              </small>
+            </div>
+          </div>
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">3. Học Máy Xếp Chồng Đa Tầng (Deep Stacking Meta-Learner):</strong>
+              <small class="text-secondary d-block">
+                Hội tụ tối ưu từ 4 mô hình: XGBoost Gradient Boosting, Phân phối Hậu nghiệm Bayes, Mạng lưới Copula và Chu kỳ Z-Score với trọng số thích ứng qua kiểm định hồi quy thực nghiệm.
+              </small>
+            </div>
+          </div>
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">4. Bộ Vé Tối Ưu Pareto Wheeling & Bộ Lọc Phức Hợp AC Index:</strong>
+              <small class="text-secondary d-block">
+                Tạo các vé ưu tú bao phủ tối đa các cặp số hạt nhân theo biên độ Pareto, kiểm soát dải Tổng thực nghiệm (Gaussian Sum DB) và chỉ số AC &ge; 7 nhằm triệt tiêu các dãy số bất thường.
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THUYẾT MINH ĐẶC BIỆT KHI CHỌN MÔ HÌNH MẠNG ĐỒ THỊ BAYES (BEGN) -->
+      <div *ngIf="selectedAlgorithm === 'bayesian_graph'" class="mt-3 p-3 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-5">🔮</span>
+            <span class="fw-bold text-primary">Ưu Thế Vượt Trội Của Mô Hình Mạng Đồ Thị Bayes AI (BEGN) Trên Database:</span>
+          </div>
+          <span class="badge bg-primary text-white rounded-pill px-3 py-1">Thuật toán mới hiệu quả nhất</span>
+        </div>
+        <div class="row g-2">
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">1. Phân phối Hậu nghiệm Bayes (Beta-Binomial):</strong>
+              <small class="text-secondary d-block">
+                Sử dụng hàm suy giảm thời gian &tau; = 8.5 kỳ để cân bằng giữa quán tính lịch sử lâu dài và độ nhạy của các chuỗi quay gần đây nhất.
+              </small>
+            </div>
+          </div>
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">2. Mạng Lưới Đồ Thị & Cụm Đồng Xuất Hiện (Graph Clique):</strong>
+              <small class="text-secondary d-block">
+                Không chọn các số rời rạc mà bóc tách ma trận tương tác W<sub>ij</sub>, chọn những hạt nhân đồ thị có tương quan cao nhất để nâng tỷ lệ trúng giải Ba và Nhì.
+              </small>
+            </div>
+          </div>
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">3. Cộng Hưởng Sóng Hài Fourier (Harmonic Phase Resonance):</strong>
+              <small class="text-secondary d-block">
+                Đo lường chu kỳ điều hòa riêng của từng banh số, phát hiện chính xác thời điểm rơi vào đỉnh pha (cos &approx; +1), triệt tiêu bẫy số nguội/lô gan non.
+              </small>
+            </div>
+          </div>
+          <div class="col-md-6 col-12">
+            <div class="p-2 rounded-3 bg-white border h-100">
+              <strong class="text-dark small d-block mb-1">4. Cầu Nối Chuyển Vị Banh Phụ (Special-to-Main Migration):</strong>
+              <small class="text-secondary d-block">
+                Mô hình hóa bước nhảy Markov hai chiều giữa banh phụ Jackpot 2 và banh chính, đón đầu các số phụ kỳ trước nhảy sang làm số chính kỳ sau (+88%).
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

@@ -96,7 +96,7 @@
       <input type="date" class="form-control form-control-sm text-dark fw-bold" style="width: 140px;" [(ngModel)]="selectedDate">
       
       <span class="ms-2">🤖 Thuật toán:</span>
-      <select class="form-select form-select-sm text-dark fw-bold" style="width: 180px;" [(ngModel)]="algorithm">
+      <select class="form-select form-select-sm text-dark fw-bold" style="min-width: 230px;" [(ngModel)]="algorithm">
         <option *ngFor="let algo of availableAlgorithms" [value]="algo.id">{{ algo.name }}</option>
       </select>
     </div>

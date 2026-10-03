@@ -62,12 +62,14 @@ export interface TuningReport {
 export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   category: string = 'MEGA';
   selectedDate: string = '';
-  algorithm: string = 'XGBoost';
+  algorithm: string = 'deep_stacking';
   
   availableAlgorithms = [
-    { id: 'XGBoost', name: 'AI XGBoost + Poisson' },
-    { id: 'Markov', name: 'Mô hình chuỗi Markov' },
-    { id: 'Frequency', name: 'Thống kê tần suất' }
+    { id: 'deep_stacking', name: '⚡ Xếp Chồng AI & Copula (DSE-Copula)' },
+    { id: 'bayesian_graph', name: '🔮 Mạng Đồ Thị Bayes AI (BEGN)' },
+    { id: 'XGBoost', name: '🧠 AI XGBoost + Poisson' },
+    { id: 'Markov', name: '🔗 Mô hình chuỗi Markov' },
+    { id: 'Frequency', name: '📊 Thống kê tần suất' }
   ];
 
   analysisData: any = null;

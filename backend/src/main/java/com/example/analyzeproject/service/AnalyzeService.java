@@ -362,10 +362,45 @@ public class AnalyzeService {
         List<ScoredNumber> candidateList = new ArrayList<>();
         double avgCycle = (double) maxLimit / 6.0;
 
+        boolean isBayesianGraph = (algorithm != null && (algorithm.toLowerCase().contains("bayes") || algorithm.toLowerCase().contains("graph") || algorithm.toLowerCase().contains("begn")));
+
         for (int i = 1; i <= maxLimit; i++) {
             double z;
             
-            if (freqLast10[i] >= 5) {
+            if (isBayesianGraph && totalDraws > 0) {
+                // 1. Phân phối hậu nghiệm Bayes Beta-Binomial với hàm suy giảm thời gian (tau = 8.5)
+                double weightedSuccesses = 0.0;
+                double weightedFailures = 0.0;
+                for (int t = 0; t < totalDraws; t++) {
+                    double w = Math.exp(-(double)(totalDraws - 1 - t) / 8.5);
+                    if (chronologicalRecords.get(t).getNumbers() != null && chronologicalRecords.get(t).getNumbers().contains(i)) {
+                        weightedSuccesses += w;
+                    } else {
+                        weightedFailures += w;
+                    }
+                }
+                double bayesMean = (1.0 + weightedSuccesses) / (1.0 + ((maxLimit - 6.0) / 6.0) + weightedSuccesses + weightedFailures);
+
+                // 2. Trọng số liên kết mạng đồ thị (Graph Degree Centrality)
+                int coOccurSum = 0;
+                for (int j = 1; j <= maxLimit; j++) {
+                    if (i != j && pairMatrix[i][j] > 0) coOccurSum += pairMatrix[i][j];
+                }
+                double normGraph = Math.min(2.5, (double) coOccurSum / 12.0);
+
+                // 3. Cộng hưởng sóng hài Fourier
+                double avgHarmonicPeriod = avgCycle;
+                double gapVal = drawGap[i];
+                double harmonicPhase = Math.cos((2.0 * Math.PI * gapVal) / avgHarmonicPeriod);
+                double resonance = (harmonicPhase > 0) ? harmonicPhase * Math.exp(-Math.abs(gapVal - avgHarmonicPeriod) / (avgHarmonicPeriod * 1.6)) : 0.0;
+
+                // 4. Cầu nối chuyển vị Banh Phụ
+                double migBonus = ("POWER".equalsIgnoreCase(category) && lastSeenSpecial[i] >= totalDraws - 2 && lastSeenSpecial[i] != -1) ? 0.85 : 0.0;
+                double repeatAdj = (gapVal == 0 && mainFrequency[i] >= 4) ? 0.25 : (gapVal == 0 ? -0.42 : 0.0);
+                double rebound = (gapVal > avgCycle * 1.8) ? Math.min(0.85, 0.45 + (gapVal - avgCycle * 1.8) * 0.08) : 0.0;
+
+                z = (bayesMean * 7.5) + (normGraph * 1.8) + (resonance * 1.4) + migBonus + repeatAdj + rebound - 2.65;
+            } else if (freqLast10[i] >= 5) {
                 z = -10.0;
             } else if (totalDraws >= 10) {
                 double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
@@ -640,7 +675,11 @@ public class AnalyzeService {
         response.setMessage("Phân tích thành công");
         response.setAlgorithm(algorithm); 
         
-        if ("xgboost".equalsIgnoreCase(algorithm)) {
+        if (algorithm != null && (algorithm.toLowerCase().contains("bayes") || algorithm.toLowerCase().contains("graph") || algorithm.toLowerCase().contains("begn"))) {
+            response.setAlgorithm("bayesian_graph");
+            response.setAlgorithmName("Mạng Đồ Thị Bayes AI (BEGN)");
+            response.setAlgorithmDesc("Mô hình mạng đồ thị kết hợp xác suất hậu nghiệm Bayes (Beta-Binomial), tương tác cụm liên kết (Graph Clique Synergy), cộng hưởng sóng hài Fourier và cầu nối chuyển vị banh phụ.");
+        } else if ("xgboost".equalsIgnoreCase(algorithm)) {
             response.setAlgorithmName("AI XGBoost + Wheeling System");
             response.setAlgorithmDesc("Kết hợp XGBoost để chọn 10 số tiềm năng và Wheeling System để trải thành 10 vé tối ưu đối chuẩn US Powerball/Mega Millions.");
         } else {
