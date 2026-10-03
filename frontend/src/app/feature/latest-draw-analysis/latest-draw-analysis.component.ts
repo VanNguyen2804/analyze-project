@@ -166,10 +166,14 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   // Backtesting & Reconciliation State
   reconciliationData: any = null;
   isLoadingReconciliation: boolean = false;
+  reconcileError: string | null = null;
   selected5DrawIndex: number = 0;
   activeReconciliationTab: 'aiPredictionJudgment' | 'comparison' | 'winningBalls' | 'algorithmFlaws' | 'tuningPlan' = 'aiPredictionJudgment';
   reconcileLimit: number = 5;
   reconcileAlgorithm: string = 'deep_stacking';
+  selectedReconcileDate: string = '';
+  availableLimits: number[] = [5, 10, 15, 20, 25, 30, 40, 50];
+  showAllBacktestTable: boolean = false;
   isApplyingV150: boolean = false;
 
   private categorySub: Subscription | undefined;
@@ -807,15 +811,24 @@ ${hyperJson}
   }
 
   // =========================================================================================
-  // 5-DRAWS RECONCILIATION & ROOT CAUSE DIAGNOSIS
+  // BACKTESTING CÁC KỲ TRƯỚC & ĐỐI SOÁT DỰ ĐOÁN AI (WALK-FORWARD TESTING)
   // =========================================================================================
   load5DrawsReconciliation(): void {
     this.isLoadingReconciliation = true;
+    this.reconcileError = null;
     this.cdr.markForCheck();
-    this.analyzeService.get5DrawsReconciliation(this.category, this.reconcileAlgorithm, this.reconcileLimit).subscribe({
+    this.analyzeService.get5DrawsReconciliation(
+      this.category,
+      this.reconcileAlgorithm,
+      this.reconcileLimit,
+      this.selectedReconcileDate
+    ).subscribe({
       next: (data) => {
         this.reconciliationData = data;
-        if (this.selected5DrawIndex >= (data?.draws?.length || 0)) {
+        if (this.selectedReconcileDate && data?.draws) {
+          const idx = data.draws.findIndex((d: any) => d.drawDate === this.selectedReconcileDate);
+          this.selected5DrawIndex = idx !== -1 ? idx : 0;
+        } else if (this.selected5DrawIndex >= (data?.draws?.length || 0)) {
           this.selected5DrawIndex = 0;
         }
         this.isLoadingReconciliation = false;
@@ -823,6 +836,7 @@ ${hyperJson}
       },
       error: (err) => {
         console.error('Failed to load reconciliation backtest:', err);
+        this.reconcileError = 'Không thể kết nối máy chủ để tính toán kiểm thử. Vui lòng bấm thử lại!';
         this.isLoadingReconciliation = false;
         this.cdr.markForCheck();
       }
@@ -841,14 +855,45 @@ ${hyperJson}
     this.load5DrawsReconciliation();
   }
 
+  onReconcileDateChange(date: string): void {
+    this.selectedReconcileDate = date;
+    if (!date) {
+      this.load5DrawsReconciliation();
+      return;
+    }
+    if (this.reconciliationData?.draws) {
+      const idx = this.reconciliationData.draws.findIndex((d: any) => d.drawDate === date);
+      if (idx !== -1) {
+        this.selected5DrawIndex = idx;
+        this.cdr.markForCheck();
+        return;
+      }
+    }
+    this.load5DrawsReconciliation();
+  }
+
   select5Draw(index: number): void {
     this.selected5DrawIndex = index;
+    if (this.reconciliationData?.draws?.[index]) {
+      this.selectedReconcileDate = this.reconciliationData.draws[index].drawDate;
+    }
     this.cdr.markForCheck();
   }
 
   getCurrent5Draw(): any {
     if (!this.reconciliationData?.draws || this.reconciliationData.draws.length === 0) return null;
     return this.reconciliationData.draws[this.selected5DrawIndex] || this.reconciliationData.draws[0];
+  }
+
+  isNearMiss(predictedNum: number, officialNums: number[]): boolean {
+    if (!officialNums || officialNums.includes(predictedNum)) return false;
+    return officialNums.some(o => Math.abs(o - predictedNum) === 1);
+  }
+
+  getNearMissTarget(predictedNum: number, officialNums: number[]): number | null {
+    if (!officialNums) return null;
+    const target = officialNums.find(o => Math.abs(o - predictedNum) === 1);
+    return target !== undefined ? target : null;
   }
 
   applyV150Tuning(): void {

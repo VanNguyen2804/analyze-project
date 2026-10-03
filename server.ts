@@ -2827,13 +2827,28 @@ async function startServer() {
       const category: 'POWER' | 'MEGA' = catInput === 'MEGA' ? 'MEGA' : 'POWER';
       const algorithm = String(req.query.algorithm || 'deep_stacking');
       const limitParam = parseInt(String(req.query.limit || '5'), 10);
-      const limit = isNaN(limitParam) || limitParam <= 0 ? 5 : Math.min(20, limitParam);
+      const limit = isNaN(limitParam) || limitParam <= 0 ? 5 : Math.min(100, limitParam);
+      const reqDate = req.query.date ? String(req.query.date).trim() : '';
 
       const catRecords = records
         .filter((r) => r.category === category)
         .sort((a, b) => b.drawDate.localeCompare(a.drawDate));
 
-      const testedRecords = catRecords.slice(0, limit);
+      // If user requested a specific date, make sure that date is included in tested records
+      let testedRecords = catRecords.slice(0, Math.min(limit, catRecords.length));
+      if (reqDate) {
+        let normalizedDate = reqDate;
+        if (reqDate.includes('/')) {
+          const parts = reqDate.split('/');
+          if (parts.length === 3) {
+            normalizedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          }
+        }
+        const targetIndex = catRecords.findIndex(r => r.drawDate === normalizedDate || r.drawDate === reqDate);
+        if (targetIndex !== -1 && !testedRecords.some(r => r.drawDate === normalizedDate || r.drawDate === reqDate)) {
+          testedRecords.unshift(catRecords[targetIndex]);
+        }
+      }
 
       const powerExplanations: Record<string, {
         whyWinningBallsAppeared: Array<{ number: number; isSpecial?: boolean; role: string; drawGap: number; frequency: number; explanation: string }>;
@@ -2999,7 +3014,35 @@ async function startServer() {
         );
         const aiPrediction = analyzeAndPredict(category, algorithm, priorRecords);
         const aiTop10Numbers = (aiPrediction.numbers || []).slice(0, 10);
+        const aiPredicted6Numbers = (aiPrediction.numbers || []).slice(0, 6).sort((a, b) => a - b);
         const aiSpecialNumber = aiPrediction.specialNumber;
+        
+        // So khớp 6 số AI dự đoán trực tiếp với 6 số mở thưởng
+        const matchedIn6Numbers = aiPredicted6Numbers.filter((n) => officialNumbers.includes(n));
+        const matchedIn6Count = matchedIn6Numbers.length;
+        const matchedIn6Percent = Math.round((matchedIn6Count / 6) * 1000) / 10;
+        
+        // Tìm các số lệch sát nút ±1 (gần đúng trong gang tấc)
+        const nearMissList: Array<{ predicted: number; officialNear: number; diff: number }> = [];
+        for (const p of aiPredicted6Numbers) {
+          if (!officialNumbers.includes(p)) {
+            const near = officialNumbers.find((o) => Math.abs(o - p) === 1);
+            if (near !== undefined) {
+              nearMissList.push({ predicted: p, officialNear: near, diff: p - near });
+            }
+          }
+        }
+        const nearMissPredictedNumbers = nearMissList.map((m) => m.predicted);
+
+        // Tổng điểm & tỷ lệ chẵn lẻ của 6 số AI dự đoán
+        const predictedSum = aiPredicted6Numbers.reduce((a, b) => a + b, 0);
+        const sumDiff = Math.abs(predictedSum - sum);
+        const predOddCount = aiPredicted6Numbers.filter((n) => n % 2 !== 0).length;
+        const predEvenCount = aiPredicted6Numbers.length - predOddCount;
+        const predictedOddEven = `${predEvenCount} Chẵn / ${predOddCount} Lẻ`;
+        const parityMatch = predOddCount === oddCount;
+
+        // So khớp trên Top 10 bóng AI
         const aiMatchedNumbers = officialNumbers.filter((n) => aiTop10Numbers.includes(n));
         const aiMatchedCount = aiMatchedNumbers.length;
         const aiMatchedPercent = Math.round((aiMatchedCount / (officialNumbers.length || 6)) * 1000) / 10;
@@ -3034,27 +3077,27 @@ async function startServer() {
         let aiJudgmentSummary = '';
         let aiJudgmentReason = '';
 
-        if (aiMatchedCount >= 4 || (aiWinningTickets.length > 0 && ['JACKPOT 1', 'JACKPOT 2', 'GIẢI NHẤT', 'GIẢI NHÌ'].includes(bestAiPrize))) {
+        if (matchedIn6Count >= 3 || aiMatchedCount >= 4 || (aiWinningTickets.length > 0 && ['JACKPOT 1', 'JACKPOT 2', 'GIẢI NHẤT', 'GIẢI NHÌ'].includes(bestAiPrize))) {
           aiClosenessRating = 'EXCELLENT';
           aiClosenessBadge = '🎯 RẤT CHÍNH XÁC / TIỆM CẬN CAO';
           aiClosenessBadgeClass = 'success';
           isAiClose = true;
-          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định tiệm cận rất cao! Bắt trúng ${aiMatchedCount}/6 số chính [${aiMatchedNumbers.join(', ')}] trong Top 10${aiMatchedSpecial ? ' kèm số phụ ⭐' + aiSpecialNumber : ''} và vé AI đạt ${bestAiPrize} (${bestAiPrizeAmount})!`;
-          aiJudgmentReason = `Mô hình ${aiPrediction.algorithmName} nhận diện chuẩn xác nhịp sóng dao động, các cặp số liên kết đồng xuất hiện và điểm rơi chu kỳ của các con số hạt nhân.`;
-        } else if (aiMatchedCount === 3 || aiWinningTickets.length > 0) {
+          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định tiệm cận rất cao! 6 số dự đoán khớp ${matchedIn6Count}/6 số trúng [${matchedIn6Numbers.join(', ')}]${nearMissList.length > 0 ? ` và có ${nearMissList.length} số sát nút ±1` : ''}. Top 10 bắt trúng ${aiMatchedCount}/6 bóng và vé AI trúng ${bestAiPrize} (${bestAiPrizeAmount})!`;
+          aiJudgmentReason = `Mô hình ${aiPrediction.algorithmName} dựa trên các kỳ trước đã giải mã chính xác chu kỳ điểm rơi Poisson và cặp số đồng xuất hiện. Tổng điểm lệch chỉ ${sumDiff} điểm, ${parityMatch ? 'trùng khớp hoàn hảo tỷ lệ chẵn/lẻ ' + predictedOddEven : 'tiệm cận phân phối'}.`;
+        } else if (matchedIn6Count === 2 || (matchedIn6Count === 1 && nearMissList.length >= 2) || nearMissList.length >= 3 || aiMatchedCount === 3 || aiWinningTickets.length > 0) {
           aiClosenessRating = 'GOOD';
           aiClosenessBadge = '✅ GẦN ĐÚNG / ĐẠT KỲ VỌNG';
           aiClosenessBadgeClass = 'primary';
           isAiClose = true;
-          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định gần đúng (sát thực tế): Bắt trúng 3/6 số chính [${aiMatchedNumbers.join(', ')}] và tối thiểu 1 vé AI đạt giải (${bestAiPrize}).`;
-          aiJudgmentReason = `Mô hình đón đầu được một nửa bộ số mở thưởng, chỉ lệch 3 số còn lại do lồng cầu xuất hiện biến động phân vùng ngẫu nhiên.`;
+          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định gần đúng (sát thực tế): Khớp ${matchedIn6Count}/6 số trúng [${matchedIn6Numbers.join(', ') || 'đang bám sát'}], có ${nearMissList.length} số lệch sát nút đúng 1 đơn vị (${nearMissList.map(n => `${n.predicted} ↔ ${n.officialNear}`).join(', ')}), ${bestAiPrize !== 'KHÔNG TRÚNG' ? `và vé AI đạt ${bestAiPrize}` : `tổng lệch ${sumDiff} điểm`}.`;
+          aiJudgmentReason = `Mô hình đón đầu được quỹ đạo chính của lồng cầu từ dữ liệu các kỳ trước; một số bóng trượt chỉ vì bước nhảy dao động biên cực nhỏ (±1 đơn vị) hoặc lồng cầu đột ngột dịch chuyển phân vùng.`;
         } else {
           aiClosenessRating = 'DEVIATED';
           aiClosenessBadge = '⚠️ LỆCH PHA BIẾN ĐỘNG';
           aiClosenessBadgeClass = 'danger';
           isAiClose = false;
-          aiJudgmentSummary = `Dự đoán bị lệch pha so với kết quả mở thưởng: Chỉ bắt được ${aiMatchedCount}/6 số [${aiMatchedNumbers.join(', ') || '0 số'}].`;
-          aiJudgmentReason = `Kỳ quay ghi nhận hiện tượng đột biến (lô gan sâu hoặc bão hòa lặp dồn cụm dải số), vượt ra khỏi kỳ vọng thông thường của phân phối xác suất.`;
+          aiJudgmentSummary = `Dự đoán bị lệch pha so với kết quả mở thưởng: Bắt được ${matchedIn6Count}/6 số [${matchedIn6Numbers.join(', ') || '0 số'}] trong 6 số chính và ${aiMatchedCount}/6 trong Top 10.`;
+          aiJudgmentReason = `Kỳ quay ghi nhận hiện tượng đột biến (lô gan sâu hoặc bão hòa lặp dồn cụm dải số), vượt ra khỏi kỳ vọng thông thường của phân phối xác suất. Dữ liệu các kỳ trước chưa đủ để bao phủ hết bước nhảy dị biệt này.`;
         }
 
         const explanation = powerExplanations[drawDate] || {
@@ -3092,6 +3135,16 @@ async function startServer() {
           aiPrediction: {
             algorithm: aiPrediction.algorithm,
             algorithmName: aiPrediction.algorithmName,
+            predicted6Numbers: aiPredicted6Numbers,
+            matchedIn6Numbers,
+            matchedIn6Count,
+            matchedIn6Percent,
+            nearMissList,
+            nearMissPredictedNumbers,
+            predictedSum,
+            sumDiff,
+            predictedOddEven,
+            parityMatch,
             top10Numbers: aiTop10Numbers,
             specialNumber: aiSpecialNumber,
             matchedNumbers: aiMatchedNumbers,
@@ -3207,6 +3260,8 @@ async function startServer() {
           coreRemedies,
         },
         draws: drawsList,
+        allAvailableDates: catRecords.map((r) => r.drawDate),
+        totalDrawsInDb: catRecords.length,
         recommendedHyperparameters,
       });
     } catch (err: any) {

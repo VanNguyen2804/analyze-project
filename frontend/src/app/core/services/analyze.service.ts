@@ -64,10 +64,14 @@ export class AnalyzeService {
   // ==========================================
   // API ĐỐI SOÁT & KIỂM THỬ CÁC KỲ TRƯỚC (HISTORICAL BACKTEST)
   // ==========================================
-  get5DrawsReconciliation(category?: string, algorithm?: string, limit: number = 5): Observable<any> {
+  get5DrawsReconciliation(category?: string, algorithm?: string, limit: number = 5, date?: string): Observable<any> {
     const cat = category || 'POWER';
     const alg = algorithm || 'deep_stacking';
-    return this.http.get<any>(`${this.apiUrl}/reconcile-5-draws?category=${cat}&algorithm=${alg}&limit=${limit}`);
+    let url = `${this.apiUrl}/reconcile-5-draws?category=${cat}&algorithm=${alg}&limit=${limit}`;
+    if (date && date.trim()) {
+      url += `&date=${encodeURIComponent(date.trim())}`;
+    }
+    return this.http.get<any>(url);
   }
 
   // ==========================================

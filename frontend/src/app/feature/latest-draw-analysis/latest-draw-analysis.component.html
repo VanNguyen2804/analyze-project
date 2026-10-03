@@ -165,61 +165,168 @@
   <!-- BODY -->
   <div class="card-body p-3 p-md-4">
     <!-- TOOLBAR: BỘ ĐIỀU KHIỂN KIỂM THỬ HỒI QUY -->
-    <div class="p-3 bg-light rounded-3 border mb-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
-      <div class="d-flex align-items-center gap-3 flex-wrap">
-        <!-- Chọn số lượng kỳ kiểm thử -->
-        <div class="d-flex align-items-center gap-2">
+    <div class="p-3 bg-light rounded-3 border mb-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
+        <!-- 1. Chọn số lượng kỳ kiểm thử (5, 10, 15, 20, 25, 30, 40, 50) -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
           <span class="small fw-bold text-dark">📊 Số kỳ kiểm thử:</span>
-          <div class="btn-group btn-group-sm" role="group">
-            <button type="button"
+          <div class="btn-group btn-group-sm flex-wrap" role="group">
+            <button *ngFor="let lim of availableLimits"
+                    type="button"
                     class="btn fw-semibold"
-                    [ngClass]="reconcileLimit === 5 ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
-                    (click)="setReconcileLimit(5)">
-              5 Kỳ
-            </button>
-            <button type="button"
-                    class="btn fw-semibold"
-                    [ngClass]="reconcileLimit === 8 ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
-                    (click)="setReconcileLimit(8)">
-              8 Kỳ
-            </button>
-            <button type="button"
-                    class="btn fw-semibold"
-                    [ngClass]="reconcileLimit === 10 ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
-                    (click)="setReconcileLimit(10)">
-              10 Kỳ
+                    [ngClass]="reconcileLimit === lim ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
+                    (click)="setReconcileLimit(lim)">
+              {{ lim }} Kỳ
             </button>
           </div>
         </div>
 
+        <!-- 2. Nút chạy lại & xem bảng tổng hợp -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button class="btn btn-outline-primary btn-sm fw-bold rounded-pill px-3"
+                  (click)="showAllBacktestTable = !showAllBacktestTable">
+            {{ showAllBacktestTable ? '🔼 Thu Gọn Bảng Ma Trận' : '📊 Bảng Ma Trận Tất Cả Các Kỳ' }}
+          </button>
+          <button class="btn btn-warning btn-sm fw-bold rounded-pill px-3 text-dark shadow-xs" 
+                  (click)="load5DrawsReconciliation()" 
+                  [disabled]="isLoadingReconciliation">
+            <span *ngIf="isLoadingReconciliation" class="spinner-border spinner-border-sm me-1"></span>
+            🧪 Chạy Lại Kiểm Thử
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 flex-wrap pt-2 border-top">
         <!-- Chọn thuật toán kiểm thử -->
         <div class="d-flex align-items-center gap-2">
           <span class="small fw-bold text-dark">🤖 Thuật toán kiểm thử:</span>
-          <select class="form-select form-select-sm fw-bold text-dark" style="min-width: 210px;" [(ngModel)]="reconcileAlgorithm" (change)="load5DrawsReconciliation()">
-            <option value="deep_stacking">⚡ Xếp Chồng AI & Copula</option>
+          <select class="form-select form-select-sm fw-bold text-dark" style="min-width: 220px;" [(ngModel)]="reconcileAlgorithm" (change)="load5DrawsReconciliation()">
+            <option value="deep_stacking">⚡ Xếp Chồng AI & Copula (DSE-Copula)</option>
             <option value="bayesian_graph">🔮 Mạng Đồ Thị Bayes (BEGN)</option>
             <option value="xgboost">🧠 AI XGBoost + Poisson</option>
             <option value="markov">🔗 Mô hình Chuỗi Markov</option>
           </select>
         </div>
-      </div>
 
-      <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-warning btn-sm fw-bold rounded-pill px-3 text-dark shadow-xs" (click)="load5DrawsReconciliation()" [disabled]="isLoadingReconciliation">
-          <span *ngIf="isLoadingReconciliation" class="spinner-border spinner-border-sm me-1"></span>
-          🧪 Chạy Lại Kiểm Thử
-        </button>
+        <!-- Chọn ngày cụ thể để kiểm thử đối soát trực tiếp -->
+        <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 240px;">
+          <span class="small fw-bold text-dark">📅 Chọn kỳ quay cụ thể:</span>
+          <select class="form-select form-select-sm fw-bold text-dark"
+                  [ngModel]="selectedReconcileDate"
+                  (ngModelChange)="onReconcileDateChange($event)">
+            <option value="">⚡ Tất cả {{ reconciliationData?.draws?.length || reconcileLimit }} kỳ (mới nhất)</option>
+            <option *ngFor="let dt of reconciliationData?.allAvailableDates || []" [value]="dt">
+              Kỳ ngày {{ dt }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <div *ngIf="isLoadingReconciliation" class="alert bg-primary-subtle border border-primary text-primary p-4 rounded-4 text-center my-3 shadow-xs">
+      <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+      <h6 class="fw-bold mb-1">Đang huấn luyện mô hình Walk-Forward & Kiểm thử các kỳ trước...</h6>
+      <p class="small mb-0 text-secondary">
+        Hệ thống đang trích xuất dữ liệu của tất cả các kỳ trước từng ngày mở thưởng, chạy mô hình AI để dự đoán ra 6 số và so sánh trực tiếp với 6 số thực sự trúng để đánh giá thuật toán.
+      </p>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div *ngIf="reconcileError && !isLoadingReconciliation" class="alert alert-danger p-3 rounded-3 my-3 d-flex justify-content-between align-items-center">
+      <span>⚠️ {{ reconcileError }}</span>
+      <button class="btn btn-sm btn-outline-danger" (click)="load5DrawsReconciliation()">Thử Lại</button>
+    </div>
+
+    <!-- BẢNG MA TRẬN TỔNG HỢP TẤT CẢ CÁC KỲ ĐÃ KIỂM THỬ (NẾU BẬT) -->
+    <div class="card border rounded-3 mb-4 shadow-xs" *ngIf="showAllBacktestTable && reconciliationData?.draws?.length">
+      <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
+        <span class="small fw-bold">📋 BẢNG MA TRẬN ĐỐI SOÁT TOÀN DIỆN {{ reconciliationData.draws.length }} KỲ (HỌC TỪ CÁC KỲ TRƯỚC ĐÓ)</span>
+        <button class="btn btn-sm btn-link text-white text-decoration-none py-0" (click)="showAllBacktestTable = false">Đóng ✕</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0 text-center" style="font-size: 0.82rem;">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Ngày Mở Thưởng</th>
+              <th>6 Số Mở Thưởng Thực Tế</th>
+              <th>6 Số AI Dự Đoán (Trước Kỳ)</th>
+              <th>Khớp 6 Số</th>
+              <th>Sát Nút ±1</th>
+              <th>Top 10 AI</th>
+              <th>Vé Mua</th>
+              <th>Đánh Giá Nhận Định</th>
+              <th>Hành Động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of reconciliationData.draws; let idx = index"
+                [class.table-primary]="selected5DrawIndex === idx"
+                style="cursor: pointer;"
+                (click)="select5Draw(idx)">
+              <td class="fw-bold">{{ idx + 1 }}</td>
+              <td class="fw-bold">{{ d.drawDate }}</td>
+              <td>
+                <span *ngFor="let num of d.officialNumbers" class="badge bg-dark me-1" style="font-size: 0.72rem;">
+                  {{ formatNumber(num) }}
+                </span>
+                <span *ngIf="d.officialSpecial" class="badge bg-warning text-dark" style="font-size: 0.72rem;">⭐{{ formatNumber(d.officialSpecial) }}</span>
+              </td>
+              <td>
+                <span *ngFor="let p of d.aiPrediction?.predicted6Numbers || []"
+                      class="badge me-1"
+                      [ngClass]="{
+                        'bg-success text-white': d.officialNumbers?.includes(p),
+                        'bg-warning text-dark': isNearMiss(p, d.officialNumbers),
+                        'bg-light text-muted border': !d.officialNumbers?.includes(p) && !isNearMiss(p, d.officialNumbers)
+                      }"
+                      style="font-size: 0.72rem;">
+                  {{ formatNumber(p) }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="(d.aiPrediction?.matchedIn6Count || 0) >= 2 ? 'bg-success text-white' : 'bg-secondary text-white'">
+                  {{ d.aiPrediction?.matchedIn6Count || 0 }}/6
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-info-subtle text-dark border">
+                  {{ d.aiPrediction?.nearMissList?.length || 0 }} số
+                </span>
+              </td>
+              <td>
+                <span class="fw-semibold text-primary">{{ d.aiPrediction?.matchedCount }}/6</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="d.uniqueMatchedCount >= 2 ? 'bg-success text-white' : 'bg-light text-muted border'">
+                  {{ d.uniqueMatchedCount }}/6
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="'bg-' + (d.aiPrediction?.judgment?.badgeClass || 'secondary')" style="font-size: 0.72rem;">
+                  {{ d.aiPrediction?.judgment?.badge }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-xs btn-outline-primary py-0 px-2" (click)="select5Draw(idx); $event.stopPropagation()">
+                  Chi Tiết
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <!-- 1. BỘ CHỌN KỲ QUAY ĐỂ XEM CHI TIẾT (PILLS) -->
-    <div class="mb-3">
+    <div class="mb-3" *ngIf="reconciliationData?.draws?.length">
       <div class="small fw-bold text-secondary mb-2 d-flex justify-content-between align-items-center">
-        <span>📅 BẤM CHỌN KỲ QUAY ĐỂ ĐỐI SOÁT CHI TIẾT (ĐANG XEM {{ reconciliationData?.draws?.length || 5 }} KỲ):</span>
+        <span>📅 BẤM CHỌN KỲ QUAY ĐỂ ĐỐI SOÁT CHI TIẾT (ĐANG XEM {{ reconciliationData?.draws?.length }} KỲ):</span>
         <span class="small text-muted" *ngIf="isLoadingReconciliation">Đang tính toán mô hình...</span>
       </div>
 
-      <div class="d-flex gap-2 flex-wrap" *ngIf="reconciliationData?.draws">
+      <div class="d-flex gap-2 flex-wrap">
         <button *ngFor="let draw of reconciliationData.draws; let idx = index"
                 type="button"
                 class="btn text-start p-2 px-3 rounded-3 border transition-all flex-grow-1"
@@ -236,7 +343,7 @@
           </div>
           <div class="d-flex justify-content-between align-items-center small" style="font-size: 0.75rem;">
             <span [ngClass]="selected5DrawIndex === idx ? 'text-white' : 'text-primary fw-bold'">
-              🎯 AI: {{ draw.aiPrediction?.matchedCount }}/6
+              🎯 6 số AI: {{ draw.aiPrediction?.matchedIn6Count || 0 }}/6 (Top 10: {{ draw.aiPrediction?.matchedCount }}/6)
             </span>
             <span [ngClass]="selected5DrawIndex === idx ? 'text-white-50' : 'text-muted'">
               🎟️ Vé mua: {{ draw.uniqueMatchedCount }}/6
@@ -309,48 +416,134 @@
           </div>
         </div>
 
-        <!-- SO SÁNH 3 CỘT: KẾT QUẢ MỞ THƯỞNG vs DỰ ĐOÁN AI vs VÉ ĐÃ MUA TRÙNG NGÀY -->
-        <div class="row g-3">
-          <!-- CỘT 1: KẾT QUẢ MỞ THƯỞNG CHÍNH THỨC -->
-          <div class="col-lg-4 col-md-6">
-            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-dark text-white">LỒNG CẦU QUAY THỰC TẾ</span>
-                <span class="small text-muted">{{ getCurrent5Draw().oddEven }}</span>
-              </div>
-              <h6 class="fw-bold text-primary mb-2">Kết Quả Kỳ {{ getCurrent5Draw().drawDate }}</h6>
-              <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
-                <div *ngFor="let num of getCurrent5Draw().officialNumbers"
-                     class="ball shadow-xs"
-                     [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
-                     style="width: 38px; height: 38px; font-size: 1rem; font-weight: bold;">
-                  {{ formatNumber(num) }}
+        <!-- SO SÁNH TRỰC DIỆN: 6 SỐ MỞ THƯỞNG vs 6 SỐ AI DỰ ĐOÁN (TỪ CÁC KỲ TRƯỚC) -->
+        <div class="card border rounded-4 mb-3 overflow-hidden shadow-sm">
+          <div class="card-header bg-gradient text-white py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2"
+               style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-5">🎯</span>
+              <span class="fw-bold">SO SÁNH TRỰC DIỆN: 6 SỐ THỰC SỰ TRÚNG vs 6 SỐ AI DỰ ĐOÁN (HỌC TỪ CÁC KỲ TRƯỚC)</span>
+            </div>
+            <span class="badge bg-warning text-dark px-3 py-1 fw-bold rounded-pill">
+              Kỳ quay: {{ getCurrent5Draw().drawDate }}
+            </span>
+          </div>
+
+          <div class="card-body p-3 p-md-4 bg-white">
+            <div class="row g-3 align-items-stretch">
+              <!-- HÀNG/CỘT 1: 6 SỐ THỰC SỰ TRÚNG THƯỞNG -->
+              <div class="col-lg-6">
+                <div class="p-3 rounded-3 bg-light border h-100">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-dark text-white px-2 py-1">LỒNG CẦU QUAY THỰC TẾ</span>
+                    <span class="badge bg-secondary-subtle text-dark border">{{ getCurrent5Draw().oddEven }}</span>
+                  </div>
+                  <h6 class="fw-bold text-primary mb-2">6 Số Mở Thưởng Chính Thức ({{ getCurrent5Draw().drawDate }}):</h6>
+                  
+                  <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                    <div *ngFor="let num of getCurrent5Draw().officialNumbers"
+                         class="ball shadow-xs"
+                         [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
+                         style="width: 44px; height: 44px; font-size: 1.15rem; font-weight: bold;">
+                      {{ formatNumber(num) }}
+                    </div>
+                    <div *ngIf="getCurrent5Draw().officialSpecial"
+                         class="ball ball-special shadow-xs ms-1"
+                         title="Banh phụ Jackpot 2"
+                         style="width: 42px; height: 42px; font-size: 1rem;">
+                      ⭐{{ formatNumber(getCurrent5Draw().officialSpecial) }}
+                    </div>
+                  </div>
+
+                  <div class="small p-2 px-3 rounded bg-white border text-secondary">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                      <span>Tổng điểm 6 bóng:</span>
+                      <strong class="text-dark">{{ getCurrent5Draw().sum }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                      <span>Cơ cấu Chẵn / Lẻ:</span>
+                      <strong class="text-dark">{{ getCurrent5Draw().oddEven }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between pt-1">
+                      <span>Phân vùng lồng cầu:</span>
+                      <span class="text-muted">{{ getCurrent5Draw().officialNumbers?.length }} bóng chính{{ getCurrent5Draw().officialSpecial ? ' + 1 bóng phụ' : '' }}</span>
+                    </div>
+                  </div>
                 </div>
-                <div *ngIf="getCurrent5Draw().officialSpecial"
-                     class="ball ball-special shadow-xs"
-                     title="Banh phụ Jackpot 2"
-                     style="width: 36px; height: 36px; font-size: 0.9rem;">
-                  ⭐ {{ formatNumber(getCurrent5Draw().officialSpecial) }}
-                </div>
               </div>
-              <div class="small text-muted p-2 rounded bg-white border">
-                <div>Tổng điểm: <strong>{{ getCurrent5Draw().sum }}</strong></div>
-                <div>Tỷ lệ: <strong>{{ getCurrent5Draw().oddEven }}</strong></div>
-                <div>Số lượng banh: <strong>{{ getCurrent5Draw().officialNumbers?.length }} banh chính{{ getCurrent5Draw().officialSpecial ? ' + 1 banh phụ' : '' }}</strong></div>
+
+              <!-- HÀNG/CỘT 2: 6 SỐ AI DỰ ĐOÁN DỰA VÀO CÁC KỲ TRƯỚC ĐÓ -->
+              <div class="col-lg-6">
+                <div class="p-3 rounded-3 bg-light border h-100" style="border-left: 4px solid #3b82f6 !important;">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary text-white px-2 py-1">AI DỰ ĐOÁN (TỪ CÁC KỲ TRƯỚC)</span>
+                    <span class="badge" [ngClass]="(getCurrent5Draw().aiPrediction?.matchedIn6Count || 0) >= 2 ? 'bg-success text-white' : 'bg-warning text-dark'">
+                      Khớp {{ getCurrent5Draw().aiPrediction?.matchedIn6Count || 0 }}/6 số ({{ getCurrent5Draw().aiPrediction?.matchedIn6Percent || 0 }}%)
+                    </span>
+                  </div>
+                  <h6 class="fw-bold text-dark mb-2">6 Số AI Dự Đoán Dựa Trên Lịch Sử Trước Kỳ Này:</h6>
+
+                  <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                    <div *ngFor="let p of getCurrent5Draw().aiPrediction?.predicted6Numbers || []"
+                         class="ball shadow-xs position-relative"
+                         [ngClass]="{
+                           'ball-highlight border border-2 border-warning': getCurrent5Draw().officialNumbers?.includes(p),
+                           'bg-warning-subtle text-dark border border-2 border-warning': isNearMiss(p, getCurrent5Draw().officialNumbers),
+                           'bg-white text-muted border text-decoration-line-through': !getCurrent5Draw().officialNumbers?.includes(p) && !isNearMiss(p, getCurrent5Draw().officialNumbers)
+                         }"
+                         style="width: 44px; height: 44px; font-size: 1.15rem; font-weight: bold;">
+                      {{ formatNumber(p) }}
+                      <span *ngIf="getCurrent5Draw().officialNumbers?.includes(p)"
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
+                            style="font-size: 0.6rem; padding: 2px 4px;">✓</span>
+                      <span *ngIf="isNearMiss(p, getCurrent5Draw().officialNumbers)"
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
+                            style="font-size: 0.58rem; padding: 2px 3px;"
+                            [title]="'Sát nút với số trúng ' + getNearMissTarget(p, getCurrent5Draw().officialNumbers)">±1</span>
+                    </div>
+                  </div>
+
+                  <div class="small p-2 px-3 rounded bg-white border text-secondary">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                      <span>Bóng trúng trực diện:</span>
+                      <strong class="text-success">{{ getCurrent5Draw().aiPrediction?.matchedIn6Count || 0 }}/6 số [{{ getCurrent5Draw().aiPrediction?.matchedIn6Numbers?.join(', ') || 'Chưa trúng trực tiếp' }}]</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                      <span>Bóng lệch sát nút (±1 đơn vị):</span>
+                      <span class="text-warning-emphasis fw-bold">
+                        {{ getCurrent5Draw().aiPrediction?.nearMissList?.length || 0 }} bóng 
+                        <span *ngIf="getCurrent5Draw().aiPrediction?.nearMissList?.length > 0" class="small text-muted">
+                          ({{ getCurrent5Draw().aiPrediction?.nearMissList?.[0]?.predicted }} ↔ {{ getCurrent5Draw().aiPrediction?.nearMissList?.[0]?.officialNear }})
+                        </span>
+                      </span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                      <span>Tổng điểm 6 số dự đoán:</span>
+                      <span><strong>{{ getCurrent5Draw().aiPrediction?.predictedSum }}</strong> (Chênh lệch: <strong class="text-primary">{{ getCurrent5Draw().aiPrediction?.sumDiff }} điểm</strong>)</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-1">
+                      <span>Cơ cấu Chẵn / Lẻ:</span>
+                      <span><strong>{{ getCurrent5Draw().aiPrediction?.predictedOddEven }}</strong> <span *ngIf="getCurrent5Draw().aiPrediction?.parityMatch" class="text-success ms-1">✓ Khớp hoàn toàn</span></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- CỘT 2: DỰ ĐOÁN CỦA AI TRƯỚC KỲ QUAY NÀY -->
+        <!-- SO SÁNH 3 CỘT: TOP 10 AI vs VÉ AI SINH RA vs VÉ BẠN ĐÃ MUA THỰC TẾ -->
+        <div class="row g-3">
+          <!-- CỘT 1: TOP 10 SỐ AI GỢI Ý & ĐỘ PHỦ -->
           <div class="col-lg-4 col-md-6">
             <div class="p-3 rounded-3 bg-light border h-100 shadow-xs" style="border-left: 3px solid #3b82f6 !important;">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-primary text-white">AI DỰ ĐOÁN (WALK-FORWARD)</span>
+                <span class="badge bg-primary text-white">TOP 10 ỨNG VIÊN AI</span>
                 <span class="badge" [ngClass]="getCurrent5Draw().aiPrediction?.matchedCount >= 3 ? 'bg-success text-white' : 'bg-warning text-dark'">
                   Khớp {{ getCurrent5Draw().aiPrediction?.matchedCount }}/6 bóng ({{ getCurrent5Draw().aiPrediction?.matchedPercent }}%)
                 </span>
               </div>
-              <h6 class="fw-bold text-dark mb-1">Top 10 Số Gợi Ý Của AI:</h6>
+              <h6 class="fw-bold text-dark mb-1">Top 10 Bóng Tiềm Năng Nhất:</h6>
               <div class="d-flex align-items-center gap-1 flex-wrap mb-2">
                 <div *ngFor="let b of getCurrent5Draw().aiPrediction?.top10Numbers"
                      class="ball shadow-xs"
@@ -358,34 +551,48 @@
                        'ball-highlight': getCurrent5Draw().aiPrediction?.matchedNumbers?.includes(b),
                        'bg-light text-muted border text-decoration-line-through': !getCurrent5Draw().aiPrediction?.matchedNumbers?.includes(b)
                      }"
-                     style="width: 30px; height: 30px; font-size: 0.8rem; font-weight: bold;">
+                     style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
                   {{ formatNumber(b) }}
                 </div>
                 <div *ngIf="getCurrent5Draw().aiPrediction?.specialNumber"
                      class="ball ball-special shadow-xs ms-1"
                      title="Banh phụ AI gợi ý"
-                     style="width: 30px; height: 30px; font-size: 0.8rem;">
+                     style="width: 32px; height: 32px; font-size: 0.85rem;">
                   ⭐{{ formatNumber(getCurrent5Draw().aiPrediction?.specialNumber) }}
                 </div>
               </div>
-              <div class="mb-2">
-                <div class="fw-bold small text-muted mb-1">Dàn Vé Tự Chọn Do AI Sinh Ra:</div>
-                <div class="d-flex flex-column gap-1">
-                  <div *ngFor="let t of getCurrent5Draw().aiPrediction?.generatedTickets"
-                       class="p-1 px-2 rounded bg-white border d-flex justify-content-between align-items-center"
-                       [class.border-success]="t.prize && t.prize !== 'KHÔNG TRÚNG'">
-                    <div class="d-flex gap-1 flex-wrap">
-                      <span *ngFor="let num of t.numbers"
-                            class="badge"
-                            [ngClass]="t.matchedNumbers?.includes(num) ? 'bg-success text-white' : 'bg-light text-secondary border'"
-                            style="font-size: 0.7rem; padding: 2px 4px;">
-                        {{ formatNumber(num) }}
-                      </span>
-                    </div>
-                    <span class="badge" [ngClass]="t.prize && t.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-secondary text-white'" style="font-size: 0.65rem;">
-                      {{ t.prize && t.prize !== 'KHÔNG TRÚNG' ? t.prize : 'Trượt' }}
+              <div class="small p-2 rounded bg-white border text-secondary" style="font-size: 0.75rem;">
+                <div>Độ phủ bóng chính: <strong class="text-primary">{{ getCurrent5Draw().aiPrediction?.matchedCount }}/6 bóng mở thưởng</strong></div>
+                <div>Số bóng trúng trong Top 10: <strong class="text-success">[{{ getCurrent5Draw().aiPrediction?.matchedNumbers?.join(', ') || 'Chưa trúng' }}]</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CỘT 2: DÀN VÉ TỰ CHỌN DO AI SINH RA CHO KỲ NÀY -->
+          <div class="col-lg-4 col-md-6">
+            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs" style="border-left: 3px solid #10b981 !important;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-success text-white">5 VÉ TỐI ƯU AI SINH RA</span>
+                <span class="badge bg-success-subtle text-success border">
+                  {{ getCurrent5Draw().aiPrediction?.winningTickets?.length || 0 }} vé trúng giải
+                </span>
+              </div>
+              <h6 class="fw-bold text-dark mb-1">Kiểm Tra Giải Thưởng Vé AI:</h6>
+              <div class="d-flex flex-column gap-1 mb-2">
+                <div *ngFor="let t of getCurrent5Draw().aiPrediction?.generatedTickets"
+                     class="p-1 px-2 rounded bg-white border d-flex justify-content-between align-items-center"
+                     [class.border-success]="t.prize && t.prize !== 'KHÔNG TRÚNG'">
+                  <div class="d-flex gap-1 flex-wrap">
+                    <span *ngFor="let num of t.numbers"
+                          class="badge"
+                          [ngClass]="t.matchedNumbers?.includes(num) ? 'bg-success text-white' : 'bg-light text-secondary border'"
+                          style="font-size: 0.7rem; padding: 2px 4px;">
+                      {{ formatNumber(num) }}
                     </span>
                   </div>
+                  <span class="badge" [ngClass]="t.prize && t.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-secondary text-white'" style="font-size: 0.65rem;">
+                    {{ t.prize && t.prize !== 'KHÔNG TRÚNG' ? t.prize : 'Trượt' }}
+                  </span>
                 </div>
               </div>
               <div class="small p-2 rounded bg-white border text-secondary" style="font-size: 0.75rem;">
@@ -396,9 +603,9 @@
 
           <!-- CỘT 3: VÉ BẠN ĐÃ MUA THỰC TẾ -->
           <div class="col-lg-4 col-12">
-            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs">
+            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs" style="border-left: 3px solid #6366f1 !important;">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-secondary text-white">VÉ MUA TRÙNG NGÀY</span>
+                <span class="badge bg-secondary text-white">VÉ BẠN MUA TRÙNG NGÀY</span>
                 <span class="badge bg-info-subtle text-dark border">
                   {{ getCurrent5Draw().userTickets?.length || 0 }} vé mua
                 </span>
