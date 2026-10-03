@@ -36,9 +36,14 @@ export interface MissedNumberReason {
 export interface TuningReport {
   totalTickets: number;
   totalNumbersChecked: number;
-  totalMatched: number;
+  totalMatched: number; // Số bóng trúng DUY NHẤT (đã loại trừ trùng lặp giữa các vé)
+  uniqueMatchedNumbers: number[];
+  duplicateMatchedCount: number; // Tổng số lượt trúng thô trên tất cả các vé
   totalMissed: number;
-  hitRatePercent: number;
+  uniqueUserNumbersCount: number;
+  officialWinningCount: number;
+  hitRatePercent: number; // Tỉ lệ bao phủ số trúng chính thức: (uniqueMatchedCount / officialWinningCount) * 100
+  selectionHitRatePercent: number; // Tỉ lệ trúng trên tập số chọn: (uniqueMatchedCount / uniqueUserNumbersCount) * 100
   averageRank: number;
   dominantMissFactor: string;
   keyDiagnoses: string[];
@@ -77,6 +82,71 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   manualTicketInputs: (number | null)[] = [null, null, null, null, null, null];
   manualSpecialInput: number | null = null;
   manualInputError: string | null = null;
+  quickSequenceInput: string = '';
+
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  get userTicketsSummary() {
+    if (!this.userTickets || this.userTickets.length === 0) return null;
+    const officialNumbers = (this.analysisData?.numbers || []).map(Number);
+    const officialWinningCount = officialNumbers.length || 6;
+
+    const uniqueMatchedSet = new Set<number>();
+    let rawTotalMatchedOccurrences = 0;
+
+    for (const t of this.userTickets) {
+      for (const m of (t.matchedNumbers || [])) {
+        uniqueMatchedSet.add(Number(m));
+        rawTotalMatchedOccurrences++;
+      }
+    }
+
+    const uniqueMatchedNumbers = Array.from(uniqueMatchedSet).sort((a, b) => a - b);
+    const uniqueMatchedCount = uniqueMatchedNumbers.length;
+
+    // Tỉ lệ bao phủ số trúng chính thức: (Số bóng trúng DUY NHẤT / Tổng 6 bóng mở thưởng) * 100
+    // Đã loại trừ trùng lặp: Nếu 2 vé có 3 số trúng và có số trùng nhau thì chỉ có 2 số trúng mà thôi -> Tỉ lệ: 2/6 = 33.3%
+    const hitRatePercent = officialWinningCount > 0
+      ? Math.round((uniqueMatchedCount / officialWinningCount) * 1000) / 10
+      : 0;
+
+    const uniqueUserNumbersSet = new Set<number>();
+    for (const t of this.userTickets) {
+      for (const n of (t.numbers || [])) {
+        uniqueUserNumbersSet.add(Number(n));
+      }
+    }
+    const uniqueUserNumbers = Array.from(uniqueUserNumbersSet).sort((a, b) => a - b);
+
+    const uniqueMissedSet = new Set<number>();
+    for (const t of this.userTickets) {
+      for (const m of (t.missedNumbers || [])) {
+        uniqueMissedSet.add(Number(m));
+      }
+    }
+    const uniqueMissedNumbers = Array.from(uniqueMissedSet).sort((a, b) => a - b);
+
+    const winningTicketsCount = this.userTickets.filter(
+      (t) => t.prize && t.prize !== 'KHÔNG TRÚNG'
+    ).length;
+
+    return {
+      totalTickets: this.userTickets.length,
+      officialWinningCount,
+      uniqueMatchedNumbers,
+      uniqueMatchedCount,
+      rawTotalMatchedOccurrences,
+      duplicateCount: Math.max(0, rawTotalMatchedOccurrences - uniqueMatchedCount),
+      hitRatePercent,
+      uniqueUserNumbers,
+      uniqueUserCount: uniqueUserNumbers.length,
+      uniqueMissedNumbers,
+      uniqueMissedCount: uniqueMissedNumbers.length,
+      winningTicketsCount,
+    };
+  }
 
   // Cross-check & Tuning report
   missedNumberReasons: MissedNumberReason[] = [];
@@ -245,6 +315,89 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     };
   }
 
+  onQuickSequenceChange(val: string): void {
+    if (!val) return;
+    this.manualInputError = null;
+    const maxLimit = this.category === 'POWER' ? 55 : 45;
+    // Tách các số từ chuỗi nhập vào (phân tách bởi dấu phẩy, khoảng trắng, gạch ngang, chấm phẩy)
+    const matches = val.match(/\d+/g);
+    if (matches && matches.length > 0) {
+      let idx = 0;
+      for (const m of matches) {
+        const num = parseInt(m, 10);
+        if (num >= 1 && num <= maxLimit) {
+          if (idx < 6) {
+            this.manualTicketInputs[idx] = num;
+            idx++;
+          } else if (idx === 6 && this.category === 'POWER' && !this.manualSpecialInput) {
+            this.manualSpecialInput = num;
+            idx++;
+          }
+        }
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  onBallInput(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const val = input.value.trim();
+    const maxLimit = this.category === 'POWER' ? 55 : 45;
+
+    // Nếu người dùng dán hoặc gõ nhiều số trong 1 ô tròn
+    if (val.length > 2 && /\s|,|-|;/.test(val)) {
+      this.onQuickSequenceChange(val);
+      return;
+    }
+
+    const num = parseInt(val, 10);
+    if (!isNaN(num)) {
+      if (num > maxLimit) {
+        this.manualTicketInputs[index] = maxLimit;
+      } else if (num < 1) {
+        this.manualTicketInputs[index] = null;
+      } else {
+        this.manualTicketInputs[index] = num;
+      }
+    } else {
+      this.manualTicketInputs[index] = null;
+    }
+
+    // Tự động chuyển con trỏ sang ô bóng tiếp theo khi đã nhập đủ 2 chữ số hoặc số >= 10
+    if (val.length >= 2 || (num >= 10 && num <= maxLimit)) {
+      if (index < 5) {
+        const nextEl = document.getElementById(`manual-ball-${index + 1}`) as HTMLInputElement;
+        if (nextEl) {
+          nextEl.focus();
+          nextEl.select();
+        }
+      } else if (index === 5 && this.category === 'POWER') {
+        const specialEl = document.getElementById('manual-special-ball') as HTMLInputElement;
+        if (specialEl) {
+          specialEl.focus();
+          specialEl.select();
+        }
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  onPasteIntoBalls(event: ClipboardEvent): void {
+    const text = event.clipboardData?.getData('text');
+    if (text) {
+      event.preventDefault();
+      this.onQuickSequenceChange(text);
+    }
+  }
+
+  resetManualInputs(): void {
+    this.manualTicketInputs = [null, null, null, null, null, null];
+    this.manualSpecialInput = null;
+    this.quickSequenceInput = '';
+    this.manualInputError = null;
+    this.cdr.markForCheck();
+  }
+
   addManualTicket(): void {
     this.manualInputError = null;
     const maxLimit = this.category === 'POWER' ? 55 : 45;
@@ -275,9 +428,10 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     const evaluated = this.evaluateUserTicket(nums, spec, 'manual');
     this.userTickets.unshift(evaluated);
 
-    // Reset input
+    // Reset inputs
     this.manualTicketInputs = [null, null, null, null, null, null];
     this.manualSpecialInput = null;
+    this.quickSequenceInput = '';
 
     this.buildMissedAnalysisAndReport();
     this.cdr.markForCheck();
@@ -370,16 +524,52 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
       return;
     }
 
-    let totalNumbersChecked = totalTickets * 6;
-    let totalMatched = 0;
-    let totalMissed = 0;
-
+    // 1. TẬP HỢP TẤT CẢ CÁC SỐ TRÚNG DUY NHẤT (LOẠI BỎ HOÀN TOÀN TRÙNG LẶP NẾU 2 VÉ CÓ CÙNG SỐ TRÚNG)
+    const uniqueMatchedSet = new Set<number>();
+    let rawTotalMatchedOccurrences = 0;
     for (const t of this.userTickets) {
-      totalMatched += t.matchedCount;
-      totalMissed += t.missedNumbers.length;
+      for (const m of (t.matchedNumbers || [])) {
+        uniqueMatchedSet.add(m);
+        rawTotalMatchedOccurrences++;
+      }
     }
+    const uniqueMatchedNumbers = Array.from(uniqueMatchedSet).sort((a, b) => a - b);
+    const uniqueMatchedCount = uniqueMatchedNumbers.length; // Số bóng trúng DUY NHẤT (không tính trùng)
 
-    const hitRatePercent = totalNumbersChecked > 0 ? Math.round((totalMatched / totalNumbersChecked) * 1000) / 10 : 0;
+    // 2. TẬP HỢP TẤT CẢ CÁC SỐ NGƯỜI DÙNG ĐÃ CHỌN TRONG CÁC VÉ (DUY NHẤT)
+    const uniqueUserNumbersSet = new Set<number>();
+    for (const t of this.userTickets) {
+      for (const n of (t.numbers || [])) {
+        uniqueUserNumbersSet.add(n);
+      }
+    }
+    const uniqueUserNumbers = Array.from(uniqueUserNumbersSet).sort((a, b) => a - b);
+    const uniqueUserNumbersCount = uniqueUserNumbers.length;
+
+    // 3. TẬP HỢP CÁC SỐ TRƯỢT DUY NHẤT
+    const uniqueMissedSet = new Set<number>();
+    for (const t of this.userTickets) {
+      for (const m of (t.missedNumbers || [])) {
+        uniqueMissedSet.add(m);
+      }
+    }
+    const totalMissed = uniqueMissedSet.size;
+    const totalNumbersChecked = totalTickets * 6;
+
+    // 4. SỐ BÓNG MỞ THƯỞNG CHÍNH THỨC CỦA KỲ QUAY (thường là 6)
+    const officialWinningCount = winningNumbers.length || 6;
+
+    // Tỉ lệ bao phủ số trúng chính thức: (Số bóng trúng duy nhất / Tổng 6 bóng mở thưởng) * 100
+    // Ví dụ: 2 vé có 3 lượt trúng nhưng trùng nhau 1 số -> có 2 số trúng duy nhất -> 2 / 6 = 33.3%
+    const hitRatePercent = officialWinningCount > 0
+      ? Math.round((uniqueMatchedCount / officialWinningCount) * 1000) / 10
+      : 0;
+
+    // Tỉ lệ trúng trên tổng số bóng độc nhất đã chọn (Selection Hit Rate)
+    const selectionHitRatePercent = uniqueUserNumbersCount > 0
+      ? Math.round((uniqueMatchedCount / uniqueUserNumbersCount) * 1000) / 10
+      : 0;
+
     const avgRank = missedList.length > 0 ? Math.round((totalRankSum / missedList.length) * 10) / 10 : 25;
 
     // Identify dominant factor
@@ -392,8 +582,12 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
       dominantFactor = 'Thiếu hụt dữ liệu tần suất lịch sử (Số có xác suất nền tảng quá thấp)';
     }
 
+    const duplicateNotice = (rawTotalMatchedOccurrences > uniqueMatchedCount)
+      ? ` (Đã lọc trùng lặp: Tổng cộng ${rawTotalMatchedOccurrences} lượt trúng trên các vé, giữ ${uniqueMatchedCount} số trúng duy nhất: [ ${uniqueMatchedNumbers.join(', ')} ])`
+      : ` (Khớp: [ ${uniqueMatchedNumbers.join(', ') || 'Không có'} ])`;
+
     const keyDiagnoses: string[] = [
-      `Hiệu suất khớp vé: Khớp ${totalMatched}/${totalNumbersChecked} bóng (${hitRatePercent}%). Có ${totalMissed} bóng trượt cần tối ưu hóa trọng số.`,
+      `Hiệu suất khớp vé: Trúng ${uniqueMatchedCount}/${officialWinningCount} bóng chính thức (${hitRatePercent}%)${duplicateNotice}. Tổng số bóng độc nhất đã chọn: ${uniqueUserNumbersCount} số (${totalMissed} bóng trượt).`,
       `Xếp hạng xác suất trung bình của các số trượt: Hạng #${avgRank}/${maxLimit}. Các số này bị mô hình AI xếp ở nhóm dưới do thiếu động lượng nổ.`,
       `Nguyên nhân chủ đạo: ${dominantFactor}.`,
       `Đặc tính kỳ quay thực tế: Dãy trúng (${winningNumbers.join(', ')}) có cấu trúc phân bổ ${this.analysisData.oddEvenRatio || 'Cân bằng'}, tổng điểm = ${this.analysisData.sum || 'N/A'}. Các vé của user bị lệch ngoài dải tối ưu này.`
@@ -413,7 +607,10 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
       evaluationSummary: {
         totalTickets,
         hitRatePercent,
-        matchedCount: totalMatched,
+        matchedCount: uniqueMatchedCount,
+        uniqueMatchedNumbers,
+        duplicateMatchedCount: rawTotalMatchedOccurrences,
+        uniqueUserNumbersCount,
         missedCount: totalMissed,
         averageMissedRank: avgRank
       },
@@ -441,9 +638,9 @@ Thuật toán phân tích: ${this.analysisData.algorithmName || this.algorithm}
 Kết quả mở thưởng chính thức: [ ${winningNumbers.join(' - ')} ] ${this.category === 'POWER' && this.analysisData.specialNumber ? `(Banh phụ: ${this.analysisData.specialNumber})` : ''}
 
 1. KẾT QUẢ ĐỐI SOÁT VÉ CỦA USER:
-- Tổng số vé đã kiểm tra: ${totalTickets} vé (${totalNumbersChecked} lượt số)
-- Số bóng khớp trúng: ${totalMatched} bóng (${hitRatePercent}%)
-- Số bóng trượt: ${totalMissed} bóng
+- Tổng số vé đã kiểm tra: ${totalTickets} vé (${uniqueUserNumbersCount} số độc nhất đã chọn)
+- Số bóng trúng duy nhất: ${uniqueMatchedCount}/${officialWinningCount} bóng chính thức (${hitRatePercent}%) [ ${uniqueMatchedNumbers.join(', ') || 'Không'} ]${(rawTotalMatchedOccurrences > uniqueMatchedCount) ? ` (Đã lọc trùng từ ${rawTotalMatchedOccurrences} lượt trúng trên các vé)` : ''}
+- Số bóng trượt độc nhất: ${totalMissed} bóng
 - Chi tiết từng vé:
 ${this.userTickets.map((t, idx) => `  * Vé #${idx + 1}: [ ${t.numbers.join(', ')} ] -> Khớp: [ ${t.matchedNumbers.join(', ') || 'Không'} ] (${t.matchedCount}/6) | Giải: ${t.prize}`).join('\n')}
 
@@ -463,9 +660,14 @@ ${hyperJson}
     this.tuningReport = {
       totalTickets,
       totalNumbersChecked,
-      totalMatched,
+      totalMatched: uniqueMatchedCount,
+      uniqueMatchedNumbers,
+      duplicateMatchedCount: rawTotalMatchedOccurrences,
       totalMissed,
+      uniqueUserNumbersCount,
+      officialWinningCount,
       hitRatePercent,
+      selectionHitRatePercent,
       averageRank: avgRank,
       dominantMissFactor: dominantFactor,
       keyDiagnoses,

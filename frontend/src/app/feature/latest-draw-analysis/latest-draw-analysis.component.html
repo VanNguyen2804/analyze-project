@@ -148,12 +148,13 @@
         <div class="fs-5 fw-bolder text-success">{{ reconciliationData.overallSummary.winningTickets }} vé (JP2)</div>
       </div>
       <div class="p-2 px-3 rounded-3 bg-danger-subtle text-dark text-center border border-danger">
-        <div class="small text-danger fw-bold" style="font-size: 0.7rem;">TRƯỢT</div>
+        <div class="small text-danger fw-bold" style="font-size: 0.7rem;">VÉ TRƯỢT</div>
         <div class="fs-5 fw-bolder text-danger">{{ reconciliationData.overallSummary.missedTickets }} vé</div>
       </div>
       <div class="p-2 px-3 rounded-3 bg-light text-dark text-center border">
-        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">TỶ LỆ KHỚP</div>
-        <div class="fs-5 fw-bolder text-danger">{{ reconciliationData.overallSummary.hitRatePercent }}%</div>
+        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">KHỚP BÓNG DUY NHẤT</div>
+        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.totalDistinctMatchedBalls }}/{{ reconciliationData.overallSummary.totalOfficialBalls }}</div>
+        <div class="small text-muted" style="font-size: 0.65rem;">({{ reconciliationData.overallSummary.ballHitRatePercent }}% bóng mở thưởng)</div>
       </div>
     </div>
   </div>
@@ -184,13 +185,13 @@
           </div>
           <div class="d-flex justify-content-between align-items-center">
             <span *ngIf="idx === 1" class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">
-              🏆 Trúng Jackpot 2
+              🏆 Trúng Jackpot 2 (5/6 + Phụ)
             </span>
             <span *ngIf="idx !== 1" class="badge" [ngClass]="selected5DrawIndex === idx ? 'bg-danger text-white' : 'bg-danger-subtle text-danger'" style="font-size: 0.7rem;">
-              ❌ Trượt (Trúng {{ draw.userTickets[0]?.matchedCount || 0 }}/6)
+              {{ draw.uniqueMatchedCount > 0 ? ('Khớp ' + draw.uniqueMatchedCount + '/6 bóng') : 'Trượt 0/6' }}{{ draw.anyMatchedSpecial ? ' (+Phụ)' : '' }}
             </span>
             <span class="small" style="font-size: 0.75rem;" [ngClass]="selected5DrawIndex === idx ? 'text-white-50' : 'text-muted'">
-              Tổng: {{ draw.sum }}
+              Độc nhất: {{ draw.uniqueMatchedCount }}/6
             </span>
           </div>
         </button>
@@ -236,9 +237,14 @@
         <!-- CỘT PHẢI: CÁC VÉ NGƯỜI DÙNG ĐÃ MUA TRÙNG NGÀY ĐÓ -->
         <div class="col-lg-7">
           <div class="p-3 rounded-3 bg-light border h-100">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge bg-primary text-white">VÉ MUA TRÙNG NGÀY {{ getCurrent5Draw().drawDate }}</span>
-              <span class="badge bg-secondary-subtle text-secondary">{{ getCurrent5Draw().userTickets?.length || 0 }} vé</span>
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary text-white">VÉ MUA TRÙNG NGÀY {{ getCurrent5Draw().drawDate }}</span>
+                <span class="badge bg-secondary-subtle text-secondary">{{ getCurrent5Draw().userTickets?.length || 0 }} vé</span>
+              </div>
+              <span class="badge bg-success-subtle text-success border border-success" *ngIf="getCurrent5Draw().uniqueMatchedCount > 0" style="font-size: 0.75rem;">
+                🎯 Khớp {{ getCurrent5Draw().uniqueMatchedCount }}/{{ getCurrent5Draw().officialNumbers?.length || 6 }} bóng duy nhất: [ {{ getCurrent5Draw().uniqueMatchedNumbers?.join(', ') }} ]
+              </span>
             </div>
 
             <!-- Danh sách vé đã mua -->
@@ -456,6 +462,95 @@
   </div>
 
   <div class="card-body p-4 bg-light">
+    <!-- BANNER TỔNG HỢP HIỆU SUẤT ĐỐI SOÁT VÉ CỦA USER CHO KỲ QUAY NÀY (ĐÃ LOẠI TRỪ TRÙNG LẶP) -->
+    <div class="row g-3 mb-4" *ngIf="userTicketsSummary">
+      <!-- 1. Tỉ lệ khớp trúng bóng chính thức -->
+      <div class="col-lg-4 col-md-6 col-12">
+        <div class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
+             style="border-left: 5px solid #2563eb !important;">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small text-muted fw-bold text-uppercase">🎯 Tỉ Lệ Khớp Trúng Bóng</span>
+              <span class="badge rounded-pill px-2 py-1"
+                    [ngClass]="userTicketsSummary.hitRatePercent >= 30 ? 'bg-success text-white' : 'bg-primary text-white'">
+                {{ userTicketsSummary.hitRatePercent }}%
+              </span>
+            </div>
+            <div class="fs-4 fw-bolder text-primary mb-1">
+              {{ userTicketsSummary.uniqueMatchedCount }}/{{ userTicketsSummary.officialWinningCount }} bóng trúng duy nhất
+            </div>
+            <div class="small fw-bold text-success" *ngIf="userTicketsSummary.uniqueMatchedNumbers.length > 0">
+              Các bóng khớp: [ {{ userTicketsSummary.uniqueMatchedNumbers.join(', ') }} ]
+            </div>
+            <div class="small text-muted" *ngIf="userTicketsSummary.uniqueMatchedNumbers.length === 0">
+              Chưa có bóng nào khớp với kỳ quay này.
+            </div>
+          </div>
+          <!-- Chú thích loại trừ trùng lặp cực kỳ rõ ràng -->
+          <div class="alert alert-light border rounded-3 p-2 mt-2 mb-0 small text-secondary" style="font-size: 0.76rem; line-height: 1.35;">
+            <div *ngIf="userTicketsSummary.duplicateCount > 0" class="text-danger fw-semibold">
+              ⚠️ Đã loại trừ trùng lặp: Tổng các vé có {{ userTicketsSummary.rawTotalMatchedOccurrences }} lượt trúng, nhưng có {{ userTicketsSummary.duplicateCount }} số trùng nhau nên chỉ tính <strong>{{ userTicketsSummary.uniqueMatchedCount }} bóng trúng độc nhất</strong> (Tỉ lệ: {{ userTicketsSummary.uniqueMatchedCount }}/{{ userTicketsSummary.officialWinningCount }} = {{ userTicketsSummary.hitRatePercent }}%).
+            </div>
+            <div *ngIf="userTicketsSummary.duplicateCount === 0" class="text-success">
+              ✅ Không có số trúng nào bị trùng lặp giữa các vé (Tỉ lệ khớp: {{ userTicketsSummary.uniqueMatchedCount }}/{{ userTicketsSummary.officialWinningCount }} = {{ userTicketsSummary.hitRatePercent }}%).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Thống kê vé & giải thưởng -->
+      <div class="col-lg-4 col-md-6 col-12">
+        <div class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
+             style="border-left: 5px solid #10b981 !important;">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small text-muted fw-bold text-uppercase">🎟️ Số Lượng Vé & Giải Thưởng</span>
+              <span class="badge bg-success rounded-pill px-2 py-1" *ngIf="userTicketsSummary.winningTicketsCount > 0">
+                {{ userTicketsSummary.winningTicketsCount }} vé trúng giải
+              </span>
+              <span class="badge bg-secondary rounded-pill px-2 py-1" *ngIf="userTicketsSummary.winningTicketsCount === 0">
+                Chưa trúng giải
+              </span>
+            </div>
+            <div class="fs-4 fw-bolder text-dark mb-1">
+              {{ userTicketsSummary.totalTickets }} vé đối soát
+            </div>
+            <div class="small text-muted">
+              Kỳ quay ngày: <strong class="text-dark">{{ selectedDate }}</strong> &bull; Loại vé: <strong class="text-primary">{{ category === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}</strong>
+            </div>
+          </div>
+          <div class="mt-2 small text-secondary" style="font-size: 0.78rem;">
+            Toàn bộ {{ userTicketsSummary.totalTickets }} vé được đối chiếu trực tiếp với kết quả mở thưởng chính thức của Vietlott.
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Tập hợp số đã chọn độc nhất -->
+      <div class="col-lg-4 col-12">
+        <div class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
+             style="border-left: 5px solid #f59e0b !important;">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small text-muted fw-bold text-uppercase">📊 Tập Số Bạn Đã Chọn</span>
+              <span class="badge bg-warning text-dark rounded-pill px-2 py-1">
+                {{ userTicketsSummary.uniqueUserCount }} số độc nhất
+              </span>
+            </div>
+            <div class="fs-4 fw-bolder text-dark mb-1">
+              <span class="text-success">{{ userTicketsSummary.uniqueMatchedCount }} trúng</span> / 
+              <span class="text-danger">{{ userTicketsSummary.uniqueMissedCount }} trượt</span>
+            </div>
+            <div class="small text-muted text-truncate" title="[ {{ userTicketsSummary.uniqueUserNumbers.join(', ') }} ]">
+              Dãy số đã chọn: [ {{ userTicketsSummary.uniqueUserNumbers.join(', ') }} ]
+            </div>
+          </div>
+          <div class="mt-2 small text-secondary" style="font-size: 0.78rem;">
+            Tỉ lệ trúng trên tập số chọn: <strong>{{ userTicketsSummary.uniqueUserCount > 0 ? (userTicketsSummary.uniqueMatchedCount / userTicketsSummary.uniqueUserCount * 100 | number:'1.1-1') : 0 }}%</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Danh sách vé của user -->
     <div *ngIf="userTickets.length > 0" class="mb-4">
       <div class="row g-3">
@@ -529,40 +624,87 @@
       </div>
     </div>
 
-    <!-- Khung nhập / thử nghiệm vé cá nhân nhanh -->
-    <div class="card border rounded-3 bg-white p-3 shadow-sm">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <!-- Khung nhập / thử nghiệm vé cá nhân nhanh (Hỗ trợ nhập chuỗi nhanh & nhập ô tròn không bị che khuất) -->
+    <div class="card border-0 rounded-4 bg-white p-3 p-md-4 shadow-sm" style="border: 2px dashed #3b82f6 !important;">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <div>
-          <span class="fw-bold text-dark me-2">➕ Thử nghiệm / Nhập thêm vé cá nhân của bạn để đối chiếu:</span>
-          <small class="text-muted d-block">Nhập 6 số từ 1 đến {{ category === 'POWER' ? 55 : 45 }} để thuật toán phân tích điểm lệch</small>
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-4">➕</span>
+            <h5 class="fw-bold text-dark mb-0">Thử Nghiệm / Nhập Thêm Vé Cá Nhân Của Bạn Để Đối Chiếu:</h5>
+          </div>
+          <small class="text-muted d-block mt-1">
+            Nhập dãy 6 số từ 01 đến {{ category === 'POWER' ? 55 : 45 }}{{ category === 'POWER' ? ' (+1 số phụ Jackpot 2 nếu có)' : '' }}. Bạn có thể dán cả chuỗi hoặc gõ trực tiếp từng ô tròn.
+          </small>
         </div>
-
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <input *ngFor="let val of manualTicketInputs; let i = index"
-                 type="number"
-                 class="form-control text-center fw-bold text-dark border-primary"
-                 style="width: 48px; height: 48px; border-radius: 50%; font-size: 1.05rem;"
-                 [placeholder]="'#' + (i + 1)"
-                 [min]="1"
-                 [max]="category === 'POWER' ? 55 : 45"
-                 [(ngModel)]="manualTicketInputs[i]">
-
-          <input *ngIf="category === 'POWER'"
-                 type="number"
-                 class="form-control text-center fw-bold text-dark border-warning bg-warning bg-opacity-10"
-                 style="width: 48px; height: 48px; border-radius: 50%; font-size: 1.05rem;"
-                 placeholder="⭐"
-                 title="Số phụ Jackpot 2 (nếu có)"
-                 [min]="1"
-                 [max]="55"
-                 [(ngModel)]="manualSpecialInput">
-
-          <button class="btn btn-primary fw-bold px-3 py-2 rounded-pill shadow-sm" (click)="addManualTicket()">
-            🔍 Đối Chiếu Vé Này
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="resetManualInputs()">
+            🔄 Làm mới ô nhập
           </button>
         </div>
       </div>
-      <div *ngIf="manualInputError" class="text-danger small fw-bold mt-2">
+
+      <!-- Ô nhập nhanh cả dãy số (Copy/Paste hoặc gõ liên tục không sợ mất số) -->
+      <div class="mb-3">
+        <div class="input-group shadow-xs">
+          <span class="input-group-text bg-light text-primary fw-bold border-end-0">
+            📋 Nhập nhanh cả dãy:
+          </span>
+          <input type="text"
+                 class="form-control border-start-0 ps-1"
+                 placeholder="Dán hoặc gõ cả dãy số (VD: 04 14 18 35 48 52 hoặc 04, 14, 18, 35, 48, 52...)"
+                 [(ngModel)]="quickSequenceInput"
+                 (ngModelChange)="onQuickSequenceChange($event)">
+        </div>
+        <div class="form-text small text-muted ms-1" style="font-size: 0.74rem;">
+          💡 Gợi ý: Bạn có thể copy cả dãy số từ tin nhắn, SMS, hoặc web và dán vào đây, hệ thống sẽ tự động điền đủ từng ô bóng bên dưới.
+        </div>
+      </div>
+
+      <!-- Hàng 6 ô bóng nhập liệu tròn trực quan (Hiển thị đầy đủ số, không bị che khuất) -->
+      <div class="p-3 bg-light rounded-4 border d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="small fw-bold text-dark me-1">Dãy bóng số:</span>
+          
+          <div *ngFor="let val of manualTicketInputs; let i = index; trackBy: trackByIndex"
+               class="d-flex flex-column align-items-center">
+            <input [id]="'manual-ball-' + i"
+                   type="text"
+                   inputmode="numeric"
+                   maxlength="2"
+                   class="manual-ball-input form-control shadow-xs"
+                   [placeholder]="'#' + (i + 1)"
+                   [(ngModel)]="manualTicketInputs[i]"
+                   (input)="onBallInput(i, $event)"
+                   (paste)="onPasteIntoBalls($event)">
+            <span class="text-muted fw-semibold mt-1" style="font-size: 0.68rem;">Bóng {{ i + 1 }}</span>
+          </div>
+
+          <!-- Ô nhập banh phụ Jackpot 2 nếu là POWER -->
+          <div *ngIf="category === 'POWER'" class="d-flex flex-column align-items-center ms-md-2 border-start ps-md-2">
+            <input id="manual-special-ball"
+                   type="text"
+                   inputmode="numeric"
+                   maxlength="2"
+                   class="manual-ball-input special-ball-input form-control shadow-xs"
+                   placeholder="⭐"
+                   title="Số phụ Jackpot 2 (nếu có, từ 01-55)"
+                   [(ngModel)]="manualSpecialInput"
+                   (input)="onBallInput(6, $event)">
+            <span class="text-warning fw-bold mt-1" style="font-size: 0.68rem;">⭐ Số Phụ</span>
+          </div>
+        </div>
+
+        <!-- Nút bấm Đối chiếu -->
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-primary btn-lg fw-bold px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-2"
+                  (click)="addManualTicket()">
+            <span>🔍 Đối Chiếu Vé Này</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Thông báo lỗi nhập nếu có -->
+      <div *ngIf="manualInputError" class="alert alert-danger border-0 rounded-3 py-2 px-3 mt-3 mb-0 small fw-bold">
         ⚠️ {{ manualInputError }}
       </div>
     </div>
@@ -691,17 +833,25 @@
     <!-- 4 Khối Chỉ số Hiệu Suất Tổng Quan -->
     <div class="row g-3 mb-4 text-center">
       <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border">
-          <div class="text-muted small">Tỷ lệ khớp trúng bóng</div>
+        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
+          <div class="text-muted small fw-semibold">Tỉ lệ khớp trúng bóng</div>
           <div class="fs-3 fw-bold" [ngClass]="tuningReport.hitRatePercent >= 30 ? 'text-success' : 'text-danger'">
             {{ tuningReport.hitRatePercent }}%
           </div>
-          <small class="text-secondary">{{ tuningReport.totalMatched }}/{{ tuningReport.totalNumbersChecked }} bóng trúng</small>
+          <small class="text-secondary">
+            <strong>{{ tuningReport.totalMatched }}/{{ tuningReport.officialWinningCount || 6 }}</strong> bóng trúng duy nhất
+          </small>
+          <div *ngIf="tuningReport.uniqueMatchedNumbers?.length > 0" class="small text-success mt-1 fw-bold" style="font-size: 0.75rem;">
+            Khớp: [ {{ tuningReport.uniqueMatchedNumbers.join(', ') }} ]
+          </div>
+          <div *ngIf="tuningReport.duplicateMatchedCount > tuningReport.totalMatched" class="text-danger mt-1 fw-semibold" style="font-size: 0.7rem;">
+            ⚠️ Đã lọc trùng: {{ tuningReport.duplicateMatchedCount }} lượt trúng &rarr; Giữ {{ tuningReport.totalMatched }} số trúng độc nhất
+          </div>
         </div>
       </div>
       <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border">
-          <div class="text-muted small">Xếp hạng TB số trượt</div>
+        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
+          <div class="text-muted small fw-semibold">Xếp hạng TB số trượt</div>
           <div class="fs-3 fw-bold text-warning">
             #{{ tuningReport.averageRank }}
           </div>
@@ -709,17 +859,18 @@
         </div>
       </div>
       <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border">
-          <div class="text-muted small">Tổng số vé đối soát</div>
+        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
+          <div class="text-muted small fw-semibold">Tổng số vé đối soát</div>
           <div class="fs-3 fw-bold text-primary">
             {{ tuningReport.totalTickets }} vé
           </div>
-          <small class="text-secondary">{{ tuningReport.totalMissed }} bóng trượt</small>
+          <small class="text-secondary">{{ tuningReport.uniqueUserNumbersCount }} bóng độc nhất đã chọn</small>
+          <div class="text-muted" style="font-size: 0.7rem;">{{ tuningReport.totalMissed }} bóng trượt</div>
         </div>
       </div>
       <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border">
-          <div class="text-muted small">Dãy trúng kỳ này</div>
+        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
+          <div class="text-muted small fw-semibold">Dãy trúng kỳ này</div>
           <div class="fs-5 fw-bold text-dark text-truncate mt-1">
             {{ analysisData?.oddEvenRatio || 'Cân bằng' }}
           </div>

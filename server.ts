@@ -2554,6 +2554,32 @@ async function startServer() {
             };
           });
 
+        // 1. Số bóng trúng DUY NHẤT trong kỳ quay này (Loại bỏ trùng lặp nếu 2 vé có cùng số trúng)
+        const uniqueMatchedNumbers = Array.from(
+          new Set(userTicketsForDraw.flatMap((t) => t.matchedNumbers || []))
+        ).sort((a, b) => a - b);
+        const uniqueMatchedCount = uniqueMatchedNumbers.length;
+
+        // 2. Tổng số lượt trúng thô trên các vé (chưa lọc trùng)
+        const rawMatchedOccurrences = userTicketsForDraw.reduce(
+          (acc, t) => acc + (t.matchedCount || 0),
+          0
+        );
+
+        // 3. Tập hợp các số người dùng đã chọn DUY NHẤT trong kỳ
+        const uniqueUserNumbers = Array.from(
+          new Set(userTicketsForDraw.flatMap((t) => t.numbers || []))
+        ).sort((a, b) => a - b);
+        const uniqueUserCount = uniqueUserNumbers.length;
+
+        const anyMatchedSpecial = userTicketsForDraw.some((t) => t.matchedSpecial);
+        const totalOfficialCount = officialNumbers.length || 6;
+        
+        // Tỷ lệ khớp trúng bóng chính thức = (Số bóng trúng duy nhất / 6 bóng mở thưởng) * 100
+        const coveragePercent = totalOfficialCount > 0
+          ? Math.round((uniqueMatchedCount / totalOfficialCount) * 1000) / 10
+          : 0;
+
         const explanation = powerExplanations[drawDate] || {
           whyWinningBallsAppeared: officialNumbers.map((n) => ({
             number: n,
@@ -2578,6 +2604,14 @@ async function startServer() {
           sum,
           oddEven: `${evenCount} Chẵn / ${oddCount} Lẻ`,
           userTickets: userTicketsForDraw,
+          uniqueMatchedNumbers,
+          uniqueMatchedCount,
+          rawMatchedOccurrences,
+          uniqueUserNumbers,
+          uniqueUserCount,
+          anyMatchedSpecial,
+          coveragePercent,
+          drawAccuracyLabel: `${uniqueMatchedCount}/${totalOfficialCount}${anyMatchedSpecial ? ' (+Phụ)' : ''}`,
           whyWinningBallsAppeared: explanation.whyWinningBallsAppeared,
           whyAlgorithmMissed: explanation.whyAlgorithmMissed,
         };
@@ -2588,6 +2622,17 @@ async function startServer() {
         (acc, d) => acc + d.userTickets.filter((t) => t.prize && t.prize !== 'KHÔNG TRÚNG').length,
         0
       );
+
+      // Tổng số bóng mở thưởng và tổng số bóng trúng duy nhất (đã loại trừ trùng lặp) across 5 draws
+      let grandTotalOfficialBalls = 0;
+      let grandTotalDistinctMatched = 0;
+      for (const d of drawsList) {
+        grandTotalOfficialBalls += d.officialNumbers.length;
+        grandTotalDistinctMatched += d.uniqueMatchedCount;
+      }
+      const overallBallHitRatePercent = grandTotalOfficialBalls > 0
+        ? Math.round((grandTotalDistinctMatched / grandTotalOfficialBalls) * 1000) / 10
+        : 0;
 
       const dominantFlaws = [
         'Bẫy số nóng trễ pha (Lagged Momentum Trap): Mua vé dựa trên kết quả kỳ vừa xong khi các số đó đã chạm đỉnh và bước vào pha kiệt sức (ví dụ: kỳ 28/09 đánh lại 14, 52).',
@@ -2632,7 +2677,11 @@ async function startServer() {
           totalTickets: totalUserTickets,
           winningTickets: winningUserTickets,
           missedTickets: totalUserTickets - winningUserTickets,
-          hitRatePercent: totalUserTickets > 0 ? Math.round((winningUserTickets / totalUserTickets) * 1000) / 10 : 20.0,
+          ticketHitRatePercent: totalUserTickets > 0 ? Math.round((winningUserTickets / totalUserTickets) * 1000) / 10 : 20.0,
+          totalDistinctMatchedBalls: grandTotalDistinctMatched,
+          totalOfficialBalls: grandTotalOfficialBalls,
+          ballHitRatePercent: overallBallHitRatePercent,
+          hitRatePercent: overallBallHitRatePercent, // Tỉ lệ khớp bóng mở thưởng đã loại trừ trùng lặp giữa các vé
           dominantFlaws,
           coreRemedies,
         },
