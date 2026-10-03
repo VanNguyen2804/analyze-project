@@ -2037,6 +2037,17 @@ async function startServer() {
     next();
   });
 
+  // URL rewrite middleware: Transparently support routes accessed with or without '/api' prefix
+  app.use((req, res, next) => {
+    const rawPath = req.url;
+    if (rawPath.startsWith('/analyze/') || rawPath === '/analyze') {
+      req.url = '/api' + rawPath;
+    } else if (rawPath.startsWith('/french/') || rawPath === '/french') {
+      req.url = '/api' + rawPath;
+    }
+    next();
+  });
+
   // API Routes
   app.get('/api/numbers', (req: Request, res: Response) => {
     const { date, category } = req.query;
@@ -2328,7 +2339,7 @@ async function startServer() {
   });
 
   // OFFICIAL DRAW ANALYSIS FOR LATEST-DRAW-ANALYSIS PAGE
-  app.get('/api/analyze/official-draw-analysis', (req: Request, res: Response) => {
+  const handleOfficialDrawAnalysis = (req: Request, res: Response) => {
     try {
       const categoryInput = String(req.query.category || 'MEGA').toUpperCase();
       const category: 'POWER' | 'MEGA' = categoryInput === 'POWER' ? 'POWER' : 'MEGA';
@@ -2535,10 +2546,15 @@ async function startServer() {
     } catch (err: any) {
       return res.status(500).json({ message: err.message || 'Lỗi server' });
     }
-  });
+  };
+
+  app.get('/api/analyze/official-draw-analysis', handleOfficialDrawAnalysis);
+  app.get('/analyze/official-draw-analysis', handleOfficialDrawAnalysis);
+  app.get('/api/official-draw-analysis', handleOfficialDrawAnalysis);
+  app.get('/official-draw-analysis', handleOfficialDrawAnalysis);
 
   // GET LATEST DRAW AND USER TICKETS FOR CORRESPONDING CATEGORY
-  app.get('/api/analyze/latest-draw', (req: Request, res: Response) => {
+  const handleLatestDraw = (req: Request, res: Response) => {
     try {
       const category: 'POWER' | 'MEGA' =
         req.query.category && String(req.query.category).toUpperCase() === 'MEGA'
@@ -2641,7 +2657,12 @@ async function startServer() {
     } catch (err: any) {
       return res.status(500).json({ error: err.message || 'Lỗi server' });
     }
-  });
+  };
+
+  app.get('/api/analyze/latest-draw', handleLatestDraw);
+  app.get('/analyze/latest-draw', handleLatestDraw);
+  app.get('/api/latest-draw', handleLatestDraw);
+  app.get('/latest-draw', handleLatestDraw);
 
   // SAVE A USER TICKET FOR A SPECIFIC DRAW
   app.post('/api/analyze/save-user-ticket', (req: Request, res: Response) => {
@@ -2821,7 +2842,7 @@ async function startServer() {
   // BÁO CÁO ĐỐI SOÁT 5 KỲ GẦN NHẤT & CHẨN ĐOÁN NGUYÊN NHÂN SAI LỆCH THUẬT TOÁN
   // Đối chiếu kết quả ngày mở thưởng và kết quả mua vé trùng ngày để tìm ra lý do tại sao ra các banh đó
   // =========================================================================================
-  app.get('/api/analyze/reconcile-5-draws', (req: Request, res: Response) => {
+  const handleReconcile5Draws = (req: Request, res: Response) => {
     try {
       const catInput = String(req.query.category || 'POWER').toUpperCase();
       const category: 'POWER' | 'MEGA' = catInput === 'MEGA' ? 'MEGA' : 'POWER';
@@ -3267,7 +3288,14 @@ async function startServer() {
     } catch (err: any) {
       return res.status(500).json({ status: 'ERROR', message: err.message || 'Lỗi server' });
     }
-  });
+  };
+
+  app.get('/api/analyze/reconcile-5-draws', handleReconcile5Draws);
+  app.get('/analyze/reconcile-5-draws', handleReconcile5Draws);
+  app.get('/api/analyze/reconcile-draws', handleReconcile5Draws);
+  app.get('/analyze/reconcile-draws', handleReconcile5Draws);
+  app.get('/api/reconcile-5-draws', handleReconcile5Draws);
+  app.get('/reconcile-5-draws', handleReconcile5Draws);
 
   // =========================================================================================
   // ALGORITHM HYPERPARAMETERS TABLE & UPDATE ENGINE
