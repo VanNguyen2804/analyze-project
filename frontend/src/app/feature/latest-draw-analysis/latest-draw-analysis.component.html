@@ -924,14 +924,14 @@
             </p>
 
             <div class="row g-2">
-              <div class="col-lg-6" *ngFor="let t of getCurrent5Draw().aiPrediction?.numberRelationships?.ticketAffinityDetails | slice:0:10">
+              <div class="col-lg-6" *ngFor="let t of getAffinityTickets(getCurrent5Draw())">
                 <div class="p-2 px-3 rounded-3 bg-light border">
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="fw-bold text-dark small">Dãy Vé #{{ t.ticketIndex }}:</span>
                     <span class="badge bg-danger text-white" style="font-size: 0.68rem;">{{ t.cohesionLevel }}</span>
                   </div>
                   <div class="d-flex align-items-center gap-1 flex-wrap mb-2">
-                    <div *ngFor="let b of ($any(t).numbers || t)"
+                    <div *ngFor="let b of t.numbers"
                          class="ball shadow-xs"
                          [ngClass]="getCurrent5Draw().officialNumbers?.includes(b) ? 'ball-highlight' : 'bg-white text-dark border'"
                          style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">

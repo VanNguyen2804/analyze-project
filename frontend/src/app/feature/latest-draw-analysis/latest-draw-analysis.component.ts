@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { AnalyzeService } from '../../core/services/analyze.service';
 import { TicketItem, TicketAffinityDetail } from '../../core/models/prediction-payload.model';
 
-export { TicketItem, TicketAffinityDetail };
+export type { TicketItem, TicketAffinityDetail };
 
 export interface EvaluatedUserTicket extends TicketItem {
   id?: number;
@@ -887,6 +887,12 @@ ${hyperJson}
   getCurrent5Draw(): any {
     if (!this.reconciliationData?.draws || this.reconciliationData.draws.length === 0) return null;
     return this.reconciliationData.draws[this.selected5DrawIndex] || this.reconciliationData.draws[0];
+  }
+
+  getAffinityTickets(draw: any): TicketAffinityDetail[] {
+    const list = draw?.aiPrediction?.numberRelationships?.ticketAffinityDetails;
+    if (!Array.isArray(list)) return [];
+    return list.slice(0, 10);
   }
 
   isNearMiss(predictedNum: number, officialNums: number[]): boolean {

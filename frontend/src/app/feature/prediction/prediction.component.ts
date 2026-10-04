@@ -238,6 +238,12 @@ export class PredictionComponent implements OnInit, OnDestroy {
   expandedTicketDetails: { [key: number]: boolean } = { 0: true };
   showAffinityModal: boolean = false;
 
+  get displayedTickets(): number[][] {
+    const list = this.payload?.tickets;
+    if (!Array.isArray(list)) return [];
+    return list.slice(0, this.displayedTicketsLimit);
+  }
+
   toggleAffinityModal() {
     this.showAffinityModal = !this.showAffinityModal;
     this.cdr.markForCheck();
