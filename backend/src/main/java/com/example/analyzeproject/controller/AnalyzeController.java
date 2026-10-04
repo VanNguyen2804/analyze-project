@@ -42,7 +42,8 @@ public class AnalyzeController {
             Map<String, Object> result = analyzeService.reconcileDraws(category, algorithm, limit, date);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("status", "ERROR", "message", e.getMessage() != null ? e.getMessage() : "Lỗi tính toán đối soát"));
+            String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            return ResponseEntity.status(500).body(Map.of("status", "ERROR", "message", msg, "errorType", e.getClass().getName()));
         }
     }
     
