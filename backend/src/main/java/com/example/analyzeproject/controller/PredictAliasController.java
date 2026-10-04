@@ -25,7 +25,7 @@ public class PredictAliasController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping(value = {"/reconcile-5-draws", "/api/reconcile-5-draws", "/analyze/reconcile-5-draws", "/api/analyze/reconcile-5-draws"})
+    @GetMapping(value = {"/reconcile-5-draws", "/api/reconcile-5-draws"})
     public ResponseEntity<?> reconcile5DrawsAlias(
             @RequestParam(value = "category", defaultValue = "MEGA") String category,
             @RequestParam(value = "algorithm", defaultValue = "deep_stacking") String algorithm,
