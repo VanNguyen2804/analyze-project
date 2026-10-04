@@ -588,7 +588,7 @@
                      class="p-1 px-2 rounded bg-white border d-flex justify-content-between align-items-center"
                      [class.border-success]="t.prize && t.prize !== 'KHÔNG TRÚNG'">
                   <div class="d-flex gap-1 flex-wrap">
-                    <span *ngFor="let num of t.numbers"
+                    <span *ngFor="let num of ($any(t).numbers || t)"
                           class="badge"
                           [ngClass]="t.matchedNumbers?.includes(num) ? 'bg-success text-white' : 'bg-light text-secondary border'"
                           style="font-size: 0.7rem; padding: 2px 4px;">
@@ -931,7 +931,7 @@
                     <span class="badge bg-danger text-white" style="font-size: 0.68rem;">{{ t.cohesionLevel }}</span>
                   </div>
                   <div class="d-flex align-items-center gap-1 flex-wrap mb-2">
-                    <div *ngFor="let b of t.numbers"
+                    <div *ngFor="let b of ($any(t).numbers || t)"
                          class="ball shadow-xs"
                          [ngClass]="getCurrent5Draw().officialNumbers?.includes(b) ? 'ball-highlight' : 'bg-white text-dark border'"
                          style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">

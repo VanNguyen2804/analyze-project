@@ -27,6 +27,35 @@ export interface FocusAnalysis {
   algorithmUpgradeNotes: string[];
 }
 
+export interface TicketItem {
+  id?: number | string;
+  ticketIndex?: number;
+  numbers: number[];
+  specialNumber?: number | null;
+  matchedNumbers?: number[];
+  missedNumbers?: number[];
+  matchedCount?: number;
+  matchedSpecial?: boolean;
+  prize?: string;
+  prizeAmount?: string;
+  isWinning?: boolean;
+  pairSynergyScore?: number;
+  cohesionLevel?: string;
+  explanation?: string;
+  source?: 'history' | 'manual' | 'ai';
+  note?: string;
+  checkedAt?: string | Date;
+  status?: string;
+}
+
+export interface TicketAffinityDetail extends TicketItem {
+  ticketIndex: number;
+  numbers: number[];
+  pairSynergyScore?: number;
+  cohesionLevel?: string;
+  explanation?: string;
+}
+
 export interface NumberRelationshipData {
   summary?: string;
   algorithmName?: string;
@@ -54,13 +83,7 @@ export interface NumberRelationshipData {
     frequency: number;
     description: string;
   }>;
-  ticketAffinityDetails?: Array<{
-    ticketIndex: number;
-    numbers: number[];
-    pairSynergyScore: number;
-    cohesionLevel: string;
-    explanation: string;
-  }>;
+  ticketAffinityDetails?: TicketAffinityDetail[];
 }
 
 export interface PredictionPayload {
@@ -68,7 +91,7 @@ export interface PredictionPayload {
   message?: string;
   category?: string;
   lotteryType?: string;
-  tickets?: number[][];
+  tickets?: number[][] | TicketItem[];
   details?: NumberScoreDetail[];
   focusAnalysis?: FocusAnalysis;
   numbers?: number[];

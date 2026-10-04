@@ -4,8 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AnalyzeService } from '../../core/services/analyze.service';
+import { TicketItem, TicketAffinityDetail } from '../../core/models/prediction-payload.model';
 
-export interface EvaluatedUserTicket {
+export { TicketItem, TicketAffinityDetail };
+
+export interface EvaluatedUserTicket extends TicketItem {
   id?: number;
   numbers: number[];
   specialNumber?: number | null;
@@ -16,6 +19,7 @@ export interface EvaluatedUserTicket {
   prize?: string;
   prizeAmount?: string;
   source: 'history' | 'manual';
+  note?: string;
 }
 
 export interface MissedNumberReason {
