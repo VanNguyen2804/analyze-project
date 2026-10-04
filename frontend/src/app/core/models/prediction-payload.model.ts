@@ -91,7 +91,9 @@ export interface PredictionPayload {
   message?: string;
   category?: string;
   lotteryType?: string;
-  tickets?: number[][] | TicketItem[];
+  tickets?: number[][];
+  ticketItems?: TicketItem[];
+  generatedTickets?: TicketItem[];
   details?: NumberScoreDetail[];
   focusAnalysis?: FocusAnalysis;
   numbers?: number[];
