@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/analyze")
+@RequestMapping({"/api/analyze", "/analyze"})
 @CrossOrigin(origins = "*")
 public class AnalyzeController {
 
@@ -25,6 +25,25 @@ public class AnalyzeController {
     @Autowired
     public AnalyzeController(AnalyzeService analyzeService) {
         this.analyzeService = analyzeService;
+    }
+
+    /**
+     * ĐỐI SOÁT & KIỂM THỬ CÁC KỲ QUAY TRƯỚC (WALK-FORWARD BACKTESTING)
+     * Endpoint: /api/analyze/reconcile-5-draws HOẶC /analyze/reconcile-5-draws
+     * Hỗ trợ các tham số: category (MEGA|POWER), algorithm, limit (5, 10, 15, 20...), date (tùy chọn)
+     */
+    @GetMapping({"/reconcile-5-draws", "/reconcile-draws"})
+    public ResponseEntity<?> getReconcile5Draws(
+            @RequestParam(value = "category", defaultValue = "MEGA") String category,
+            @RequestParam(value = "algorithm", defaultValue = "deep_stacking") String algorithm,
+            @RequestParam(value = "limit", defaultValue = "5") int limit,
+            @RequestParam(value = "date", required = false) String date) {
+        try {
+            Map<String, Object> result = analyzeService.reconcileDraws(category, algorithm, limit, date);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("status", "ERROR", "message", e.getMessage() != null ? e.getMessage() : "Lỗi tính toán đối soát"));
+        }
     }
     
     @RequestMapping(value = "/predict", method = {RequestMethod.GET, RequestMethod.POST})

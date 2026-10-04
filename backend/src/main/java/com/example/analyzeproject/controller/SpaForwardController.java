@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class SpaForwardController {
 
     @GetMapping(value = {
+            "/french",
+            "/french/**",
             "/analyze",
-            "/analyze/**",
+            "/latest-analysis",
+            "/latest-analysis/**",
             "/landing",
             "/landing/**",
             "/entry",
