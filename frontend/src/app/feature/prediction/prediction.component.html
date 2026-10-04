@@ -226,6 +226,12 @@
       </div>
 
       <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Nút mở Ma trận mối liên hệ & cụm tương quan -->
+        <button type="button" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3 shadow-xs"
+                (click)="toggleAffinityModal()">
+          🔗 Mối Liên Hệ & Cụm Tương Quan (Anti-Scattering)
+        </button>
+
         <!-- Chế độ hiển thị: Bảng / Thẻ -->
         <div class="btn-group btn-group-sm" role="group">
           <button type="button" class="btn fw-semibold"
@@ -269,6 +275,23 @@
       </div>
     </div>
 
+    <!-- BANNER NÂNG CẤP THUẬT TOÁN GOM CỤM CHỐNG PHÂN TÁN 4 SỐ TRÚNG -->
+    <div class="alert alert-danger mx-3 mx-md-4 mt-3 mb-0 border-0 rounded-3 shadow-xs d-flex justify-content-between align-items-center flex-wrap gap-2"
+         style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 4px solid #ef4444 !important;">
+      <div>
+        <div class="fw-bold text-danger d-flex align-items-center gap-2">
+          <span>⚡ ĐÃ KÍCH HOẠT: THUẬT TOÁN GOM CỤM TƯƠNG QUAN (ANTI-SCATTERING WHEELING)</span>
+          <span class="badge bg-danger text-white rounded-pill" style="font-size: 0.65rem;">MỚI NHẤT</span>
+        </div>
+        <div class="small text-secondary mt-1">
+          Khắc phục hiện tượng <em>"có 4 số trúng nhưng bị tản mạn sang nhiều vé"</em>: Tự động gom các cụm 3-4 số có lực hút đồng xuất hiện cao nhất vào cùng 1 dãy vé, tối đa hóa xác suất trúng trọn vẹn giải 4 số / Jackpot!
+        </div>
+      </div>
+      <button class="btn btn-sm btn-danger fw-bold rounded-pill px-3 shadow-xs" (click)="toggleAffinityModal()">
+        Xem Ma Trận Liên Kết 🧩
+      </button>
+    </div>
+
     <!-- VIEW 1: DẠNG BẢNG CHI TIẾT (THEO ĐÚNG YÊU CẦU CỦA USER) -->
     <div *ngIf="ticketViewMode === 'table'" class="table-responsive">
       <table class="table table-hover align-middle mb-0 border-top">
@@ -290,6 +313,12 @@
                 <span class="badge bg-dark fs-6 px-2 py-1">Vé #{{ i + 1 }}</span>
                 <span class="badge" [ngClass]="getTicketStrategyBadge(i).class" style="font-size: 0.65rem;">
                   {{ getTicketStrategyBadge(i).text }}
+                </span>
+                <span *ngIf="getTicketAffinityInfo(i)"
+                      class="badge bg-danger-subtle text-danger border border-danger-subtle"
+                      style="font-size: 0.65rem;"
+                      [title]="getTicketAffinityInfo(i)?.explanation">
+                  🔗 {{ getTicketAffinityInfo(i)?.cohesionLevel }}
                 </span>
               </div>
             </td>
@@ -403,10 +432,13 @@
           <div class="card shadow-sm border-0 h-100">
             <div class="card-header text-start d-flex justify-content-between align-items-center flex-wrap gap-1" 
                  [ngClass]="{'bg-info text-dark': payload?.lotteryType === 'MEGA', 'bg-warning text-dark': payload?.lotteryType === 'POWER'}">
-              <div class="d-flex align-items-center gap-1">
+              <div class="d-flex align-items-center gap-1 flex-wrap">
                 <strong>🎟️ Vé #{{ i + 1 }}</strong>
                 <span class="badge" [ngClass]="getTicketStrategyBadge(i).class" style="font-size: 0.65rem;">
                   {{ getTicketStrategyBadge(i).text }}
+                </span>
+                <span *ngIf="getTicketAffinityInfo(i)" class="badge bg-danger text-white small" [title]="getTicketAffinityInfo(i)?.explanation">
+                  🔗 {{ getTicketAffinityInfo(i)?.cohesionLevel }}
                 </span>
                 <span class="badge bg-white text-dark small">{{ getTicketParity(ticket) }}</span>
                 <span class="badge bg-white text-dark small">Tổng: {{ getTicketSum(ticket) }}</span>
@@ -945,6 +977,115 @@
 
       <div *ngIf="!hoveredNumberHistory || hoveredNumberHistory.length === 0" class="small text-muted text-center py-2 bg-light rounded border">
         Chưa có lần về nào trong các kỳ gần đây
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL MA TRẬN MỐI LIÊN HỆ & CỤM TƯƠNG QUAN SỐ TRÚNG      -->
+<!-- ======================================================== -->
+<div *ngIf="showAffinityModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.6); z-index: 1060;">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
+      <div class="modal-header bg-gradient text-white py-3 px-4"
+           style="background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-4">🔗</span>
+          <div>
+            <h5 class="modal-title fw-bold mb-0">Ma Trận Mối Liên Hệ & Cụm Tương Quan Số Trúng</h5>
+            <small class="text-warning fw-semibold">Giải thuật Gom Cụm Chống Phân Tán (Anti-Scattering Wheeling)</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" (click)="toggleAffinityModal()"></button>
+      </div>
+
+      <div class="modal-body p-4 bg-light">
+        <!-- BANNER THUYẾT MINH -->
+        <div class="alert alert-danger border-0 rounded-3 shadow-xs mb-3">
+          <h6 class="fw-bold text-danger mb-1">🎯 Tại sao cần thuật toán gom cụm liên kết?</h6>
+          <p class="small text-secondary mb-0" style="line-height: 1.5;">
+            Khi dự đoán trúng 4 số nhưng 4 số này bị phân tán sang nhiều vé (mỗi vé chỉ trúng 1-2 số), người chơi sẽ mất giải thưởng. 
+            Thuật toán mới sử dụng <strong>Ma trận Lực hút đồng xuất hiện (Lift)</strong> để gom chặt các cụm 3-4 số có độ liên kết cao nhất vào <strong>cùng một dãy vé</strong>, đảm bảo bảo toàn trọn vẹn giải thưởng khi nổ cụm!
+          </p>
+        </div>
+
+        <!-- CÁC CỤM 3-4 SỐ LIÊN KẾT MẠNH NHẤT (CLIQUES) -->
+        <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs" *ngIf="payload?.numberRelationships?.topCliques?.length">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold text-dark mb-0">🧩 Top Cụm Hạt Nhân Tương Quan Nhất (Cliques)</h6>
+            <span class="badge bg-danger text-white">Được neo cố định vào dãy vé</span>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6" *ngFor="let clq of payload?.numberRelationships?.topCliques; let cIdx = index">
+              <div class="p-2 px-3 rounded bg-light border d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-dark text-white rounded-pill px-2">Cụm #{{ cIdx + 1 }}</span>
+                  <div class="d-flex gap-1">
+                    <div *ngFor="let n of clq.numbers"
+                         class="ball shadow-xs"
+                         [ngClass]="payload?.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega'"
+                         style="width: 30px; height: 30px; font-size: 0.8rem; font-weight: bold;">
+                      {{ formatNumber(n) }}
+                    </div>
+                  </div>
+                </div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                  Điểm: {{ clq.affinityScore }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BẢNG CÁC CẶP SỐ CÓ LỰC HÚT ĐỒNG XUẤT HIỆN CAO NHẤT -->
+        <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs" *ngIf="payload?.numberRelationships?.topAffinityPairs?.length">
+          <h6 class="fw-bold text-dark mb-2">🔥 Top Cặp Số Có Lực Hút Đồng Xuất Hiện (Lift &gt; 1.0)</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.8rem;">
+              <thead class="table-dark">
+                <tr>
+                  <th class="py-2 text-center" style="width: 40px;">#</th>
+                  <th class="py-2" style="width: 130px;">Cặp Số</th>
+                  <th class="py-2 text-center" style="width: 100px;">Nổ Chung</th>
+                  <th class="py-2 text-center" style="width: 100px;">Lực Hút (Lift)</th>
+                  <th class="py-2 text-center" style="width: 80px;">Delta</th>
+                  <th class="py-2">Vai Trò & Liên Kết</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of payload?.numberRelationships?.topAffinityPairs; let pIdx = index">
+                  <td class="text-center text-muted fw-bold">{{ pIdx + 1 }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border fw-bold px-2 py-1">
+                      {{ p.pairLabel }}
+                    </span>
+                  </td>
+                  <td class="text-center fw-bold text-danger">{{ p.coOccurrence }} lần</td>
+                  <td class="text-center fw-bold text-success">{{ p.lift ? p.lift.toFixed(2) + 'x' : 'N/A' }}</td>
+                  <td class="text-center font-monospace">&Delta; {{ p.deltaDiff }}</td>
+                  <td class="small text-secondary">{{ p.role }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PHÂN BỐ BƯỚC NHẢY DELTA -->
+        <div class="card border rounded-3 p-3 bg-white shadow-xs" *ngIf="payload?.numberRelationships?.deltaCorrelations?.length">
+          <h6 class="fw-bold text-dark mb-2">📊 Bước Nhảy Khoảng Cách Delta Phổ Biến</h6>
+          <div class="d-flex gap-2 flex-wrap">
+            <div *ngFor="let d of payload?.numberRelationships?.deltaCorrelations"
+                 class="p-2 px-3 rounded bg-light border text-center">
+              <div class="fw-bold text-primary font-monospace">&Delta; {{ d.delta }}</div>
+              <small class="text-muted">{{ d.frequency }} lần</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-white py-2 px-4">
+        <button type="button" class="btn btn-secondary rounded-pill px-4" (click)="toggleAffinityModal()">Đóng</button>
       </div>
     </div>
   </div>

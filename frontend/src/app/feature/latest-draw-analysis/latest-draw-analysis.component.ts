@@ -168,7 +168,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   isLoadingReconciliation: boolean = false;
   reconcileError: string | null = null;
   selected5DrawIndex: number = 0;
-  activeReconciliationTab: 'aiPredictionJudgment' | 'comparison' | 'winningBalls' | 'algorithmFlaws' | 'tuningPlan' = 'aiPredictionJudgment';
+  activeReconciliationTab: 'aiPredictionJudgment' | 'comparison' | 'winningBalls' | 'algorithmFlaws' | 'tuningPlan' | 'affinityNetwork' = 'aiPredictionJudgment';
   reconcileLimit: number = 5;
   reconcileAlgorithm: string = 'deep_stacking';
   selectedReconcileDate: string = '';

@@ -38,6 +38,7 @@ public class PredictionResponseDto {
     private String analysisSummary;
     private String overallReason;
     private List<DrawRecordDto> recentDraws;
+    private java.util.Map<String, Object> numberRelationships;
 
     // --- GETTERS & SETTERS ---
 
@@ -115,4 +116,7 @@ public class PredictionResponseDto {
 
     public List<DrawRecordDto> getRecentDraws() { return recentDraws; }
     public void setRecentDraws(List<DrawRecordDto> recentDraws) { this.recentDraws = recentDraws; }
+
+    public java.util.Map<String, Object> getNumberRelationships() { return numberRelationships; }
+    public void setNumberRelationships(java.util.Map<String, Object> numberRelationships) { this.numberRelationships = numberRelationships; }
 }

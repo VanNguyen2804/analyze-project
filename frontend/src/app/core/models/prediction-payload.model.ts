@@ -27,6 +27,42 @@ export interface FocusAnalysis {
   algorithmUpgradeNotes: string[];
 }
 
+export interface NumberRelationshipData {
+  summary?: string;
+  algorithmName?: string;
+  antiScatteringGuarantee?: string;
+  topAffinityPairs?: Array<{
+    n1: number;
+    n2: number;
+    pairLabel?: string;
+    coOccurrence: number;
+    lift: number;
+    jaccard: number;
+    deltaDiff: number;
+    affinityLabel?: string;
+    role?: string;
+    affinityScore?: number;
+  }>;
+  topCliques?: Array<{
+    size?: number;
+    numbers: number[];
+    affinityScore: number;
+    description: string;
+  }>;
+  deltaCorrelations?: Array<{
+    delta: number;
+    frequency: number;
+    description: string;
+  }>;
+  ticketAffinityDetails?: Array<{
+    ticketIndex: number;
+    numbers: number[];
+    pairSynergyScore: number;
+    cohesionLevel: string;
+    explanation: string;
+  }>;
+}
+
 export interface PredictionPayload {
   status: string;
   message?: string;
@@ -54,6 +90,7 @@ export interface PredictionPayload {
   algorithmDesc?: string;
   modelVersion?: string;
   hyperparameterVersion?: string;
+  numberRelationships?: NumberRelationshipData;
 }
 
 

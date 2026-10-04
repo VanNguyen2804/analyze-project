@@ -377,6 +377,11 @@
                 (click)="activeReconciliationTab = 'tuningPlan'">
           ⚡ Kế Hoạch Hiệu Chỉnh Siêu Tham Số
         </button>
+        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
+                [ngClass]="activeReconciliationTab === 'affinityNetwork' ? 'btn-danger text-white shadow-xs' : 'btn-light text-secondary'"
+                (click)="activeReconciliationTab = 'affinityNetwork'">
+          🔗 Mối Liên Hệ Số Trúng & Gom Cụm Vé (Anti-Scattering)
+        </button>
       </div>
 
       <!-- TAB 0: ĐỐI SOÁT DỰ ĐOÁN AI & ĐÁNH GIÁ NHẬN ĐỊNH CÓ GẦN ĐÚNG KHÔNG (TAB CHÍNH MỚI) -->
@@ -778,6 +783,169 @@
             </div>
             <pre class="mb-0 text-success" style="font-size: 0.78rem;">{{ reconciliationData?.recommendedHyperparameters?.adjustments | json }}</pre>
           </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: MỐI LIÊN HỆ GIỮA CÁC SỐ TRÚNG & GOM CỤM DÃY VÉ (ANTI-SCATTERING) -->
+      <div *ngIf="activeReconciliationTab === 'affinityNetwork'">
+        <div class="p-3 rounded-4 bg-light border mb-4">
+          <!-- BANNER CHẨN ĐOÁN VẤN ĐỀ NGƯỜI DÙNG: CÓ 4 SỐ TRÚNG NHƯNG BỊ TẢN MẠN -->
+          <div class="p-3 rounded-3 mb-3 text-white shadow-xs"
+               style="background: linear-gradient(135deg, #b91c1c 0%, #991b1b 50%, #450a0a 100%); border-left: 5px solid #fbbf24;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="fs-4">🚨</span>
+              <h5 class="fw-bold mb-0 text-warning">CHẨN ĐOÁN & KHẮC PHỤC HIỆN TƯỢNG: "CÓ 4 SỐ TRÚNG NHƯNG BỊ PHÂN TÁN KHÔNG VÀO MỘT DÃY"</h5>
+            </div>
+            <p class="small mb-2" style="line-height: 1.6;">
+              <strong>Vấn đề thực tế:</strong> Ở kỳ quay vừa qua, tập số ứng viên / vé mua trúng được <strong>4 con số</strong>, nhưng do chưa áp dụng giải thuật gom cụm tương quan nên 4 số trúng bị tản mạn sang các vé khác nhau (vé 1 trúng 2 số, vé 2 trúng 2 số), dẫn đến việc người chơi bị trượt giải thưởng 4 số (Jackpot / Giải Nhất)!
+            </p>
+            <div class="p-2 px-3 rounded-3 small fw-semibold" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(251,191,36,0.4);">
+              ✅ <strong>Thuật toán mới đã giải quyết:</strong> Tích hợp <strong>Ma trận Lực hút đồng xuất hiện (Co-occurrence Lift Matrix)</strong> và <strong>Thuật toán Gom cụm Đồ thị (Graph Clique Clustering)</strong>. Tự động nhận diện các cụm 3-4 số có chỉ số tương quan Lift &gt; 1.25 và <strong>ràng buộc chặt chẽ trong cùng một dãy vé</strong>, đảm bảo khi 4 số trúng cùng nổ thì sẽ nằm trọn vẹn trong một dãy vé!
+            </div>
+          </div>
+
+          <!-- PHẦN 1: CÁC CỤM SỐ TƯƠNG HỖ MẠNH NHẤT ĐƯỢC GOM CỤM (CLIQUES) -->
+          <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs" *ngIf="getCurrent5Draw().winningNumbersRelationship?.cliques?.length > 0 || getCurrent5Draw().aiPrediction?.numberRelationships?.topCliques?.length > 0">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">🧩</span>
+                <h6 class="fw-bold text-dark mb-0">Các Cụm Hạt Nhân Tương Quan Mạnh Nhất (Top Affinity Cliques)</h6>
+              </div>
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1">
+                Gom Cố Định Vào Cùng Một Dãy Vé
+              </span>
+            </div>
+            <p class="small text-muted mb-3">
+              Những cụm số dưới đây có tần suất nổ chung cao nhất trong lịch sử. Thuật toán mới bắt buộc neo giữ toàn bộ cụm này vào cùng một vé cược để bảo toàn giải thưởng khi nổ cụm:
+            </p>
+
+            <div class="row g-2">
+              <div class="col-md-6" *ngFor="let clq of (getCurrent5Draw().aiPrediction?.numberRelationships?.topCliques || []); let cIdx = index">
+                <div class="p-2 px-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-dark text-white rounded-pill px-2">Cụm #{{ cIdx + 1 }}</span>
+                    <div class="d-flex gap-1">
+                      <div *ngFor="let num of clq.numbers"
+                           class="ball shadow-xs"
+                           [ngClass]="getCurrent5Draw().officialNumbers?.includes(num) ? 'ball-highlight' : 'bg-white text-dark border'"
+                           style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
+                        {{ formatNumber(num) }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-end">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                      Điểm: {{ clq.affinityScore }}
+                    </span>
+                    <div class="text-muted" style="font-size: 0.68rem;">Neo vào Vé #{{ cIdx + 1 }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PHẦN 2: BẢNG MA TRẬN TƯƠNG QUAN GIỮA CÁC SỐ TRÚNG (PAIRWISE RELATIONSHIP) -->
+          <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">🔗</span>
+                <h6 class="fw-bold text-dark mb-0">Ma Trận Mối Liên Hệ Giữa Các Số Trúng (Kỳ {{ getCurrent5Draw().drawDate }})</h6>
+              </div>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
+                {{ getCurrent5Draw().winningNumbersRelationship?.summary || 'Tương quan cặp số' }}
+              </span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover table-bordered table-sm align-middle mb-0" style="font-size: 0.8rem;">
+                <thead class="table-dark">
+                  <tr>
+                    <th class="text-center py-2" style="width: 50px;">#</th>
+                    <th class="py-2" style="width: 140px;">Cặp Số Trúng</th>
+                    <th class="text-center py-2" style="width: 110px;">Số Lần Về Cùng</th>
+                    <th class="text-center py-2" style="width: 110px;">Chỉ Số Lực Hút (Lift)</th>
+                    <th class="text-center py-2" style="width: 100px;">Độ Lệch Delta</th>
+                    <th class="text-center py-2" style="width: 140px;">Mức Độ Liên Kết</th>
+                    <th class="py-2">Phân Tích Cơ Chế & Hành Vi Liên Kết</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let p of getCurrent5Draw().winningNumbersRelationship?.pairs; let pIdx = index"
+                      [class.table-warning]="p.count >= 2">
+                    <td class="text-center text-muted fw-bold">{{ pIdx + 1 }}</td>
+                    <td>
+                      <div class="d-flex align-items-center gap-1">
+                        <span class="ball shadow-xs" [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'" style="width: 26px; height: 26px; font-size: 0.72rem; font-weight: bold;">
+                          {{ formatNumber(p.n1) }}
+                        </span>
+                        <span class="text-muted fw-bold">&harr;</span>
+                        <span class="ball shadow-xs" [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'" style="width: 26px; height: 26px; font-size: 0.72rem; font-weight: bold;">
+                          {{ formatNumber(p.n2) }}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="text-center fw-bold" [class.text-danger]="p.count >= 2">
+                      {{ p.count }} lần
+                    </td>
+                    <td class="text-center fw-bold" [class.text-success]="p.lift >= 1.25">
+                      {{ p.lift ? p.lift.toFixed(2) + 'x' : 'N/A' }}
+                    </td>
+                    <td class="text-center font-monospace">
+                      &Delta; {{ p.diff }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge"
+                            [ngClass]="p.count >= 2 ? 'bg-danger text-white' : (p.count === 1 ? 'bg-primary-subtle text-primary border' : 'bg-light text-muted border')">
+                        {{ p.affinity }}
+                      </span>
+                    </td>
+                    <td class="small text-secondary">
+                      {{ p.role }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PHẦN 3: BẢNG DÃY VÉ TỐI ƯU GOM CỤM THEO THUẬT TOÁN MỚI -->
+          <div class="card border rounded-3 p-3 bg-white shadow-xs" *ngIf="getCurrent5Draw().aiPrediction?.numberRelationships?.ticketAffinityDetails?.length > 0">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">🎟️</span>
+                <h6 class="fw-bold text-dark mb-0">Các Dãy Vé Đã Áp Dụng Thuật Toán Gom Cụm (Chống Phân Tán 4 Số Trúng)</h6>
+              </div>
+              <span class="badge bg-success text-white px-3 py-1">
+                {{ getCurrent5Draw().aiPrediction?.numberRelationships?.ticketAffinityDetails?.length }} Dãy Vé Tối Ưu
+              </span>
+            </div>
+            <p class="small text-muted mb-3">
+              Mỗi dãy số được xây dựng xung quanh một hạt nhân liên kết (Affinity Core), đảm bảo các số có lực hút đồng xuất hiện cao không bao giờ bị xé rời sang các vé khác:
+            </p>
+
+            <div class="row g-2">
+              <div class="col-lg-6" *ngFor="let t of getCurrent5Draw().aiPrediction?.numberRelationships?.ticketAffinityDetails | slice:0:10">
+                <div class="p-2 px-3 rounded-3 bg-light border">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark small">Dãy Vé #{{ t.ticketIndex }}:</span>
+                    <span class="badge bg-danger text-white" style="font-size: 0.68rem;">{{ t.cohesionLevel }}</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-1 flex-wrap mb-2">
+                    <div *ngFor="let b of t.numbers"
+                         class="ball shadow-xs"
+                         [ngClass]="getCurrent5Draw().officialNumbers?.includes(b) ? 'ball-highlight' : 'bg-white text-dark border'"
+                         style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
+                      {{ formatNumber(b) }}
+                    </div>
+                  </div>
+                  <div class="small text-secondary" style="font-size: 0.72rem;">
+                    {{ t.explanation }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

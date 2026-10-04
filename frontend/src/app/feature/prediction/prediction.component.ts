@@ -236,6 +236,16 @@ export class PredictionComponent implements OnInit, OnDestroy {
   displayedTicketsLimit: number = 10;
   ticketLimitOptions: number[] = [5, 10, 15, 20, 25];
   expandedTicketDetails: { [key: number]: boolean } = { 0: true };
+  showAffinityModal: boolean = false;
+
+  toggleAffinityModal() {
+    this.showAffinityModal = !this.showAffinityModal;
+    this.cdr.markForCheck();
+  }
+
+  getTicketAffinityInfo(index: number): any {
+    return this.payload?.numberRelationships?.ticketAffinityDetails?.[index] || null;
+  }
 
   setTicketLimit(limit: number) {
     this.displayedTicketsLimit = limit;
