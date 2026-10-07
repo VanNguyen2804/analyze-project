@@ -47,3 +47,25 @@ CREATE TABLE IF NOT EXISTS user_tickets (
     checked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     note TEXT
 );
+
+-- Bảng lưu trữ biến số (Deviation Variables) giữa số AI và kết quả thực tế
+CREATE TABLE IF NOT EXISTS lottery_deviation_variables (
+    id BIGSERIAL PRIMARY KEY,
+    category VARCHAR(20) NOT NULL,
+    base_draw_date VARCHAR(50) NOT NULL,
+    target_draw_date VARCHAR(50) NOT NULL,
+    ai_predicted_number INTEGER NOT NULL,
+    actual_number INTEGER NOT NULL,
+    variable_delta INTEGER NOT NULL,
+    variable_type VARCHAR(100) NOT NULL,
+    pattern_name VARCHAR(150),
+    probability_shift DOUBLE PRECISION,
+    transformation_rule TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    note TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_dev_vars_category ON lottery_deviation_variables(category);
+CREATE INDEX IF NOT EXISTS idx_dev_vars_target_date ON lottery_deviation_variables(target_draw_date DESC);
+CREATE INDEX IF NOT EXISTS idx_dev_vars_created_at ON lottery_deviation_variables(created_at DESC);
+

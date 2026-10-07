@@ -106,6 +106,21 @@ export class AnalyzeService {
   }
 
   // ==========================================
+  // API BIẾN SỐ CHUYỂN DỊCH AI (DEVIATION VARIABLES DATABASE)
+  // ==========================================
+  getDeviationVariables(category?: string): Observable<any[]> {
+    let url = `${this.apiUrl}/deviation-variables`;
+    if (category && category !== 'ALL') {
+      url += `?category=${category}`;
+    }
+    return this.http.get<any[]>(url);
+  }
+
+  saveDeviationVariable(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/deviation-variables`, payload);
+  }
+
+  // ==========================================
   // API TIẾNG PHÁP
   // ==========================================
 

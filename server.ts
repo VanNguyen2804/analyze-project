@@ -230,6 +230,59 @@ function saveUserTicketsToDisk(): void {
   }
 }
 
+interface DeviationVariableItem {
+  id: number;
+  category: string;
+  baseDrawDate: string;
+  targetDrawDate: string;
+  aiPredictedNumber: number;
+  actualNumber: number;
+  variableDelta: number;
+  variableType: string;
+  patternName: string;
+  probabilityShift: number;
+  transformationRule: string;
+  createdAt: string;
+  note?: string;
+  generatedNextNumber?: number;
+}
+
+const DEVIATION_VARIABLES_FILE = path.join(process.cwd(), 'data', 'deviation_variables.json');
+let deviationVariables: DeviationVariableItem[] = [];
+let nextDeviationVariableId = 1;
+
+function loadDeviationVariablesFromDisk(): void {
+  try {
+    if (fs.existsSync(DEVIATION_VARIABLES_FILE)) {
+      const content = fs.readFileSync(DEVIATION_VARIABLES_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        deviationVariables = parsed;
+        nextDeviationVariableId = Math.max(...deviationVariables.map((v) => v.id || 0)) + 1;
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load deviation variables from disk:', err);
+  }
+}
+
+function saveDeviationVariablesToDisk(): void {
+  try {
+    const dir = path.dirname(DEVIATION_VARIABLES_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(
+      DEVIATION_VARIABLES_FILE,
+      JSON.stringify(deviationVariables, null, 2),
+      'utf-8'
+    );
+  } catch (err) {
+    console.warn('Failed to save deviation variables to disk:', err);
+  }
+}
+
 function loadHyperparametersFromDisk(): void {
   try {
     if (fs.existsSync(HYPERPARAMETERS_FILE)) {
@@ -537,6 +590,7 @@ function loadInitialData(): void {
 
     loadUserTicketsFromDisk();
     loadHyperparametersFromDisk();
+    loadDeviationVariablesFromDisk();
   } catch (err) {
     console.warn('Failed to load initial data:', err);
   }
@@ -674,6 +728,7 @@ interface PredictionResult {
   numberRelationships?: any;
   recommendations?: any;
   aiRecommendation?: any;
+  deviationVariables?: any[];
 }
 
 const WHEEL_TEMPLATE_10_TO_6 = [
@@ -2308,36 +2363,39 @@ function analyzeAndPredict(
     goldenTicketsRecommendation: [
       {
         ticketIndex: 1,
-        title: 'Vé Khuyến Nghị #1 (Độ Phủ Tinh Hoa Điểm Vàng)',
-        numbers: isPowerCategory ? [1, 7, 9, 18, 24, 27] : [10, 14, 36, 37, 41, 43],
+        title: isPowerCategory ? 'Vé Khuyến Nghị #1 (Độ Phủ Điểm Vàng Biến Số Power)' : 'Vé Khuyến Nghị #1 (Điểm Vàng Biến Số Kỳ Kế Tiếp - 09/10/2026)',
+        numbers: isPowerCategory ? [1, 7, 9, 18, 24, 27] : [11, 21, 27, 35, 37, 42],
         specialNumber: isPowerCategory ? 41 : null,
-        composition: isPowerCategory ? '3 Chẵn / 3 Lẻ • Tổng = 86' : '3 Chẵn / 3 Lẻ • Tổng = 181',
+        composition: isPowerCategory ? '3 Chẵn / 3 Lẻ • Tổng = 86' : '3 Chẵn / 3 Lẻ • Tổng = 173',
         strategyReason: isPowerCategory
-          ? 'Hội tụ 6 hạt nhân mạnh nhất: Chuyển vị banh phụ [01], Cặp lặp Markov [07, 18, 24, 27], Điểm rơi Poisson [09] và Banh phụ Jackpot 2 ⭐41.'
-          : 'Bộ 6 số hoàn hảo giải quyết bài toán kỳ Mega mới nhất.'
+          ? 'Hội tụ 6 hạt nhân mạnh nhất từ kỳ 06/10: Chuyển vị banh phụ [01], Cặp lặp Markov [07, 18, 24, 27], Điểm rơi Poisson [09] và Banh phụ Jackpot 2 ⭐41.'
+          : 'Dãy số dự đoán tối ưu cho ngày kế tiếp (09/10/2026) tạo sinh từ 6 số kỳ 07/10 qua hệ biến số thực nghiệm: Số 11 (từ 10 + 1: lệch biên phải), Số 21 (từ 14 + 7: bước nhảy sóng hài), Số 27 (từ 37 - 10: dịch chuyển hàng chục), Số 35 (từ 36 - 1: lệch biên trái), Số 37 (quán tính lặp chuỗi Markov), Số 42 (từ 41 + 1: lệch biên phải).'
       },
       {
         ticketIndex: 2,
-        title: 'Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Cặp Đồng Xuất Hiện)',
-        numbers: isPowerCategory ? [1, 7, 14, 21, 25, 52] : [10, 14, 22, 36, 41, 43],
+        title: isPowerCategory ? 'Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Cặp Đồng Xuất Hiện)' : 'Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Bù Đảo Vị - 09/10/2026)',
+        numbers: isPowerCategory ? [1, 7, 14, 21, 25, 52] : [10, 13, 21, 31, 38, 44],
         specialNumber: isPowerCategory ? 27 : null,
-        composition: isPowerCategory ? '3 Chẵn / 3 Lẻ • Tổng = 120' : '4 Chẵn / 2 Lẻ • Tổng = 166',
+        composition: isPowerCategory ? '3 Chẵn / 3 Lẻ • Tổng = 120' : '4 Chẵn / 2 Lẻ • Tổng = 157',
         strategyReason: isPowerCategory
           ? 'Khai thác cụm liên kết 14-52 từng đồng xuất hiện, kết hợp điểm rơi Poisson 21, 25 và số chuyển vị 01.'
-          : 'Phối hợp nhịp độ chẵn lẻ và dải số cân bằng.'
+          : 'Tổ hợp biến số đa phân vùng cho ngày kế tiếp (09/10): Số 10 (lặp nguyên vị), Số 13 (từ 14 - 1: bẫy lân cận), Số 21 (từ 14 + 7: sóng hài Fourier), Số 31 (từ 41 - 10: bù đối xứng), Số 38 (từ 36 + 2: bảo toàn chẵn), Số 44 (từ 43 + 1: chặn trần biên trên).'
       },
       {
         ticketIndex: 3,
-        title: 'Vé Khuyến Nghị #3 (Bao Phủ Rộng & Cân Bằng Đa Phân Vùng)',
-        numbers: isPowerCategory ? [7, 9, 18, 21, 24, 25] : [10, 14, 31, 37, 41, 43],
+        title: isPowerCategory ? 'Vé Khuyến Nghị #3 (Bao Phủ Rộng & Cân Bằng Đa Phân Vùng)' : 'Vé Khuyến Nghị #3 (Cân Bằng Đa Phân Vùng & Điểm Rơi Poisson - 09/10/2026)',
+        numbers: isPowerCategory ? [5, 8, 18, 21, 25, 41] : [8, 14, 25, 35, 37, 42],
         specialNumber: isPowerCategory ? 1 : null,
-        composition: isPowerCategory ? '3 Chẵn / 3 Lẻ • Tổng = 104' : '2 Chẵn / 4 Lẻ • Tổng = 176',
+        composition: isPowerCategory ? '3 Chẵn / 3 Lẻ • Tổng = 118' : '3 Chẵn / 3 Lẻ • Tổng = 161',
         strategyReason: isPowerCategory
-          ? 'Trải đều từ Zone 1 đến Zone 3, kết hợp chặt chẽ các cặp tương tác mạnh {18-24}, {07-25}.'
-          : 'Neo chặn dải biên trên và điểm rơi hồi quy.'
+          ? 'Trải đều từ Zone 1 đến Zone 3, kết hợp chặt chẽ các cặp tương tác mạnh: 06 - 1 = 05, 07 + 1 = 08, 18 lặp quán tính, 21 sóng hài, 25 Poisson và 41 chuyển vị banh phụ.'
+          : 'Phối hợp nhịp độ ngày kế tiếp: Số 08 (từ 10 - 2: bước nhảy chẵn), Số 14 (lặp điểm rơi Poisson tích lũy), Số 25 (từ 43 hồi quy tâm Gauss), Số 35 (từ 36 - 1: lân cận), Số 37 (quán tính lặp), Số 42 (từ 41 + 1: lân cận phải).'
       }
     ]
   };
+
+  const devVarsForCat = deviationVariables.filter((v) => v.category === category);
+  (recommendations as any).deviationVariables = devVarsForCat;
 
   const overallReason = `${algOverallReason} Dãy số được phân bổ hài hòa theo tỷ lệ ${evenCount} Chẵn / ${oddCount} Lẻ. ${
     category === 'POWER' && recommendedSpecialNumber
@@ -2377,6 +2435,7 @@ function analyzeAndPredict(
     numberRelationships,
     recommendations,
     aiRecommendation: recommendations,
+    deviationVariables: devVarsForCat,
   };
 }
 
@@ -3895,6 +3954,46 @@ async function startServer() {
       return res.json({ success: true, message: `Đã xóa bản ghi ${removed.version}` });
     }
     return res.status(404).json({ success: false, message: 'Không tìm thấy bản ghi' });
+  });
+
+  // =========================================================================================
+  // DEVIATION VARIABLES API (QUẢN LÝ BIẾN SỐ CHUYỂN DỊCH AI VÀO DATABASE)
+  // =========================================================================================
+  app.get('/api/analyze/deviation-variables', (req: Request, res: Response) => {
+    const { category } = req.query;
+    let list = [...deviationVariables];
+    if (category && typeof category === 'string' && category.trim()) {
+      list = list.filter((v) => v.category === category.trim().toUpperCase());
+    }
+    list.sort((a, b) => (b.id || 0) - (a.id || 0));
+    return res.json(list);
+  });
+
+  app.post('/api/analyze/deviation-variables', (req: Request, res: Response) => {
+    try {
+      const body = req.body || {};
+      const newVar: DeviationVariableItem = {
+        id: nextDeviationVariableId++,
+        category: (body.category || 'MEGA').toUpperCase(),
+        baseDrawDate: body.baseDrawDate || '2026-10-04',
+        targetDrawDate: body.targetDrawDate || '2026-10-07',
+        aiPredictedNumber: Number(body.aiPredictedNumber) || 0,
+        actualNumber: Number(body.actualNumber) || 0,
+        variableDelta: Number(body.variableDelta) || 0,
+        variableType: body.variableType || 'NEIGHBOR_DRIFT',
+        patternName: body.patternName || 'Biến số Lệch Biên Sát Nút (±1)',
+        probabilityShift: Number(body.probabilityShift) || 0.85,
+        transformationRule: body.transformationRule || '',
+        createdAt: body.createdAt || new Date().toISOString(),
+        note: body.note || 'Biến số thực nghiệm ghi nhận mới',
+        generatedNextNumber: body.generatedNextNumber ? Number(body.generatedNextNumber) : undefined
+      };
+      deviationVariables.unshift(newVar);
+      saveDeviationVariablesToDisk();
+      return res.json({ success: true, message: 'Đã lưu biến số vào Database thành công!', variable: newVar });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message || 'Lỗi lưu biến số' });
+    }
   });
 
   // French Learning API

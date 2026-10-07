@@ -6,11 +6,13 @@ import com.example.analyzeproject.model.UserTicket;
 import com.example.analyzeproject.model.FrenchAttempt;
 import com.example.analyzeproject.model.FrenchExercise;
 import com.example.analyzeproject.model.AlgorithmHyperparameter;
+import com.example.analyzeproject.model.LotteryDeviationVariable;
 import com.example.analyzeproject.repository.LotteryNumberRepository;
 import com.example.analyzeproject.repository.UserTicketRepository;
 import com.example.analyzeproject.repository.FrenchAttemptRepository;
 import com.example.analyzeproject.repository.FrenchExerciseRepository;
 import com.example.analyzeproject.repository.AlgorithmHyperparameterRepository;
+import com.example.analyzeproject.repository.LotteryDeviationVariableRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,16 +35,19 @@ public class AnalyzeService {
     private final FrenchExerciseRepository frenchExerciseRepo;
     private final FrenchAttemptRepository frenchAttemptRepo;
     private final AlgorithmHyperparameterRepository hyperparameterRepo;
+    private final LotteryDeviationVariableRepository devVarRepo;
 
     @Autowired
     public AnalyzeService(LotteryNumberRepository repository, UserTicketRepository userTicketRepo,
                           FrenchExerciseRepository frenchExerciseRepo, FrenchAttemptRepository frenchAttemptRepo,
-                          AlgorithmHyperparameterRepository hyperparameterRepo) {
+                          AlgorithmHyperparameterRepository hyperparameterRepo,
+                          @Autowired(required = false) LotteryDeviationVariableRepository devVarRepo) {
         this.repository = repository;
         this.userTicketRepo = userTicketRepo;
         this.frenchExerciseRepo = frenchExerciseRepo;
         this.frenchAttemptRepo = frenchAttemptRepo;
         this.hyperparameterRepo = hyperparameterRepo;
+        this.devVarRepo = devVarRepo;
     }
 
     @PostConstruct
@@ -113,6 +118,21 @@ public class AnalyzeService {
                     "  \"actionableAdvice\": \"Cập nhật lại trọng số thuật toán XGBoost cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện.\"\n" +
                     "}";
             hyperparameterRepo.save(new AlgorithmHyperparameter("v1.1.0", "2026-09-28", "POWER", "XGBoost Multi-Factor Optimization", v110Json, readmeV110, "Cập nhật trọng số theo báo cáo đối chiếu vé kỳ 2026-09-28"));
+        }
+
+        if (devVarRepo != null && devVarRepo.count() == 0) {
+            List<LotteryDeviationVariable> seeds = List.of(
+                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 15, 14, -1, "NEIGHBOR_DRIFT", "Biến số Lệch Biên Sát Nút (±1)", 0.88, "AI [15] - 1 => 14: Biến số dịch chuyển lồng cầu liền kề trái", "Thực nghiệm kỳ Mega 07/10: AI đưa ra 15 nhưng lồng cầu rơi 14 (lệch -1)"),
+                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 40, 41, 1, "NEIGHBOR_DRIFT", "Biến số Lệch Biên Sát Nút (±1)", 0.91, "AI [40] + 1 => 41: Biến số dịch chuyển lồng cầu liền kề phải", "Thực nghiệm kỳ Mega 07/10: AI đưa ra 40 nhưng lồng cầu rơi 41 (lệch +1)"),
+                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 29, 36, 7, "RESONANCE_LEAP", "Biến số Bước Nhảy Sóng Hài (Delta = +7)", 0.76, "AI [29] + 7 => 36: Bước nhảy dao động Fourier điều hòa dải trung", "Thực nghiệm kỳ Mega 07/10: Bước nhảy cộng hưởng chu kỳ 7"),
+                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 37, 37, 0, "REPEAT_INERTIA", "Biến số Quán Tính Lặp Nguyên Vị (Delta = 0)", 0.95, "AI [37] + 0 => 37: Quán tính lặp chuỗi Markov trạng thái tĩnh", "Thực nghiệm kỳ Mega 07/10: Trùng khớp tuyệt đối số lặp"),
+                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 45, 43, -2, "PARITY_DRIFT", "Biến số Lệch Dải Bảo Toàn Tính Lẻ (Delta = -2)", 0.82, "AI [45] - 2 => 43: Dịch chuyển bậc 2 bảo toàn tính lẻ cận biên", "Thực nghiệm kỳ Mega 07/10: Dịch chuyển bậc 2 dải cận biên 45"),
+                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 20, 10, -10, "DECADE_SHIFT", "Biến số Dịch Chuyển Hàng Chục (Delta = -10)", 0.74, "AI [20] - 10 => 10: Chuyển dịch phân vùng đối xứng thập phân", "Thực nghiệm kỳ Mega 07/10: Nhảy phân vùng từ Zone 2 về Zone 1"),
+                new LotteryDeviationVariable("POWER", "2026-10-03", "2026-10-06", 7, 6, -1, "NEIGHBOR_DRIFT", "Biến số Lệch Biên Sát Nút (±1)", 0.89, "AI [07] - 1 => 06: Dịch chuyển lồng cầu liền kề trái", "Thực nghiệm kỳ Power 06/10: Số 07 sinh biến số sang 06"),
+                new LotteryDeviationVariable("POWER", "2026-10-03", "2026-10-06", 16, 18, 2, "PARITY_DRIFT", "Biến số Lệch Bậc 2 Chẵn (Delta = +2)", 0.85, "AI [16] + 2 => 18: Dịch chuyển bậc 2 bảo toàn tính chẵn", "Thực nghiệm kỳ Power 06/10: Số 16 sinh biến số sang 18"),
+                new LotteryDeviationVariable("POWER", "2026-10-03", "2026-10-06", 41, 1, -40, "SPECIAL_MIGRATION", "Biến số Chuyển Vị Banh Phụ (Special Migration)", 0.92, "Banh phụ kỳ trước nhảy lồng cầu sang làm Banh chính kỳ sau", "Thực nghiệm kỳ Power 06/10: Banh phụ 01 và 41 chuyển vị")
+            );
+            devVarRepo.saveAll(seeds);
         }
     }
 
@@ -1044,34 +1064,47 @@ public class AnalyzeService {
         List<Map<String, Object>> goldenTickets = new ArrayList<>();
         Map<String, Object> gt1 = new HashMap<>();
         gt1.put("ticketIndex", 1);
-        gt1.put("title", "Vé Khuyến Nghị #1 (Độ Phủ Tinh Hoa Điểm Vàng)");
-        gt1.put("numbers", isPower ? List.of(1, 7, 9, 18, 24, 27) : List.of(10, 14, 36, 37, 41, 43));
+        gt1.put("title", isPower ? "Vé Khuyến Nghị #1 (Độ Phủ Điểm Vàng Biến Số Power)" : "Vé Khuyến Nghị #1 (Điểm Vàng Biến Số Kỳ Kế Tiếp - 09/10/2026)");
+        gt1.put("numbers", isPower ? List.of(1, 7, 9, 18, 24, 27) : List.of(11, 21, 27, 35, 37, 42));
         gt1.put("specialNumber", isPower ? 41 : null);
-        gt1.put("composition", isPower ? "3 Chẵn / 3 Lẻ • Tổng = 86" : "3 Chẵn / 3 Lẻ • Tổng = 181");
-        gt1.put("strategyReason", isPower ? "Hội tụ 6 hạt nhân mạnh nhất: Chuyển vị banh phụ [01], Cặp lặp Markov [07, 18, 24, 27], Điểm rơi Poisson [09] và Banh phụ Jackpot 2 ⭐41." : "Bộ 6 số hoàn hảo giải quyết bài toán kỳ Mega mới nhất.");
+        gt1.put("composition", isPower ? "3 Chẵn / 3 Lẻ • Tổng = 86" : "3 Chẵn / 3 Lẻ • Tổng = 173");
+        gt1.put("strategyReason", isPower
+            ? "Hội tụ 6 hạt nhân mạnh nhất từ kỳ 06/10: Chuyển vị banh phụ [01], Cặp lặp Markov [07, 18, 24, 27], Điểm rơi Poisson [09] và Banh phụ Jackpot 2 ⭐41."
+            : "Dãy số dự đoán tối ưu cho ngày kế tiếp (09/10/2026) tạo sinh từ 6 số kỳ 07/10 qua hệ biến số thực nghiệm: Số 11 (từ 10 + 1: lệch biên phải), Số 21 (từ 14 + 7: bước nhảy sóng hài), Số 27 (từ 37 - 10: dịch chuyển hàng chục), Số 35 (từ 36 - 1: lệch biên trái), Số 37 (quán tính lặp chuỗi Markov), Số 42 (từ 41 + 1: lệch biên phải).");
         goldenTickets.add(gt1);
 
         Map<String, Object> gt2 = new HashMap<>();
         gt2.put("ticketIndex", 2);
-        gt2.put("title", "Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Cặp Đồng Xuất Hiện)");
-        gt2.put("numbers", isPower ? List.of(1, 7, 14, 21, 25, 52) : List.of(10, 14, 22, 36, 41, 43));
+        gt2.put("title", isPower ? "Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Cặp Đồng Xuất Hiện)" : "Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Bù Đảo Vị - 09/10/2026)");
+        gt2.put("numbers", isPower ? List.of(1, 7, 14, 21, 25, 52) : List.of(10, 13, 21, 31, 38, 44));
         gt2.put("specialNumber", isPower ? 27 : null);
-        gt2.put("composition", isPower ? "3 Chẵn / 3 Lẻ • Tổng = 120" : "4 Chẵn / 2 Lẻ • Tổng = 166");
-        gt2.put("strategyReason", isPower ? "Khai thác cụm liên kết 14-52 từng đồng xuất hiện, kết hợp điểm rơi Poisson 21, 25 và số chuyển vị 01." : "Phối hợp nhịp độ chẵn lẻ và dải số cân bằng.");
+        gt2.put("composition", isPower ? "3 Chẵn / 3 Lẻ • Tổng = 120" : "4 Chẵn / 2 Lẻ • Tổng = 157");
+        gt2.put("strategyReason", isPower
+            ? "Khai thác cụm liên kết 14-52 từng đồng xuất hiện, kết hợp điểm rơi Poisson 21, 25 và số chuyển vị 01."
+            : "Tổ hợp biến số đa phân vùng cho ngày kế tiếp (09/10): Số 10 (lặp nguyên vị), Số 13 (từ 14 - 1: bẫy lân cận), Số 21 (từ 14 + 7: sóng hài Fourier), Số 31 (từ 41 - 10: bù đối xứng), Số 38 (từ 36 + 2: bảo toàn chẵn), Số 44 (từ 43 + 1: chặn trần biên trên).");
         goldenTickets.add(gt2);
 
         Map<String, Object> gt3 = new HashMap<>();
         gt3.put("ticketIndex", 3);
-        gt3.put("title", "Vé Khuyến Nghị #3 (Bao Phủ Rộng & Cân Bằng Đa Phân Vùng)");
-        gt3.put("numbers", isPower ? List.of(7, 9, 18, 21, 24, 25) : List.of(10, 14, 31, 37, 41, 43));
+        gt3.put("title", isPower ? "Vé Khuyến Nghị #3 (Bao Phủ Rộng & Cân Bằng Đa Phân Vùng)" : "Vé Khuyến Nghị #3 (Cân Bằng Đa Phân Vùng & Điểm Rơi Poisson - 09/10/2026)");
+        gt3.put("numbers", isPower ? List.of(5, 8, 18, 21, 25, 41) : List.of(8, 14, 25, 35, 37, 42));
         gt3.put("specialNumber", isPower ? 1 : null);
-        gt3.put("composition", isPower ? "3 Chẵn / 3 Lẻ • Tổng = 104" : "2 Chẵn / 4 Lẻ • Tổng = 176");
-        gt3.put("strategyReason", isPower ? "Trải đều từ Zone 1 đến Zone 3, kết hợp chặt chẽ các cặp tương tác mạnh {18-24}, {07-25}." : "Neo chặn dải biên trên và điểm rơi hồi quy.");
+        gt3.put("composition", isPower ? "3 Chẵn / 3 Lẻ • Tổng = 118" : "3 Chẵn / 3 Lẻ • Tổng = 161");
+        gt3.put("strategyReason", isPower
+            ? "Trải đều từ Zone 1 đến Zone 3, kết hợp chặt chẽ các cặp tương tác mạnh: 06 - 1 = 05, 07 + 1 = 08, 18 lặp quán tính, 21 sóng hài, 25 Poisson và 41 chuyển vị banh phụ."
+            : "Phối hợp nhịp độ ngày kế tiếp: Số 08 (từ 10 - 2: bước nhảy chẵn), Số 14 (lặp điểm rơi Poisson tích lũy), Số 25 (từ 43 hồi quy tâm Gauss), Số 35 (từ 36 - 1: lân cận), Số 37 (quán tính lặp), Số 42 (từ 41 + 1: lân cận phải).");
         goldenTickets.add(gt3);
 
         recMap.put("goldenTicketsRecommendation", goldenTickets);
+
+        // Nạp danh sách biến số từ Database
+        List<LotteryDeviationVariable> devVars = devVarRepo != null
+            ? devVarRepo.findByCategoryOrderByCreatedAtDesc(category)
+            : Collections.emptyList();
+        recMap.put("deviationVariables", devVars);
         response.setRecommendations(recMap);
         response.setAiRecommendation(recMap);
+        response.setDeviationVariables((List<Object>)(List<?>) devVars);
 
         String wheelingMsg = "Hệ thống đã chắt lọc 10 số ưu tú nhất dựa trên bộ quy tắc Lô Gan Trung Bình - Tránh số quá Hot - Ưu tiên cặp đi kèm.";
         
@@ -2156,5 +2189,24 @@ public class AnalyzeService {
         res.put("summary", "Phát hiện " + pairs.stream().filter(p -> (Integer) p.get("count") > 0).count() + " cặp có liên kết lịch sử giữa 6 số trúng. Cặp có lực hút mạnh nhất: " + strongestPair + ". Cụm liên kết tam giác: " + cliques.size() + " cụm.");
         res.put("cliqueWheelingAdvice", "Thuật toán v1.6.0 đã tích hợp Ma trận Co-occurrence Clique Optimization: Tự động gom các cụm số có liên kết đồng xuất hiện cao nhất vào cùng 1 dãy vé, ngăn chặn tình trạng số trúng bị xé nhỏ sang nhiều vé khác nhau.");
         return res;
+    }
+
+    // =========================================================================================
+    // QUẢN LÝ BIẾN SỐ DỰ ĐOÁN (LOTTERY DEVIATION VARIABLES) TRONG POSTGRESQL DATABASE
+    // =========================================================================================
+    public List<LotteryDeviationVariable> getDeviationVariables(String category) {
+        if (devVarRepo == null) return Collections.emptyList();
+        if (category != null && !category.trim().isEmpty()) {
+            return devVarRepo.findByCategoryOrderByCreatedAtDesc(category.toUpperCase().trim());
+        }
+        return devVarRepo.findAllByOrderByCreatedAtDesc();
+    }
+
+    public LotteryDeviationVariable saveDeviationVariable(LotteryDeviationVariable devVar) {
+        if (devVarRepo == null) return devVar;
+        if (devVar.getCreatedAt() == null) {
+            devVar.setCreatedAt(LocalDateTime.now());
+        }
+        return devVarRepo.save(devVar);
     }
 }

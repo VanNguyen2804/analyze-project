@@ -41,6 +41,7 @@ public class PredictionResponseDto {
     private java.util.Map<String, Object> numberRelationships;
     private java.util.Map<String, Object> recommendations;
     private java.util.Map<String, Object> aiRecommendation;
+    private List<Object> deviationVariables;
 
     // --- GETTERS & SETTERS ---
 
@@ -127,4 +128,7 @@ public class PredictionResponseDto {
 
     public java.util.Map<String, Object> getAiRecommendation() { return aiRecommendation; }
     public void setAiRecommendation(java.util.Map<String, Object> aiRecommendation) { this.aiRecommendation = aiRecommendation; }
+
+    public List<Object> getDeviationVariables() { return deviationVariables; }
+    public void setDeviationVariables(List<Object> deviationVariables) { this.deviationVariables = deviationVariables; }
 }

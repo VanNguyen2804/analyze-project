@@ -118,6 +118,25 @@ export interface PredictionPayload {
   numberRelationships?: NumberRelationshipData;
   recommendations?: any;
   aiRecommendation?: any;
+  deviationVariables?: DeviationVariable[];
+}
+
+export interface DeviationVariable {
+  id?: number;
+  category: string;
+  baseDrawDate: string;
+  targetDrawDate: string;
+  aiPredictedNumber: number;
+  actualNumber: number;
+  variableDelta: number;
+  variableType: string;
+  patternName: string;
+  probabilityShift: number;
+  transformationRule: string;
+  createdAt?: string;
+  note?: string;
+  generatedNextNumber?: number;
+  savedInDb?: boolean;
 }
 
 

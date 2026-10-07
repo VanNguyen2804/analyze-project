@@ -7,6 +7,7 @@ import com.example.analyzeproject.dto.DrawRecordDto;
 import com.example.analyzeproject.model.LotteryNumber;
 import com.example.analyzeproject.model.UserTicket;
 import com.example.analyzeproject.model.AlgorithmHyperparameter;
+import com.example.analyzeproject.model.LotteryDeviationVariable;
 import com.example.analyzeproject.service.AnalyzeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -153,5 +154,25 @@ public class AnalyzeController {
     public ResponseEntity<AlgorithmHyperparameter> activateHyperparameter(@PathVariable Long id) {
         AlgorithmHyperparameter activated = analyzeService.activateHyperparameter(id);
         return ResponseEntity.ok(activated);
+    }
+
+    /**
+     * LẤY DANH SÁCH BIẾN SỐ (DEVIATION VARIABLES) TỪ DATABASE POSTGRESQL
+     */
+    @GetMapping("/deviation-variables")
+    public ResponseEntity<List<LotteryDeviationVariable>> getDeviationVariables(
+            @RequestParam(required = false) String category) {
+        List<LotteryDeviationVariable> list = analyzeService.getDeviationVariables(category);
+        return ResponseEntity.ok(list);
+    }
+
+    /**
+     * LƯU BIẾN SỐ MỚI VÀO DATABASE POSTGRESQL
+     */
+    @PostMapping("/deviation-variables")
+    public ResponseEntity<LotteryDeviationVariable> saveDeviationVariable(
+            @RequestBody LotteryDeviationVariable variable) {
+        LotteryDeviationVariable saved = analyzeService.saveDeviationVariable(variable);
+        return ResponseEntity.ok(saved);
     }
 }
