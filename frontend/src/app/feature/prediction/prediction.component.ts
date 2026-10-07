@@ -364,4 +364,22 @@ export class PredictionComponent implements OnInit, OnDestroy {
 
     return `Vé #${index + 1} phối hợp ma trận Wheeling System 10-to-6: Giữ tổng = ${sum} (nằm trọn trong dải an toàn [77 - 137]), tỷ lệ ${parity}, khống chế tối đa 2 cặp số liền kề. Cấu trúc trọng số chủ đạo: ${keyFactors.join(', ')}.`;
   }
+
+  // --- 5. QUẢN LÝ MỤC KHUYẾN NGHỊ TRÊN UI ---
+  showRecommendationsSection: boolean = true;
+  recommendationTab: 'overview' | 'strategies' | 'goldenTickets' = 'overview';
+
+  toggleRecommendations(): void {
+    this.showRecommendationsSection = !this.showRecommendationsSection;
+    this.cdr.markForCheck();
+  }
+
+  setRecommendationTab(tab: 'overview' | 'strategies' | 'goldenTickets'): void {
+    this.recommendationTab = tab;
+    this.cdr.markForCheck();
+  }
+
+  get recommendations(): any {
+    return this.payload?.recommendations || this.payload?.aiRecommendation || null;
+  }
 }

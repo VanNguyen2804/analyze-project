@@ -39,6 +39,8 @@ public class PredictionResponseDto {
     private String overallReason;
     private List<DrawRecordDto> recentDraws;
     private java.util.Map<String, Object> numberRelationships;
+    private java.util.Map<String, Object> recommendations;
+    private java.util.Map<String, Object> aiRecommendation;
 
     // --- GETTERS & SETTERS ---
 
@@ -119,4 +121,10 @@ public class PredictionResponseDto {
 
     public java.util.Map<String, Object> getNumberRelationships() { return numberRelationships; }
     public void setNumberRelationships(java.util.Map<String, Object> numberRelationships) { this.numberRelationships = numberRelationships; }
+
+    public java.util.Map<String, Object> getRecommendations() { return recommendations; }
+    public void setRecommendations(java.util.Map<String, Object> recommendations) { this.recommendations = recommendations; }
+
+    public java.util.Map<String, Object> getAiRecommendation() { return aiRecommendation; }
+    public void setAiRecommendation(java.util.Map<String, Object> aiRecommendation) { this.aiRecommendation = aiRecommendation; }
 }

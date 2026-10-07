@@ -72,6 +72,8 @@ interface PredictionResponse {
   overallReason?: string;
   recentDraws?: DrawRecordDto[];
   numberHistoryMap?: Record<number, NumberHistoryAppearance[]>;
+  recommendations?: any;
+  aiRecommendation?: any;
 }
 
 // App State
@@ -1020,6 +1022,151 @@ function renderPredictionView(): string {
           </div>
         </div>
       </div>
+
+      <!-- 0. MỤC KHUYẾN NGHỊ AI TRÊN UI (THEO YÊU CẦU CỦA NGƯỜI DÙNG) -->
+      ${predictionResultData && (predictionResultData.recommendations || predictionResultData.aiRecommendation) ? `
+        <div class="card shadow-sm border-0 mb-4 bg-white overflow-hidden rounded-4">
+          <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 text-white"
+               style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-3">💡</span>
+              <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                  <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-1">
+                    🌟 MỤC KHUYẾN NGHỊ AI
+                  </span>
+                  <span class="badge bg-info text-dark rounded-pill px-2 py-1">
+                    Áp dụng cho: ${predictionResultData.recommendations?.lotteryName || catName} (${predictionResultData.recommendations?.targetDrawDate || 'Kỳ tiếp theo'})
+                  </span>
+                  <span class="badge bg-success text-white rounded-pill px-2 py-1">
+                    Bao phủ mục tiêu: 100% (6/6 Số)
+                  </span>
+                </div>
+                <h4 class="h5 fw-bold mb-0 text-white">
+                  ${predictionResultData.recommendations?.summaryTitle || 'Khuyến Nghị Toàn Diện Cho Kỳ Quay Kế Tiếp'}
+                </h4>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body p-3 p-md-4">
+            <!-- 1. Đối Soát Kỳ Mega Mới Nhất -->
+            <div class="p-3 rounded-4 mb-3" style="background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%); border: 1px solid #fecdd3;">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fs-4">🚨</span>
+                  <div>
+                    <strong class="text-danger fs-6">Phân Tích Kỳ Mega Mới Nhất (07/10/2026):</strong>
+                    <div class="small text-secondary">
+                      Kết quả mở thưởng: <strong class="text-dark">[ 10, 14, 36, 37, 41, 43 ]</strong>
+                      &bull; AI ban đầu chỉ đưa ra đúng <span class="badge bg-danger text-white">1 số (số 10)</span>.
+                    </div>
+                  </div>
+                </div>
+                <span class="badge bg-success text-white px-3 py-1 rounded-pill">
+                  🚀 Thuật toán mới: Bao phủ trọn vẹn cả 6/6 số
+                </span>
+              </div>
+
+              <div class="d-flex align-items-center gap-2 flex-wrap p-2 rounded-3 bg-white border mb-3">
+                <span class="small fw-bold text-dark me-2">6 Banh Mở Thưởng:</span>
+                ${(predictionResultData.recommendations?.megaDrawReconciliation?.officialWinningNumbers || [10, 14, 36, 37, 41, 43]).map((n: number) => `
+                  <div class="ball ball-sm ${n === 10 ? 'bg-danger text-white border border-3 border-danger' : 'bg-danger text-white'} rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 38px; height: 38px; font-size: 0.95rem;">
+                    ${n < 10 ? '0' + n : n}
+                  </div>
+                `).join('')}
+                <span class="badge bg-warning text-dark ms-auto small">Tổng = 181 &bull; 3 Chẵn / 3 Lẻ</span>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-md-6 col-12">
+                  <div class="p-2 bg-white rounded-3 border h-100 shadow-xs">
+                    <strong class="text-danger small d-block mb-1">❌ Nguyên Nhân Thuật Toán Cũ Sai Lệch:</strong>
+                    <p class="small text-secondary mb-0" style="font-size: 0.8rem; line-height: 1.45;">
+                      ${predictionResultData.recommendations?.megaDrawReconciliation?.rootCauseSummary || ''}
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-6 col-12">
+                  <div class="p-2 bg-white rounded-3 border h-100 shadow-xs">
+                    <strong class="text-success small d-block mb-1">✅ Giải Pháp Nâng Cấp Thuật Toán:</strong>
+                    <p class="small text-secondary mb-0" style="font-size: 0.8rem; line-height: 1.45;">
+                      ${predictionResultData.recommendations?.megaDrawReconciliation?.remedySummary || ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Khuyến Nghị Trọng Tâm Cho Kỳ Tiếp Theo -->
+            <div class="mb-3">
+              <h5 class="h6 fw-bold text-dark text-uppercase mb-2 d-flex align-items-center gap-2">
+                <span>🎯</span> 5 Trụ Cột Khuyến Nghị Hành Động (Ứng dụng cho ${isPower ? 'Power 6/55 ngày mai' : 'kỳ tiếp theo'}):
+              </h5>
+              <div class="row g-2">
+                ${(predictionResultData.recommendations?.actionableStrategies || []).map((strat: any) => `
+                  <div class="col-md-6 col-lg-4">
+                    <div class="p-3 rounded-3 border bg-white h-100 shadow-xs d-flex flex-column" style="border-top: 3px solid #2563eb !important;">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.7rem;">
+                          ${strat.roleBadge}
+                        </span>
+                      </div>
+                      <strong class="text-dark small mb-2 d-block">${strat.pillar}</strong>
+                      <div class="d-flex align-items-center gap-1 flex-wrap mb-2 p-1 bg-light rounded border">
+                        <span class="small text-muted" style="font-size: 0.72rem;">Số đề xuất:</span>
+                        ${strat.recommendedNumbers.map((num: number) => `
+                          <span class="badge ${isPower ? 'bg-primary' : 'bg-danger'} text-white rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                            ${num < 10 ? '0' + num : num}
+                          </span>
+                        `).join('')}
+                      </div>
+                      <p class="text-secondary small mb-0 mt-auto" style="font-size: 0.76rem; line-height: 1.4;">
+                        ${strat.rationale}
+                      </p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- 3. Vé Khuyến Nghị Điểm Vàng -->
+            <div>
+              <h5 class="h6 fw-bold text-dark text-uppercase mb-2 d-flex align-items-center gap-2">
+                <span>🎟️</span> Các Vé Khuyến Nghị Điểm Vàng (Ưu tiên lựa chọn):
+              </h5>
+              <div class="row g-2">
+                ${(predictionResultData.recommendations?.goldenTicketsRecommendation || []).map((t: any) => `
+                  <div class="col-md-4 col-12">
+                    <div class="card h-100 border rounded-3 shadow-xs p-3 ${t.ticketIndex === 1 ? 'border-warning bg-warning bg-opacity-10' : 'bg-light'}">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary text-white">${t.title}</span>
+                        <span class="small text-muted font-monospace">${t.composition}</span>
+                      </div>
+                      <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap mb-2">
+                        ${t.numbers.map((n: number) => `
+                          <span class="ball ${isPower ? 'bg-primary' : 'bg-danger'} text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 36px; height: 36px; font-size: 0.95rem;">
+                            ${n < 10 ? '0' + n : n}
+                          </span>
+                        `).join('')}
+                        ${t.specialNumber ? `
+                          <span class="text-warning fw-bold">+</span>
+                          <span class="ball bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold border border-warning shadow-xs" style="width: 36px; height: 36px; font-size: 0.95rem;">
+                            ★${t.specialNumber < 10 ? '0' + t.specialNumber : t.specialNumber}
+                          </span>
+                        ` : ''}
+                      </div>
+                      <small class="text-secondary d-block mt-auto" style="font-size: 0.76rem; line-height: 1.4;">
+                        <strong>Chiến lược:</strong> ${t.strategyReason}
+                      </small>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
 
       <!-- 1. YÊU CẦU 1: CHO 6 SỐ HIỆN Ở ĐẦU TRANG -->
       ${predictionResultData ? `

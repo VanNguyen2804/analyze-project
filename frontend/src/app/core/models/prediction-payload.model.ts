@@ -116,6 +116,8 @@ export interface PredictionPayload {
   modelVersion?: string;
   hyperparameterVersion?: string;
   numberRelationships?: NumberRelationshipData;
+  recommendations?: any;
+  aiRecommendation?: any;
 }
 
 
