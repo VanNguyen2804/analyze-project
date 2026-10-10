@@ -1,5 +1,65 @@
 [
   {
+    "id": 11,
+    "category": "MEGA",
+    "drawDate": "2026-10-09",
+    "numbers": [
+      11,
+      21,
+      27,
+      35,
+      37,
+      42
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-09T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #1: Trượt 6/6 số do bẫy lệch sát nút ±1 (11->12, 42->41) và lệch parity (21->23)"
+  },
+  {
+    "id": 12,
+    "category": "MEGA",
+    "drawDate": "2026-10-09",
+    "numbers": [
+      10,
+      13,
+      21,
+      31,
+      38,
+      44
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-09T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #2: Trượt 6/6 số do bẫy lệch sát nút ±1 (13->12, 31->32) và cặp đảo vị 23-32"
+  },
+  {
+    "id": 13,
+    "category": "MEGA",
+    "drawDate": "2026-10-09",
+    "numbers": [
+      8,
+      14,
+      25,
+      35,
+      37,
+      42
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-09T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #3: Trượt 6/6 số do bẫy lệch sát nút ±1 (08->07, 42->41) và lệch parity (25->23)"
+  },
+  {
     "id": 1,
     "category": "POWER",
     "drawDate": "2026-09-28",

@@ -1,5 +1,21 @@
 [
   {
+    "id": 50,
+    "drawDate": "2026-10-09",
+    "category": "MEGA",
+    "numbers": [
+      5,
+      7,
+      12,
+      23,
+      32,
+      41
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-10-09T18:30:00.000000",
+    "note": "Kỳ quay Mega 6/45 #01573 ngày 09/10/2026"
+  },
+  {
     "id": 49,
     "drawDate": "2026-10-07",
     "category": "MEGA",
