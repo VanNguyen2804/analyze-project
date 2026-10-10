@@ -4,10 +4,11 @@ WORKDIR /app
 
 ENV MAVEN_OPTS="-Xmx512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
+COPY .mvn ./.mvn
 COPY pom.xml ./
 COPY src ./src
 
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -s .mvn/settings.xml -DskipTests -B
 
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app

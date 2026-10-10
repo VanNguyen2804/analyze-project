@@ -2304,10 +2304,10 @@ function analyzeAndPredict(
   const isPowerCategory = category === 'POWER';
   const recommendations = {
     targetCategory: category,
-    targetDrawDate: isPowerCategory ? '2026-10-08' : '2026-10-11',
+    targetDrawDate: isPowerCategory ? '2026-10-10' : '2026-10-11',
     lotteryName: isPowerCategory ? 'Power 6/55' : 'Mega 6/45',
     summaryTitle: isPowerCategory
-      ? 'Khuyến Nghị Toàn Diện Cho Kỳ Quay Power 6/55 Ngày Mai (08/10/2026)'
+      ? 'Khuyến Nghị Toàn Diện Cho Kỳ Quay Power 6/55 Ngày Hôm Nay (10/10/2026)'
       : 'Khuyến Nghị Toàn Diện Cho Kỳ Quay Mega 6/45 Ngày 11/10/2026 (Phân Tích Biến Số Kỳ 09/10)',
     megaDrawReconciliation: {
       officialWinningNumbers: [5, 7, 12, 23, 32, 41],

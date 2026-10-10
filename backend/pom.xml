@@ -21,6 +21,77 @@
     <flyway.version>10.10.0</flyway.version>
   </properties>
 
+  <repositories>
+    <!-- Fallback mirror 1: Maven Central via Google Cloud Storage Mirror -->
+    <repository>
+      <id>gcs-maven-central</id>
+      <name>Google Cloud Maven Central Mirror</name>
+      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <!-- Fallback mirror 2: Spring Milestones & Releases -->
+    <repository>
+      <id>spring-releases</id>
+      <name>Spring Releases</name>
+      <url>https://repo.spring.io/release</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <!-- Fallback mirror 3: Aliyun Public Maven Mirror (Fast & High Rate Limit) -->
+    <repository>
+      <id>aliyun-central</id>
+      <name>Aliyun Central Mirror</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <!-- Standard Maven Central -->
+    <repository>
+      <id>central</id>
+      <name>Maven Central</name>
+      <url>https://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>gcs-maven-central</id>
+      <name>Google Cloud Maven Central Mirror</name>
+      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>aliyun-central</id>
+      <name>Aliyun Central Mirror</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>spring-releases</id>
+      <name>Spring Releases</name>
+      <url>https://repo.spring.io/release</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>central</id>
+      <name>Maven Central</name>
+      <url>https://repo1.maven.org/maven2</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <dependencies>
     <!-- Spring Web -->
     <dependency>
