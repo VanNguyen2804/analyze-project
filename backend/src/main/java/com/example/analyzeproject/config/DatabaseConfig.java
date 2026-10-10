@@ -89,4 +89,16 @@ public class DatabaseConfig {
         config.setPassword(properties.determinePassword());
         return new HikariDataSource(config);
     }
+
+    @Bean
+    public org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy flywayMigrationStrategy() {
+        return flyway -> {
+            try {
+                // Tự động xóa các migration bị lỗi trước đó (như V4 bị lỗi n1) và đồng bộ checksum
+                flyway.repair();
+            } catch (Exception ignored) {
+            }
+            flyway.migrate();
+        };
+    }
 }

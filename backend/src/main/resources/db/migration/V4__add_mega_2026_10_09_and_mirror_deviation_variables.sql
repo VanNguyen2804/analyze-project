@@ -2,19 +2,67 @@
 -- FLYWAY MIGRATION SCRIPT: V4__add_mega_2026_10_09_and_mirror_deviation_variables.sql
 -- Mô tả: Cập nhật kết quả mở thưởng Mega 6/45 ngày 09/10/2026 (05 07 12 23 32 41)
 --        và lưu trữ ma trận biến số mới (Bẫy ép biên ±1, Cặp đảo vị 23-32, Parity ±2)
+--        Tương thích hoàn toàn cả JPA ElementCollection và các câu lệnh truy vấn n1..n6
 -- Database: PostgreSQL
 -- =========================================================================================
 
--- 1. Nạp kết quả kỳ Mega 6/45 ngày 09/10/2026 vào bảng lottery_numbers
-INSERT INTO lottery_numbers (
-    draw_date, category, n1, n2, n3, n4, n5, n6, special_number, note, created_at
-) VALUES (
-    '2026-10-09', 'MEGA', 5, 7, 12, 23, 32, 41, NULL,
-    'Kỳ quay Mega 6/45 #01573 ngày 09/10/2026: Nổ cặp đảo vị 23-32, số lặp 41 và bẫy lệch sát nút ±1',
-    '2026-10-09 18:30:00'
-);
+-- 1. Bổ sung các cột n1..n6 và numbers vào bảng lottery_numbers (nếu chưa có) để tương thích đa dạng
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n1 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n2 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n3 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n4 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n5 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n6 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS numbers VARCHAR(255);
 
--- 2. Nạp các biến số mới phát hiện từ kỳ 09/10/2026 vào lottery_deviation_variables
+-- 2. Đồng bộ nạp kết quả kỳ Mega 6/45 ngày 09/10/2026 vào bảng lottery_numbers
+INSERT INTO lottery_numbers (
+    id, draw_date, category, special_number, note, created_at, n1, n2, n3, n4, n5, n6, numbers
+) VALUES (
+    50, '2026-10-09', 'MEGA', NULL,
+    'Kỳ quay Mega 6/45 #01573 ngày 09/10/2026: Nổ cặp đảo vị 23-32, số lặp 41 và bẫy lệch sát nút ±1',
+    '2026-10-09 18:30:00', 5, 7, 12, 23, 32, 41, '5,7,12,23,32,41'
+) ON CONFLICT (id) DO UPDATE SET
+    draw_date = EXCLUDED.draw_date,
+    category = EXCLUDED.category,
+    special_number = EXCLUDED.special_number,
+    note = EXCLUDED.note,
+    created_at = EXCLUDED.created_at,
+    n1 = EXCLUDED.n1,
+    n2 = EXCLUDED.n2,
+    n3 = EXCLUDED.n3,
+    n4 = EXCLUDED.n4,
+    n5 = EXCLUDED.n5,
+    n6 = EXCLUDED.n6,
+    numbers = EXCLUDED.numbers;
+
+-- 3. Đồng bộ vào bảng chuẩn JPA lottery_selected_numbers (ElementCollection)
+INSERT INTO lottery_selected_numbers (lottery_id, number_order, number_value) VALUES (50, 0, 5) ON CONFLICT DO NOTHING;
+INSERT INTO lottery_selected_numbers (lottery_id, number_order, number_value) VALUES (50, 1, 7) ON CONFLICT DO NOTHING;
+INSERT INTO lottery_selected_numbers (lottery_id, number_order, number_value) VALUES (50, 2, 12) ON CONFLICT DO NOTHING;
+INSERT INTO lottery_selected_numbers (lottery_id, number_order, number_value) VALUES (50, 3, 23) ON CONFLICT DO NOTHING;
+INSERT INTO lottery_selected_numbers (lottery_id, number_order, number_value) VALUES (50, 4, 32) ON CONFLICT DO NOTHING;
+INSERT INTO lottery_selected_numbers (lottery_id, number_order, number_value) VALUES (50, 5, 41) ON CONFLICT DO NOTHING;
+
+-- Tự động điền giá trị n1..n6 và numbers cho các dòng lịch sử cũ nếu đang NULL
+UPDATE lottery_numbers ln
+SET 
+    n1 = COALESCE(ln.n1, (SELECT number_value FROM lottery_selected_numbers WHERE lottery_id = ln.id AND number_order = 0)),
+    n2 = COALESCE(ln.n2, (SELECT number_value FROM lottery_selected_numbers WHERE lottery_id = ln.id AND number_order = 1)),
+    n3 = COALESCE(ln.n3, (SELECT number_value FROM lottery_selected_numbers WHERE lottery_id = ln.id AND number_order = 2)),
+    n4 = COALESCE(ln.n4, (SELECT number_value FROM lottery_selected_numbers WHERE lottery_id = ln.id AND number_order = 3)),
+    n5 = COALESCE(ln.n5, (SELECT number_value FROM lottery_selected_numbers WHERE lottery_id = ln.id AND number_order = 4)),
+    n6 = COALESCE(ln.n6, (SELECT number_value FROM lottery_selected_numbers WHERE lottery_id = ln.id AND number_order = 5))
+WHERE ln.n1 IS NULL;
+
+UPDATE lottery_numbers
+SET numbers = CONCAT(n1, ',', n2, ',', n3, ',', n4, ',', n5, ',', n6)
+WHERE numbers IS NULL AND n1 IS NOT NULL;
+
+-- Cập nhật sequence id cho PostgreSQL
+SELECT setval('lottery_numbers_id_seq', (SELECT COALESCE(MAX(id), 1) FROM lottery_numbers));
+
+-- 4. Nạp các biến số mới phát hiện từ kỳ 09/10/2026 vào lottery_deviation_variables
 INSERT INTO lottery_deviation_variables (
     category, base_draw_date, target_draw_date, ai_predicted_number, actual_number, variable_delta, variable_type, pattern_name, probability_shift, transformation_rule, note
 ) VALUES

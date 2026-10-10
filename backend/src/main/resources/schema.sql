@@ -26,11 +26,25 @@ CREATE TABLE IF NOT EXISTS lottery_numbers (
     id BIGSERIAL PRIMARY KEY,
     category VARCHAR(20) NOT NULL,
     draw_date VARCHAR(50) NOT NULL,
-    numbers VARCHAR(255) NOT NULL,
+    numbers VARCHAR(255),
+    n1 INTEGER,
+    n2 INTEGER,
+    n3 INTEGER,
+    n4 INTEGER,
+    n5 INTEGER,
+    n6 INTEGER,
     special_number INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     note TEXT
 );
+
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n1 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n2 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n3 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n4 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n5 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS n6 INTEGER;
+ALTER TABLE lottery_numbers ADD COLUMN IF NOT EXISTS numbers VARCHAR(255);
 
 -- Bảng vé số người dùng kiểm tra
 CREATE TABLE IF NOT EXISTS user_tickets (
