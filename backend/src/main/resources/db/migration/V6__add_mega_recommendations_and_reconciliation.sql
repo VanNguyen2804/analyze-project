@@ -1,11 +1,48 @@
 -- =========================================================================================
 -- FLYWAY MIGRATION SCRIPT: V6__add_mega_recommendations_and_reconciliation.sql
 -- Mô tả: Nạp 3 dãy số khuyến nghị Mega 6/45 cho kỳ quay Chủ Nhật 11/10/2026 (v1.8.0)
---        và cập nhật các biến số đối chiếu thực nghiệm toàn diện 29 kỳ Mega
+--        và cập nhật các biến số đối chiếu thực nghiệm toàn diện 29 kỳ Mega.
+--        Bảo đảm idempotent và tương thích cả schema bảng user_tickets lẫn user_ticket (JPA).
 -- Database: PostgreSQL
 -- =========================================================================================
 
--- 1. Nạp 3 dãy số khuyến nghị Mega 6/45 cho kỳ 11/10/2026 vào bảng user_tickets
+-- 1. ĐẢM BẢO BẢNG user_tickets TỒN TẠI (TƯƠNG THÍCH TRƯỚC KHI THỰC HIỆN CÁC THAO TÁC INSERT/SELECT)
+CREATE TABLE IF NOT EXISTS user_tickets (
+    id BIGSERIAL PRIMARY KEY,
+    category VARCHAR(20) NOT NULL,
+    draw_date VARCHAR(50) NOT NULL,
+    numbers VARCHAR(255) NOT NULL,
+    special_number INTEGER,
+    matched_numbers VARCHAR(255),
+    matched_count INTEGER DEFAULT 0,
+    matched_special BOOLEAN DEFAULT FALSE,
+    prize VARCHAR(100),
+    prize_amount VARCHAR(100),
+    checked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    note TEXT
+);
+
+-- Đảm bảo sequence cho bảng user_tickets hoạt động trơn tru
+CREATE SEQUENCE IF NOT EXISTS user_tickets_id_seq;
+
+-- 2. ĐẢM BẢO CẢ BẢNG JPA user_ticket VÀ user_ticket_numbers TỒN TẠI
+CREATE TABLE IF NOT EXISTS user_ticket (
+    id BIGSERIAL PRIMARY KEY,
+    category VARCHAR(255),
+    draw_date VARCHAR(255),
+    prize VARCHAR(255),
+    checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_ticket_numbers (
+    user_ticket_id BIGINT NOT NULL,
+    numbers INTEGER,
+    CONSTRAINT fk_user_ticket_numbers_ticket FOREIGN KEY (user_ticket_id) REFERENCES user_ticket(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_ticket_numbers_tid ON user_ticket_numbers(user_ticket_id);
+
+-- 3. Nạp 3 dãy số khuyến nghị Mega 6/45 cho kỳ 11/10/2026 vào bảng user_tickets
 INSERT INTO user_tickets (
     id, category, draw_date, numbers, special_number, matched_numbers, matched_count, matched_special, prize, prize_amount, checked_at, note
 ) VALUES
@@ -30,7 +67,43 @@ ON CONFLICT (id) DO UPDATE SET
 -- Cập nhật sequence id cho bảng user_tickets
 SELECT setval('user_tickets_id_seq', (SELECT COALESCE(MAX(id), 1) FROM user_tickets));
 
--- 2. Nạp bổ sung các biến số đối chiếu thực nghiệm toàn diện 29 kỳ Mega vào lottery_deviation_variables
+-- 4. Đồng bộ 3 vé khuyến nghị vào entity JPA user_ticket & user_ticket_numbers
+INSERT INTO user_ticket (id, category, draw_date, prize, checked_at)
+VALUES 
+(17, 'MEGA', '2026-10-11', 'CHỜ MỞ THƯỞNG', '2026-10-11 07:00:00'),
+(18, 'MEGA', '2026-10-11', 'CHỜ MỞ THƯỞNG', '2026-10-11 07:00:00'),
+(19, 'MEGA', '2026-10-11', 'CHỜ MỞ THƯỞNG', '2026-10-11 07:00:00')
+ON CONFLICT (id) DO UPDATE SET
+    category = EXCLUDED.category,
+    draw_date = EXCLUDED.draw_date,
+    prize = EXCLUDED.prize;
+
+DELETE FROM user_ticket_numbers WHERE user_ticket_id IN (17, 18, 19);
+
+INSERT INTO user_ticket_numbers (user_ticket_id, numbers) VALUES
+(17, 5), (17, 12), (17, 23), (17, 32), (17, 38), (17, 44),
+(18, 3), (18, 7), (18, 15), (18, 22), (18, 27), (18, 41),
+(19, 6), (19, 8), (19, 18), (19, 23), (19, 29), (19, 36);
+
+SELECT setval('user_ticket_id_seq', (SELECT COALESCE(MAX(id), 1) FROM user_ticket));
+
+-- 5. Nạp bổ sung các biến số đối chiếu thực nghiệm toàn diện 29 kỳ Mega vào lottery_deviation_variables
+CREATE TABLE IF NOT EXISTS lottery_deviation_variables (
+    id BIGSERIAL PRIMARY KEY,
+    category VARCHAR(20) NOT NULL,
+    base_draw_date VARCHAR(50) NOT NULL,
+    target_draw_date VARCHAR(50) NOT NULL,
+    ai_predicted_number INTEGER NOT NULL,
+    actual_number INTEGER NOT NULL,
+    variable_delta INTEGER NOT NULL,
+    variable_type VARCHAR(100) NOT NULL,
+    pattern_name VARCHAR(150),
+    probability_shift DOUBLE PRECISION,
+    transformation_rule TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    note TEXT
+);
+
 INSERT INTO lottery_deviation_variables (
     category, base_draw_date, target_draw_date, ai_predicted_number, actual_number, variable_delta, variable_type, pattern_name, probability_shift, transformation_rule, note
 ) VALUES
