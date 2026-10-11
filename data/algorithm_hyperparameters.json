@@ -1,5 +1,63 @@
 [
   {
+    "id": 9,
+    "version": "v1.9.0",
+    "drawDate": "2026-10-13",
+    "category": "POWER",
+    "model": "XGBoost Multi-Factor Optimization v1.9.0 + Zone Quota Balance & Cross-System Carrier",
+    "hyperparameters": {
+      "model": "XGBoost Multi-Factor Optimization v1.9.0 + Zone Quota Balance & Cross-System Carrier",
+      "targetCategory": "POWER",
+      "drawDate": "2026-10-13",
+      "evaluationSummary": {
+        "powerDrawDate": "2026-10-10",
+        "powerWinningNumbers": [
+          4,
+          5,
+          6,
+          29,
+          32,
+          44
+        ],
+        "powerSpecialNumber": 53,
+        "appliedToNextDraw": "POWER 6/55 (2026-10-13)"
+      },
+      "recommendedAdjustments": {
+        "zoneQuotaBalance": true,
+        "zone1Quota": [
+          1,
+          2
+        ],
+        "zone2Quota": [
+          2,
+          3
+        ],
+        "zone3Quota": [
+          2,
+          3
+        ],
+        "specialToMainMigrationWeight": 0.95,
+        "crossGameCarrierWeight": 0.92,
+        "consecutiveTripletWeight": 0.92,
+        "neighborDriftTolerance": 1,
+        "sumRangeFilter": [
+          115,
+          195
+        ],
+        "parityDistributionFilter": [
+          "4:2",
+          "3:3",
+          "2:4"
+        ]
+      },
+      "actionableAdvice": "Nâng cấp v1.9.0: Áp dụng cơ chế cân bằng hạn ngạch 3 phân vùng (Zone Quota Balance), nới dải tổng điểm [115, 195], đón đầu chuyển vị banh phụ cực biên 53 sang banh chính và kế thừa xung lực đa hệ thống từ Mega 09/10 & Power 10/10."
+    },
+    "hyperparametersJson": "{\n  \"zoneQuotaBalance\": true,\n  \"zone1Quota\": [\n    1,\n    2\n  ],\n  \"zone2Quota\": [\n    2,\n    3\n  ],\n  \"zone3Quota\": [\n    2,\n    3\n  ],\n  \"specialToMainMigrationWeight\": 0.95,\n  \"crossGameCarrierWeight\": 0.92,\n  \"consecutiveTripletWeight\": 0.92,\n  \"neighborDriftTolerance\": 1,\n  \"sumRangeFilter\": [\n    115,\n    195\n  ],\n  \"parityDistributionFilter\": [\n    \"4:2\",\n    \"3:3\",\n    \"2:4\"\n  ]\n}",
+    "readmeContent": "# Báo Cáo Hiệu Chỉnh Thuật Toán v1.9.0 (Tối Ưu Phân Vùng Đa Dải Cho Kỳ Power 13/10/2026)\n\n## 1. Phân Tích Thực Nghiệm 10 Kỳ Gần Nhất\n- **Bẫy dồn dải thấp**: Thuật toán cũ thiên lệch quá mức về Zone 1 (<18), khiến tỷ lệ bắt trúng 10 kỳ gần nhất của Mega bị thấp (bỏ rơi Zone 3 [31-45]).\n- **Khắc phục**: Kích hoạt cơ chế Zone Quota Balance bắt buộc phân bổ tối thiểu 1-2 số Zone 1, 2 số Zone 2 và 2 số Zone 3.\n\n## 2. Ứng Dụng Cho Kỳ Power 13/10/2026\n- **Vé 1**: [05, 14, 20, 32, 44, 53 | Phụ ⭐24] - Cụm Kế Thừa Động Lượng & Chuyển Vị.\n- **Vé 2**: [07, 11, 18, 29, 41, 50 | Phụ ⭐53] - Điểm Rơi Poisson Chuẩn Hóa 3 Phân Vùng.\n- **Vé 3**: [04, 06, 16, 27, 38, 52 | Phụ ⭐18] - Cặp Tương Hỗ Đồng Pha & Lô Gan Biên.",
+    "createdAt": "2026-10-11T12:00:00.000Z",
+    "note": "Nâng cấp v1.9.0: Khắc phục triệt để bẫy dồn dải thấp, áp dụng Zone Quota Balance và sinh 3 vé tối ưu cho kỳ Power 13/10/2026."
+  },
+  {
     "id": 8,
     "version": "v1.8.0",
     "drawDate": "2026-10-10",

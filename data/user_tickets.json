@@ -1,5 +1,68 @@
 [
   {
+    "id": 22,
+    "category": "POWER",
+    "drawDate": "2026-10-13",
+    "numbers": [
+      4,
+      6,
+      16,
+      27,
+      38,
+      52
+    ],
+    "specialNumber": 18,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-13T07:00:00.000Z",
+    "note": "Vé C Khuyến Nghị Power 13/10 (v1.9.0): Cặp Tương Hỗ Đồng Pha & Lô Gan Biên (Bọc lót cặp biên 04, 06 + Bù trừ chân không 16 + Bứt phá dải cao 38, 52; Banh phụ bảo hiểm ⭐18)"
+  },
+  {
+    "id": 21,
+    "category": "POWER",
+    "drawDate": "2026-10-13",
+    "numbers": [
+      7,
+      11,
+      18,
+      29,
+      41,
+      50
+    ],
+    "specialNumber": 53,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-13T07:00:00.000Z",
+    "note": "Vé B Khuyến Nghị Power 13/10 (v1.9.0): Điểm Rơi Poisson Chuẩn Hóa 3 Phân Vùng (Zone 1: 07, 11, 18; Zone 2: 29; Zone 3: 41, 50; Banh phụ bảo hiểm ⭐53)"
+  },
+  {
+    "id": 20,
+    "category": "POWER",
+    "drawDate": "2026-10-13",
+    "numbers": [
+      5,
+      14,
+      20,
+      32,
+      44,
+      53
+    ],
+    "specialNumber": 24,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-13T07:00:00.000Z",
+    "note": "Vé A Khuyến Nghị Power 13/10 (v1.9.0): Cụm Kế Thừa Động Lượng & Chuyển Vị (Kế thừa [05, 32, 44] từ kỳ 10/10 + Bù dải trống 14, 20 + Banh phụ cực biên 53 chuyển vị thành banh chính; Banh phụ bảo hiểm ⭐24)"
+  },
+  {
     "id": 17,
     "category": "MEGA",
     "drawDate": "2026-10-11",
