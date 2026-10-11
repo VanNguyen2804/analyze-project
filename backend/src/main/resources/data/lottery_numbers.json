@@ -1,5 +1,21 @@
 [
   {
+    "id": 51,
+    "drawDate": "2026-10-10",
+    "category": "POWER",
+    "numbers": [
+      4,
+      5,
+      6,
+      29,
+      32,
+      44
+    ],
+    "specialNumber": 53,
+    "createdAt": "2026-10-10T18:30:00.000000",
+    "note": "Kỳ quay Power 6/55 #01409 ngày 10/10/2026: Nổ cụm tam giác liền kề 04-05-06, bóng di cư xuyên kỳ 32, và banh phụ cực biên 53"
+  },
+  {
     "id": 50,
     "drawDate": "2026-10-09",
     "category": "MEGA",

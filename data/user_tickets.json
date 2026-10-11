@@ -1,5 +1,133 @@
 [
   {
+    "id": 17,
+    "category": "MEGA",
+    "drawDate": "2026-10-11",
+    "numbers": [
+      5,
+      12,
+      23,
+      32,
+      38,
+      44
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-11T07:00:00.000Z",
+    "note": "Vé A Khuyến Nghị Mega 11/10 (v1.8.0): Cụm Di Cư Sóng Chéo (Cross-Carrier [05, 32, 44] từ Power 10/10 + Cặp Đảo Vị Gương 23-32)"
+  },
+  {
+    "id": 18,
+    "category": "MEGA",
+    "drawDate": "2026-10-11",
+    "numbers": [
+      3,
+      7,
+      15,
+      22,
+      27,
+      41
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-11T07:00:00.000Z",
+    "note": "Vé B Khuyến Nghị Mega 11/10 (v1.8.0): Điểm Rơi Poisson Cân Bằng (Lô Gan Bứt Phá 15, 22 + Quán Tính Lặp 07, 41 + Sóng Hài Fourier 27)"
+  },
+  {
+    "id": 19,
+    "category": "MEGA",
+    "drawDate": "2026-10-11",
+    "numbers": [
+      6,
+      8,
+      18,
+      23,
+      29,
+      36
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-11T07:00:00.000Z",
+    "note": "Vé C Khuyến Nghị Mega 11/10 (v1.8.0): Cặp Liền Kề Triplet Phân Tán & Bù Trừ Dải Chân Không (Bóng 06, 29 từ Power 10/10 + Bọc Lót Biên 08, 18, 36)"
+  },
+  {
+    "id": 16,
+    "category": "POWER",
+    "drawDate": "2026-10-10",
+    "numbers": [
+      5,
+      11,
+      18,
+      25,
+      32,
+      45
+    ],
+    "specialNumber": 53,
+    "matchedNumbers": [
+      5,
+      32
+    ],
+    "matchedCount": 2,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-10T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #3 Power 10/10: Trúng 2 số chính [05, 32] + Bắt chính xác 100% Banh phụ Jackpot 2 (53); số 45 lệch sát nút 44 (Δ = -1)"
+  },
+  {
+    "id": 15,
+    "category": "POWER",
+    "drawDate": "2026-10-10",
+    "numbers": [
+      6,
+      9,
+      14,
+      21,
+      28,
+      48
+    ],
+    "specialNumber": 27,
+    "matchedNumbers": [
+      6
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-10T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #2 Power 10/10: Trúng số 06 (1/6); số 28 lệch sát nút 29 (Δ = +1); trượt các số 09, 14, 21, 48"
+  },
+  {
+    "id": 14,
+    "category": "POWER",
+    "drawDate": "2026-10-10",
+    "numbers": [
+      7,
+      18,
+      24,
+      27,
+      35,
+      52
+    ],
+    "specialNumber": 41,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-10T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #1 Power 10/10: Lệch do bẫy quán tính lặp 07 (kết quả nổ 06, lệch -1) và bẫy lặp 18, 24, 27"
+  },
+  {
     "id": 11,
     "category": "MEGA",
     "drawDate": "2026-10-09",

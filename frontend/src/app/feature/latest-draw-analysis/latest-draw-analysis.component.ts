@@ -176,9 +176,14 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   reconcileLimit: number = 5;
   reconcileAlgorithm: string = 'deep_stacking';
   selectedReconcileDate: string = '';
-  availableLimits: number[] = [5, 10, 15, 20, 25, 30, 40, 50];
+  availableLimits: number[] = [5, 10, 15, 20, 25, 29, 30, 50];
   showAllBacktestTable: boolean = false;
   isApplyingV150: boolean = false;
+
+  getLimitLabel(lim: number): string {
+    if (lim === 29 && this.category === 'MEGA') return '🔥 Toàn bộ 29 Kỳ';
+    return `${lim} Kỳ`;
+  }
 
   private categorySub: Subscription | undefined;
 
