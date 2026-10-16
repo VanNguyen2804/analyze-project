@@ -110,6 +110,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.payload = res;
         this.isSpinning = false;
+        this.loadDeviationVariables();
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -129,8 +130,13 @@ export class PredictionComponent implements OnInit, OnDestroy {
 
   getTarget3Items(): any[] {
     if (!this.payload?.focusAnalysis?.focusItems) return [];
-    const targets = this.category === 'POWER' ? [48, 52, 14] : [31, 45, 14];
-    return this.payload.focusAnalysis.focusItems.filter((item: any) => targets.includes(item.number));
+    const upgraded = this.payload.focusAnalysis.upgradedNumbers || [];
+    const targetItems = this.payload.focusAnalysis.focusItems.filter(
+      (item: any) => item.isTargetUpgrade || upgraded.includes(item.number)
+    );
+    return targetItems.length > 0
+      ? targetItems.slice(0, 3)
+      : this.payload.focusAnalysis.focusItems.slice(0, 3);
   }
 
   // HÀM BẠN ĐÃ HỎI: Lọc danh sách thẻ tra cứu
@@ -389,6 +395,19 @@ export class PredictionComponent implements OnInit, OnDestroy {
   dbSaveStatusMap: Record<number | string, boolean> = {};
   isSavingAllDevVars: boolean = false;
   dbSaveToastMessage: string | null = null;
+  deviationVariablesList: any[] = [];
+
+  loadDeviationVariables(): void {
+    this.analyzeService.getDeviationVariables(this.category).subscribe({
+      next: (list) => {
+        if (list && list.length > 0) {
+          this.deviationVariablesList = list;
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.error('Lỗi tải biến số từ endpoint:', err)
+    });
+  }
 
   toggleDeviationSection(): void {
     this.showDeviationSection = !this.showDeviationSection;
@@ -407,136 +426,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (this.recommendations?.deviationVariables && this.recommendations.deviationVariables.length > 0) {
       return this.recommendations.deviationVariables;
     }
-    // Fallback nếu chưa tải
-    return this.category === 'POWER' ? [
-      {
-        id: 7,
-        category: 'POWER',
-        baseDrawDate: '2026-10-03',
-        targetDrawDate: '2026-10-06',
-        aiPredictedNumber: 7,
-        actualNumber: 6,
-        variableDelta: -1,
-        variableType: 'NEIGHBOR_DRIFT',
-        patternName: 'Biến số Lệch Biên Sát Nút (±1)',
-        probabilityShift: 0.89,
-        transformationRule: 'AI [07] - 1 => 06: Dịch chuyển lồng cầu liền kề trái',
-        note: 'Thực nghiệm kỳ Power 06/10: Số 07 sinh biến số sang 06'
-      },
-      {
-        id: 8,
-        category: 'POWER',
-        baseDrawDate: '2026-10-03',
-        targetDrawDate: '2026-10-06',
-        aiPredictedNumber: 16,
-        actualNumber: 18,
-        variableDelta: 2,
-        variableType: 'PARITY_DRIFT',
-        patternName: 'Biến số Lệch Bậc 2 Chẵn (Delta = +2)',
-        probabilityShift: 0.85,
-        transformationRule: 'AI [16] + 2 => 18: Dịch chuyển bậc 2 bảo toàn tính chẵn',
-        note: 'Thực nghiệm kỳ Power 06/10: Số 16 sinh biến số sang 18'
-      },
-      {
-        id: 9,
-        category: 'POWER',
-        baseDrawDate: '2026-10-03',
-        targetDrawDate: '2026-10-06',
-        aiPredictedNumber: 41,
-        actualNumber: 1,
-        variableDelta: -40,
-        variableType: 'SPECIAL_MIGRATION',
-        patternName: 'Biến số Chuyển Vị Banh Phụ (Special Migration)',
-        probabilityShift: 0.92,
-        transformationRule: 'Banh phụ kỳ trước nhảy lồng cầu sang làm Banh chính kỳ sau',
-        note: 'Thực nghiệm kỳ Power 06/10: Banh phụ 01 và 41 chuyển vị'
-      }
-    ] : [
-      {
-        id: 1,
-        category: 'MEGA',
-        baseDrawDate: '2026-10-04',
-        targetDrawDate: '2026-10-07',
-        aiPredictedNumber: 15,
-        actualNumber: 14,
-        variableDelta: -1,
-        variableType: 'NEIGHBOR_DRIFT',
-        patternName: 'Biến số Lệch Biên Sát Nút (±1)',
-        probabilityShift: 0.88,
-        transformationRule: 'AI [15] - 1 => 14: Biến số dịch chuyển lồng cầu liền kề trái',
-        note: 'Thực nghiệm đối soát kỳ Mega 07/10: AI đưa ra 15 nhưng lồng cầu rơi 14 (lệch -1)'
-      },
-      {
-        id: 2,
-        category: 'MEGA',
-        baseDrawDate: '2026-10-04',
-        targetDrawDate: '2026-10-07',
-        aiPredictedNumber: 40,
-        actualNumber: 41,
-        variableDelta: 1,
-        variableType: 'NEIGHBOR_DRIFT',
-        patternName: 'Biến số Lệch Biên Sát Nút (±1)',
-        probabilityShift: 0.91,
-        transformationRule: 'AI [40] + 1 => 41: Biến số dịch chuyển lồng cầu liền kề phải',
-        note: 'Thực nghiệm đối soát kỳ Mega 07/10: AI đưa ra 40 nhưng lồng cầu rơi 41 (lệch +1)'
-      },
-      {
-        id: 3,
-        category: 'MEGA',
-        baseDrawDate: '2026-10-04',
-        targetDrawDate: '2026-10-07',
-        aiPredictedNumber: 29,
-        actualNumber: 36,
-        variableDelta: 7,
-        variableType: 'RESONANCE_LEAP',
-        patternName: 'Biến số Bước Nhảy Sóng Hài (Delta = +7)',
-        probabilityShift: 0.76,
-        transformationRule: 'AI [29] + 7 => 36: Bước nhảy dao động Fourier điều hòa dải trung',
-        note: 'Thực nghiệm kỳ Mega 07/10: Bước nhảy cộng hưởng chu kỳ 7'
-      },
-      {
-        id: 4,
-        category: 'MEGA',
-        baseDrawDate: '2026-10-04',
-        targetDrawDate: '2026-10-07',
-        aiPredictedNumber: 37,
-        actualNumber: 37,
-        variableDelta: 0,
-        variableType: 'REPEAT_INERTIA',
-        patternName: 'Biến số Quán Tính Lặp Nguyên Vị (Delta = 0)',
-        probabilityShift: 0.95,
-        transformationRule: 'AI [37] + 0 => 37: Quán tính lặp chuỗi Markov trạng thái tĩnh',
-        note: 'Thực nghiệm kỳ Mega 07/10: Trùng khớp tuyệt đối số lặp'
-      },
-      {
-        id: 5,
-        category: 'MEGA',
-        baseDrawDate: '2026-10-04',
-        targetDrawDate: '2026-10-07',
-        aiPredictedNumber: 45,
-        actualNumber: 43,
-        variableDelta: -2,
-        variableType: 'PARITY_DRIFT',
-        patternName: 'Biến số Lệch Dải Bảo Toàn Tính Lẻ (Delta = -2)',
-        probabilityShift: 0.82,
-        transformationRule: 'AI [45] - 2 => 43: Dịch chuyển bậc 2 bảo toàn tính lẻ cận biên',
-        note: 'Thực nghiệm kỳ Mega 07/10: Dịch chuyển bậc 2 dải cận biên 45'
-      },
-      {
-        id: 6,
-        category: 'MEGA',
-        baseDrawDate: '2026-10-04',
-        targetDrawDate: '2026-10-07',
-        aiPredictedNumber: 20,
-        actualNumber: 10,
-        variableDelta: -10,
-        variableType: 'DECADE_SHIFT',
-        patternName: 'Biến số Dịch Chuyển Hàng Chục (Delta = -10)',
-        probabilityShift: 0.74,
-        transformationRule: 'AI [20] - 10 => 10: Chuyển dịch phân vùng đối xứng thập phân',
-        note: 'Thực nghiệm kỳ Mega 07/10: Nhảy phân vùng từ Zone 2 về Zone 1'
-      }
-    ];
+    return this.deviationVariablesList || [];
   }
 
   get filteredDeviationVariables(): any[] {
@@ -547,12 +437,27 @@ export class PredictionComponent implements OnInit, OnDestroy {
     return list.filter((v: any) => v.variableType === this.deviationFilterType);
   }
 
+  getRecent5DrawDates(): string {
+    if (!this.payload?.recentDraws || this.payload.recentDraws.length === 0) return '';
+    return this.payload.recentDraws.slice(0, 5).map(d => d.drawDate).join(', ');
+  }
+
+  getWinningDrawCharacteristics(): string {
+    const nums = this.recommendations?.megaDrawReconciliation?.officialWinningNumbers;
+    if (!nums || nums.length === 0) return '';
+    const sum = nums.reduce((a: number, b: number) => a + b, 0);
+    const even = nums.filter((n: number) => n % 2 === 0).length;
+    const odd = nums.length - even;
+    const special = this.recommendations?.megaDrawReconciliation?.specialNumber;
+    return `Tổng = ${sum} • ${even} Chẵn / ${odd} Lẻ${special ? ` • Banh Phụ ⭐${special}` : ''}`;
+  }
+
   saveDeviationVariableToDb(v: any): void {
     const key = v.id || `${v.aiPredictedNumber}_${v.actualNumber}`;
     this.analyzeService.saveDeviationVariable(v).subscribe({
       next: (res) => {
         this.dbSaveStatusMap[key] = true;
-        this.dbSaveToastMessage = `Đã lưu biến số (${v.patternName}: ${v.transformationRule}) vào Database PostgreSQL!`;
+        this.dbSaveToastMessage = `Đã lưu biến số (${v.patternName}: ${v.transformationRule}) vào Database thành công!`;
         this.cdr.markForCheck();
         setTimeout(() => {
           this.dbSaveToastMessage = null;
@@ -586,7 +491,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
           savedCount++;
           if (savedCount >= list.length) {
             this.isSavingAllDevVars = false;
-            this.dbSaveToastMessage = `Đã đồng bộ toàn bộ ${list.length} biến số vào Database PostgreSQL thành công!`;
+            this.dbSaveToastMessage = `Đã đồng bộ toàn bộ ${list.length} biến số vào Cơ sở dữ liệu thành công!`;
             this.cdr.markForCheck();
             setTimeout(() => {
               this.dbSaveToastMessage = null;

@@ -186,6 +186,10 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     return `${lim} Kỳ`;
   }
 
+  // Recommendations & Hyperparameters State
+  recommendationsData: any = null;
+  currentHyperparameterVersion: string = 'v2.1.0';
+
   private categorySub: Subscription | undefined;
 
   constructor(
@@ -200,7 +204,23 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
         this.fetchAnalysis(true);
         this.loadHyperparameters();
         this.load5DrawsReconciliation();
+        this.loadRecommendations();
       }
+    });
+  }
+
+  loadRecommendations(): void {
+    this.analyzeService.getPrediction(this.category, 'deep_stacking').subscribe({
+      next: (res) => {
+        if (res?.recommendations || res?.aiRecommendation) {
+          this.recommendationsData = res.recommendations || res.aiRecommendation;
+        }
+        if (res?.hyperparameterVersion) {
+          this.currentHyperparameterVersion = res.hyperparameterVersion;
+        }
+        this.cdr.markForCheck();
+      },
+      error: (err) => console.error('Error loading recommendations:', err)
     });
   }
 
@@ -835,6 +855,12 @@ ${hyperJson}
     ).subscribe({
       next: (data) => {
         this.reconciliationData = data;
+        if (data?.recommendations) {
+          this.recommendationsData = data.recommendations;
+        }
+        if (data?.currentHyperparameterVersion) {
+          this.currentHyperparameterVersion = data.currentHyperparameterVersion;
+        }
         if (this.selectedReconcileDate && data?.draws) {
           const idx = data.draws.findIndex((d: any) => d.drawDate === this.selectedReconcileDate);
           this.selected5DrawIndex = idx !== -1 ? idx : 0;
@@ -915,43 +941,40 @@ ${hyperJson}
   applyV150Tuning(): void {
     if (!this.reconciliationData?.recommendedHyperparameters) return;
     const hyp = this.reconciliationData.recommendedHyperparameters;
+    const targetVer = hyp.version || this.currentHyperparameterVersion || 'v2.1.0';
+    const testedDates = (this.reconciliationData?.draws || []).map((d: any) => d.drawDate).join(', ');
     this.isApplyingV150 = true;
     this.algorithmUpdateMessage = null;
     this.cdr.markForCheck();
 
-    const readmeV150 = `# Báo Cáo Hiệu Chỉnh Thuật Toán v1.5.0 (Khắc Phục Sai Lệch 5 Kỳ Gần Nhất)
+    const readmeContent = `# Báo Cáo Hiệu Chỉnh Thuật Toán ${targetVer} (Khắc Phục Sai Lệch Các Kỳ Gần Nhất)
 
-## 1. Bối cảnh & Dữ liệu Đối soát Thực Tế (5 Kỳ Gần Nhất: 28/09, 19/09, 17/09, 15/09, 12/09)
-- Tổng số vé đối chiếu thực tế: ${this.reconciliationData.overallSummary.totalTickets} vé
-- Số vé trúng thưởng: ${this.reconciliationData.overallSummary.winningTickets} vé (Bao gồm Jackpot 2 & Giải Nhì ngày 19/09)
-- Số vé trượt: ${this.reconciliationData.overallSummary.missedTickets} vé
-- Tỷ lệ khớp: ${this.reconciliationData.overallSummary.hitRatePercent}%
+## 1. Bối cảnh & Dữ liệu Đối soát Thực Tế (Các Kỳ: ${testedDates})
+- Tổng số vé đối chiếu thực tế: ${this.reconciliationData.overallSummary?.totalTickets || 0} vé
+- Số vé trúng thưởng: ${this.reconciliationData.overallSummary?.winningTickets || 0} vé
+- Số vé trượt: ${this.reconciliationData.overallSummary?.missedTickets || 0} vé
+- Tỷ lệ khớp: ${this.reconciliationData.overallSummary?.hitRatePercent || 0}%
 
-## 2. 5 Nguyên Nhân Cốt Lõi Gây Sai Lệch Kết Quả:
-${this.reconciliationData.overallSummary.dominantFlaws.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}
+## 2. Các Nguyên Nhân Cốt Lõi Gây Sai Lệch Kết Quả:
+${this.reconciliationData.overallSummary?.dominantFlaws?.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n') || ''}
 
-## 3. Các Hiệu Chỉnh Tham Số Trọng Yếu Trong Phiên Bản v1.5.0:
-- Hệ số suy giảm quán tính: 0.14
-- Cửa sổ Poisson 2 tầng mở rộng: [0.70 - 2.80]
-- Điểm thưởng bật lò xo Lô Gan sâu (> 10 kỳ): +0.85 (Khắc phục việc bỏ sót các số 02, 13, 21, 29, 54)
-- Trọng số chuyển vị bóng phụ sang bóng chính: +0.75 (Tận dụng bước nhảy của các số 14, 18, 23)
-- Trọng số quán tính thích ứng: +0.65
-- Bộ lọc tổng mở rộng: [75, 195] (loại trừ triệt để lỗi cắt bỏ tổ hợp dải cao như kỳ 19/09 và 15/09)
-- Trọng số ma trận cặp số đồng hành: 0.88`;
+## 3. Các Hiệu Chỉnh Tham Số Trọng Yếu Trong Phiên Bản ${targetVer}:
+${JSON.stringify(hyp.adjustments, null, 2)}`;
 
     const payload = {
       hyperparametersJson: JSON.stringify(hyp.adjustments, null, 2),
       category: this.category,
-      drawDate: hyp.drawDate || '2026-10-02',
-      readmeContent: readmeV150,
-      note: 'Hiệu chỉnh thuật toán v1.5.0: Khắc phục bẫy số lặp trễ pha, chuyển vị banh phụ sang chính (+0.75), nới rộng dải tổng [75-195] và kích hoạt Lô Gan Poisson 2 tầng.'
+      drawDate: hyp.drawDate || this.selectedDate || new Date().toISOString().split('T')[0],
+      readmeContent: readmeContent,
+      note: `Hiệu chỉnh thuật toán ${targetVer}: Khắc phục sai lệch theo đối soát các kỳ quay gần nhất (${this.category})`
     };
 
     this.analyzeService.updateAlgorithm(payload).subscribe({
       next: (res: any) => {
         this.isApplyingV150 = false;
-        const version = res.record?.version || res.version || 'v1.5.0';
-        this.algorithmUpdateMessage = `✅ Đã áp dụng thành công bộ tham số ${version} khắc phục sai lệch 5 kỳ vào hệ thống!`;
+        const version = res.record?.version || res.version || targetVer;
+        this.currentHyperparameterVersion = version;
+        this.algorithmUpdateMessage = `✅ Đã áp dụng thành công bộ tham số ${version} khắc phục sai lệch vào hệ thống!`;
         this.loadHyperparameters();
         this.cdr.markForCheck();
         setTimeout(() => {
@@ -970,5 +993,10 @@ ${this.reconciliationData.overallSummary.dominantFlaws.map((f: string, i: number
   formatNumber(num: number | null | undefined): string {
     if (num === null || num === undefined) return '--';
     return num < 10 ? '0' + num : num.toString();
+  }
+
+  formatNumbers(nums?: number[]): string {
+    if (!nums || !nums.length) return '';
+    return nums.map(n => this.formatNumber(n)).join(', ');
   }
 }

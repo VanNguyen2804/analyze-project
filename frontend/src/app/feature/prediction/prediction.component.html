@@ -207,7 +207,7 @@
           <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
                   [ngClass]="recommendationTab === 'overview' ? 'btn-warning text-dark shadow-xs' : 'text-white'"
                   (click)="setRecommendationTab('overview')">
-            {{ payload?.lotteryType === 'POWER' ? '🔍 Đối Soát Kỳ 10/10' : '🔍 Đối Soát Kỳ Mega Mới Nhất' }}
+            {{ recommendations?.megaDrawReconciliation?.baseDrawDate ? ('🔍 Đối Soát Kỳ ' + recommendations.megaDrawReconciliation.baseDrawDate) : '🔍 Đối Soát Kỳ Gần Nhất' }}
           </button>
           <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
                   [ngClass]="recommendationTab === 'strategies' ? 'btn-warning text-dark shadow-xs' : 'text-white'"
@@ -237,17 +237,17 @@
               <span class="fs-4">🚨</span>
               <div>
                 <strong class="text-danger fs-6">
-                  {{ payload?.lotteryType === 'POWER' ? 'Phân Tích Đối Soát Kỳ Power Gần Nhất (10/10/2026):' : 'Phân Tích Đối Soát Kỳ Mega Mới Nhất (09/10/2026):' }}
+                  Phân Tích Đối Soát Kỳ {{ payload?.lotteryType === 'POWER' ? 'Power' : 'Mega' }} Gần Nhất ({{ recommendations?.megaDrawReconciliation?.baseDrawDate || 'Gần nhất' }}):
                 </strong>
                 <div class="small text-secondary">
                   Dãy số mở thưởng chính thức:
                   <strong class="text-dark">
-                    [ {{ (recommendations?.megaDrawReconciliation?.officialWinningNumbers || [4, 5, 6, 29, 32, 44]).join(', ') }} ]
+                    [ {{ (recommendations?.megaDrawReconciliation?.officialWinningNumbers || []).join(', ') }} ]
                   </strong>
                   <span *ngIf="recommendations?.megaDrawReconciliation?.specialNumber">
                     + Banh phụ <strong class="text-warning">⭐{{ formatNumber(recommendations?.megaDrawReconciliation?.specialNumber) }}</strong>
                   </span>
-                  &bull; {{ payload?.lotteryType === 'POWER' ? 'Vé khuyến nghị #3 bắt trúng 2 số chính [05, 32] + chính xác 100% banh phụ 53; Vé #2 bắt đúng số 06' : 'AI ban đầu chọn 3 dãy số khác nhau nhưng trúng 0/6 số do vấp chuỗi biến số lồng cầu bất quy tắc' }}.
+                  &bull; {{ recommendations?.megaDrawReconciliation?.performanceSummary || recommendations?.megaDrawReconciliation?.rootCauseSummary }}
                 </div>
               </div>
             </div>
@@ -258,9 +258,9 @@
 
           <div class="d-flex align-items-center gap-2 flex-wrap p-2 rounded-3 bg-white border mb-3">
             <span class="small fw-bold text-dark me-2">
-              {{ payload?.lotteryType === 'POWER' ? 'Quả Banh Mở Thưởng Kỳ 10/10:' : '6 Quả Banh Mở Thưởng 09/10:' }}
+              Quả Banh Mở Thưởng Kỳ {{ recommendations?.megaDrawReconciliation?.baseDrawDate || 'Gần Nhất' }}:
             </span>
-            <div *ngFor="let num of recommendations?.megaDrawReconciliation?.officialWinningNumbers || [5, 7, 12, 23, 32, 41]"
+            <div *ngFor="let num of recommendations?.megaDrawReconciliation?.officialWinningNumbers"
                  class="ball shadow-xs border border-2 border-danger"
                  [ngClass]="payload?.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega'"
                  style="width: 38px; height: 38px; font-size: 0.95rem;">
@@ -276,7 +276,7 @@
               </div>
             </div>
             <span class="badge bg-warning text-dark ms-auto small">
-              {{ payload?.lotteryType === 'POWER' ? 'Tổng = 120 • 4 Chẵn / 2 Lẻ • Cụm Tam Giác 04-05-06 • Banh Phụ 53' : 'Tổng = 120 • 3 Chẵn / 3 Lẻ • Cặp Đảo Vị 23 <-> 32' }}
+              {{ recommendations?.megaDrawReconciliation?.characteristicsSummary || getWinningDrawCharacteristics() }}
             </span>
           </div>
 
@@ -400,7 +400,7 @@
   <!-- ========================================================================================= -->
   <!-- MỤC BIẾN SỐ CHUYỂN DỊCH AI (AI VARIATION & DEVIATION VARIABLES) -->
   <!-- Minh chứng cơ chế: Từ số AI ban đầu, hệ thống có thể cho ra số khác do biến số -->
-  <!-- Lưu trữ và đồng bộ trực tiếp vào Database PostgreSQL -->
+  <!-- Lưu trữ và đồng bộ trực tiếp vào Database -->
   <!-- ========================================================================================= -->
   <div *ngIf="payload && payload.status === 'SUCCESS'" class="card shadow-sm border-0 mb-4 bg-white overflow-hidden rounded-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 text-white"
@@ -413,7 +413,7 @@
               🧬 MỤC BIẾN SỐ CHUYỂN DỊCH AI
             </span>
             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
-              💾 CSDL: PostgreSQL (Bảng lottery_deviation_variables)
+              💾 CSDL: Database (Bảng lottery_deviation_variables)
             </span>
             <span class="badge bg-warning text-dark rounded-pill px-2 py-1">
               Tỷ lệ biến thiên thực nghiệm: 74% - 95%
@@ -491,7 +491,7 @@
           <div class="col-md-3 col-6">
             <div class="p-2 bg-white rounded-3 border border-warning shadow-xs h-100">
               <span class="badge bg-warning-subtle text-warning-emphasis small mb-1">Bước 4: Lưu trữ</span>
-              <div class="fw-bold text-warning-emphasis small">Lưu Database PostgreSQL</div>
+              <div class="fw-bold text-warning-emphasis small">Lưu Database</div>
               <small class="text-muted d-block" style="font-size: 0.75rem;">Bảng lottery_deviation_variables</small>
             </div>
           </div>
@@ -541,6 +541,31 @@
                   [ngClass]="deviationFilterType === 'SPECIAL_MIGRATION' ? 'btn-dark text-white' : 'btn-light border'"
                   (click)="setDeviationFilter('SPECIAL_MIGRATION')">
             Chuyển Vị Banh Phụ
+          </button>
+          <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-bold"
+                  [ngClass]="deviationFilterType === 'TAIL_CONGRUENCE_MOD10' ? 'btn-warning text-dark' : 'btn-light border'"
+                  (click)="setDeviationFilter('TAIL_CONGRUENCE_MOD10')">
+            Đồng Dư Đuôi 0 (Mod-10)
+          </button>
+          <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-bold"
+                  [ngClass]="deviationFilterType === 'DEEP_COLD_REBOUND' ? 'btn-danger text-white' : 'btn-light border'"
+                  (click)="setDeviationFilter('DEEP_COLD_REBOUND')">
+            Lô Gan Phá Đáy (Gap ≥ 16)
+          </button>
+          <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-bold"
+                  [ngClass]="deviationFilterType === 'ARITHMETIC_INVERSE_STRIDE' ? 'btn-info text-dark' : 'btn-light border'"
+                  (click)="setDeviationFilter('ARITHMETIC_INVERSE_STRIDE')">
+            Phản Xạ Cấp Số Cộng
+          </button>
+          <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-bold"
+                  [ngClass]="deviationFilterType === 'SPECIAL_MAIN_NEIGHBOR_CLING' ? 'btn-secondary text-white' : 'btn-light border'"
+                  (click)="setDeviationFilter('SPECIAL_MAIN_NEIGHBOR_CLING')">
+            Banh Phụ Bám Biên
+          </button>
+          <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-bold"
+                  [ngClass]="deviationFilterType === 'CONCENTRATED_WHEEL_SYNERGY' ? 'btn-success text-white' : 'btn-light border'"
+                  (click)="setDeviationFilter('CONCENTRATED_WHEEL_SYNERGY')">
+            Bánh Xe Hội Tụ Hạt Nhân
           </button>
         </div>
 
@@ -666,18 +691,21 @@
       <span class="fs-2">📊</span>
       <div>
         <h5 class="fw-bold text-dark mb-1">
-          Đối Soát 5 Kỳ Gần Nhất & Phân Tích Lỗi Thuật Toán {{ payload?.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}
-          <span class="badge bg-primary ms-1" *ngIf="payload?.lotteryType === 'POWER'">Kỳ 28/09: [ 02, 04, 13, 17, 35, 36 ] ⭐ 11</span>
+          Đối Soát Các Kỳ Gần Nhất & Phân Tích Lỗi Thuật Toán {{ payload?.lotteryType === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}
+          <span class="badge bg-primary ms-1" *ngIf="payload?.recentDraws?.[0]">
+            Kỳ {{ payload?.recentDraws?.[0]?.drawDate }}: [ {{ payload?.recentDraws?.[0]?.numbers?.join(', ') }} ]
+            <span *ngIf="payload?.recentDraws?.[0]?.specialNumber"> ⭐ {{ payload?.recentDraws?.[0]?.specialNumber }}</span>
+          </span>
         </h5>
         <div class="text-secondary small">
-          Đối chiếu kết quả ngày mở thưởng và kết quả mua vé trùng ngày của 5 kỳ liên tiếp (28/09, 19/09, 17/09, 15/09, 12/09) để bóc tách lý do ra các banh đó và tìm nguyên nhân sai lệch thuật toán.
+          Đối chiếu kết quả ngày mở thưởng và kết quả mua vé trùng ngày của các kỳ liên tiếp ({{ getRecent5DrawDates() }}) để bóc tách lý do ra các banh đó và tìm nguyên nhân sai lệch thuật toán.
         </div>
       </div>
     </div>
     <div class="d-flex gap-2">
       <a routerLink="/latest-analysis" class="btn rounded-pill px-4 py-2 fw-bold shadow-sm flex-shrink-0"
          [ngClass]="payload?.lotteryType === 'POWER' ? 'btn-primary' : 'btn-danger text-white'">
-        🔍 Xem Đối Soát 5 Kỳ & Tài Liệu v1.5.0 &rarr;
+        🔍 Xem Đối Soát Các Kỳ & Tài Liệu {{ payload?.hyperparameterVersion || 'v2.1.0' }} &rarr;
       </a>
     </div>
   </div>
@@ -694,7 +722,7 @@
             {{ payload?.algorithmName || getCurrentAlgorithmInfo().name }}
           </span>
           <span class="badge bg-dark text-white font-monospace" style="font-size: 0.8rem;">
-            Phiên bản: {{ payload?.hyperparameterVersion || 'v1.4.0' }}
+            Phiên bản: {{ payload?.hyperparameterVersion || 'v2.1.0' }}
           </span>
           <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.75rem;">
             Global Benchmarking: Powerball & Mega Millions
@@ -926,7 +954,7 @@
                 <span class="badge bg-white text-dark small">{{ getTicketParity(ticket) }}</span>
                 <span class="badge bg-white text-dark small">Tổng: {{ getTicketSum(ticket) }}</span>
               </div>
-              <span class="badge bg-dark text-white small">{{ payload?.hyperparameterVersion || 'v1.4.0' }}</span>
+              <span class="badge bg-dark text-white small">{{ payload?.hyperparameterVersion || 'v2.1.0' }}</span>
             </div>
             
             <div class="card-body" [ngStyle]="{'background-color': payload?.lotteryType === 'MEGA' ? '#e0f7fa' : '#f1f3f5'}">
@@ -992,7 +1020,7 @@
           [ngClass]="activeFocusTab === 'target3' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary'"
           (click)="activeFocusTab = 'target3'"
         >
-          🌟 Bộ 3 số tiêu biểu: {{ payload?.lotteryType === 'POWER' ? '48, 52, 14' : '31, 45, 14' }}
+          🌟 Bộ 3 số tiêu biểu: {{ payload?.focusAnalysis?.upgradedNumbers?.slice(0, 3)?.join(', ') }}
         </button>
         <button
           type="button"
@@ -1000,7 +1028,7 @@
           [ngClass]="activeFocusTab === 'fullDraw' ? 'btn-primary shadow-sm text-white' : 'btn-light text-secondary'"
           (click)="activeFocusTab = 'fullDraw'"
         >
-          📊 Cả {{ payload?.focusAnalysis?.actualDrawNumbers?.length }} số{{ payload?.lotteryType === 'POWER' ? ' + Phụ 49' : '' }}
+          📊 Cả {{ payload?.focusAnalysis?.actualDrawNumbers?.length }} số{{ (payload?.lotteryType === 'POWER' && payload?.focusAnalysis?.actualSpecialNumber) ? ' + Phụ ' + payload?.focusAnalysis?.actualSpecialNumber : '' }}
         </button>
         <button
           type="button"
@@ -1173,10 +1201,10 @@
             type="button"
             class="ball ball-sm border shadow-sm"
             [ngClass]="{
-              'ball-special': s.number === 49 && payload?.lotteryType === 'POWER',
-              'ball-important': (payload?.lotteryType === 'POWER' ? [14, 52, 48] : [31, 45, 14]).includes(s.number),
-              'ball-power': payload?.lotteryType === 'POWER' && ![14, 52, 48, 49].includes(s.number),
-              'ball-mega': payload?.lotteryType !== 'POWER' && ![31, 45, 14].includes(s.number),
+              'ball-special': s.isSpecial,
+              'ball-important': s.isTargetUpgrade,
+              'ball-power': payload?.lotteryType === 'POWER' && !s.isTargetUpgrade && !s.isSpecial,
+              'ball-mega': payload?.lotteryType !== 'POWER' && !s.isTargetUpgrade,
               'border-3 border-primary shadow': selectedFocusNumber === s.number
             }"
             (click)="selectFocusNumber(s.number)"
@@ -1190,13 +1218,13 @@
         <div *ngIf="getFocusItem(selectedFocusNumber)" class="p-3 border rounded-3 bg-white shadow-sm">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom">
             <div class="d-flex align-items-center gap-2">
-              <div class="ball" [ngClass]="selectedFocusNumber === 49 && payload?.lotteryType === 'POWER' ? 'ball-special' : (payload?.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega')">
+              <div class="ball" [ngClass]="getFocusItem(selectedFocusNumber)?.isSpecial ? 'ball-special' : (payload?.lotteryType === 'POWER' ? 'ball-power' : 'ball-mega')">
                 {{ formatNumber(selectedFocusNumber) }}
               </div>
               <div>
                 <h5 class="fw-bold text-dark mb-0">Hồ Sơ Điểm Số Banh {{ formatNumber(selectedFocusNumber) }}</h5>
                 <span class="badge bg-primary text-white">{{ getFocusItem(selectedFocusNumber)?.tag }}</span>
-                <span *ngIf="(payload?.lotteryType === 'POWER' ? [14, 48, 52] : [31, 45, 14]).includes(selectedFocusNumber!)" class="badge bg-success ms-1">Mục tiêu trọng tâm</span>
+                <span *ngIf="getFocusItem(selectedFocusNumber)?.isTargetUpgrade" class="badge bg-success ms-1">Mục tiêu trọng tâm</span>
                 <span *ngIf="selectedFocusNumber && payload?.focusAnalysis?.actualDrawNumbers?.includes(selectedFocusNumber)" class="badge bg-info ms-1 text-dark">Đã trúng kỳ quay</span>
               </div>
             </div>

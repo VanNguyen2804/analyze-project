@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CategoryService } from '../../../core/services/category.service';
+import { AnalyzeService } from '../../../core/services/analyze.service';
 
 @Component({
   selector: 'app-left-menu',
@@ -73,23 +74,56 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
   @Output() tabChange = new EventEmitter<string>();
 
   currentCategory: 'MEGA' | 'POWER' = 'MEGA';
+  latestDrawBadge: string = 'Kỳ mới nhất';
+  algorithmVersion: string = 'v2.1.0';
   private catSub?: Subscription;
 
   constructor(
     private categoryService: CategoryService,
+    private analyzeService: AnalyzeService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.currentCategory = this.categoryService.currentCategory;
+    this.loadDynamicMenuData();
     this.catSub = this.categoryService.category$.subscribe(cat => {
       this.currentCategory = cat;
+      this.loadDynamicMenuData();
       this.cdr.markForCheck();
     });
   }
 
   ngOnDestroy(): void {
     this.catSub?.unsubscribe();
+  }
+
+  loadDynamicMenuData(): void {
+    this.analyzeService.getLatestHyperparameters().subscribe({
+      next: (hyp) => {
+        if (hyp?.version) {
+          this.algorithmVersion = hyp.version;
+          this.cdr.markForCheck();
+        }
+      },
+      error: () => {}
+    });
+
+    this.analyzeService.getReconcile5Draws(this.currentCategory, 1).subscribe({
+      next: (res) => {
+        const latest = res?.draws?.[0];
+        if (latest && Array.isArray(latest.winningNumbers)) {
+          const nums = latest.winningNumbers;
+          if (latest.specialNumber) {
+            this.latestDrawBadge = `${nums.length} số [${nums[0]}..${nums[nums.length - 1]}] + Phụ ${latest.specialNumber}`;
+          } else {
+            this.latestDrawBadge = `${nums.length} số [${nums[0]}..${nums[nums.length - 1]}]`;
+          }
+          this.cdr.markForCheck();
+        }
+      },
+      error: () => {}
+    });
   }
 
   selectCategory(cat: 'MEGA' | 'POWER'): void {

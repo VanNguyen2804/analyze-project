@@ -1,0 +1,551 @@
+[
+  {
+    "id": 23,
+    "category": "POWER",
+    "drawDate": "2026-10-15",
+    "numbers": [
+      2,
+      14,
+      27,
+      40,
+      50,
+      53
+    ],
+    "specialNumber": 26,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-14T07:00:00.000Z",
+    "source": "history",
+    "note": "Vé Vàng #1 Khuyến Nghị Power 15/10 (v2.0.0): Vé Hạt Nhân Hội Tụ Tuyệt Đối (Concentrated Core Ticket gom trọn vẹn cụm 4 số tương quan cao 14, 27, 50, 53 + Lô gan phá đáy 40 + Phản xạ 02; Banh phụ bảo hiểm Jackpot 2 ⭐26)"
+  },
+  {
+    "id": 24,
+    "category": "POWER",
+    "drawDate": "2026-10-15",
+    "numbers": [
+      3,
+      15,
+      26,
+      38,
+      44,
+      52
+    ],
+    "specialNumber": 40,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-14T07:00:00.000Z",
+    "source": "history",
+    "note": "Vé Vàng #2 Khuyến Nghị Power 15/10 (v2.0.0): Cụm Bẫy Lân Cận Biên ±1 & Sóng Di Cư Banh Phụ 26 (02+1=03, 14+1=15, Chuyển vị banh phụ 26 thành banh chính, bọc lót dải cao 38, 44, 52; Banh phụ bảo hiểm Jackpot 2 ⭐40)"
+  },
+  {
+    "id": 25,
+    "category": "POWER",
+    "drawDate": "2026-10-15",
+    "numbers": [
+      4,
+      10,
+      20,
+      30,
+      48,
+      55
+    ],
+    "specialNumber": 14,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-14T07:00:00.000Z",
+    "source": "history",
+    "note": "Vé Vàng #3 Khuyến Nghị Power 15/10 (v2.0.0): Cụm Đồng Dư Đuôi 0 & Điểm Rơi Poisson Cân Bằng (Khai thác sâu biến số Mod-10 đuôi 0: cặp 10-20-30, phân vị dải biên 04 & 55; Banh phụ bảo hiểm Jackpot 2 ⭐14)"
+  },
+  {
+    "id": 22,
+    "category": "POWER",
+    "drawDate": "2026-10-13",
+    "numbers": [
+      4,
+      6,
+      16,
+      27,
+      38,
+      52
+    ],
+    "specialNumber": 18,
+    "matchedNumbers": [
+      27
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "TRÚNG 1 SỐ (27) - CHƯA ĐẠT GIẢI",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-13T07:00:00.000Z",
+    "note": "Vé C Khuyến Nghị Power 13/10 (v1.9.0): Trúng 1 số [27] (Bắt đúng nhịp Skip-1 Repeat từ kỳ 06/10). Trượt 04, 06, 16, 38, 52; Banh phụ 18 trượt 26."
+  },
+  {
+    "id": 21,
+    "category": "POWER",
+    "drawDate": "2026-10-13",
+    "numbers": [
+      7,
+      11,
+      18,
+      29,
+      41,
+      50
+    ],
+    "specialNumber": 53,
+    "matchedNumbers": [
+      50
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "TRÚNG 1 SỐ (50) - CHƯA ĐẠT GIẢI",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-13T07:00:00.000Z",
+    "note": "Vé B Khuyến Nghị Power 13/10 (v1.9.0): Trúng 1 số [50] (Bắt nhịp dải cao Zone 3). Trượt 07, 11, 18, 29, 41; Banh phụ 53 trượt 26."
+  },
+  {
+    "id": 20,
+    "category": "POWER",
+    "drawDate": "2026-10-13",
+    "numbers": [
+      5,
+      14,
+      20,
+      32,
+      44,
+      53
+    ],
+    "specialNumber": 24,
+    "matchedNumbers": [
+      14,
+      53
+    ],
+    "matchedCount": 2,
+    "matchedSpecial": false,
+    "prize": "TRÚNG 2 SỐ (14, 53) - CHƯA ĐẠT GIẢI",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-13T07:00:00.000Z",
+    "note": "Vé A Khuyến Nghị Power 13/10 (v1.9.0): Trúng 2 số [14, 53] (Điểm rơi chân không 14 & Chuyển vị banh phụ 53). Trượt 05, 20, 32, 44; Banh phụ 24 trượt 26."
+  },
+  {
+    "id": 17,
+    "category": "MEGA",
+    "drawDate": "2026-10-11",
+    "numbers": [
+      5,
+      12,
+      23,
+      32,
+      38,
+      44
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-11T07:00:00.000Z",
+    "note": "Vé A Khuyến Nghị Mega 11/10 (v1.8.0): Cụm Di Cư Sóng Chéo (Cross-Carrier [05, 32, 44] từ Power 10/10 + Cặp Đảo Vị Gương 23-32)"
+  },
+  {
+    "id": 18,
+    "category": "MEGA",
+    "drawDate": "2026-10-11",
+    "numbers": [
+      3,
+      7,
+      15,
+      22,
+      27,
+      41
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-11T07:00:00.000Z",
+    "note": "Vé B Khuyến Nghị Mega 11/10 (v1.8.0): Điểm Rơi Poisson Cân Bằng (Lô Gan Bứt Phá 15, 22 + Quán Tính Lặp 07, 41 + Sóng Hài Fourier 27)"
+  },
+  {
+    "id": 19,
+    "category": "MEGA",
+    "drawDate": "2026-10-11",
+    "numbers": [
+      6,
+      8,
+      18,
+      23,
+      29,
+      36
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-11T07:00:00.000Z",
+    "note": "Vé C Khuyến Nghị Mega 11/10 (v1.8.0): Cặp Liền Kề Triplet Phân Tán & Bù Trừ Dải Chân Không (Bóng 06, 29 từ Power 10/10 + Bọc Lót Biên 08, 18, 36)"
+  },
+  {
+    "id": 16,
+    "category": "POWER",
+    "drawDate": "2026-10-10",
+    "numbers": [
+      5,
+      11,
+      18,
+      25,
+      32,
+      45
+    ],
+    "specialNumber": 53,
+    "matchedNumbers": [
+      5,
+      32
+    ],
+    "matchedCount": 2,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-10T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #3 Power 10/10: Trúng 2 số chính [05, 32] + Bắt chính xác 100% Banh phụ Jackpot 2 (53); số 45 lệch sát nút 44 (Δ = -1)"
+  },
+  {
+    "id": 15,
+    "category": "POWER",
+    "drawDate": "2026-10-10",
+    "numbers": [
+      6,
+      9,
+      14,
+      21,
+      28,
+      48
+    ],
+    "specialNumber": 27,
+    "matchedNumbers": [
+      6
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-10T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #2 Power 10/10: Trúng số 06 (1/6); số 28 lệch sát nút 29 (Δ = +1); trượt các số 09, 14, 21, 48"
+  },
+  {
+    "id": 14,
+    "category": "POWER",
+    "drawDate": "2026-10-10",
+    "numbers": [
+      7,
+      18,
+      24,
+      27,
+      35,
+      52
+    ],
+    "specialNumber": 41,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-10T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #1 Power 10/10: Lệch do bẫy quán tính lặp 07 (kết quả nổ 06, lệch -1) và bẫy lặp 18, 24, 27"
+  },
+  {
+    "id": 11,
+    "category": "MEGA",
+    "drawDate": "2026-10-09",
+    "numbers": [
+      11,
+      21,
+      27,
+      35,
+      37,
+      42
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-09T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #1: Trượt 6/6 số do bẫy lệch sát nút ±1 (11->12, 42->41) và lệch parity (21->23)"
+  },
+  {
+    "id": 12,
+    "category": "MEGA",
+    "drawDate": "2026-10-09",
+    "numbers": [
+      10,
+      13,
+      21,
+      31,
+      38,
+      44
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-09T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #2: Trượt 6/6 số do bẫy lệch sát nút ±1 (13->12, 31->32) và cặp đảo vị 23-32"
+  },
+  {
+    "id": 13,
+    "category": "MEGA",
+    "drawDate": "2026-10-09",
+    "numbers": [
+      8,
+      14,
+      25,
+      35,
+      37,
+      42
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-09T19:00:00.000Z",
+    "note": "Vé Khuyến Nghị #3: Trượt 6/6 số do bẫy lệch sát nút ±1 (08->07, 42->41) và lệch parity (25->23)"
+  },
+  {
+    "id": 1,
+    "category": "POWER",
+    "drawDate": "2026-09-28",
+    "numbers": [
+      4,
+      14,
+      18,
+      35,
+      48,
+      52
+    ],
+    "matchedNumbers": [
+      4,
+      35
+    ],
+    "matchedCount": 2,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-28T19:00:00.000Z",
+    "note": "Vé hạt nhân dựa theo kỳ 19/09: Trượt do lặp quá hạn 14, 52; chỉ trúng 04 và 35"
+  },
+  {
+    "id": 2,
+    "category": "POWER",
+    "drawDate": "2026-09-28",
+    "numbers": [
+      11,
+      14,
+      21,
+      38,
+      48,
+      52
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-28T19:00:00.000Z",
+    "note": "Vé nuôi dải cao kỳ trước: Bị trượt toàn bộ 6 số chính vì lồng cầu dồn cụm dải thấp"
+  },
+  {
+    "id": 3,
+    "category": "POWER",
+    "drawDate": "2026-09-19",
+    "numbers": [
+      14,
+      18,
+      21,
+      38,
+      48,
+      49
+    ],
+    "specialNumber": 49,
+    "matchedNumbers": [
+      14,
+      18,
+      21,
+      38,
+      48
+    ],
+    "matchedCount": 5,
+    "matchedSpecial": true,
+    "prize": "JACKPOT 2",
+    "prizeAmount": "Ước tính > 3.850.000.000 đ",
+    "checkedAt": "2026-09-19T19:00:00.000Z",
+    "note": "Vé tự chọn bao gồm số phụ 49"
+  },
+  {
+    "id": 4,
+    "category": "POWER",
+    "drawDate": "2026-09-19",
+    "numbers": [
+      14,
+      18,
+      21,
+      27,
+      33,
+      48
+    ],
+    "matchedNumbers": [
+      14,
+      18,
+      21,
+      48
+    ],
+    "matchedCount": 4,
+    "matchedSpecial": false,
+    "prize": "GIẢI NHÌ",
+    "prizeAmount": "500.000 đ",
+    "checkedAt": "2026-09-19T19:00:00.000Z",
+    "note": "Vé nuôi dàn số hạt nhân"
+  },
+  {
+    "id": 5,
+    "category": "POWER",
+    "drawDate": "2026-09-17",
+    "numbers": [
+      4,
+      11,
+      23,
+      36,
+      47,
+      54
+    ],
+    "matchedNumbers": [
+      23
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-17T19:00:00.000Z",
+    "note": "Vé bám theo số nóng kỳ 15/09: Chỉ trúng số lặp 23, trượt 5 số còn lại"
+  },
+  {
+    "id": 6,
+    "category": "POWER",
+    "drawDate": "2026-09-17",
+    "numbers": [
+      7,
+      11,
+      19,
+      29,
+      44,
+      54
+    ],
+    "matchedNumbers": [
+      7
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-17T19:00:00.000Z",
+    "note": "Vé dò điểm rơi phân vùng: Chỉ trúng số 07"
+  },
+  {
+    "id": 7,
+    "category": "POWER",
+    "drawDate": "2026-09-15",
+    "numbers": [
+      8,
+      18,
+      23,
+      35,
+      41,
+      49
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-15T19:00:00.000Z",
+    "note": "Vé đánh lại dàn số kỳ 12/09: Trượt sạch 6 số chính, chỉ trúng số phụ 23"
+  },
+  {
+    "id": 8,
+    "category": "POWER",
+    "drawDate": "2026-09-15",
+    "numbers": [
+      4,
+      18,
+      25,
+      33,
+      41,
+      50
+    ],
+    "matchedNumbers": [
+      4
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-15T19:00:00.000Z",
+    "note": "Vé lọc ma trận cặp: Chỉ trúng số 04"
+  },
+  {
+    "id": 9,
+    "category": "POWER",
+    "drawDate": "2026-09-12",
+    "numbers": [
+      3,
+      11,
+      23,
+      33,
+      44,
+      52
+    ],
+    "matchedNumbers": [
+      23
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-12T19:00:00.000Z",
+    "note": "Vé đánh theo kết quả kỳ 10/09: Chỉ trúng số 23"
+  },
+  {
+    "id": 10,
+    "category": "POWER",
+    "drawDate": "2026-09-12",
+    "numbers": [
+      8,
+      14,
+      22,
+      31,
+      44,
+      52
+    ],
+    "matchedNumbers": [
+      8
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": true,
+    "prize": "KHÔNG TRÚNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-09-12T19:00:00.000Z",
+    "note": "Vé nuôi phân vùng cân bằng: Chỉ trúng số 08 và số phụ 14"
+  }
+]

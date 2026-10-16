@@ -1,5 +1,21 @@
 [
   {
+    "id": 52,
+    "drawDate": "2026-10-13",
+    "category": "POWER",
+    "numbers": [
+      2,
+      14,
+      27,
+      40,
+      50,
+      53
+    ],
+    "specialNumber": 26,
+    "createdAt": "2026-10-13T18:30:00.000000",
+    "note": "Kỳ quay Power 6/55 #01410 ngày 13/10/2026: Nổ cặp chuyển vị banh phụ 53, điểm rơi 14, nhịp lặp 27, bẫy lệch 40-50, banh phụ Jackpot 2 là 26"
+  },
+  {
     "id": 51,
     "drawDate": "2026-10-10",
     "category": "POWER",

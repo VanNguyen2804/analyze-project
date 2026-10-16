@@ -373,14 +373,36 @@ export class FrenchLearningComponent implements OnInit {
   // --- Chức năng Ghép từ thành câu ---
   filterCategory(cat: string) {
     this.selectedCategory = cat;
-    if (cat === 'ALL') {
-      this.filteredExercises = [...this.allExercises];
-    } else {
-      this.filteredExercises = this.allExercises.filter(e => e.category === cat);
-    }
-    this.currentExerciseIndex = 0;
-    this.resetCurrentExercise();
-    this.cdr.markForCheck();
+    this.service.getFrenchExercises(cat).subscribe({
+      next: (exercises) => {
+        if (Array.isArray(exercises) && exercises.length > 0) {
+          this.allExercises = exercises.map(e => ({
+            ...e,
+            userTokens: [],
+            scrambledTokens: [...e.scrambledTokens],
+            status: 'none'
+          }));
+        }
+        if (cat === 'ALL') {
+          this.filteredExercises = [...this.allExercises];
+        } else {
+          this.filteredExercises = this.allExercises.filter(e => e.category === cat);
+        }
+        this.currentExerciseIndex = 0;
+        this.resetCurrentExercise();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        if (cat === 'ALL') {
+          this.filteredExercises = [...this.allExercises];
+        } else {
+          this.filteredExercises = this.allExercises.filter(e => e.category === cat);
+        }
+        this.currentExerciseIndex = 0;
+        this.resetCurrentExercise();
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   get currentExercise(): SentenceExercise | undefined {

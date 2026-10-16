@@ -121,6 +121,13 @@ export class AnalyzeService {
   }
 
   // ==========================================
+  // API SO SÁNH KẾT QUẢ KỲ MEGA VÀ POWER GẦN ĐÂY & UPDATE THUẬT TOÁN v2.1.0
+  // ==========================================
+  getCrossGameComparison(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/cross-game-comparison`);
+  }
+
+  // ==========================================
   // API TIẾNG PHÁP
   // ==========================================
 
