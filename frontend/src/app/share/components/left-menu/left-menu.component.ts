@@ -109,7 +109,7 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
       error: () => {}
     });
 
-    this.analyzeService.getReconcile5Draws(this.currentCategory, 1).subscribe({
+    this.analyzeService.get5DrawsReconciliation(this.currentCategory, 'deep_stacking', 1).subscribe({
       next: (res) => {
         const latest = res?.draws?.[0];
         if (latest && Array.isArray(latest.winningNumbers)) {

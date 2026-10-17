@@ -74,6 +74,10 @@ export class AnalyzeService {
     return this.http.get<any>(url);
   }
 
+  getReconcile5Draws(category?: string, limit: number = 5): Observable<any> {
+    return this.get5DrawsReconciliation(category, 'deep_stacking', limit);
+  }
+
   // ==========================================
   // API SIÊU THAM SỐ THUẬT TOÁN (HYPERPARAMETERS TABLE)
   // ==========================================
