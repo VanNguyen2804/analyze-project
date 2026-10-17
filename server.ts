@@ -4702,9 +4702,16 @@ async function startServer() {
   interface FrenchExerciseData {
     id: number;
     category: string;
+    categoryLabel: string;
     level: string;
+    vietnamese: string;
     sentence: string;
     translation: string;
+    expectedTokens: string[];
+    scrambledTokens: string[];
+    grammarPattern: string;
+    explanation: string;
+    hint: string;
   }
   interface FrenchAttemptData {
     id: number;
@@ -4716,16 +4723,146 @@ async function startServer() {
   }
 
   const frenchExercises: FrenchExerciseData[] = [
-    { id: 1, category: 'BASIC', level: 'Cơ bản', sentence: 'Je suis un étudiant.', translation: 'Tôi là một sinh viên.' },
-    { id: 2, category: 'ARTICLE_NOUN', level: 'Cơ bản', sentence: 'Tu as un chat noir.', translation: 'Bạn có một con mèo màu đen.' },
-    { id: 3, category: 'ARTICLE_NOUN', level: 'Cơ bản', sentence: 'Elle mange une pomme rouge.', translation: 'Cô ấy ăn một quả táo màu đỏ.' },
-    { id: 4, category: 'NEGATIVE', level: 'Cơ bản', sentence: 'Je ne parle pas anglais.', translation: 'Tôi không nói tiếng Anh.' },
-    { id: 5, category: 'ARTICLE_NOUN', level: 'Trung bình', sentence: 'Il est un bon ami.', translation: 'Anh ấy là một người bạn tốt.' },
-    { id: 6, category: 'NEGATIVE', level: 'Trung bình', sentence: "Je n'aime pas le café.", translation: 'Tôi không thích cà phê.' },
-    { id: 7, category: 'CONVERSATION', level: 'Trung bình', sentence: 'Nous habitons dans une grande maison.', translation: 'Chúng tôi sống trong một ngôi nhà lớn.' },
-    { id: 8, category: 'BASIC', level: 'Cơ bản', sentence: "J'ai un chien et deux chats.", translation: 'Tôi có một con chó và hai con mèo.' },
-    { id: 9, category: 'CONVERSATION', level: 'Trung bình', sentence: "Je voudrais un café, s'il vous plaît.", translation: 'Làm ơn cho tôi một ly cà phê.' },
-    { id: 10, category: 'ARTICLE_NOUN', level: 'Trung bình', sentence: "L'école est très belle.", translation: 'Trường học rất đẹp.' }
+    {
+      id: 1,
+      category: 'BASIC',
+      categoryLabel: 'Chủ ngữ + Động từ Être',
+      level: 'Khởi động',
+      vietnamese: 'Tôi là một sinh viên.',
+      sentence: 'Je suis un étudiant.',
+      translation: 'Tôi là một sinh viên.',
+      expectedTokens: ['Je', 'suis', 'un', 'étudiant.'],
+      scrambledTokens: ['un', 'étudiant.', 'Je', 'suis'],
+      grammarPattern: 'Chủ ngữ (Je) + Động từ Être (suis) + Mạo từ (un) + Danh từ (étudiant)',
+      explanation: '• "Je" (Tôi) là đại từ nhân xưng đóng vai trò Chủ ngữ.\n• "suis" là dạng chia thì hiện tại của động từ "Être" (thì, là, ở) đi với ngôi "Je".\n• "un" là mạo từ bất định giống đực số ít đi kèm danh từ "étudiant".',
+      hint: 'Trật tự câu: [Chủ ngữ: Je] ➔ [Động từ: suis] ➔ [Mạo từ: un] ➔ [Danh từ: étudiant.]'
+    },
+    {
+      id: 2,
+      category: 'ARTICLE_ADJ',
+      categoryLabel: 'Ghép Danh từ + Tính từ màu sắc',
+      level: 'Cơ bản',
+      vietnamese: 'Bạn có một con mèo màu đen.',
+      sentence: 'Tu as un chat noir.',
+      translation: 'Bạn có một con mèo màu đen.',
+      expectedTokens: ['Tu', 'as', 'un', 'chat', 'noir.'],
+      scrambledTokens: ['noir.', 'as', 'chat', 'Tu', 'un'],
+      grammarPattern: 'Sujet (Tu) + Verbe Avoir (as) + Article (un) + Nom (chat) + Adjectif (noir)',
+      explanation: '• "Tu" (Bạn) đi với động từ "Avoir" (có) chia thành "as".\n• "un chat" = một con mèo (danh từ giống đực).\n• QUY TẮC GHÉP TỪ QUAN TRỌNG: Trong tiếng Pháp, tính từ chỉ màu sắc LUÔN ĐỨNG SAU danh từ ("un chat noir", khác với tiếng Anh "a black cat").',
+      hint: 'Nhớ trật tự ghép từ: Danh từ "chat" đứng TRƯỚC tính từ màu sắc "noir".'
+    },
+    {
+      id: 3,
+      category: 'ARTICLE_ADJ',
+      categoryLabel: 'Giống cái & Tính từ bổ nghĩa',
+      level: 'Cơ bản',
+      vietnamese: 'Cô ấy ăn một quả táo màu đỏ.',
+      sentence: 'Elle mange une pomme rouge.',
+      translation: 'Cô ấy ăn một quả táo màu đỏ.',
+      expectedTokens: ['Elle', 'mange', 'une', 'pomme', 'rouge.'],
+      scrambledTokens: ['pomme', 'Elle', 'rouge.', 'une', 'mange'],
+      grammarPattern: 'Sujet (Elle) + Verbe (mange) + Article féminin (une) + Nom (pomme) + Adjectif (rouge)',
+      explanation: '• "Elle" (Cô ấy) là chủ ngữ ngôi thứ 3 số ít.\n• "mange" là động từ "manger" (ăn) chia ở ngôi Elle.\n• "pomme" là danh từ giống cái nên dùng mạo từ "une".\n• Tính từ màu sắc "rouge" đứng sau danh từ.',
+      hint: 'Chủ ngữ "Elle" ➔ Động từ "mange" ➔ Cụm danh từ "une pomme rouge."'
+    },
+    {
+      id: 4,
+      category: 'NEGATIVE',
+      categoryLabel: 'Công thức Phủ định (Ne... Pas)',
+      level: 'Cơ bản',
+      vietnamese: 'Tôi không nói tiếng Anh.',
+      sentence: 'Je ne parle pas anglais.',
+      translation: 'Tôi không nói tiếng Anh.',
+      expectedTokens: ['Je', 'ne', 'parle', 'pas', 'anglais.'],
+      scrambledTokens: ['parle', 'anglais.', 'Je', 'pas', 'ne'],
+      grammarPattern: 'Sujet (Je) + ne + Verbe (parle) + pas + Complément (anglais)',
+      explanation: '• CÔNG THỨC PHỦ ĐỊNH "KẸP BÁNH MÌ": Động từ được kẹp giữa "ne" và "pas".\n• Khẳng định: "Je parle anglais." ➔ Phủ định: "Je [ne] parle [pas] anglais."',
+      hint: 'Đặt "ne" ngay trước động từ "parle", và "pas" ngay sau động từ.'
+    },
+    {
+      id: 5,
+      category: 'ARTICLE_ADJ',
+      categoryLabel: 'Tính từ BANGS đứng trước danh từ',
+      level: 'Nâng cao chút',
+      vietnamese: 'Anh ấy là một người bạn tốt.',
+      sentence: 'Il est un bon ami.',
+      translation: 'Anh ấy là một người bạn tốt.',
+      expectedTokens: ['Il', 'est', 'un', 'bon', 'ami.'],
+      scrambledTokens: ['ami.', 'bon', 'Il', 'un', 'est'],
+      grammarPattern: 'Sujet (Il) + Verbe (est) + Article (un) + Adjectif BANGS (bon) + Nom (ami)',
+      explanation: '• NGOẠI LỆ VỊ TRÍ TÍNH TỪ (BANGS): Các tính từ chỉ Phẩm chất (Goodness như "bon") đứng TRƯỚC danh từ!\n• Vì vậy ta ghép: "un bon ami" (người bạn tốt).',
+      hint: 'Tính từ "bon" đứng TRƯỚC danh từ "ami".'
+    },
+    {
+      id: 6,
+      category: 'NEGATIVE',
+      categoryLabel: 'Phủ định với nguyên âm (N\'... Pas)',
+      level: 'Cơ bản',
+      vietnamese: 'Tôi không thích cà phê.',
+      sentence: "Je n'aime pas le café.",
+      translation: 'Tôi không thích cà phê.',
+      expectedTokens: ['Je', "n'", 'aime', 'pas', 'le', 'café.'],
+      scrambledTokens: ['le', 'aime', 'café.', 'Je', "n'", 'pas'],
+      grammarPattern: "Sujet (Je) + n' + Verbe voyelle (aime) + pas + Article (le) + Nom (café)",
+      explanation: '• Động từ "aimer" (thích) bắt đầu bằng nguyên âm "a", do đó "ne" bị lược âm biến thành "n\'".\n• Ta có cấu trúc: "Je n\'aime pas...".\n• Nói về sở thích chung dùng mạo từ xác định "le café".',
+      hint: 'Nguyên âm "a" làm "ne" rút gọn thành "n\'" đi liền trước "aime".'
+    },
+    {
+      id: 7,
+      category: 'BASIC',
+      categoryLabel: 'Động từ Avoir & Liên từ',
+      level: 'Cơ bản',
+      vietnamese: 'Tôi có một con chó và hai con mèo.',
+      sentence: "J'ai un chien et deux chats.",
+      translation: 'Tôi có một con chó và hai con mèo.',
+      expectedTokens: ["J'", 'ai', 'un', 'chien', 'et', 'deux', 'chats.'],
+      scrambledTokens: ['chien', 'chats.', 'ai', "J'", 'et', 'deux', 'un'],
+      grammarPattern: "Sujet élidé (J') + Verbe Avoir (ai) + Nom 1 + Conjonction (et) + Nom 2 pluriel",
+      explanation: '• Đại từ "Je" đi trước nguyên âm của động từ "ai" rút gọn thành "J\'ai" (Tôi có).\n• "et" là liên từ mang nghĩa "và".\n• "chats" thêm "-s" ở số nhiều sau số đếm "deux".',
+      hint: 'Ghép "J\'ai" ➔ "un chien" ➔ liên từ "et" ➔ "deux chats."'
+    },
+    {
+      id: 8,
+      category: 'CONVERSATION',
+      categoryLabel: 'Giới từ nơi chốn & Tính từ',
+      level: 'Thực hành',
+      vietnamese: 'Chúng tôi sống trong một ngôi nhà lớn.',
+      sentence: 'Nous habitons dans une grande maison.',
+      translation: 'Chúng tôi sống trong một ngôi nhà lớn.',
+      expectedTokens: ['Nous', 'habitons', 'dans', 'une', 'grande', 'maison.'],
+      scrambledTokens: ['grande', 'dans', 'Nous', 'maison.', 'habitons', 'une'],
+      grammarPattern: 'Sujet (Nous) + Verbe (habitons) + Préposition (dans) + Article (une) + Adjectif BANGS (grande) + Nom (maison)',
+      explanation: '• "Nous habitons": Chúng tôi sống (động từ habiter chia theo ngôi Nous).\n• "dans": giới từ mang nghĩa "trong / bên trong".\n• "grande": tính từ chỉ kích cỡ (Size trong BANGS) đứng TRƯỚC danh từ. "Maison" là giống cái nên tính từ thêm "-e".',
+      hint: '"grande" đứng trước "maison" (thuộc quy tắc BANGS).'
+    },
+    {
+      id: 9,
+      category: 'CONVERSATION',
+      categoryLabel: 'Câu giao tiếp lịch sự (Politesse)',
+      level: 'Thực hành',
+      vietnamese: 'Làm ơn cho tôi một ly cà phê.',
+      sentence: "Je voudrais un café, s'il vous plaît.",
+      translation: 'Làm ơn cho tôi một ly cà phê.',
+      expectedTokens: ['Je', 'voudrais', 'un', 'café,', "s'il", 'vous', 'plaît.'],
+      scrambledTokens: ["s'il", 'un', 'Je', 'vous', 'voudrais', 'café,', 'plaît.'],
+      grammarPattern: "Formule: Je voudrais (Tôi muốn lịch sự) + Nom + s'il vous plaît (Làm ơn)",
+      explanation: '• "Je voudrais" là mẫu câu giao tiếp lịch sự chuẩn mực để gọi món, mua hàng thay vì dùng "Je veux".\n• "s\'il vous plaît" nghĩa là "xin làm ơn", đặt ở cuối câu để thể hiện sự tôn trọng.',
+      hint: '"Je voudrais" ở đầu câu, cụm "s\'il vous plaît" ở cuối câu.'
+    },
+    {
+      id: 10,
+      category: 'ARTICLE_ADJ',
+      categoryLabel: 'Mạo từ rút gọn trước nguyên âm (L\')',
+      level: 'Cơ bản',
+      vietnamese: 'Trường học rất đẹp.',
+      sentence: "L'école est très belle.",
+      translation: 'Trường học rất đẹp.',
+      expectedTokens: ["L'", 'école', 'est', 'très', 'belle.'],
+      scrambledTokens: ['très', 'est', 'belle.', "L'", 'école'],
+      grammarPattern: "Article élidé (L') + Nom féminin (école) + Verbe Être (est) + Adverbe (très) + Adjectif (belle)",
+      explanation: '• "école" là danh từ giống cái nhưng bắt đầu bằng nguyên âm "é", nên "la" rút gọn thành "L\'".\n• "très" (rất) là phó từ bổ nghĩa đứng trước tính từ "belle".\n• "belle" là tính từ giống cái của "beau" hợp giống với "école".',
+      hint: '"L\'" đi liền trước "école", phó từ "très" đứng trước "belle."'
+    }
   ];
 
   const frenchAttempts: FrenchAttemptData[] = [];

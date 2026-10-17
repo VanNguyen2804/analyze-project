@@ -376,12 +376,35 @@ export class FrenchLearningComponent implements OnInit {
     this.service.getFrenchExercises(cat).subscribe({
       next: (exercises) => {
         if (Array.isArray(exercises) && exercises.length > 0) {
-          this.allExercises = exercises.map(e => ({
-            ...e,
-            userTokens: [],
-            scrambledTokens: [...e.scrambledTokens],
-            status: 'none'
-          }));
+          this.allExercises = exercises.map(e => {
+            const defaultEx = this.allExercises.find(d => d.id === e.id);
+            const scrambled = Array.isArray(e.scrambledTokens) && e.scrambledTokens.length > 0
+              ? [...e.scrambledTokens]
+              : (defaultEx && Array.isArray(defaultEx.scrambledTokens)
+                  ? [...defaultEx.scrambledTokens]
+                  : (Array.isArray(e.expectedTokens) && e.expectedTokens.length > 0
+                      ? [...e.expectedTokens].sort(() => Math.random() - 0.5)
+                      : (e.sentence ? e.sentence.split(' ').sort(() => Math.random() - 0.5) : [])));
+
+            const expected = Array.isArray(e.expectedTokens) && e.expectedTokens.length > 0
+              ? [...e.expectedTokens]
+              : (defaultEx ? [...defaultEx.expectedTokens] : (e.sentence ? e.sentence.split(' ') : []));
+
+            return {
+              id: e.id,
+              category: e.category || (defaultEx ? defaultEx.category : 'BASIC'),
+              categoryLabel: e.categoryLabel || (defaultEx ? defaultEx.categoryLabel : ''),
+              level: e.level || (defaultEx ? defaultEx.level : 'Cơ bản'),
+              vietnamese: e.vietnamese || e.translation || (defaultEx ? defaultEx.vietnamese : ''),
+              expectedTokens: expected,
+              scrambledTokens: scrambled,
+              userTokens: [],
+              status: 'none' as const,
+              grammarPattern: e.grammarPattern || (defaultEx ? defaultEx.grammarPattern : ''),
+              explanation: e.explanation || (defaultEx ? defaultEx.explanation : ''),
+              hint: e.hint || (defaultEx ? defaultEx.hint : '')
+            };
+          });
         }
         if (cat === 'ALL') {
           this.filteredExercises = [...this.allExercises];
@@ -458,8 +481,12 @@ export class FrenchLearningComponent implements OnInit {
     ex.userTokens = [];
     // Khôi phục lại danh sách từ xáo trộn ban đầu
     const original = this.allExercises.find(e => e.id === ex.id);
-    if (original) {
+    if (original && Array.isArray(original.scrambledTokens)) {
       ex.scrambledTokens = [...original.scrambledTokens];
+    } else if (Array.isArray(ex.expectedTokens)) {
+      ex.scrambledTokens = [...ex.expectedTokens].sort(() => Math.random() - 0.5);
+    } else {
+      ex.scrambledTokens = [];
     }
     ex.status = 'none';
     ex.showHint = false;
