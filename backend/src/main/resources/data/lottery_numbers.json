@@ -1,5 +1,37 @@
 [
   {
+    "id": 54,
+    "drawDate": "2026-10-16",
+    "category": "MEGA",
+    "numbers": [
+      8,
+      14,
+      21,
+      31,
+      38,
+      43
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-10-16T18:30:00.000000",
+    "note": "Kỳ quay Mega 6/45 #01576 ngày 16/10/2026: Nổ cặp đảo vị 14, bẫy biên 31-38"
+  },
+  {
+    "id": 53,
+    "drawDate": "2026-10-15",
+    "category": "POWER",
+    "numbers": [
+      2,
+      15,
+      26,
+      38,
+      50,
+      53
+    ],
+    "specialNumber": 40,
+    "createdAt": "2026-10-15T18:30:00.000000",
+    "note": "Kỳ quay Power 6/55 #01411 ngày 15/10/2026: Nổ cặp 50-53, chuyển vị banh phụ 26 thành banh chính, bẫy lệch 38, banh phụ Jackpot 2 là 40"
+  },
+  {
     "id": 52,
     "drawDate": "2026-10-13",
     "category": "POWER",

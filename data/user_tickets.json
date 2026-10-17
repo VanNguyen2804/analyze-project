@@ -1,5 +1,71 @@
 [
   {
+    "id": 26,
+    "category": "POWER",
+    "drawDate": "2026-10-17",
+    "numbers": [
+      2,
+      15,
+      26,
+      40,
+      49,
+      53
+    ],
+    "specialNumber": 38,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-16T18:00:00.000Z",
+    "source": "history",
+    "note": "Vé Vàng #1 Khuyến Nghị Power 17/10 (v2.1.0): Vé Hạt Nhân Hội Tụ Cực Đại (Gom cụm số tương quan từ kỳ 15/10: 02, 15, 26, 53 + Chuyển vị banh phụ 40 + Điểm rơi dải cao 49; Banh phụ bảo hiểm ⭐38)"
+  },
+  {
+    "id": 27,
+    "category": "POWER",
+    "drawDate": "2026-10-17",
+    "numbers": [
+      3,
+      16,
+      27,
+      36,
+      48,
+      52
+    ],
+    "specialNumber": 26,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-16T18:00:00.000Z",
+    "source": "history",
+    "note": "Vé Vàng #2 Khuyến Nghị Power 17/10 (v2.1.0): Cụm Bẫy Lân Cận Biên ±1 & Mod-10 Đuôi 6-8 (Hóa giải bẫy lệch sát nút ±1 từ kỳ 15/10: 02+1=03, 15+1=16, 26+1=27; Banh phụ bảo hiểm ⭐26)"
+  },
+  {
+    "id": 28,
+    "category": "POWER",
+    "drawDate": "2026-10-17",
+    "numbers": [
+      6,
+      14,
+      25,
+      30,
+      42,
+      50
+    ],
+    "specialNumber": 15,
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "CHỜ MỞ THƯỞNG",
+    "prizeAmount": "0 đ",
+    "checkedAt": "2026-10-16T18:00:00.000Z",
+    "source": "history",
+    "note": "Vé Vàng #3 Khuyến Nghị Power 17/10 (v2.1.0): Điểm Rơi Poisson & Đảo Vị Lô Gan Tới Hạn (Khai thác nhịp lặp cách 1 kỳ và cân bằng đa vùng; Banh phụ bảo hiểm ⭐15)"
+  },
+  {
     "id": 23,
     "category": "POWER",
     "drawDate": "2026-10-15",
@@ -12,14 +78,18 @@
       53
     ],
     "specialNumber": 26,
-    "matchedNumbers": [],
-    "matchedCount": 0,
+    "matchedNumbers": [
+      2,
+      50,
+      53
+    ],
+    "matchedCount": 3,
     "matchedSpecial": false,
-    "prize": "CHỜ MỞ THƯỞNG",
-    "prizeAmount": "0 đ",
-    "checkedAt": "2026-10-14T07:00:00.000Z",
+    "prize": "TRÚNG GIẢI BA (50.000 đ)",
+    "prizeAmount": "50.000 đ",
+    "checkedAt": "2026-10-15T19:00:00.000Z",
     "source": "history",
-    "note": "Vé Vàng #1 Khuyến Nghị Power 15/10 (v2.0.0): Vé Hạt Nhân Hội Tụ Tuyệt Đối (Concentrated Core Ticket gom trọn vẹn cụm 4 số tương quan cao 14, 27, 50, 53 + Lô gan phá đáy 40 + Phản xạ 02; Banh phụ bảo hiểm Jackpot 2 ⭐26)"
+    "note": "Vé Vàng #1 Khuyến Nghị Power 15/10 (v2.0.0): Trúng 3 số [02, 50, 53] đạt Giải Ba (50.000 đ)"
   },
   {
     "id": 24,
@@ -34,14 +104,18 @@
       52
     ],
     "specialNumber": 40,
-    "matchedNumbers": [],
-    "matchedCount": 0,
-    "matchedSpecial": false,
-    "prize": "CHỜ MỞ THƯỞNG",
-    "prizeAmount": "0 đ",
-    "checkedAt": "2026-10-14T07:00:00.000Z",
+    "matchedNumbers": [
+      15,
+      26,
+      38
+    ],
+    "matchedCount": 3,
+    "matchedSpecial": true,
+    "prize": "TRÚNG GIẢI BA + SỐ PHỤ (50.000 đ)",
+    "prizeAmount": "50.000 đ",
+    "checkedAt": "2026-10-15T19:00:00.000Z",
     "source": "history",
-    "note": "Vé Vàng #2 Khuyến Nghị Power 15/10 (v2.0.0): Cụm Bẫy Lân Cận Biên ±1 & Sóng Di Cư Banh Phụ 26 (02+1=03, 14+1=15, Chuyển vị banh phụ 26 thành banh chính, bọc lót dải cao 38, 44, 52; Banh phụ bảo hiểm Jackpot 2 ⭐40)"
+    "note": "Vé Vàng #2 Khuyến Nghị Power 15/10 (v2.0.0): Trúng 3 số chính [15, 26, 38] và trúng khớp Banh phụ ⭐40!"
   },
   {
     "id": 25,
@@ -59,11 +133,11 @@
     "matchedNumbers": [],
     "matchedCount": 0,
     "matchedSpecial": false,
-    "prize": "CHỜ MỞ THƯỞNG",
+    "prize": "KHÔNG TRÚNG",
     "prizeAmount": "0 đ",
-    "checkedAt": "2026-10-14T07:00:00.000Z",
+    "checkedAt": "2026-10-15T19:00:00.000Z",
     "source": "history",
-    "note": "Vé Vàng #3 Khuyến Nghị Power 15/10 (v2.0.0): Cụm Đồng Dư Đuôi 0 & Điểm Rơi Poisson Cân Bằng (Khai thác sâu biến số Mod-10 đuôi 0: cặp 10-20-30, phân vị dải biên 04 & 55; Banh phụ bảo hiểm Jackpot 2 ⭐14)"
+    "note": "Vé Vàng #3 Khuyến Nghị Power 15/10 (v2.0.0): Không trúng"
   },
   {
     "id": 22,
