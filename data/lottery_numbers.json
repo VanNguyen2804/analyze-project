@@ -1,19 +1,19 @@
 [
   {
-    "id": 54,
-    "drawDate": "2026-10-16",
-    "category": "MEGA",
+    "id": 55,
+    "drawDate": "2026-10-17",
+    "category": "POWER",
     "numbers": [
-      8,
-      14,
-      21,
-      31,
-      38,
-      43
+      1,
+      10,
+      11,
+      12,
+      16,
+      37
     ],
-    "specialNumber": null,
-    "createdAt": "2026-10-16T18:30:00.000000",
-    "note": "Kỳ quay Mega 6/45 #01576 ngày 16/10/2026: Nổ cặp đảo vị 14, bẫy biên 31-38"
+    "specialNumber": 48,
+    "createdAt": "2026-10-17T18:30:00.000Z",
+    "note": "Kết quả mở thưởng chính thức Vietlott Power 6/55 Thứ Bảy 17/10/2026"
   },
   {
     "id": 53,
@@ -64,6 +64,342 @@
     "note": "Kỳ quay Power 6/55 #01409 ngày 10/10/2026: Nổ cụm tam giác liền kề 04-05-06, bóng di cư xuyên kỳ 32, và banh phụ cực biên 53"
   },
   {
+    "id": 48,
+    "drawDate": "2026-10-06",
+    "category": "POWER",
+    "numbers": [
+      6,
+      7,
+      18,
+      20,
+      24,
+      27
+    ],
+    "specialNumber": 1,
+    "createdAt": "2026-10-06T13:30:00.000000",
+    "note": null
+  },
+  {
+    "id": 46,
+    "drawDate": "2026-10-03",
+    "category": "POWER",
+    "numbers": [
+      7,
+      11,
+      13,
+      16,
+      18,
+      54
+    ],
+    "specialNumber": 41,
+    "createdAt": "2026-10-03T13:36:53.196365",
+    "note": null
+  },
+  {
+    "id": 43,
+    "drawDate": "2026-09-28",
+    "category": "POWER",
+    "numbers": [
+      2,
+      4,
+      13,
+      17,
+      35,
+      36
+    ],
+    "specialNumber": 11,
+    "createdAt": "2026-09-29T18:24:26.648366",
+    "note": null
+  },
+  {
+    "id": 38,
+    "drawDate": "2026-09-26",
+    "category": "POWER",
+    "numbers": [
+      14,
+      18,
+      21,
+      38,
+      48,
+      52
+    ],
+    "specialNumber": 49,
+    "createdAt": "2026-09-28T15:35:09.53752",
+    "note": null
+  },
+  {
+    "id": 39,
+    "drawDate": "2026-09-24",
+    "category": "POWER",
+    "numbers": [
+      1,
+      13,
+      23,
+      25,
+      26,
+      28
+    ],
+    "specialNumber": 27,
+    "createdAt": "2026-09-28T15:36:18.838079",
+    "note": null
+  },
+  {
+    "id": 40,
+    "drawDate": "2026-09-22",
+    "category": "POWER",
+    "numbers": [
+      1,
+      3,
+      9,
+      11,
+      41,
+      46
+    ],
+    "specialNumber": 10,
+    "createdAt": "2026-09-28T15:36:43.869295",
+    "note": null
+  },
+  {
+    "id": 41,
+    "drawDate": "2026-09-19",
+    "category": "POWER",
+    "numbers": [
+      4,
+      7,
+      11,
+      18,
+      22,
+      25
+    ],
+    "specialNumber": 50,
+    "createdAt": "2026-09-28T15:37:10.294805",
+    "note": null
+  },
+  {
+    "id": 42,
+    "drawDate": "2026-09-17",
+    "category": "POWER",
+    "numbers": [
+      6,
+      11,
+      25,
+      27,
+      37,
+      45
+    ],
+    "specialNumber": 15,
+    "createdAt": "2026-09-28T15:37:36.875651",
+    "note": null
+  },
+  {
+    "id": 1,
+    "drawDate": "2026-09-15",
+    "category": "POWER",
+    "numbers": [
+      24,
+      27,
+      32,
+      36,
+      47,
+      52
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:07:00.620807",
+    "note": ""
+  },
+  {
+    "id": 2,
+    "drawDate": "2026-09-12",
+    "category": "POWER",
+    "numbers": [
+      7,
+      24,
+      31,
+      43,
+      47,
+      54
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:07:50.476468",
+    "note": ""
+  },
+  {
+    "id": 3,
+    "drawDate": "2026-09-10",
+    "category": "POWER",
+    "numbers": [
+      2,
+      5,
+      28,
+      32,
+      51,
+      53
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:09:42.429607",
+    "note": ""
+  },
+  {
+    "id": 4,
+    "drawDate": "2026-09-08",
+    "category": "POWER",
+    "numbers": [
+      8,
+      11,
+      14,
+      23,
+      25,
+      54
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:10:07.057181",
+    "note": ""
+  },
+  {
+    "id": 5,
+    "drawDate": "2026-09-05",
+    "category": "POWER",
+    "numbers": [
+      9,
+      11,
+      24,
+      31,
+      33,
+      47
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:10:40.595094",
+    "note": ""
+  },
+  {
+    "id": 6,
+    "drawDate": "2026-09-03",
+    "category": "POWER",
+    "numbers": [
+      8,
+      9,
+      16,
+      42,
+      46,
+      47
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:18:53.234856",
+    "note": ""
+  },
+  {
+    "id": 7,
+    "drawDate": "2026-09-01",
+    "category": "POWER",
+    "numbers": [
+      1,
+      17,
+      41,
+      44,
+      49,
+      55
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:19:11.1206",
+    "note": ""
+  },
+  {
+    "id": 8,
+    "drawDate": "2026-08-29",
+    "category": "POWER",
+    "numbers": [
+      5,
+      10,
+      15,
+      29,
+      34,
+      45
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:24:17.041063",
+    "note": ""
+  },
+  {
+    "id": 9,
+    "drawDate": "2026-08-27",
+    "category": "POWER",
+    "numbers": [
+      1,
+      3,
+      11,
+      21,
+      26,
+      44
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:24:43.964188",
+    "note": ""
+  },
+  {
+    "id": 10,
+    "drawDate": "2026-08-25",
+    "category": "POWER",
+    "numbers": [
+      5,
+      7,
+      13,
+      18,
+      31,
+      40
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:25:06.250521",
+    "note": ""
+  },
+  {
+    "id": 11,
+    "drawDate": "2026-08-22",
+    "category": "POWER",
+    "numbers": [
+      9,
+      18,
+      19,
+      21,
+      25,
+      36
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:28:02.06037",
+    "note": ""
+  },
+  {
+    "id": 12,
+    "drawDate": "2026-08-20",
+    "category": "POWER",
+    "numbers": [
+      2,
+      8,
+      29,
+      38,
+      39,
+      51
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-09-19T07:29:40.811714",
+    "note": ""
+  },
+  {
+    "id": 54,
+    "drawDate": "2026-10-16",
+    "category": "MEGA",
+    "numbers": [
+      8,
+      14,
+      21,
+      31,
+      38,
+      43
+    ],
+    "specialNumber": null,
+    "createdAt": "2026-10-16T18:30:00.000000",
+    "note": "Kỳ quay Mega 6/45 #01576 ngày 16/10/2026: Nổ cặp đảo vị 14, bẫy biên 31-38"
+  },
+  {
     "id": 50,
     "drawDate": "2026-10-09",
     "category": "MEGA",
@@ -96,22 +432,6 @@
     "note": "Kỳ quay Mega 6/45 ngày 07/10/2026"
   },
   {
-    "id": 48,
-    "drawDate": "2026-10-06",
-    "category": "POWER",
-    "numbers": [
-      6,
-      7,
-      18,
-      20,
-      24,
-      27
-    ],
-    "specialNumber": 1,
-    "createdAt": "2026-10-06T13:30:00.000000",
-    "note": null
-  },
-  {
     "id": 47,
     "drawDate": "2026-10-04",
     "category": "MEGA",
@@ -125,22 +445,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-10-04T13:33:58.549927",
-    "note": null
-  },
-  {
-    "id": 46,
-    "drawDate": "2026-10-03",
-    "category": "POWER",
-    "numbers": [
-      7,
-      11,
-      13,
-      16,
-      18,
-      54
-    ],
-    "specialNumber": 41,
-    "createdAt": "2026-10-03T13:36:53.196365",
     "note": null
   },
   {
@@ -176,22 +480,6 @@
     "note": null
   },
   {
-    "id": 43,
-    "drawDate": "2026-09-28",
-    "category": "POWER",
-    "numbers": [
-      2,
-      4,
-      13,
-      17,
-      35,
-      36
-    ],
-    "specialNumber": 11,
-    "createdAt": "2026-09-29T18:24:26.648366",
-    "note": null
-  },
-  {
     "id": 37,
     "drawDate": "2026-09-27",
     "category": "MEGA",
@@ -205,22 +493,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-27T14:33:56.705247",
-    "note": null
-  },
-  {
-    "id": 38,
-    "drawDate": "2026-09-26",
-    "category": "POWER",
-    "numbers": [
-      14,
-      18,
-      21,
-      38,
-      48,
-      52
-    ],
-    "specialNumber": 49,
-    "createdAt": "2026-09-28T15:35:09.53752",
     "note": null
   },
   {
@@ -240,22 +512,6 @@
     "note": null
   },
   {
-    "id": 39,
-    "drawDate": "2026-09-24",
-    "category": "POWER",
-    "numbers": [
-      1,
-      13,
-      23,
-      25,
-      26,
-      28
-    ],
-    "specialNumber": 27,
-    "createdAt": "2026-09-28T15:36:18.838079",
-    "note": null
-  },
-  {
     "id": 36,
     "drawDate": "2026-09-23",
     "category": "MEGA",
@@ -269,22 +525,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-26T14:44:54.499154",
-    "note": null
-  },
-  {
-    "id": 40,
-    "drawDate": "2026-09-22",
-    "category": "POWER",
-    "numbers": [
-      1,
-      3,
-      9,
-      11,
-      41,
-      46
-    ],
-    "specialNumber": 10,
-    "createdAt": "2026-09-28T15:36:43.869295",
     "note": null
   },
   {
@@ -304,22 +544,6 @@
     "note": null
   },
   {
-    "id": 41,
-    "drawDate": "2026-09-19",
-    "category": "POWER",
-    "numbers": [
-      4,
-      7,
-      11,
-      18,
-      22,
-      25
-    ],
-    "specialNumber": 50,
-    "createdAt": "2026-09-28T15:37:10.294805",
-    "note": null
-  },
-  {
     "id": 13,
     "drawDate": "2026-09-18",
     "category": "MEGA",
@@ -336,22 +560,6 @@
     "note": ""
   },
   {
-    "id": 42,
-    "drawDate": "2026-09-17",
-    "category": "POWER",
-    "numbers": [
-      6,
-      11,
-      25,
-      27,
-      37,
-      45
-    ],
-    "specialNumber": 15,
-    "createdAt": "2026-09-28T15:37:36.875651",
-    "note": null
-  },
-  {
     "id": 14,
     "drawDate": "2026-09-16",
     "category": "MEGA",
@@ -365,22 +573,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-19T16:09:50.905548",
-    "note": ""
-  },
-  {
-    "id": 1,
-    "drawDate": "2026-09-15",
-    "category": "POWER",
-    "numbers": [
-      24,
-      27,
-      32,
-      36,
-      47,
-      52
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:07:00.620807",
     "note": ""
   },
   {
@@ -400,22 +592,6 @@
     "note": ""
   },
   {
-    "id": 2,
-    "drawDate": "2026-09-12",
-    "category": "POWER",
-    "numbers": [
-      7,
-      24,
-      31,
-      43,
-      47,
-      54
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:07:50.476468",
-    "note": ""
-  },
-  {
     "id": 16,
     "drawDate": "2026-09-11",
     "category": "MEGA",
@@ -429,22 +605,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-19T16:10:39.973907",
-    "note": ""
-  },
-  {
-    "id": 3,
-    "drawDate": "2026-09-10",
-    "category": "POWER",
-    "numbers": [
-      2,
-      5,
-      28,
-      32,
-      51,
-      53
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:09:42.429607",
     "note": ""
   },
   {
@@ -464,22 +624,6 @@
     "note": ""
   },
   {
-    "id": 4,
-    "drawDate": "2026-09-08",
-    "category": "POWER",
-    "numbers": [
-      8,
-      11,
-      14,
-      23,
-      25,
-      54
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:10:07.057181",
-    "note": ""
-  },
-  {
     "id": 18,
     "drawDate": "2026-09-06",
     "category": "MEGA",
@@ -493,22 +637,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-19T16:11:48.256396",
-    "note": ""
-  },
-  {
-    "id": 5,
-    "drawDate": "2026-09-05",
-    "category": "POWER",
-    "numbers": [
-      9,
-      11,
-      24,
-      31,
-      33,
-      47
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:10:40.595094",
     "note": ""
   },
   {
@@ -528,22 +656,6 @@
     "note": ""
   },
   {
-    "id": 6,
-    "drawDate": "2026-09-03",
-    "category": "POWER",
-    "numbers": [
-      8,
-      9,
-      16,
-      42,
-      46,
-      47
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:18:53.234856",
-    "note": ""
-  },
-  {
     "id": 21,
     "drawDate": "2026-09-02",
     "category": "MEGA",
@@ -557,22 +669,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-19T16:13:30.71752",
-    "note": ""
-  },
-  {
-    "id": 7,
-    "drawDate": "2026-09-01",
-    "category": "POWER",
-    "numbers": [
-      1,
-      17,
-      41,
-      44,
-      49,
-      55
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:19:11.1206",
     "note": ""
   },
   {
@@ -592,22 +688,6 @@
     "note": ""
   },
   {
-    "id": 8,
-    "drawDate": "2026-08-29",
-    "category": "POWER",
-    "numbers": [
-      5,
-      10,
-      15,
-      29,
-      34,
-      45
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:24:17.041063",
-    "note": ""
-  },
-  {
     "id": 23,
     "drawDate": "2026-08-28",
     "category": "MEGA",
@@ -621,22 +701,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-19T16:14:28.834466",
-    "note": ""
-  },
-  {
-    "id": 9,
-    "drawDate": "2026-08-27",
-    "category": "POWER",
-    "numbers": [
-      1,
-      3,
-      11,
-      21,
-      26,
-      44
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:24:43.964188",
     "note": ""
   },
   {
@@ -656,22 +720,6 @@
     "note": ""
   },
   {
-    "id": 10,
-    "drawDate": "2026-08-25",
-    "category": "POWER",
-    "numbers": [
-      5,
-      7,
-      13,
-      18,
-      31,
-      40
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:25:06.250521",
-    "note": ""
-  },
-  {
     "id": 25,
     "drawDate": "2026-08-23",
     "category": "MEGA",
@@ -688,22 +736,6 @@
     "note": ""
   },
   {
-    "id": 11,
-    "drawDate": "2026-08-22",
-    "category": "POWER",
-    "numbers": [
-      9,
-      18,
-      19,
-      21,
-      25,
-      36
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:28:02.06037",
-    "note": ""
-  },
-  {
     "id": 26,
     "drawDate": "2026-08-21",
     "category": "MEGA",
@@ -717,22 +749,6 @@
     ],
     "specialNumber": null,
     "createdAt": "2026-09-19T16:15:49.871033",
-    "note": ""
-  },
-  {
-    "id": 12,
-    "drawDate": "2026-08-20",
-    "category": "POWER",
-    "numbers": [
-      2,
-      8,
-      29,
-      38,
-      39,
-      51
-    ],
-    "specialNumber": null,
-    "createdAt": "2026-09-19T07:29:40.811714",
     "note": ""
   },
   {

@@ -28,6 +28,10 @@ export class AnalyzeService {
     return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}&algorithm=${algorithm}`);
   }
 
+  getAlgorithms(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/algorithms`);
+  }
+
 // ĐÃ KHÔI PHỤC: Phân tích 6 số đã sổ (Trang Latest Draw) với 3 tham số
   getOfficialDrawAnalysis(category: string, date: string, algorithm: string): Observable<any> {
     let url = `${this.apiUrl}/official-draw-analysis?category=${category}&algorithm=${algorithm}`;
