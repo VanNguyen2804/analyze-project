@@ -86,6 +86,25 @@ export interface NumberRelationshipData {
   ticketAffinityDetails?: TicketAffinityDetail[];
 }
 
+export interface PureAlgorithmTicket {
+  numbers: number[];
+  specialNumber?: number;
+  confidence?: number;
+  algorithmId?: string;
+  algorithmName?: string;
+  formulaNote?: string;
+  rationale?: string;
+  details?: Array<{
+    number: number;
+    probabilityPercent: number;
+    drawGap?: number;
+    frequency?: number;
+    tag?: string;
+    title?: string;
+    reason?: string;
+  }>;
+}
+
 export interface PredictionPayload {
   status: string;
   message?: string;
@@ -94,6 +113,8 @@ export interface PredictionPayload {
   tickets?: number[][];
   ticketItems?: TicketItem[];
   generatedTickets?: TicketItem[];
+  pureNumbers?: number[];
+  pureAlgorithmTicket?: PureAlgorithmTicket;
   details?: NumberScoreDetail[];
   focusAnalysis?: FocusAnalysis;
   numbers?: number[];

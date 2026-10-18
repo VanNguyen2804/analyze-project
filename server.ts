@@ -746,6 +746,25 @@ interface PredictionResult {
   recommendations?: any;
   aiRecommendation?: any;
   deviationVariables?: any[];
+  pureAlgorithmTicket?: {
+    numbers: number[];
+    specialNumber?: number;
+    confidence: number;
+    algorithmId: string;
+    algorithmName: string;
+    formulaNote: string;
+    rationale: string;
+    details?: Array<{
+      number: number;
+      probabilityPercent: number;
+      drawGap: number;
+      frequency: number;
+      tag: string;
+      title: string;
+      reason: string;
+    }>;
+  };
+  pureNumbers?: number[];
 }
 
 const WHEEL_TEMPLATE_10_TO_6 = [
@@ -2879,6 +2898,32 @@ function analyzeAndPredict(
       : ''
   }`;
 
+  // Dãy số khuyến nghị thuần túy từ chính thuật toán (không thêm biến số sai lệch hay bộ lọc đối soát)
+  const pureTop6Candidates = [...scoredCandidates]
+    .sort((a, b) => b.probability - a.probability)
+    .slice(0, 6)
+    .sort((a, b) => a.number - b.number);
+  const pureNumbers = pureTop6Candidates.map((c) => c.number);
+
+  const pureAlgorithmTicket = {
+    numbers: pureNumbers,
+    specialNumber: category === 'POWER' ? recommendedSpecialNumber : undefined,
+    confidence: Math.round((pureTop6Candidates.reduce((sum, c) => sum + c.probability, 0) / 6.0) * 1000.0) / 10.0,
+    algorithmId: algorithm,
+    algorithmName: algName,
+    formulaNote: activeHyp.formula || `${algName} Pure Mathematical Formulation`,
+    rationale: `Dãy 6 số thuần túy được tính toán trực tiếp từ nguyên lý toán học của mô hình ${algName}. Không thêm các biến số sai lệch (Deviation Variables), không qua ma trận gom cụm hay bộ lọc điều hòa ngoại vi.`,
+    details: pureTop6Candidates.map((c) => ({
+      number: c.number,
+      probabilityPercent: Math.round(c.probability * 1000.0) / 10.0,
+      drawGap: c.drawGap,
+      frequency: c.frequency,
+      tag: c.tag,
+      title: c.title,
+      reason: c.reason,
+    }))
+  };
+
   return {
     status: 'SUCCESS',
     category,
@@ -2891,6 +2936,8 @@ function analyzeAndPredict(
     activeAdjustments: adjustments,
     numbers: top10Numbers,
     tickets: generatedTickets,
+    pureNumbers,
+    pureAlgorithmTicket,
     specialNumber: recommendedSpecialNumber,
     specialNumberDetail: specialDetail,
     specialHotNumbers,

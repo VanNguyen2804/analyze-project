@@ -209,6 +209,43 @@ export class PredictionComponent implements OnInit, OnDestroy {
     });
   }
 
+  // --- HÀM PHỤC VỤ DÃY SỐ THUẦN TÚY TỪ CHÍNH THUẬT TOÁN (KHÔNG BIẾN SỐ) ---
+  getPureAlgorithmNumbers(): number[] {
+    if (this.payload?.pureAlgorithmTicket?.numbers?.length) {
+      return this.payload.pureAlgorithmTicket.numbers;
+    }
+    if (this.payload?.pureNumbers?.length) {
+      return this.payload.pureNumbers;
+    }
+    if (this.payload?.tickets && this.payload.tickets.length > 0) {
+      return this.payload.tickets[0].slice(0, 6);
+    }
+    if (this.payload?.numbers && this.payload.numbers.length >= 6) {
+      return this.payload.numbers.slice(0, 6);
+    }
+    return [];
+  }
+
+  getPureSpecialNumber(): number | undefined {
+    return this.payload?.pureAlgorithmTicket?.specialNumber ?? this.payload?.specialNumber;
+  }
+
+  getPureNumberDetail(num: number): any {
+    if (this.payload?.pureAlgorithmTicket?.details) {
+      const found = this.payload.pureAlgorithmTicket.details.find((d: any) => d.number === num);
+      if (found) return found;
+    }
+    if (this.payload?.details) {
+      const found = this.payload.details.find((d: any) => d.number === num);
+      if (found) return found;
+    }
+    if (this.payload?.selectionReasons) {
+      const found = this.payload.selectionReasons.find((r: any) => r.number === num);
+      if (found) return found;
+    }
+    return null;
+  }
+
   // --- HÀM PHỤC VỤ TAB FOCUS ANALYSIS (ĐÃ KHÔI PHỤC) ---
   selectFocusNumber(num: number) {
     this.selectedFocusNumber = num;
