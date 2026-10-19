@@ -42,6 +42,12 @@ public class PredictionResponseDto {
     private java.util.Map<String, Object> recommendations;
     private java.util.Map<String, Object> aiRecommendation;
     private List<Object> deviationVariables;
+    private String targetDrawDate;
+    private String targetDayName;
+    private String targetDrawDateFormatted;
+    private String baseDrawDate;
+    private String baseDrawDateFormatted;
+    private Boolean isTargetDrawToday;
 
     // --- GETTERS & SETTERS ---
 
@@ -131,4 +137,22 @@ public class PredictionResponseDto {
 
     public List<Object> getDeviationVariables() { return deviationVariables; }
     public void setDeviationVariables(List<Object> deviationVariables) { this.deviationVariables = deviationVariables; }
+
+    public String getTargetDrawDate() { return targetDrawDate; }
+    public void setTargetDrawDate(String targetDrawDate) { this.targetDrawDate = targetDrawDate; }
+
+    public String getTargetDayName() { return targetDayName; }
+    public void setTargetDayName(String targetDayName) { this.targetDayName = targetDayName; }
+
+    public String getTargetDrawDateFormatted() { return targetDrawDateFormatted; }
+    public void setTargetDrawDateFormatted(String targetDrawDateFormatted) { this.targetDrawDateFormatted = targetDrawDateFormatted; }
+
+    public String getBaseDrawDate() { return baseDrawDate; }
+    public void setBaseDrawDate(String baseDrawDate) { this.baseDrawDate = baseDrawDate; }
+
+    public String getBaseDrawDateFormatted() { return baseDrawDateFormatted; }
+    public void setBaseDrawDateFormatted(String baseDrawDateFormatted) { this.baseDrawDateFormatted = baseDrawDateFormatted; }
+
+    public Boolean getIsTargetDrawToday() { return isTargetDrawToday; }
+    public void setIsTargetDrawToday(Boolean isTargetDrawToday) { this.isTargetDrawToday = isTargetDrawToday; }
 }

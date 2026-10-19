@@ -449,7 +449,7 @@
               🌟 MỤC KHUYẾN NGHỊ AI
             </span>
             <span class="badge bg-info text-dark rounded-pill px-2 py-1">
-              Áp dụng cho: {{ recommendations?.lotteryName }} ({{ recommendations?.targetDrawDate }})
+              Áp dụng cho: {{ recommendations?.lotteryName }} (Kỳ kế tiếp: {{ getTargetDrawDateDisplay() }})
             </span>
             <span class="badge bg-success text-white rounded-pill px-2 py-1">
               Tỷ lệ bao phủ mục tiêu: 100% (6/6 Số)
@@ -476,7 +476,7 @@
           <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
                   [ngClass]="recommendationTab === 'goldenTickets' ? 'btn-warning text-dark shadow-xs' : 'text-white'"
                   (click)="setRecommendationTab('goldenTickets')">
-            🎟️ 3 Vé Khuyến Nghị Kỳ {{ recommendations?.targetDrawDate }}
+            🎟️ 3 Vé Khuyến Nghị Kỳ {{ getTargetDrawDateDisplay() }}
           </button>
         </div>
 
@@ -561,7 +561,7 @@
 
         <div class="alert alert-info border-0 rounded-4 p-3 mb-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div class="small text-dark">
-            <strong>🎯 Ứng dụng Biến Số Mới cho kỳ quay ngày kế tiếp ({{ recommendations?.targetDrawDate }}):</strong>
+            <strong>🎯 Ứng dụng Biến Số Mới cho kỳ quay ngày kế tiếp ({{ getTargetDrawDateDisplay() }}):</strong>
             Hệ thống đã tự động tính toán bù trừ từ các số gốc AI theo ma trận biến số (Lệch biên ±1, Đảo vị gương 23/32, Parity ±2, Sóng hài 7) để kiến tạo 3 vé khuyến nghị tối ưu nhất.
           </div>
           <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold"
@@ -935,7 +935,7 @@
       <div class="alert alert-light border rounded-4 p-3 mb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="small text-secondary">
           <strong class="text-dark">💡 Ứng dụng biến số trực tiếp vào vé khuyến nghị:</strong>
-          Bằng cách kết hợp 6 số vừa quay của kỳ trước cùng các Biến số trên, hệ thống đã loại bỏ tư duy cứng nhắc và tạo sinh ra <strong>3 Vé Khuyến Nghị ở trên cho ngày kế tiếp</strong> ({{ recommendations?.targetDrawDate }}). Người chơi có thể sử dụng trực tiếp các dãy số này mà không lo bị trùng lặp kết quả đã quay.
+          Bằng cách kết hợp 6 số vừa quay của kỳ trước cùng các Biến số trên, hệ thống đã loại bỏ tư duy cứng nhắc và tạo sinh ra <strong>3 Vé Khuyến Nghị ở trên cho ngày kế tiếp</strong> ({{ getTargetDrawDateDisplay() }}). Người chơi có thể sử dụng trực tiếp các dãy số này mà không lo bị trùng lặp kết quả đã quay.
         </div>
         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold flex-shrink-0"
                 (click)="setRecommendationTab('goldenTickets')">
@@ -977,6 +977,9 @@
           <span class="badge" [ngClass]="payload?.lotteryType === 'POWER' ? 'bg-warning text-dark' : 'bg-info text-dark'" style="font-size: 0.8rem;">
             ĐỀ XUẤT TỐI ƯU &bull; {{ payload?.lotteryType === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}
           </span>
+          <span class="badge bg-success text-white" style="font-size: 0.8rem;">
+            🗓️ Kỳ Dự Đoán Kế Tiếp: {{ getTargetDrawDateDisplay() }}
+          </span>
           <span class="badge bg-primary text-white" style="font-size: 0.8rem;">
             {{ payload?.algorithmName || getCurrentAlgorithmInfo().name }}
           </span>
@@ -991,10 +994,10 @@
           </span>
         </div>
         <h4 class="h5 fw-bold text-dark mb-0">
-          🎟️ Bảng Các Dãy Số Đã Thêm Biến Số & Dàn Vé Tối Ưu (Như Cũ)
+          🎟️ Bảng Các Dãy Số Đã Thêm Biến Số & Dàn Vé Tối Ưu Cho Kỳ {{ getTargetDrawDateDisplay() }}
         </h4>
         <small class="text-muted">
-          Tổng hợp <strong>{{ payload?.tickets?.length || 10 }}</strong> dãy 6 số tối ưu sinh bởi mô hình học máy sau khi đã tích hợp các biến số sai lệch (Deviation Variables), đối soát kết quả kỳ trước, gom cụm tương quan Anti-Scattering và Wheeling System 10-to-6.
+          Tổng hợp <strong>{{ payload?.tickets?.length || 10 }}</strong> dãy 6 số tối ưu sinh bởi mô hình học máy cho kỳ quay <strong>{{ getTargetDrawDateDisplay() }}</strong> sau khi đã tích hợp các biến số sai lệch (Deviation Variables), đối soát kết quả kỳ trước, gom cụm tương quan Anti-Scattering và Wheeling System 10-to-6.
         </small>
       </div>
 

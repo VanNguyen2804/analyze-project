@@ -139,6 +139,12 @@ export interface PredictionPayload {
   numberRelationships?: NumberRelationshipData;
   recommendations?: any;
   aiRecommendation?: any;
+  targetDrawDate?: string;
+  targetDayName?: string;
+  targetDrawDateFormatted?: string;
+  baseDrawDate?: string;
+  baseDrawDateFormatted?: string;
+  isTargetDrawToday?: boolean;
   deviationVariables?: DeviationVariable[];
 }
 

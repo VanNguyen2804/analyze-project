@@ -1,5 +1,21 @@
 [
   {
+    "id": 55,
+    "drawDate": "2026-10-17",
+    "category": "POWER",
+    "numbers": [
+      1,
+      10,
+      11,
+      12,
+      16,
+      37
+    ],
+    "specialNumber": 48,
+    "createdAt": "2026-10-17T18:30:00.000Z",
+    "note": "Kết quả mở thưởng chính thức Vietlott Power 6/55 Thứ Bảy 17/10/2026 (Jackpot 1: 01, 10, 11, 12, 16, 37; Jackpot 2: ⭐48)"
+  },
+  {
     "id": 54,
     "drawDate": "2026-10-16",
     "category": "MEGA",

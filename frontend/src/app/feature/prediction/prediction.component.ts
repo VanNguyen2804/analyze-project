@@ -361,6 +361,33 @@ export class PredictionComponent implements OnInit, OnDestroy {
     return days[date.getDay()];
   }
 
+  formatDateVN(dateStr: string): string {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const dow = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])).getDay();
+      const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+      return `${days[dow]} ${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+  }
+
+  getTargetDrawDateDisplay(): string {
+    if (this.recommendations?.targetDayName && this.recommendations?.targetDrawDateFormatted) {
+      return `${this.recommendations.targetDayName} ${this.recommendations.targetDrawDateFormatted}`;
+    }
+    if (this.recommendations?.targetDrawDate) {
+      return this.formatDateVN(this.recommendations.targetDrawDate);
+    }
+    if (this.payload?.targetDrawDateFormatted && this.payload?.targetDayName) {
+      return `${this.payload.targetDayName} ${this.payload.targetDrawDateFormatted}`;
+    }
+    if (this.payload?.targetDrawDate) {
+      return this.formatDateVN(this.payload.targetDrawDate);
+    }
+    return this.category === 'POWER' ? 'Thứ Ba 20/10/2026' : 'Thứ Tư 21/10/2026';
+  }
+
   // --- 4. HÀM PHỤC VỤ BẢNG CÁC DÃY 6 SỐ VÀ LÝ DO THAY ĐỔI THUẬT TOÁN ---
   ticketViewMode: 'table' | 'cards' = 'table';
   displayedTicketsLimit: number = 10;

@@ -76,6 +76,10 @@ interface PredictionResponse {
   aiRecommendation?: any;
   pureNumbers?: number[];
   pureAlgorithmTicket?: any;
+  algorithmName?: string;
+  targetDrawDate?: string;
+  targetDayName?: string;
+  targetDrawDateFormatted?: string;
 }
 
 // App State
@@ -965,10 +969,10 @@ function renderComparisonView(): string {
             <div class="card border border-primary shadow-xs rounded-3 bg-white h-100">
               <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
                 <div>
-                  <h5 class="fw-bold mb-0">🔵 Power 6/55 (Kỳ ${nextPower?.targetDrawDate || '15/10/2026'})</h5>
+                  <h5 class="fw-bold mb-0">🔵 Power 6/55 (Kỳ ${nextPower?.drawDateFormatted || (nextPower?.targetDrawDate ? nextPower.targetDrawDate.split('-').reverse().join('/') : '20/10/2026')})</h5>
                   <small class="text-white-50">Ứng dụng Khóa Hạt Nhân Tuyệt Đối & 6 Biến Số Mới</small>
                 </div>
-                <span class="badge bg-warning text-dark">Thứ Năm</span>
+                <span class="badge bg-warning text-dark">${nextPower?.dayName || 'Thứ Ba'}</span>
               </div>
               <div class="card-body p-3">
                 ${(nextPower?.tickets || []).map((t: any) => `
@@ -1001,15 +1005,15 @@ function renderComparisonView(): string {
             </div>
           </div>
 
-          <!-- Mega 16/10 Next Draw -->
+          <!-- Mega Next Draw -->
           <div class="col-lg-6">
             <div class="card border border-danger shadow-xs rounded-3 bg-white h-100">
               <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
                 <div>
-                  <h5 class="fw-bold mb-0">🔴 Mega 6/45 (Kỳ ${nextMega?.targetDrawDate || '16/10/2026'})</h5>
-                  <small class="text-white-50">Ứng dụng Sóng Di Cư Liên Hệ Thống từ Power 13/10</small>
+                  <h5 class="fw-bold mb-0">🔴 Mega 6/45 (Kỳ ${nextMega?.drawDateFormatted || (nextMega?.targetDrawDate ? nextMega.targetDrawDate.split('-').reverse().join('/') : '21/10/2026')})</h5>
+                  <small class="text-white-50">Ứng dụng Sóng Di Cư Liên Hệ Thống từ Power 17/10</small>
                 </div>
-                <span class="badge bg-warning text-dark">Thứ Sáu</span>
+                <span class="badge bg-warning text-dark">${nextMega?.dayName || 'Thứ Tư'}</span>
               </div>
               <div class="card-body p-3">
                 ${(nextMega?.tickets || []).map((t: any) => `
@@ -1565,7 +1569,7 @@ function renderPredictionView(): string {
                     🌟 MỤC KHUYẾN NGHỊ AI
                   </span>
                   <span class="badge bg-info text-dark rounded-pill px-2 py-1">
-                    Áp dụng cho: ${predictionResultData.recommendations?.lotteryName || catName} (${predictionResultData.recommendations?.targetDrawDate || 'Kỳ tiếp theo'})
+                    Áp dụng cho: ${predictionResultData.recommendations?.lotteryName || catName} (Kỳ kế tiếp: ${predictionResultData.recommendations?.targetDayName || ''} ${predictionResultData.recommendations?.targetDrawDateFormatted || predictionResultData.targetDrawDate || ''})
                   </span>
                   <span class="badge bg-success text-white rounded-pill px-2 py-1">
                     Bao phủ mục tiêu: 100% (6/6 Số)
@@ -1706,8 +1710,11 @@ function renderPredictionView(): string {
                 <span class="badge ${isPower ? 'bg-primary' : 'bg-danger'} text-white px-3 py-1 mb-1">
                   ĐỀ XUẤT TỐI ƯU &bull; ${catName.toUpperCase()}
                 </span>
+                <span class="badge bg-success text-white px-3 py-1 mb-1 ms-1">
+                  🗓️ Kỳ Dự Đoán Kế Tiếp: ${predictionResultData.recommendations?.targetDayName || (isPower ? 'Thứ Ba' : 'Thứ Tư')} ${predictionResultData.recommendations?.targetDrawDateFormatted || (isPower ? '20/10/2026' : '21/10/2026')}
+                </span>
                 <h3 class="h4 fw-bold text-dark mb-0">
-                  Dãy số được AI đề xuất cho ${catName}
+                  Dãy số được AI đề xuất cho ${catName} (Kỳ ${predictionResultData.recommendations?.targetDayName || (isPower ? 'Thứ Ba' : 'Thứ Tư')} ${predictionResultData.recommendations?.targetDrawDateFormatted || (isPower ? '20/10/2026' : '21/10/2026')})
                 </h3>
               </div>
 

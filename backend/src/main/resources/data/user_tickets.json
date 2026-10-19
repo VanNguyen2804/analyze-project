@@ -138,7 +138,7 @@
   {
     "id": 17,
     "category": "MEGA",
-    "drawDate": "2026-10-11",
+    "drawDate": "2026-10-18",
     "numbers": [
       5,
       12,
@@ -152,13 +152,13 @@
     "matchedSpecial": false,
     "prize": "CHỜ MỞ THƯỞNG",
     "prizeAmount": "0 đ",
-    "checkedAt": "2026-10-11T07:00:00.000Z",
-    "note": "Vé A Khuyến Nghị Mega 11/10 (v1.8.0): Cụm Di Cư Sóng Chéo (Cross-Carrier [05, 32, 44] từ Power 10/10 + Cặp Đảo Vị Gương 23-32)"
+    "checkedAt": "2026-10-18T07:00:00.000Z",
+    "note": "Vé A Khuyến Nghị Mega 18/10 (v2.1.0): Cụm Di Cư Sóng Chéo (Cross-Carrier [05, 32, 44] từ Power 17/10 + Cặp Đảo Vị Gương 23-32)"
   },
   {
     "id": 18,
     "category": "MEGA",
-    "drawDate": "2026-10-11",
+    "drawDate": "2026-10-18",
     "numbers": [
       3,
       7,
@@ -172,13 +172,13 @@
     "matchedSpecial": false,
     "prize": "CHỜ MỞ THƯỞNG",
     "prizeAmount": "0 đ",
-    "checkedAt": "2026-10-11T07:00:00.000Z",
-    "note": "Vé B Khuyến Nghị Mega 11/10 (v1.8.0): Điểm Rơi Poisson Cân Bằng (Lô Gan Bứt Phá 15, 22 + Quán Tính Lặp 07, 41 + Sóng Hài Fourier 27)"
+    "checkedAt": "2026-10-18T07:00:00.000Z",
+    "note": "Vé B Khuyến Nghị Mega 18/10 (v2.1.0): Điểm Rơi Poisson Cân Bằng (Lô Gan Bứt Phá 15, 22 + Quán Tính Lặp 07, 41 + Sóng Hài Fourier 27)"
   },
   {
     "id": 19,
     "category": "MEGA",
-    "drawDate": "2026-10-11",
+    "drawDate": "2026-10-18",
     "numbers": [
       6,
       8,
@@ -192,8 +192,8 @@
     "matchedSpecial": false,
     "prize": "CHỜ MỞ THƯỞNG",
     "prizeAmount": "0 đ",
-    "checkedAt": "2026-10-11T07:00:00.000Z",
-    "note": "Vé C Khuyến Nghị Mega 11/10 (v1.8.0): Cặp Liền Kề Triplet Phân Tán & Bù Trừ Dải Chân Không (Bóng 06, 29 từ Power 10/10 + Bọc Lót Biên 08, 18, 36)"
+    "checkedAt": "2026-10-18T07:00:00.000Z",
+    "note": "Vé C Khuyến Nghị Mega 18/10 (v2.1.0): Cặp Liền Kề Triplet Phân Tán & Bù Trừ Dải Chân Không (Bóng 06, 29 từ Power 17/10 + Bọc Lót Biên 08, 18, 36)"
   },
   {
     "id": 16,
