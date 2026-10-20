@@ -59,7 +59,8 @@ public class DatabaseConfig {
                 String host = uri.getHost();
                 int port = uri.getPort() == -1 ? 5432 : uri.getPort();
                 String path = uri.getPath();
-                String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + path;
+                String query = uri.getQuery();
+                String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + path + (StringUtils.hasText(query) ? "?" + query : "");
 
                 config.setJdbcUrl(jdbcUrl);
 

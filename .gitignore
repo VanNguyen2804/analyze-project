@@ -1,5 +1,41 @@
-.angular/
-frontend/.angular/
+# Dependencies
+node_modules/
+*/node_modules/
 frontend/node_modules/
-backend/target
+.pnp
+.pnp.js
+
+# Build outputs & caches
 dist/
+*/dist/
+frontend/dist/
+.angular/
+*/.angular/
+frontend/.angular/
+.cache/
+tmp/
+*.log
+
+# Maven & Java
+target/
+*/target/
+backend/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Environment variables & secrets (NEVER commit secrets to GitHub)
+.env
+.env.*
+!.env.example
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
