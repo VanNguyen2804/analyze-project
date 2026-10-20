@@ -105,6 +105,21 @@ export interface PureAlgorithmTicket {
   }>;
 }
 
+export interface TransformedSequence {
+  id: string;
+  name: string;
+  badge: string;
+  badgeClass: string;
+  icon?: string;
+  numbers: number[];
+  specialNumber?: number;
+  composition?: string;
+  confidence?: number;
+  deltaFormula?: string;
+  transformationRule?: string;
+  keyShifts?: string[];
+}
+
 export interface PredictionPayload {
   status: string;
   message?: string;
@@ -115,6 +130,7 @@ export interface PredictionPayload {
   generatedTickets?: TicketItem[];
   pureNumbers?: number[];
   pureAlgorithmTicket?: PureAlgorithmTicket;
+  transformedSequences?: TransformedSequence[];
   details?: NumberScoreDetail[];
   focusAnalysis?: FocusAnalysis;
   numbers?: number[];

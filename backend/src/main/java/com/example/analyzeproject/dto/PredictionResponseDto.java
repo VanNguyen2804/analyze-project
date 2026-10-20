@@ -48,6 +48,8 @@ public class PredictionResponseDto {
     private String baseDrawDate;
     private String baseDrawDateFormatted;
     private Boolean isTargetDrawToday;
+    private java.util.Map<String, Object> pureAlgorithmTicket;
+    private List<java.util.Map<String, Object>> transformedSequences;
 
     // --- GETTERS & SETTERS ---
 
@@ -155,4 +157,10 @@ public class PredictionResponseDto {
 
     public Boolean getIsTargetDrawToday() { return isTargetDrawToday; }
     public void setIsTargetDrawToday(Boolean isTargetDrawToday) { this.isTargetDrawToday = isTargetDrawToday; }
+
+    public java.util.Map<String, Object> getPureAlgorithmTicket() { return pureAlgorithmTicket; }
+    public void setPureAlgorithmTicket(java.util.Map<String, Object> pureAlgorithmTicket) { this.pureAlgorithmTicket = pureAlgorithmTicket; }
+
+    public List<java.util.Map<String, Object>> getTransformedSequences() { return transformedSequences; }
+    public void setTransformedSequences(List<java.util.Map<String, Object>> transformedSequences) { this.transformedSequences = transformedSequences; }
 }
