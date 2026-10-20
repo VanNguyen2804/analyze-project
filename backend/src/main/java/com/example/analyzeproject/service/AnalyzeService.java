@@ -537,10 +537,22 @@ public class AnalyzeService {
                 double migBonus = ("POWER".equalsIgnoreCase(category) && lastSeenSpecial[i] >= totalDraws - 2 && lastSeenSpecial[i] != -1) ? 1.45 : 0.0;
                 double repeatAdj = (gapVal == 0) ? 0.75 : 0.0;
                 // 5. Lệch biên lân cận ±1 từ kỳ trước
-                boolean isNeighbor = drawT1.stream().anyMatch(w -> Math.abs(w - i) == 1);
+                boolean isNeighbor = false;
+                for (int w : drawT1) {
+                    if (Math.abs(w - i) == 1) {
+                        isNeighbor = true;
+                        break;
+                    }
+                }
                 double neighborBonus = isNeighbor ? 0.85 : 0.0;
                 // 6. Hóa giải cụm nén dồn
-                boolean hasTriplet = drawT1.stream().anyMatch(w -> drawT1.contains(w + 1) && drawT1.contains(w + 2));
+                boolean hasTriplet = false;
+                for (int w : drawT1) {
+                    if (drawT1.contains(w + 1) && drawT1.contains(w + 2)) {
+                        hasTriplet = true;
+                        break;
+                    }
+                }
                 double decompBonus = (hasTriplet && i >= 20 && i <= 50 && !drawT1.contains(i)) ? 0.65 : 0.0;
                 double rebound = (gapVal > avgCycle * 1.8) ? Math.min(0.85, 0.45 + (gapVal - avgCycle * 1.8) * 0.08) : 0.0;
 
