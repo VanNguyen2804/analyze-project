@@ -534,11 +534,17 @@ public class AnalyzeService {
                 double resonance = (harmonicPhase > 0) ? harmonicPhase * Math.exp(-Math.abs(gapVal - avgHarmonicPeriod) / (avgHarmonicPeriod * 1.6)) : 0.0;
 
                 // 4. Cầu nối chuyển vị Banh Phụ
-                double migBonus = ("POWER".equalsIgnoreCase(category) && lastSeenSpecial[i] >= totalDraws - 2 && lastSeenSpecial[i] != -1) ? 0.85 : 0.0;
-                double repeatAdj = (gapVal == 0 && mainFrequency[i] >= 4) ? 0.45 : (gapVal == 0 ? 0.20 : 0.0);
+                double migBonus = ("POWER".equalsIgnoreCase(category) && lastSeenSpecial[i] >= totalDraws - 2 && lastSeenSpecial[i] != -1) ? 1.45 : 0.0;
+                double repeatAdj = (gapVal == 0) ? 0.75 : 0.0;
+                // 5. Lệch biên lân cận ±1 từ kỳ trước
+                boolean isNeighbor = drawT1.stream().anyMatch(w -> Math.abs(w - i) == 1);
+                double neighborBonus = isNeighbor ? 0.85 : 0.0;
+                // 6. Hóa giải cụm nén dồn
+                boolean hasTriplet = drawT1.stream().anyMatch(w -> drawT1.contains(w + 1) && drawT1.contains(w + 2));
+                double decompBonus = (hasTriplet && i >= 20 && i <= 50 && !drawT1.contains(i)) ? 0.65 : 0.0;
                 double rebound = (gapVal > avgCycle * 1.8) ? Math.min(0.85, 0.45 + (gapVal - avgCycle * 1.8) * 0.08) : 0.0;
 
-                z = (bayesMean * 7.5) + (normGraph * 1.8) + (resonance * 1.4) + migBonus + repeatAdj + rebound - 2.65;
+                z = (bayesMean * 7.5) + (normGraph * 1.8) + (resonance * 1.4) + migBonus + repeatAdj + neighborBonus + decompBonus + rebound - 2.50;
             } else if (isDeepStacking && totalDraws > 0) {
                 // MODEL 1: XGBoost Frequency-Momentum
                 double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
@@ -1085,33 +1091,33 @@ public class AnalyzeService {
         Map<String, Object> gt1 = new HashMap<>();
         gt1.put("ticketIndex", 1);
         gt1.put("title", isPower ? "Vé Khuyến Nghị #1 (Vé Hạt Nhân Hội Tụ Tuyệt Đối - Concentrated Core Ticket v2.1.0)" : "Vé Khuyến Nghị #1 (Điểm Vàng Biến Số Kỳ 21/10 - Đảo Vị & Sóng Hài)");
-        gt1.put("numbers", isPower ? List.of(2, 14, 27, 40, 50, 53) : List.of(6, 14, 21, 25, 33, 40));
-        gt1.put("specialNumber", isPower ? 48 : null);
-        gt1.put("composition", isPower ? "4 Chẵn / 2 Lẻ • Tổng = 186" : "3 Chẵn / 3 Lẻ • Tổng = 139");
+        gt1.put("numbers", isPower ? List.of(2, 16, 21, 27, 38, 48) : List.of(6, 14, 21, 25, 33, 40));
+        gt1.put("specialNumber", isPower ? 40 : null);
+        gt1.put("composition", isPower ? "4 Chẵn / 2 Lẻ • Tổng = 152" : "3 Chẵn / 3 Lẻ • Tổng = 139");
         gt1.put("strategyReason", isPower
-            ? "Gom trọn vẹn cụm số tương quan cao vào cùng một vé hạt nhân duy nhất cho kỳ Thứ Ba 20/10/2026. Banh phụ bảo hiểm Jackpot 2 ⭐48."
+            ? "Vé hạt nhân tối ưu cho kỳ Thứ Ba 20/10/2026: Số lặp quán tính 16; Số lệch biên lân cận 02 (từ 01+1) và 38 (từ 37+1); Chuyển vị banh phụ ⭐48 từ kỳ 17/10; Hóa giải nén cụm dồn [10, 11, 12] sang dải 20s (21, 27). Banh phụ bảo hiểm Jackpot 2 ⭐40."
             : "Dãy số dự đoán tối ưu cho ngày kế tiếp (Thứ Tư 21/10/2026): Số 06 (từ 05 + 1: bứt phá lệch biên phải), Số 14 (đảo vị bóng số 41), Số 21 (đảo vị bóng 12), Số 25 (từ 23 + 2: bước nhảy parity), Số 33 (từ 32 + 1: lệch biên), Số 40 (từ 41 - 1: hồi quy lệch biên trái).");
         goldenTickets.add(gt1);
 
         Map<String, Object> gt2 = new HashMap<>();
         gt2.put("ticketIndex", 2);
         gt2.put("title", isPower ? "Vé Khuyến Nghị #2 (Cụm Bẫy Lân Cận Biên ±1 & Sóng Di Cư Banh Phụ)" : "Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Quán Tính Lặp Kỳ 21/10)");
-        gt2.put("numbers", isPower ? List.of(3, 15, 26, 38, 44, 52) : List.of(7, 13, 22, 28, 35, 42));
-        gt2.put("specialNumber", isPower ? 40 : null);
-        gt2.put("composition", isPower ? "4 Chẵn / 2 Lẻ • Tổng = 178" : "3 Chẵn / 3 Lẻ • Tổng = 147");
+        gt2.put("numbers", isPower ? List.of(9, 11, 13, 15, 36, 52) : List.of(7, 13, 22, 28, 35, 42));
+        gt2.put("specialNumber", isPower ? 48 : null);
+        gt2.put("composition", isPower ? "2 Chẵn / 4 Lẻ • Tổng = 136" : "3 Chẵn / 3 Lẻ • Tổng = 147");
         gt2.put("strategyReason", isPower
-            ? "Hóa giải bẫy lệch sát nút ±1 từ kết quả kỳ 17/10, bọc lót dải cao 38, 44, 52. Banh phụ bảo hiểm Jackpot 2 ⭐40 cho kỳ Thứ Ba 20/10/2026."
+            ? "Hóa giải toàn diện bẫy lệch sát nút ±1 từ kết quả kỳ 17/10: Số 09 (từ 10-1), Số 13 (từ 12+1), Số 15 (từ 16-1), Số 36 (từ 37-1), kết hợp số lặp 11 và điểm rơi dải cao 52. Banh phụ bảo hiểm Jackpot 2 ⭐48 cho kỳ Thứ Ba 20/10/2026."
             : "Tổ hợp biến số đa phân vùng cho ngày 21/10: Số 07 (duy trì quán tính lặp chuỗi Markov), Số 13 (từ 12 + 1: thoát bẫy tâm điểm), Số 22 (từ 23 - 1 & 32 - 10: đối xứng thập phân), Số 28 (bước nhảy sóng hài Fourier bậc 7 từ 21), Số 35 (bước nhảy parity từ 32 + 3), Số 42 (từ 41 + 1: bứt phá dải biên trên).");
         goldenTickets.add(gt2);
 
         Map<String, Object> gt3 = new HashMap<>();
         gt3.put("ticketIndex", 3);
         gt3.put("title", isPower ? "Vé Khuyến Nghị #3 (Cụm Đồng Dư Đuôi 0 & Điểm Rơi Poisson Cân Bằng)" : "Vé Khuyến Nghị #3 (Cân Bằng Đa Phân Vùng & Điểm Rơi Poisson Kỳ 21/10)");
-        gt3.put("numbers", isPower ? List.of(4, 10, 20, 30, 48, 55) : List.of(8, 15, 21, 24, 31, 42));
-        gt3.put("specialNumber", isPower ? 14 : null);
-        gt3.put("composition", isPower ? "5 Chẵn / 1 Lẻ • Tổng = 167" : "3 Chẵn / 3 Lẻ • Tổng = 141");
+        gt3.put("numbers", isPower ? List.of(8, 14, 21, 31, 40, 50) : List.of(8, 15, 21, 24, 31, 42));
+        gt3.put("specialNumber", isPower ? 26 : null);
+        gt3.put("composition", isPower ? "4 Chẵn / 2 Lẻ • Tổng = 164" : "3 Chẵn / 3 Lẻ • Tổng = 141");
         gt3.put("strategyReason", isPower
-            ? "Khai thác tối đa biến số Mod-10 Tail Congruence với bộ ba đuôi 0 [10, 20, 30], phối hợp điểm rơi Poisson chuẩn 04 và chặn trần cực biên 55. Banh phụ bảo hiểm Jackpot 2 ⭐14 cho kỳ Thứ Ba 20/10/2026."
+            ? "Tiếp nhận sóng di cư từ kỳ Mega 16/10 (08, 14, 21, 31), kết hợp cặp đồng dư đuôi 0 dải cao {40, 50} và hồi quy lô gan. Banh phụ bảo hiểm Jackpot 2 ⭐26 cho kỳ Thứ Ba 20/10/2026."
             : "Phối hợp nhịp độ ngày 21/10: Số 08 (từ 07 + 1: lệch biên), Số 15 (từ 05 + 10: dịch chuyển hàng chục), Số 21 (đảo vị từ 12), Số 24 (từ 23 + 1: lân cận), Số 31 (từ 32 - 1: bẫy lân cận trái), Số 42 (từ 41 + 1: đón đầu dải chẵn 40s).");
         goldenTickets.add(gt3);
 
