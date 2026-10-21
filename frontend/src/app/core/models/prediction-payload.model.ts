@@ -120,6 +120,31 @@ export interface TransformedSequence {
   keyShifts?: string[];
 }
 
+export interface AlgorithmResultItem {
+  id?: string;
+  name: string;
+  badge?: string;
+  badgeClass?: string;
+  rankBadge?: string;
+  icon?: string;
+  accuracyScore?: number;
+  hitRate?: string;
+  numbers: number[];
+  specialNumber?: number;
+  composition?: string;
+  formulaNote?: string;
+  rationale?: string;
+  sharedNumbers?: number[];
+  details?: Array<{
+    number: number;
+    probabilityPercent: number;
+    drawGap?: number;
+    frequency?: number;
+    tag?: string;
+    isShared?: boolean;
+  }>;
+}
+
 export interface PredictionPayload {
   status: string;
   message?: string;
@@ -130,6 +155,9 @@ export interface PredictionPayload {
   generatedTickets?: TicketItem[];
   pureNumbers?: number[];
   pureAlgorithmTicket?: PureAlgorithmTicket;
+  primaryAlgorithmResult?: AlgorithmResultItem;
+  secondaryAlgorithmResult?: AlgorithmResultItem;
+  combinedAlgorithmResult?: AlgorithmResultItem;
   transformedSequences?: TransformedSequence[];
   details?: NumberScoreDetail[];
   focusAnalysis?: FocusAnalysis;

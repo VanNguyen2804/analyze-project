@@ -20,8 +20,9 @@ public class PredictAliasController {
     @RequestMapping(value = {"/predict", "/api/predict"}, method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<PredictionResponseDto> predict(
             @RequestParam(required = false, defaultValue = "MEGA") String category,
-            @RequestParam(required = false, defaultValue = "xgboost") String algorithm) {
-        PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm);
+            @RequestParam(required = false, defaultValue = "bayesian_graph") String algorithm,
+            @RequestParam(required = false) String algorithm2) {
+        PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm, algorithm2);
         return ResponseEntity.ok(result);
     }
 

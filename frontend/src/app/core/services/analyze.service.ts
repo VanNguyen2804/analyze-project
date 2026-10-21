@@ -24,8 +24,12 @@ export class AnalyzeService {
   // API XỔ SỐ (PHÂN TÍCH & DỰ ĐOÁN)
   // ==========================================
 
-  getPrediction(category: string, algorithm: string): Observable<PredictionPayload> {
-    return this.http.get<PredictionPayload>(`${this.apiUrl}/predict?category=${category}&algorithm=${algorithm}`);
+  getPrediction(category: string, algorithm: string, algorithm2?: string): Observable<PredictionPayload> {
+    let url = `${this.apiUrl}/predict?category=${category}&algorithm=${algorithm}`;
+    if (algorithm2 && algorithm2.trim() !== '') {
+      url += `&algorithm2=${algorithm2.trim()}`;
+    }
+    return this.http.get<PredictionPayload>(url);
   }
 
   getAlgorithms(): Observable<any[]> {

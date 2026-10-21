@@ -50,6 +50,9 @@ public class PredictionResponseDto {
     private Boolean isTargetDrawToday;
     private java.util.Map<String, Object> pureAlgorithmTicket;
     private List<java.util.Map<String, Object>> transformedSequences;
+    private java.util.Map<String, Object> primaryAlgorithmResult;
+    private java.util.Map<String, Object> secondaryAlgorithmResult;
+    private java.util.Map<String, Object> combinedAlgorithmResult;
 
     // --- GETTERS & SETTERS ---
 
@@ -163,4 +166,13 @@ public class PredictionResponseDto {
 
     public List<java.util.Map<String, Object>> getTransformedSequences() { return transformedSequences; }
     public void setTransformedSequences(List<java.util.Map<String, Object>> transformedSequences) { this.transformedSequences = transformedSequences; }
+
+    public java.util.Map<String, Object> getPrimaryAlgorithmResult() { return primaryAlgorithmResult; }
+    public void setPrimaryAlgorithmResult(java.util.Map<String, Object> primaryAlgorithmResult) { this.primaryAlgorithmResult = primaryAlgorithmResult; }
+
+    public java.util.Map<String, Object> getSecondaryAlgorithmResult() { return secondaryAlgorithmResult; }
+    public void setSecondaryAlgorithmResult(java.util.Map<String, Object> secondaryAlgorithmResult) { this.secondaryAlgorithmResult = secondaryAlgorithmResult; }
+
+    public java.util.Map<String, Object> getCombinedAlgorithmResult() { return combinedAlgorithmResult; }
+    public void setCombinedAlgorithmResult(java.util.Map<String, Object> combinedAlgorithmResult) { this.combinedAlgorithmResult = combinedAlgorithmResult; }
 }
