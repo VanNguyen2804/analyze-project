@@ -40,8 +40,8 @@
             <span class="badge px-3 py-2 rounded-pill fw-semibold" [ngClass]="getTargetDrawInfo().statusBadgeClass">
               {{ getTargetDrawInfo().statusText }}
             </span>
-            <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill small" *ngIf="payload.baseDrawDateFormatted">
-              Cơ sở CSDL: Kỳ {{ payload.baseDrawDateFormatted }} ({{ payload.totalDrawsAnalyzed || 50 }} kỳ)
+            <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill small" *ngIf="payload?.baseDrawDateFormatted as baseDate">
+              Cơ sở CSDL: Kỳ {{ baseDate }} ({{ (payload && payload.totalDrawsAnalyzed) || 50 }} kỳ)
             </span>
           </div>
         </div>
@@ -681,17 +681,17 @@
                         {{ formatNumber(n) }}
                       </div>
 
-                      <ng-container *ngIf="category === 'POWER' && payload.specialNumber">
+                      <ng-container *ngIf="category === 'POWER' && payload.specialNumber as specNum">
                         <span class="text-muted small fw-bold">+</span>
                         <div
                           class="ball ball-sm ball-special"
-                          [ngClass]="hoveredNumber === payload.specialNumber ? 'ball-highlight' : ''"
-                          (mouseenter)="showPopup(payload.specialNumber, $event)"
+                          [ngClass]="hoveredNumber === specNum ? 'ball-highlight' : ''"
+                          (mouseenter)="showPopup(specNum, $event)"
                           (mouseleave)="hidePopup()"
-                          (click)="pinPopup(payload.specialNumber, $event)"
+                          (click)="pinPopup(specNum, $event)"
                           style="width: 34px; height: 34px; font-size: 13px; cursor: pointer;"
                         >
-                          ⭐{{ formatNumber(payload.specialNumber) }}
+                          ⭐{{ formatNumber(specNum) }}
                         </div>
                       </ng-container>
                     </div>
