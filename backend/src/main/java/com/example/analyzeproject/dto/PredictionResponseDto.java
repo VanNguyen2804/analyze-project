@@ -53,6 +53,7 @@ public class PredictionResponseDto {
     private java.util.Map<String, Object> primaryAlgorithmResult;
     private java.util.Map<String, Object> secondaryAlgorithmResult;
     private java.util.Map<String, Object> combinedAlgorithmResult;
+    private java.util.Map<String, Object> neighborDriftAnalysis;
 
     // --- GETTERS & SETTERS ---
 
@@ -175,4 +176,7 @@ public class PredictionResponseDto {
 
     public java.util.Map<String, Object> getCombinedAlgorithmResult() { return combinedAlgorithmResult; }
     public void setCombinedAlgorithmResult(java.util.Map<String, Object> combinedAlgorithmResult) { this.combinedAlgorithmResult = combinedAlgorithmResult; }
+
+    public java.util.Map<String, Object> getNeighborDriftAnalysis() { return neighborDriftAnalysis; }
+    public void setNeighborDriftAnalysis(java.util.Map<String, Object> neighborDriftAnalysis) { this.neighborDriftAnalysis = neighborDriftAnalysis; }
 }

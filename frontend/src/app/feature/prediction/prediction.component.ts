@@ -1036,4 +1036,21 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (Math.abs(delta) >= 10) return 'badge bg-primary text-white';
     return 'badge bg-secondary text-white';
   }
+
+  getNeighborDriftAnalysis(): any {
+    return this.payload?.neighborDriftAnalysis;
+  }
+
+  copyHedgingTicket(): void {
+    const drift = this.getNeighborDriftAnalysis();
+    if (drift?.hedgingTicketNumbers && drift.hedgingTicketNumbers.length > 0) {
+      this.copyTicket(drift.hedgingTicketNumbers, this.payload?.specialNumber);
+      this.copyTicketSuccessMsg = `Đã sao chép vé bọc lót hóa giải lệch 1 nút: [${drift.hedgingTicketNumbers.map((n: number) => String(n).padStart(2, '0')).join(', ')}]`;
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.copyTicketSuccessMsg = null;
+        this.cdr.markForCheck();
+      }, 3500);
+    }
+  }
 }

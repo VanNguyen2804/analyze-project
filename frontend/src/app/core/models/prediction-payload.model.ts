@@ -190,6 +190,37 @@ export interface PredictionPayload {
   baseDrawDateFormatted?: string;
   isTargetDrawToday?: boolean;
   deviationVariables?: DeviationVariable[];
+  neighborDriftAnalysis?: NeighborDriftAnalysis;
+}
+
+export interface NeighborDriftCandidate {
+  originalNumber: number;
+  leftHedging: number;
+  rightHedging: number;
+  preferredShift: '-1' | '+1' | 'both';
+  riskScore: number;
+  riskLevel: 'VERY_HIGH' | 'HIGH' | 'MEDIUM';
+  reason: string;
+}
+
+export interface NeighborDriftAnalysis {
+  isSimilarCycleTo22Oct: boolean;
+  totalDriftDrawsCount: number;
+  severeDriftDrawsCount: number;
+  historicalRatioPercent: number;
+  powerDriftRatioPercent: number;
+  megaDriftRatioPercent: number;
+  keyHistoricalDraws: Array<{
+    category: string;
+    drawDate: string;
+    driftCount: number;
+    driftBalls: number[];
+    note: string;
+  }>;
+  cycleDiagnosis: string;
+  riskCandidates: NeighborDriftCandidate[];
+  hedgingTicketNumbers: number[];
+  hedgingRationale: string;
 }
 
 export interface DeviationVariable {
