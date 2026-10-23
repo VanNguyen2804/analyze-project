@@ -191,6 +191,26 @@ export interface PredictionPayload {
   isTargetDrawToday?: boolean;
   deviationVariables?: DeviationVariable[];
   neighborDriftAnalysis?: NeighborDriftAnalysis;
+  commonPatternsAnalysis?: CommonPatternsAnalysis;
+}
+
+export interface CommonPatternDetail {
+  rule?: string;
+  balanceRatio?: string;
+  optimalRange?: string;
+  occurrencesCount?: number;
+  percentage: number;
+  insight: string;
+}
+
+export interface CommonPatternsAnalysis {
+  evaluatedDraws: number;
+  amplitude1Pattern: CommonPatternDetail;
+  parityPattern: CommonPatternDetail;
+  zoneDistributionPattern: CommonPatternDetail;
+  tailModuloPattern: CommonPatternDetail;
+  consecutivePairPattern: CommonPatternDetail;
+  sumRangePattern: CommonPatternDetail;
 }
 
 export interface NeighborDriftCandidate {

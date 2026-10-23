@@ -268,6 +268,10 @@ export class PredictionComponent implements OnInit, OnDestroy {
     };
   }
 
+  getCommonPatternsAnalysis(): any {
+    return this.payload?.commonPatternsAnalysis;
+  }
+
   getCombinedResult(): any {
     if (this.payload?.combinedAlgorithmResult) {
       return this.payload.combinedAlgorithmResult;
