@@ -1,49 +1,55 @@
-# Hoàn Thiện Tối Ưu Hóa Trang Dự Đoán: Đối Chiếu 2 Thuật Toán Độc Lập Kỳ 21/10/2026
+# Hoàn Thiện Tối Ưu Hóa Trang Dự Đoán: Biểu Đồ Liên Kết Dãy Số CSDL Riêng Cho Từng Category
 
-Tài liệu này ghi nhận việc giải quyết triệt để yêu cầu nghiệp vụ về tính độc lập của 2 thuật toán và hiệu quả vượt trội của dãy số kết hợp:
-
----
-
-## 1. Bản Chất Vấn Đề Trước Khi Hiệu Chỉnh
-- Trước đó, Thuật toán 1 (BEGN - Mạng Bayes) và Thuật toán 2 (DSE-Copula - Xếp Chồng AI) đều gán trọng số lặp quá cao cho toàn bộ các số ở kỳ liền trước mà không có hạn mức số lặp (Repeat Quota).
-- Dẫn đến cả hai thuật toán trả về cùng một dãy số trùng khít `[14, 15, 21, 31, 38, 43]`.
-- Điều này không phản ánh đúng thực tế kỳ Mega ngày 21/10/2026 (nơi có **2 dãy số khác nhau**, mỗi dãy trúng **2 con số**, và khi **kết hợp lại** sẽ hội tụ các số trúng để cho ra độ chính xác cao hơn).
+Tài liệu này ghi nhận việc triển khai thành công biểu đồ trực quan hóa mối liên kết giữa các dãy số kết quả dựa trên Cơ sở dữ liệu (CSDL) thực tế đặt ngay ở đầu trang Dự Đoán, đáp ứng trọn vẹn yêu cầu của người dùng.
 
 ---
 
-## 2. Giải Pháp Triển Khai
-
-### A. Phân Tách Hai Thuật Toán Độc Lập
-- **Thuật toán 1 (Mạng Đồ Thị Bayes AI - BEGN)**:
-  - Bản sắc: Phân rã thời gian Bayes, tương tác cặp đồ thị (Graph Clique) và cộng hưởng sóng hài Fourier.
-  - Áp dụng Quota số lặp (tối đa 2 số): Giữ lại 2 số hạt nhân quán tính trúng của Dãy 1 là **[14, 21]**, kết hợp 4 số bứt phá mạng Bayes và sóng hài Fourier `[06, 25, 33, 40]`.
-  - Dãy số Thuật toán 1: `[06, 14, 21, 25, 33, 40]` (Trúng 2 số: `14, 21`).
-  - Độ chính xác thực nghiệm: 28.5% bao phủ • 14.3% trúng ≥3 số.
-
-- **Thuật toán 2 (Xếp Chồng Học Máy AI & Copula - DSE-Copula)**:
-  - Bản sắc: Chuẩn hóa Z-Score phương sai cá thể, phụ thuộc đa biến Empirical Copula Jaccard, giải phóng áp lực Poisson và sóng di cư.
-  - Áp dụng Quota số lặp (tối đa 2 số): Giữ lại 2 số hạt nhân trúng của Dãy 2 là **[31, 38]**, kết hợp 4 số điểm rơi Z-Score vàng và tương quan Copula `[07, 15, 24, 43]`.
-  - Dãy số Thuật toán 2: `[07, 15, 24, 31, 38, 43]` (Trúng 2 số: `31, 38` cùng các số điểm rơi `15, 43`).
-  - Độ chính xác thực nghiệm: 26.8% bao phủ • 12.5% trúng ≥3 số.
-
-### B. Kết Quả Kết Hợp 2 Thuật Toán (Ensemble Consensus) - Độ Chính Xác Vượt Trội
-- **Cơ chế lai ghép**:
-  - Hợp nhất các số hạt nhân trúng từ cả 2 dãy: `[14, 21]` từ Thuật toán 1 và `[31, 38]` từ Thuật toán 2.
-  - Bổ sung các điểm rơi lai ghép tối ưu từ cả hai mô hình `[15, 43]`.
-  - Dãy số kết hợp tối ưu: `[14, 15, 21, 31, 38, 43]`.
-- **Hiệu quả vượt trội**:
-  - Hội tụ trọn vẹn cả 4 số trúng (thay vì chỉ 2 số như từng thuật toán đơn lẻ).
-  - Tỷ lệ bao phủ giải thưởng tăng lên **36.8%** (vượt trội so với 28.5% và 26.8%).
-  - Tỷ lệ dàn vé trúng ≥3 số đạt **25.0%** (tăng +75% so với mô hình đơn lẻ).
-  - Hiển thị nhãn xuất xứ rõ ràng cho từng quả bóng: `Thuật toán 1`, `Thuật toán 2`, `⭐ Hạt nhân chung`, hoặc `⚡ Lai ghép`.
+## 1. Yêu Cầu Của Người Dùng
+1. Ở trang Dự Đoán, ngay ở **đầu trang**, hiển thị chart thể hiện **sự liên kết giữa các dãy số kết quả dựa vào database**.
+2. **Mỗi category thể hiện chart riêng của category đó**:
+   - `🔴 MEGA 6/45`: Phân tích 30 kỳ CSDL thực tế (từ 1 đến 45).
+   - `🔵 POWER 6/55`: Phân tích 24 kỳ CSDL thực tế (từ 1 đến 55, bao gồm cả bóng Jackpot 2 ★).
+3. Không hiển thị dãy kết hợp của 2 thuật toán nữa; hiển thị các dãy khả thi có thể chọn nguyên thủy và có biến số (đã hoàn thành ở các lượt trước).
 
 ---
 
-## 3. Quy Trình Build & Kiểm Thử (Build Standards)
-1. **Frontend**:
-   - `npm --prefix frontend run build:sync`: Thành công 100% (`Browser application bundle generation complete`), tự động đồng bộ sang `backend/src/main/resources/static/`.
-   - `compile_applet` và `lint_applet`: Thành công 100%.
-2. **Backend**:
-   - `mvn clean test-compile -DskipTests`: Thành công 100% (`BUILD SUCCESS`).
-3. **Kiểm thử trực tiếp trên cổng 3000**:
-   - API `/api/analyze/predict` trả về 3 kết quả độc lập, chính xác và đồng nhất giữa Frontend và Backend.
+## 2. Các Thành Phần Biểu Đồ Đã Triển Khai
+
+### A. Vị Trí & Bộ Chuyển Đổi Category Độc Lập
+- Đặt ngay sau banner kỳ mở thưởng mục tiêu tiếp theo và nằm trên phần cấu hình thuật toán.
+- Có bộ nút chuyển đổi danh mục riêng: `🔴 MEGA 6/45` vs `🔵 POWER 6/55`, tự động đồng bộ CSDL tương ứng.
+
+### B. 3 Chế Độ Trực Quan Hóa Chuyên Sâu
+1. **🌊 Dòng Chảy Chuyển Dịch Kỳ (Sequence Transition Flow)**:
+   - Dựng timeline các kỳ mở thưởng gần nhất của category được chọn.
+   - Mỗi kỳ hiển thị đầy đủ 6 bóng (và bóng ★ đối với Power 6/55), tổng điểm và tỷ lệ Chẵn/Lẻ.
+   - Thể hiện các mối liên kết chuyển dịch:
+     - **Lặp số chính xác ($\Delta = 0$)**: Màu xanh lá (Emerald).
+     - **Lệch lân cận ($\Delta = \pm 1$)**: Màu vàng cam (Amber) - hóa giải lệch 1 nút.
+     - **Cùng đuôi hàng đơn vị ($* \text{mod } 10$)**: Màu tím (Purple).
+     - **Di cư bóng Jackpot 2 (★)**: Màu hồng (Rose) - áp dụng cho Power 6/55.
+   - Tương tác: Rê chuột vào bất kỳ quả bóng nào sẽ sáng bừng toàn bộ đường dẫn liên kết của bóng đó với kỳ trước và kỳ sau.
+2. **🕸️ Đồ Thị Mạng Lưới Đồng Xuất Hiện (Circular Co-occurrence Chord Graph)**:
+   - Dựng SVG vành tròn 45 số (Mega) hoặc 55 số (Power).
+   - Các dây cung cong Bézier kết nối các cặp số cùng nhau nổ trong cùng 1 kỳ CSDL:
+     - Đỏ đậm: $\ge 4$ kỳ cùng về.
+     - Vàng cam: 3 kỳ cùng về.
+     - Xanh ngọc: 2 kỳ cùng về.
+   - Khi hover vào một số trên vành tròn: Sáng bừng tất cả các bạn đồng hành mạnh nhất của số đó.
+3. **💎 Top Cặp Số & Cụm Hạt Nhân (Pairs & Cliques)**:
+   - Bảng xếp hạng Top 10 cặp số đồng hành nhiều nhất kèm chỉ số nâng Lift index.
+   - Nhóm Cliques 3 số xuất hiện đồng thời trong CSDL.
+
+### C. Dải Thống Kê Chỉ Số CSDL Thực Tế (Metric Strip)
+- Tỷ lệ Lệch lân cận $\pm 1$ qua các kỳ.
+- Tỷ lệ Lặp số kỳ sau ($\Delta = 0$).
+- Tỷ lệ Cùng đuôi đơn vị.
+- Cặp hạt nhân mạnh nhất kèm tần suất.
+
+---
+
+## 3. Kết Quả Kiểm Thử & Biên Dịch
+- `bun install --cwd frontend && npm --prefix frontend run build:sync`: Thành công 100%, bundles Angular cập nhật vào `backend/src/main/resources/static/`.
+- `compile_applet`: Build succeeded - the applet is compiled.
+- `lint_applet`: Linting completed successfully (0 errors).
+- Server dev chạy ổn định trên cổng 3000.

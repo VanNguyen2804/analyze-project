@@ -3,7 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { PredictionPayload } from 'src/app/core/models/prediction-payload.model';
+import {
+  PredictionPayload,
+  CategoryLinkageChartData,
+  DrawSequenceNode,
+  SequenceTransitionLink,
+  NetworkGraphNode,
+  NetworkGraphEdge
+} from 'src/app/core/models/prediction-payload.model';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
 @Component({
@@ -18,6 +25,19 @@ export class PredictionComponent implements OnInit, OnDestroy {
   isSpinning = false;
   errorMessage: string | null = null;
   showAllReasons = false;
+
+  // --- BIẾN QUẢN LÝ BIỂU ĐỒ LIÊN KẾT DÃY SỐ CSDL (HISTORICAL SEQUENCE LINKAGE CHART) ---
+  chartCategory: 'MEGA' | 'POWER' = 'MEGA';
+  chartMode: 'timeline' | 'network' | 'pairs' = 'timeline';
+  showRepeatLinks: boolean = true;
+  showDriftLinks: boolean = true;
+  showSameTailLinks: boolean = true;
+  showSpecialMigrationLinks: boolean = true;
+  hoveredChartBall: { drawDate: string; num: number } | null = null;
+  hoveredNetworkNode: number | null = null;
+  linkageChartData: CategoryLinkageChartData | null = null;
+  cachedHistoryRecords: { [key: string]: any[] } = {};
+  isChartLoading: boolean = false;
 
   // --- 1. BIẾN QUẢN LÝ THUẬT TOÁN (SẮP XẾP TỪ KHẢ NĂNG CHO KẾT QUẢ ĐÚNG NHẤT: TOP 1 -> TOP 7) ---
   selectedAlgorithm: string = 'bayesian_graph'; // Mặc định thuật toán 1: Top 1 BEGN
@@ -148,12 +168,15 @@ export class PredictionComponent implements OnInit, OnDestroy {
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
       if (newCategory) {
         this.category = newCategory;
+        this.chartCategory = (newCategory === 'POWER' ? 'POWER' : 'MEGA');
         this.resetState();
         // Mặc định luôn là thuật toán tốt nhất (Top 1)
         this.selectedAlgorithm = this.algorithms[0]?.id || 'bayesian_graph';
         this.predict();
+        this.loadChartDataForCategory(this.chartCategory);
       }
     });
+    this.loadChartDataForCategory(this.chartCategory);
   }
 
   loadAlgorithms() {
@@ -1056,5 +1079,404 @@ export class PredictionComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }, 3500);
     }
+  }
+
+  // ==========================================
+  // XỬ LÝ BIỂU ĐỒ LIÊN KẾT DÃY SỐ CSDL (HISTORICAL SEQUENCE LINKAGE CHART)
+  // ==========================================
+
+  switchChartCategory(cat: 'MEGA' | 'POWER') {
+    this.chartCategory = cat;
+    this.loadChartDataForCategory(cat);
+    if (this.category !== cat) {
+      this.analyzeService.setCategory(cat);
+    }
+  }
+
+  setChartMode(mode: 'timeline' | 'network' | 'pairs') {
+    this.chartMode = mode;
+    this.cdr.markForCheck();
+  }
+
+  loadChartDataForCategory(cat: 'MEGA' | 'POWER') {
+    if (this.cachedHistoryRecords[cat] && this.cachedHistoryRecords[cat].length > 0) {
+      this.computeLinkageChartData(cat, this.cachedHistoryRecords[cat]);
+      return;
+    }
+    this.isChartLoading = true;
+    this.cdr.markForCheck();
+    this.analyzeService.getHistory(cat).subscribe({
+      next: (draws) => {
+        this.cachedHistoryRecords[cat] = Array.isArray(draws) ? draws : [];
+        this.computeLinkageChartData(cat, this.cachedHistoryRecords[cat]);
+        this.isChartLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Lỗi tải dữ liệu lịch sử cho biểu đồ:', err);
+        this.isChartLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  computeLinkageChartData(cat: 'MEGA' | 'POWER', records: any[]) {
+    if (!records || records.length === 0) {
+      this.linkageChartData = null;
+      return;
+    }
+
+    const maxLimit = cat === 'POWER' ? 55 : 45;
+    const categoryTitle = cat === 'POWER' ? 'Power 6/55' : 'Mega 6/45';
+    const badgeClass = cat === 'POWER' ? 'bg-primary' : 'bg-danger';
+
+    // Sắp xếp theo ngày tăng dần để dựng dòng chảy chuyển dịch từ quá khứ đến hiện tại
+    const sortedAsc = [...records].sort((a, b) => {
+      const da = new Date(a.drawDate || 0).getTime();
+      const db = new Date(b.drawDate || 0).getTime();
+      return da - db;
+    });
+
+    // Lấy tối đa 7 kỳ gần nhất cho dòng chảy trực quan timeline
+    const recentAsc = sortedAsc.slice(-7);
+
+    const recentDraws: DrawSequenceNode[] = recentAsc.map((r: any) => {
+      const rawNums = Array.isArray(r.numbers) ? r.numbers.map(Number) : [];
+      const sortedNums = [...rawNums].sort((a, b) => a - b);
+      const evenCount = sortedNums.filter(n => n % 2 === 0).length;
+      const oddCount = sortedNums.length - evenCount;
+      const sum = sortedNums.reduce((acc, curr) => acc + curr, 0);
+
+      const d = r.drawDate ? new Date(r.drawDate) : null;
+      const formatted = d && !isNaN(d.getTime())
+        ? `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+        : (r.drawDate || 'Kỳ CSDL');
+
+      return {
+        drawId: r.id || 0,
+        drawDate: r.drawDate || '',
+        drawDateFormatted: formatted,
+        numbers: sortedNums,
+        specialNumber: r.specialNumber ? Number(r.specialNumber) : undefined,
+        oddEvenRatio: `${evenCount}C/${oddCount}L`,
+        sum
+      };
+    });
+
+    // Tính toán liên kết chuyển dịch (Sequence Transition Links) giữa các kỳ kế tiếp nhau
+    const transitionLinks: SequenceTransitionLink[] = [];
+    let repeatTransitions = 0;
+    let driftTransitions = 0;
+    let sameTailTransitions = 0;
+    const totalTransitions = Math.max(1, sortedAsc.length - 1);
+
+    for (let i = 0; i < sortedAsc.length - 1; i++) {
+      const fromDraw = sortedAsc[i];
+      const toDraw = sortedAsc[i + 1];
+      const fromNums: number[] = (fromDraw.numbers || []).map(Number);
+      const toNums: number[] = (toDraw.numbers || []).map(Number);
+      
+      let hasRep = false;
+      let hasDrift = false;
+      let hasTail = false;
+
+      for (const fn of fromNums) {
+        for (const tn of toNums) {
+          const delta = tn - fn;
+          if (delta === 0) {
+            hasRep = true;
+          } else if (Math.abs(delta) === 1) {
+            hasDrift = true;
+          } else if (fn % 10 === tn % 10) {
+            hasTail = true;
+          }
+        }
+      }
+
+      if (hasRep) repeatTransitions++;
+      if (hasDrift) driftTransitions++;
+      if (hasTail) sameTailTransitions++;
+    }
+
+    // Xây dựng links cụ thể cho timeline gần nhất (recentDraws)
+    for (let i = 0; i < recentDraws.length - 1; i++) {
+      const fromNode = recentDraws[i];
+      const toNode = recentDraws[i + 1];
+
+      fromNode.numbers.forEach((fn, fIdx) => {
+        toNode.numbers.forEach((tn, tIdx) => {
+          const delta = tn - fn;
+          if (delta === 0) {
+            transitionLinks.push({
+              fromDrawDate: fromNode.drawDate,
+              toDrawDate: toNode.drawDate,
+              fromNumber: fn,
+              toNumber: tn,
+              fromIndex: fIdx,
+              toIndex: tIdx,
+              type: 'REPEAT',
+              typeLabel: 'Lặp số chính xác (Δ=0)',
+              color: '#10b981',
+              delta: 0,
+              description: `Bóng [${String(fn).padStart(2, '0')}] bảo toàn nguyên vị trí từ kỳ ${fromNode.drawDateFormatted} sang kỳ ${toNode.drawDateFormatted}`
+            });
+          } else if (Math.abs(delta) === 1) {
+            transitionLinks.push({
+              fromDrawDate: fromNode.drawDate,
+              toDrawDate: toNode.drawDate,
+              fromNumber: fn,
+              toNumber: tn,
+              fromIndex: fIdx,
+              toIndex: tIdx,
+              type: 'DRIFT',
+              typeLabel: `Lệch lân cận (${delta > 0 ? '+1' : '-1'})`,
+              color: '#f59e0b',
+              delta,
+              description: `Bóng [${String(fn).padStart(2, '0')}] dịch chuyển ${delta > 0 ? '+1 nút' : '-1 nút'} thành [${String(tn).padStart(2, '0')}]`
+            });
+          } else if (fn % 10 === tn % 10) {
+            transitionLinks.push({
+              fromDrawDate: fromNode.drawDate,
+              toDrawDate: toNode.drawDate,
+              fromNumber: fn,
+              toNumber: tn,
+              fromIndex: fIdx,
+              toIndex: tIdx,
+              type: 'SAME_TAIL',
+              typeLabel: `Cùng hàng đơn vị (*${fn % 10})`,
+              color: '#8b5cf6',
+              delta,
+              description: `Bóng [${String(fn).padStart(2, '0')}] cộng hưởng cùng hàng đơn vị (*${fn % 10}) sang [${String(tn).padStart(2, '0')}]`
+            });
+          }
+        });
+
+        // Di cư bóng đặc biệt Jackpot 2 trong Power 6/55
+        if (fromNode.specialNumber) {
+          const sp = fromNode.specialNumber;
+          toNode.numbers.forEach((tn, tIdx) => {
+            if (tn === sp) {
+              transitionLinks.push({
+                fromDrawDate: fromNode.drawDate,
+                toDrawDate: toNode.drawDate,
+                fromNumber: sp,
+                toNumber: tn,
+                fromIndex: -1,
+                toIndex: tIdx,
+                type: 'SPECIAL_MIGRATION',
+                typeLabel: 'Bóng ★ di cư vào giải chính',
+                color: '#ec4899',
+                delta: 0,
+                description: `Bóng Jackpot 2 [★${String(sp).padStart(2, '0')}] di chuyển vào dãy 6 số chính kỳ sau [${String(tn).padStart(2, '0')}]`
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // 3. Tính toán Ma trận đồng xuất hiện & Đồ thị mạng lưới tròn (Circular Co-occurrence Chord Graph)
+    const freqMap: { [num: number]: number } = {};
+    const pairMap: { [key: string]: { n1: number; n2: number; count: number } } = {};
+    for (let n = 1; n <= maxLimit; n++) {
+      freqMap[n] = 0;
+    }
+
+    sortedAsc.forEach((r: any) => {
+      const nums = (r.numbers || []).map(Number);
+      nums.forEach((n: number) => {
+        if (n >= 1 && n <= maxLimit) {
+          freqMap[n] = (freqMap[n] || 0) + 1;
+        }
+      });
+
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+          const a = Math.min(nums[i], nums[j]);
+          const b = Math.max(nums[i], nums[j]);
+          const key = `${a}_${b}`;
+          if (!pairMap[key]) {
+            pairMap[key] = { n1: a, n2: b, count: 0 };
+          }
+          pairMap[key].count++;
+        }
+      }
+    });
+
+    const centerX = 260;
+    const centerY = 260;
+    const radius = 210;
+    const networkNodes: NetworkGraphNode[] = [];
+    const degreeMap: { [num: number]: number } = {};
+
+    for (let n = 1; n <= maxLimit; n++) {
+      degreeMap[n] = 0;
+    }
+
+    const sortedPairs = Object.values(pairMap).sort((a, b) => b.count - a.count);
+    const topPairsList = sortedPairs.slice(0, 48);
+
+    topPairsList.forEach(p => {
+      degreeMap[p.n1] = (degreeMap[p.n1] || 0) + p.count;
+      degreeMap[p.n2] = (degreeMap[p.n2] || 0) + p.count;
+    });
+
+    for (let n = 1; n <= maxLimit; n++) {
+      const angle = (2 * Math.PI * (n - 1)) / maxLimit - Math.PI / 2;
+      const x = Number((centerX + radius * Math.cos(angle)).toFixed(1));
+      const y = Number((centerY + radius * Math.sin(angle)).toFixed(1));
+      networkNodes.push({
+        number: n,
+        frequency: freqMap[n] || 0,
+        x,
+        y,
+        angle,
+        degree: degreeMap[n] || 0
+      });
+    }
+
+    const networkEdges: NetworkGraphEdge[] = [];
+    topPairsList.forEach(p => {
+      const node1 = networkNodes.find(item => item.number === p.n1);
+      const node2 = networkNodes.find(item => item.number === p.n2);
+      if (node1 && node2) {
+        const pathD = `M ${node1.x} ${node1.y} Q ${centerX} ${centerY} ${node2.x} ${node2.y}`;
+        const lift = Number(((p.count * sortedAsc.length) / Math.max(1, (freqMap[p.n1] * freqMap[p.n2]))).toFixed(2));
+        const jaccard = Number((p.count / Math.max(1, (freqMap[p.n1] + freqMap[p.n2] - p.count))).toFixed(3));
+        
+        let strokeWidth = 1.2;
+        let color = 'rgba(59, 130, 246, 0.45)';
+        if (p.count >= 4) {
+          strokeWidth = 3.2;
+          color = 'rgba(239, 68, 68, 0.88)';
+        } else if (p.count >= 3) {
+          strokeWidth = 2.2;
+          color = 'rgba(245, 158, 11, 0.78)';
+        } else if (p.count >= 2) {
+          strokeWidth = 1.5;
+          color = 'rgba(16, 185, 129, 0.65)';
+        }
+
+        networkEdges.push({
+          n1: p.n1,
+          n2: p.n2,
+          count: p.count,
+          lift,
+          jaccard,
+          pathD,
+          color,
+          strokeWidth
+        });
+      }
+    });
+
+    // Tìm Top Cliques (Bộ 3 số đồng hành nhiều nhất)
+    const cliqueMap: { [k: string]: { numbers: number[]; count: number } } = {};
+    sortedAsc.forEach((r: any) => {
+      const nums = (r.numbers || []).map(Number).sort((a: number, b: number) => a - b);
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+          for (let k = j + 1; k < nums.length; k++) {
+            const key = `${nums[i]}-${nums[j]}-${nums[k]}`;
+            if (!cliqueMap[key]) {
+              cliqueMap[key] = { numbers: [nums[i], nums[j], nums[k]], count: 0 };
+            }
+            cliqueMap[key].count++;
+          }
+        }
+      }
+    });
+
+    const topCliques = Object.values(cliqueMap)
+      .filter(c => c.count >= 2)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+      .map(c => ({
+        numbers: c.numbers,
+        affinityScore: c.count * 15,
+        description: `Bộ 3 số [${c.numbers.map(n => String(n).padStart(2, '0')).join(', ')}] xuất hiện cùng nhau trong ${c.count} kỳ CSDL.`
+      }));
+
+    this.linkageChartData = {
+      category: cat,
+      categoryTitle,
+      badgeClass,
+      totalDraws: sortedAsc.length,
+      maxLimit,
+      recentDraws,
+      transitionLinks,
+      networkNodes,
+      networkEdges,
+      topPairs: sortedPairs.slice(0, 10).map(p => ({
+        n1: p.n1,
+        n2: p.n2,
+        count: p.count,
+        lift: Number(((p.count * sortedAsc.length) / Math.max(1, (freqMap[p.n1] * freqMap[p.n2]))).toFixed(2)),
+        label: `Cặp [${String(p.n1).padStart(2, '0')} - ${String(p.n2).padStart(2, '0')}]`
+      })),
+      topCliques,
+      repeatRate: Math.round((repeatTransitions / totalTransitions) * 100),
+      drift1Rate: Math.round((driftTransitions / totalTransitions) * 100),
+      sameTailRate: Math.round((sameTailTransitions / totalTransitions) * 100)
+    };
+
+    this.cdr.markForCheck();
+  }
+
+  onChartBallHover(drawDate: string | null, num: number | null) {
+    if (drawDate && num !== null) {
+      this.hoveredChartBall = { drawDate, num };
+    } else {
+      this.hoveredChartBall = null;
+    }
+    this.cdr.markForCheck();
+  }
+
+  isBallHighlightedInChart(drawDate: string, num: number): boolean {
+    if (!this.hoveredChartBall) return false;
+    if (this.hoveredChartBall.drawDate === drawDate && this.hoveredChartBall.num === num) return true;
+    
+    const links = this.getFilteredTransitionLinks();
+    return links.some(l => 
+      (l.fromDrawDate === this.hoveredChartBall?.drawDate && l.fromNumber === this.hoveredChartBall?.num && l.toDrawDate === drawDate && l.toNumber === num) ||
+      (l.toDrawDate === this.hoveredChartBall?.drawDate && l.toNumber === this.hoveredChartBall?.num && l.fromDrawDate === drawDate && l.fromNumber === num)
+    );
+  }
+
+  getFilteredTransitionLinks(): SequenceTransitionLink[] {
+    if (!this.linkageChartData?.transitionLinks) return [];
+    return this.linkageChartData.transitionLinks.filter(l => {
+      if (l.type === 'REPEAT' && !this.showRepeatLinks) return false;
+      if (l.type === 'DRIFT' && !this.showDriftLinks) return false;
+      if (l.type === 'SAME_TAIL' && !this.showSameTailLinks) return false;
+      if (l.type === 'SPECIAL_MIGRATION' && !this.showSpecialMigrationLinks) return false;
+      return true;
+    });
+  }
+
+  getLinksForStep(fromDrawDate: string, toDrawDate: string): SequenceTransitionLink[] {
+    const all = this.getFilteredTransitionLinks();
+    return all.filter(l => l.fromDrawDate === fromDrawDate && l.toDrawDate === toDrawDate);
+  }
+
+  onNetworkNodeHover(num: number | null) {
+    this.hoveredNetworkNode = num;
+    this.cdr.markForCheck();
+  }
+
+  isEdgeActive(edge: NetworkGraphEdge): boolean {
+    if (!this.hoveredNetworkNode) return true;
+    return edge.n1 === this.hoveredNetworkNode || edge.n2 === this.hoveredNetworkNode;
+  }
+
+  getNetworkNodePartners(num: number): Array<{ partner: number; count: number }> {
+    if (!this.linkageChartData?.networkEdges) return [];
+    return this.linkageChartData.networkEdges
+      .filter(e => e.n1 === num || e.n2 === num)
+      .map(e => ({
+        partner: e.n1 === num ? e.n2 : e.n1,
+        count: e.count
+      }))
+      .sort((a, b) => b.count - a.count);
   }
 }

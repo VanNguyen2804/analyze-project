@@ -288,3 +288,65 @@ export interface NumberSelectionReason {
   pairedNumbers?: string;
   showFreq?: boolean;
 }
+
+export interface SequenceTransitionLink {
+  fromDrawDate: string;
+  toDrawDate: string;
+  fromNumber: number;
+  toNumber: number;
+  fromIndex: number;
+  toIndex: number;
+  type: 'REPEAT' | 'DRIFT' | 'SAME_TAIL' | 'SPECIAL_MIGRATION';
+  typeLabel: string;
+  color: string;
+  delta: number;
+  description: string;
+}
+
+export interface DrawSequenceNode {
+  drawId: number;
+  drawDate: string;
+  drawDateFormatted: string;
+  numbers: number[];
+  specialNumber?: number;
+  oddEvenRatio: string;
+  sum: number;
+}
+
+export interface NetworkGraphNode {
+  number: number;
+  frequency: number;
+  x: number;
+  y: number;
+  angle: number;
+  degree: number;
+}
+
+export interface NetworkGraphEdge {
+  n1: number;
+  n2: number;
+  count: number;
+  lift: number;
+  jaccard: number;
+  pathD: string;
+  color: string;
+  strokeWidth: number;
+}
+
+export interface CategoryLinkageChartData {
+  category: 'POWER' | 'MEGA';
+  categoryTitle: string;
+  badgeClass: string;
+  totalDraws: number;
+  maxLimit: number;
+  recentDraws: DrawSequenceNode[];
+  transitionLinks: SequenceTransitionLink[];
+  networkNodes: NetworkGraphNode[];
+  networkEdges: NetworkGraphEdge[];
+  topPairs: Array<{ n1: number; n2: number; count: number; lift: number; label: string }>;
+  topCliques: Array<{ numbers: number[]; affinityScore: number; description: string }>;
+  repeatRate: number;
+  drift1Rate: number;
+  sameTailRate: number;
+}
+
