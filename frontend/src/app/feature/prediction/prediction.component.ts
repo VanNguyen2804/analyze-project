@@ -8,8 +8,10 @@ import {
   CategoryLinkageChartData,
   DrawSequenceNode,
   SequenceTransitionLink,
-  NetworkGraphNode,
-  NetworkGraphEdge
+  NumberGapPressureItem,
+  DeltaSpacingDistributionItem,
+  SumDistributionItem,
+  ParityDistributionItem
 } from 'src/app/core/models/prediction-payload.model';
 import { AnalyzeService } from 'src/app/core/services/analyze.service';
 
@@ -28,13 +30,14 @@ export class PredictionComponent implements OnInit, OnDestroy {
 
   // --- BIẾN QUẢN LÝ BIỂU ĐỒ LIÊN KẾT DÃY SỐ CSDL (HISTORICAL SEQUENCE LINKAGE CHART) ---
   chartCategory: 'MEGA' | 'POWER' = 'MEGA';
-  chartMode: 'timeline' | 'network' | 'pairs' = 'timeline';
+  chartMode: 'timeline' | 'gap_pressure' | 'delta_distribution' = 'timeline';
   showRepeatLinks: boolean = true;
   showDriftLinks: boolean = true;
   showSameTailLinks: boolean = true;
   showSpecialMigrationLinks: boolean = true;
   hoveredChartBall: { drawDate: string; num: number } | null = null;
-  hoveredNetworkNode: number | null = null;
+  gapFilterZone: 'ALL' | 'HOT' | 'CYCLE' | 'PRESSURE' | 'OVERDUE' = 'ALL';
+  selectedPressureNumber: NumberGapPressureItem | null = null;
   linkageChartData: CategoryLinkageChartData | null = null;
   cachedHistoryRecords: { [key: string]: any[] } = {};
   isChartLoading: boolean = false;
@@ -1093,9 +1096,29 @@ export class PredictionComponent implements OnInit, OnDestroy {
     }
   }
 
-  setChartMode(mode: 'timeline' | 'network' | 'pairs') {
+  setChartMode(mode: 'timeline' | 'gap_pressure' | 'delta_distribution') {
     this.chartMode = mode;
     this.cdr.markForCheck();
+  }
+
+  setGapFilterZone(zone: 'ALL' | 'HOT' | 'CYCLE' | 'PRESSURE' | 'OVERDUE') {
+    this.gapFilterZone = zone;
+    this.cdr.markForCheck();
+  }
+
+  selectPressureNumber(item: NumberGapPressureItem) {
+    if (this.selectedPressureNumber?.number === item.number) {
+      this.selectedPressureNumber = null;
+    } else {
+      this.selectedPressureNumber = item;
+    }
+    this.cdr.markForCheck();
+  }
+
+  getFilteredGapPressureList(): NumberGapPressureItem[] {
+    if (!this.linkageChartData?.gapPressureList) return [];
+    if (this.gapFilterZone === 'ALL') return this.linkageChartData.gapPressureList;
+    return this.linkageChartData.gapPressureList.filter(item => item.zone === this.gapFilterZone);
   }
 
   loadChartDataForCategory(cat: 'MEGA' | 'POWER') {
@@ -1275,127 +1298,214 @@ export class PredictionComponent implements OnInit, OnDestroy {
       });
     }
 
-    // 3. Tính toán Ma trận đồng xuất hiện & Đồ thị mạng lưới tròn (Circular Co-occurrence Chord Graph)
+    // ==========================================
+    // CHART THAY THẾ 1: PHÂN TÍCH ĐỘ TRỄ & ÁP SUẤT POISSON (POISSON GAP & REVERSION PRESSURE)
+    // ==========================================
+    const expectedInterval = Number((maxLimit / 6).toFixed(2)); // Mega: 7.5; Power: 9.17
     const freqMap: { [num: number]: number } = {};
-    const pairMap: { [key: string]: { n1: number; n2: number; count: number } } = {};
+    const lastSeenIndexMap: { [num: number]: number } = {};
+    const lastSeenDateMap: { [num: number]: string } = {};
+
     for (let n = 1; n <= maxLimit; n++) {
       freqMap[n] = 0;
+      lastSeenIndexMap[n] = -1;
+      lastSeenDateMap[n] = 'Chưa về trong CSDL mẫu';
     }
 
-    sortedAsc.forEach((r: any) => {
+    sortedAsc.forEach((r: any, rIdx: number) => {
       const nums = (r.numbers || []).map(Number);
       nums.forEach((n: number) => {
         if (n >= 1 && n <= maxLimit) {
           freqMap[n] = (freqMap[n] || 0) + 1;
+          lastSeenIndexMap[n] = rIdx;
+          lastSeenDateMap[n] = r.drawDate || '';
         }
       });
+    });
 
-      for (let i = 0; i < nums.length; i++) {
-        for (let j = i + 1; j < nums.length; j++) {
-          const a = Math.min(nums[i], nums[j]);
-          const b = Math.max(nums[i], nums[j]);
-          const key = `${a}_${b}`;
-          if (!pairMap[key]) {
-            pairMap[key] = { n1: a, n2: b, count: 0 };
-          }
-          pairMap[key].count++;
-        }
+    const gapPressureList: NumberGapPressureItem[] = [];
+    const totalDrawsCount = sortedAsc.length;
+
+    for (let n = 1; n <= maxLimit; n++) {
+      const lastIdx = lastSeenIndexMap[n];
+      const currentGap = lastIdx === -1 ? totalDrawsCount : (totalDrawsCount - 1 - lastIdx);
+      const pressurePercent = Math.min(100, Math.round((currentGap / expectedInterval) * 100));
+      const zScore = Number(((currentGap - expectedInterval) / Math.max(1, Math.sqrt(expectedInterval))).toFixed(2));
+
+      let zone: 'HOT' | 'CYCLE' | 'PRESSURE' | 'OVERDUE' = 'CYCLE';
+      let zoneLabel = 'Nhịp tuần hoàn chuẩn';
+      let zoneBadgeClass = 'badge bg-info text-dark';
+
+      if (currentGap <= 2) {
+        zone = 'HOT';
+        zoneLabel = '🟢 Đang có đà (Hot)';
+        zoneBadgeClass = 'badge bg-success text-white';
+      } else if (currentGap <= Math.round(expectedInterval)) {
+        zone = 'CYCLE';
+        zoneLabel = '🟡 Vùng nhịp tự nhiên';
+        zoneBadgeClass = 'badge bg-primary bg-opacity-75 text-white';
+      } else if (currentGap <= Math.round(expectedInterval * 1.5)) {
+        zone = 'PRESSURE';
+        zoneLabel = '🟠 Áp suất phục hồi cao';
+        zoneBadgeClass = 'badge bg-warning text-dark';
+      } else {
+        zone = 'OVERDUE';
+        zoneLabel = '🔴 Lô gan tích lũy tới hạn';
+        zoneBadgeClass = 'badge bg-danger text-white';
       }
-    });
 
-    const centerX = 260;
-    const centerY = 260;
-    const radius = 210;
-    const networkNodes: NetworkGraphNode[] = [];
-    const degreeMap: { [num: number]: number } = {};
-
-    for (let n = 1; n <= maxLimit; n++) {
-      degreeMap[n] = 0;
-    }
-
-    const sortedPairs = Object.values(pairMap).sort((a, b) => b.count - a.count);
-    const topPairsList = sortedPairs.slice(0, 48);
-
-    topPairsList.forEach(p => {
-      degreeMap[p.n1] = (degreeMap[p.n1] || 0) + p.count;
-      degreeMap[p.n2] = (degreeMap[p.n2] || 0) + p.count;
-    });
-
-    for (let n = 1; n <= maxLimit; n++) {
-      const angle = (2 * Math.PI * (n - 1)) / maxLimit - Math.PI / 2;
-      const x = Number((centerX + radius * Math.cos(angle)).toFixed(1));
-      const y = Number((centerY + radius * Math.sin(angle)).toFixed(1));
-      networkNodes.push({
+      gapPressureList.push({
         number: n,
+        currentGap,
+        lastDrawDate: lastSeenDateMap[n],
+        expectedInterval,
+        pressurePercent,
         frequency: freqMap[n] || 0,
-        x,
-        y,
-        angle,
-        degree: degreeMap[n] || 0
+        zone,
+        zoneLabel,
+        zoneBadgeClass,
+        zScore
       });
     }
 
-    const networkEdges: NetworkGraphEdge[] = [];
-    topPairsList.forEach(p => {
-      const node1 = networkNodes.find(item => item.number === p.n1);
-      const node2 = networkNodes.find(item => item.number === p.n2);
-      if (node1 && node2) {
-        const pathD = `M ${node1.x} ${node1.y} Q ${centerX} ${centerY} ${node2.x} ${node2.y}`;
-        const lift = Number(((p.count * sortedAsc.length) / Math.max(1, (freqMap[p.n1] * freqMap[p.n2]))).toFixed(2));
-        const jaccard = Number((p.count / Math.max(1, (freqMap[p.n1] + freqMap[p.n2] - p.count))).toFixed(3));
-        
-        let strokeWidth = 1.2;
-        let color = 'rgba(59, 130, 246, 0.45)';
-        if (p.count >= 4) {
-          strokeWidth = 3.2;
-          color = 'rgba(239, 68, 68, 0.88)';
-        } else if (p.count >= 3) {
-          strokeWidth = 2.2;
-          color = 'rgba(245, 158, 11, 0.78)';
-        } else if (p.count >= 2) {
-          strokeWidth = 1.5;
-          color = 'rgba(16, 185, 129, 0.65)';
-        }
+    // Top 6 con số có áp suất điểm rơi phục hồi cao nhất (Overdue / Pressure)
+    const topPressureNumbers = [...gapPressureList]
+      .filter(item => item.currentGap >= Math.round(expectedInterval))
+      .sort((a, b) => b.currentGap - a.currentGap)
+      .slice(0, 6);
 
-        networkEdges.push({
-          n1: p.n1,
-          n2: p.n2,
-          count: p.count,
-          lift,
-          jaccard,
-          pathD,
-          color,
-          strokeWidth
-        });
-      }
-    });
+    // Top 6 con số đang có đà xuất hiện liên tiếp (Hot momentum)
+    const topHotNumbers = [...gapPressureList]
+      .filter(item => item.currentGap <= 2)
+      .sort((a, b) => a.currentGap - b.currentGap || b.frequency - a.frequency)
+      .slice(0, 6);
 
-    // Tìm Top Cliques (Bộ 3 số đồng hành nhiều nhất)
-    const cliqueMap: { [k: string]: { numbers: number[]; count: number } } = {};
+    // ==========================================
+    // CHART THAY THẾ 2: PHỔ DÃN CÁCH DELTA & ĐƯỜNG CONG TỔNG GAUSS
+    // ==========================================
+    let delta1Count = 0;
+    let delta24Count = 0;
+    let delta58Count = 0;
+    let delta9PlusCount = 0;
+    let totalDeltas = 0;
+
+    // Phân phối tổng điểm
+    const sumBuckets = {
+      b1: 0,
+      b2: 0,
+      b3: 0,
+      b4: 0,
+      b5: 0
+    };
+
+    // Phân phối chẵn lẻ
+    let p33Count = 0;
+    let p42Count = 0;
+    let p24Count = 0;
+    let pSkewCount = 0;
+
     sortedAsc.forEach((r: any) => {
       const nums = (r.numbers || []).map(Number).sort((a: number, b: number) => a - b);
-      for (let i = 0; i < nums.length; i++) {
-        for (let j = i + 1; j < nums.length; j++) {
-          for (let k = j + 1; k < nums.length; k++) {
-            const key = `${nums[i]}-${nums[j]}-${nums[k]}`;
-            if (!cliqueMap[key]) {
-              cliqueMap[key] = { numbers: [nums[i], nums[j], nums[k]], count: 0 };
-            }
-            cliqueMap[key].count++;
-          }
+      if (nums.length === 6) {
+        // Deltas
+        for (let i = 0; i < 5; i++) {
+          const d = nums[i + 1] - nums[i];
+          totalDeltas++;
+          if (d === 1) delta1Count++;
+          else if (d >= 2 && d <= 4) delta24Count++;
+          else if (d >= 5 && d <= 8) delta58Count++;
+          else delta9PlusCount++;
         }
+
+        // Sum
+        const s = nums.reduce((acc: number, curr: number) => acc + curr, 0);
+        if (cat === 'POWER') {
+          if (s < 130) sumBuckets.b1++;
+          else if (s <= 155) sumBuckets.b2++;
+          else if (s <= 185) sumBuckets.b3++;
+          else if (s <= 210) sumBuckets.b4++;
+          else sumBuckets.b5++;
+        } else {
+          if (s < 105) sumBuckets.b1++;
+          else if (s <= 125) sumBuckets.b2++;
+          else if (s <= 150) sumBuckets.b3++;
+          else if (s <= 170) sumBuckets.b4++;
+          else sumBuckets.b5++;
+        }
+
+        // Parity
+        const evens = nums.filter((n: number) => n % 2 === 0).length;
+        if (evens === 3) p33Count++;
+        else if (evens === 4) p42Count++;
+        else if (evens === 2) p24Count++;
+        else pSkewCount++;
       }
     });
 
-    const topCliques = Object.values(cliqueMap)
-      .filter(c => c.count >= 2)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5)
-      .map(c => ({
-        numbers: c.numbers,
-        affinityScore: c.count * 15,
-        description: `Bộ 3 số [${c.numbers.map(n => String(n).padStart(2, '0')).join(', ')}] xuất hiện cùng nhau trong ${c.count} kỳ CSDL.`
-      }));
+    const safeTotalDeltas = Math.max(1, totalDeltas);
+    const deltaDistributions: DeltaSpacingDistributionItem[] = [
+      {
+        deltaRange: 'Δ = 1',
+        minDelta: 1,
+        maxDelta: 1,
+        count: delta1Count,
+        percent: Math.round((delta1Count / safeTotalDeltas) * 100),
+        description: 'Cặp số liền kề / kẹp sát nút (ví dụ: 14-15, 31-32)',
+        isOptimal: false
+      },
+      {
+        deltaRange: 'Δ = 2 - 4',
+        minDelta: 2,
+        maxDelta: 4,
+        count: delta24Count,
+        percent: Math.round((delta24Count / safeTotalDeltas) * 100),
+        description: 'Dãn cách bước ngắn (2 đến 4 đơn vị)',
+        isOptimal: false
+      },
+      {
+        deltaRange: 'Δ = 5 - 8',
+        minDelta: 5,
+        maxDelta: 8,
+        count: delta58Count,
+        percent: Math.round((delta58Count / safeTotalDeltas) * 100),
+        description: 'Dãn cách vàng bảo toàn độ phủ giải Jackpot',
+        isOptimal: true
+      },
+      {
+        deltaRange: 'Δ ≥ 9',
+        minDelta: 9,
+        maxDelta: 50,
+        count: delta9PlusCount,
+        percent: Math.round((delta9PlusCount / safeTotalDeltas) * 100),
+        description: 'Bước nhảy dãn cách xa qua các nhóm hàng chục',
+        isOptimal: false
+      }
+    ];
+
+    const totalDrawsSafe = Math.max(1, sortedAsc.length);
+    const sumDistributions: SumDistributionItem[] = cat === 'POWER' ? [
+      { sumRange: '< 130', minSum: 0, maxSum: 129, count: sumBuckets.b1, percent: Math.round((sumBuckets.b1 / totalDrawsSafe) * 100), isPeak: false },
+      { sumRange: '130 - 155', minSum: 130, maxSum: 155, count: sumBuckets.b2, percent: Math.round((sumBuckets.b2 / totalDrawsSafe) * 100), isPeak: false },
+      { sumRange: '156 - 185 (Đỉnh Vàng)', minSum: 156, maxSum: 185, count: sumBuckets.b3, percent: Math.round((sumBuckets.b3 / totalDrawsSafe) * 100), isPeak: true },
+      { sumRange: '186 - 210', minSum: 186, maxSum: 210, count: sumBuckets.b4, percent: Math.round((sumBuckets.b4 / totalDrawsSafe) * 100), isPeak: false },
+      { sumRange: '> 210', minSum: 211, maxSum: 330, count: sumBuckets.b5, percent: Math.round((sumBuckets.b5 / totalDrawsSafe) * 100), isPeak: false }
+    ] : [
+      { sumRange: '< 105', minSum: 0, maxSum: 104, count: sumBuckets.b1, percent: Math.round((sumBuckets.b1 / totalDrawsSafe) * 100), isPeak: false },
+      { sumRange: '105 - 125', minSum: 105, maxSum: 125, count: sumBuckets.b2, percent: Math.round((sumBuckets.b2 / totalDrawsSafe) * 100), isPeak: false },
+      { sumRange: '126 - 150 (Đỉnh Vàng)', minSum: 126, maxSum: 150, count: sumBuckets.b3, percent: Math.round((sumBuckets.b3 / totalDrawsSafe) * 100), isPeak: true },
+      { sumRange: '151 - 170', minSum: 151, maxSum: 170, count: sumBuckets.b4, percent: Math.round((sumBuckets.b4 / totalDrawsSafe) * 100), isPeak: false },
+      { sumRange: '> 170', minSum: 171, maxSum: 270, count: sumBuckets.b5, percent: Math.round((sumBuckets.b5 / totalDrawsSafe) * 100), isPeak: false }
+    ];
+
+    const parityDistributions: ParityDistributionItem[] = [
+      { ratio: '3 Chẵn - 3 Lẻ', count: p33Count, percent: Math.round((p33Count / totalDrawsSafe) * 100), isDominant: true },
+      { ratio: '4 Chẵn - 2 Lẻ', count: p42Count, percent: Math.round((p42Count / totalDrawsSafe) * 100), isDominant: false },
+      { ratio: '2 Chẵn - 4 Lẻ', count: p24Count, percent: Math.round((p24Count / totalDrawsSafe) * 100), isDominant: false },
+      { ratio: 'Lệch cao (5-1, 1-5, 6-0)', count: pSkewCount, percent: Math.round((pSkewCount / totalDrawsSafe) * 100), isDominant: false }
+    ];
+
+    const optimalSumRange = cat === 'POWER' ? '156 - 185 điểm' : '126 - 150 điểm';
+    const recommendedDeltaSpacing = 'Giữ ít nhất 1 cặp liền kề (Δ=1) kết hợp dãn cách trung bình 5 - 8 nút';
 
     this.linkageChartData = {
       category: cat,
@@ -1405,19 +1515,17 @@ export class PredictionComponent implements OnInit, OnDestroy {
       maxLimit,
       recentDraws,
       transitionLinks,
-      networkNodes,
-      networkEdges,
-      topPairs: sortedPairs.slice(0, 10).map(p => ({
-        n1: p.n1,
-        n2: p.n2,
-        count: p.count,
-        lift: Number(((p.count * sortedAsc.length) / Math.max(1, (freqMap[p.n1] * freqMap[p.n2]))).toFixed(2)),
-        label: `Cặp [${String(p.n1).padStart(2, '0')} - ${String(p.n2).padStart(2, '0')}]`
-      })),
-      topCliques,
       repeatRate: Math.round((repeatTransitions / totalTransitions) * 100),
       drift1Rate: Math.round((driftTransitions / totalTransitions) * 100),
-      sameTailRate: Math.round((sameTailTransitions / totalTransitions) * 100)
+      sameTailRate: Math.round((sameTailTransitions / totalTransitions) * 100),
+      gapPressureList,
+      topPressureNumbers,
+      topHotNumbers,
+      deltaDistributions,
+      sumDistributions,
+      parityDistributions,
+      optimalSumRange,
+      recommendedDeltaSpacing
     };
 
     this.cdr.markForCheck();
@@ -1457,26 +1565,5 @@ export class PredictionComponent implements OnInit, OnDestroy {
   getLinksForStep(fromDrawDate: string, toDrawDate: string): SequenceTransitionLink[] {
     const all = this.getFilteredTransitionLinks();
     return all.filter(l => l.fromDrawDate === fromDrawDate && l.toDrawDate === toDrawDate);
-  }
-
-  onNetworkNodeHover(num: number | null) {
-    this.hoveredNetworkNode = num;
-    this.cdr.markForCheck();
-  }
-
-  isEdgeActive(edge: NetworkGraphEdge): boolean {
-    if (!this.hoveredNetworkNode) return true;
-    return edge.n1 === this.hoveredNetworkNode || edge.n2 === this.hoveredNetworkNode;
-  }
-
-  getNetworkNodePartners(num: number): Array<{ partner: number; count: number }> {
-    if (!this.linkageChartData?.networkEdges) return [];
-    return this.linkageChartData.networkEdges
-      .filter(e => e.n1 === num || e.n2 === num)
-      .map(e => ({
-        partner: e.n1 === num ? e.n2 : e.n1,
-        count: e.count
-      }))
-      .sort((a, b) => b.count - a.count);
   }
 }

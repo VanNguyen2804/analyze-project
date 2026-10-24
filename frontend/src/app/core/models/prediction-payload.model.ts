@@ -333,6 +333,45 @@ export interface NetworkGraphEdge {
   strokeWidth: number;
 }
 
+export interface NumberGapPressureItem {
+  number: number;
+  currentGap: number;
+  lastDrawDate: string;
+  expectedInterval: number;
+  pressurePercent: number;
+  frequency: number;
+  zone: 'HOT' | 'CYCLE' | 'PRESSURE' | 'OVERDUE';
+  zoneLabel: string;
+  zoneBadgeClass: string;
+  zScore: number;
+}
+
+export interface DeltaSpacingDistributionItem {
+  deltaRange: string;
+  minDelta: number;
+  maxDelta: number;
+  count: number;
+  percent: number;
+  description: string;
+  isOptimal: boolean;
+}
+
+export interface SumDistributionItem {
+  sumRange: string;
+  minSum: number;
+  maxSum: number;
+  count: number;
+  percent: number;
+  isPeak: boolean;
+}
+
+export interface ParityDistributionItem {
+  ratio: string;
+  count: number;
+  percent: number;
+  isDominant: boolean;
+}
+
 export interface CategoryLinkageChartData {
   category: 'POWER' | 'MEGA';
   categoryTitle: string;
@@ -341,12 +380,17 @@ export interface CategoryLinkageChartData {
   maxLimit: number;
   recentDraws: DrawSequenceNode[];
   transitionLinks: SequenceTransitionLink[];
-  networkNodes: NetworkGraphNode[];
-  networkEdges: NetworkGraphEdge[];
-  topPairs: Array<{ n1: number; n2: number; count: number; lift: number; label: string }>;
-  topCliques: Array<{ numbers: number[]; affinityScore: number; description: string }>;
   repeatRate: number;
   drift1Rate: number;
   sameTailRate: number;
+  // Các biểu đồ phục vụ trực tiếp nhận định dự đoán
+  gapPressureList: NumberGapPressureItem[];
+  topPressureNumbers: NumberGapPressureItem[];
+  topHotNumbers: NumberGapPressureItem[];
+  deltaDistributions: DeltaSpacingDistributionItem[];
+  sumDistributions: SumDistributionItem[];
+  parityDistributions: ParityDistributionItem[];
+  optimalSumRange: string;
+  recommendedDeltaSpacing: string;
 }
 

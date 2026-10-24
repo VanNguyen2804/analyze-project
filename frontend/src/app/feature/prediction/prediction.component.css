@@ -388,31 +388,18 @@
   border-color: #e2e8f0 !important;
 }
 
-/* CHORD NETWORK SVG */
-.network-svg-container {
-  max-width: 100%;
-  overflow: visible;
+/* POISSON GAP PRESSURE & DELTA SPACING STYLES */
+.pressure-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.network-svg {
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.05));
-  max-width: 100%;
-  height: auto;
+.pressure-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+  border-color: #3b82f6 !important;
 }
 
-.network-node-group {
-  transition: all 0.2s ease;
-}
-
-.network-node-group:hover circle {
-  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.8));
-}
-
-.color-bullet {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
+.transition-all {
+  transition: all 0.2s ease-in-out;
 }
 

@@ -1,55 +1,56 @@
-# Hoàn Thiện Tối Ưu Hóa Trang Dự Đoán: Biểu Đồ Liên Kết Dãy Số CSDL Riêng Cho Từng Category
+# Hoàn Thiện Tối Ưu Hóa Trang Dự Đoán: Thay Thế 2 Biểu Đồ Nhận Định Mô Hình Dự Đoán
 
-Tài liệu này ghi nhận việc triển khai thành công biểu đồ trực quan hóa mối liên kết giữa các dãy số kết quả dựa trên Cơ sở dữ liệu (CSDL) thực tế đặt ngay ở đầu trang Dự Đoán, đáp ứng trọn vẹn yêu cầu của người dùng.
-
----
-
-## 1. Yêu Cầu Của Người Dùng
-1. Ở trang Dự Đoán, ngay ở **đầu trang**, hiển thị chart thể hiện **sự liên kết giữa các dãy số kết quả dựa vào database**.
-2. **Mỗi category thể hiện chart riêng của category đó**:
-   - `🔴 MEGA 6/45`: Phân tích 30 kỳ CSDL thực tế (từ 1 đến 45).
-   - `🔵 POWER 6/55`: Phân tích 24 kỳ CSDL thực tế (từ 1 đến 55, bao gồm cả bóng Jackpot 2 ★).
-3. Không hiển thị dãy kết hợp của 2 thuật toán nữa; hiển thị các dãy khả thi có thể chọn nguyên thủy và có biến số (đã hoàn thành ở các lượt trước).
+Tài liệu này ghi nhận việc tái cấu trúc hệ thống biểu đồ ở đầu trang Dự Đoán theo yêu cầu người dùng: **Loại bỏ "Chord Graph" và "Pairs & Cliques"**, thay thế bằng **2 biểu đồ trực tiếp phục vụ nhận định chuyên sâu cho các thuật toán dự đoán**.
 
 ---
 
-## 2. Các Thành Phần Biểu Đồ Đã Triển Khai
-
-### A. Vị Trí & Bộ Chuyển Đổi Category Độc Lập
-- Đặt ngay sau banner kỳ mở thưởng mục tiêu tiếp theo và nằm trên phần cấu hình thuật toán.
-- Có bộ nút chuyển đổi danh mục riêng: `🔴 MEGA 6/45` vs `🔵 POWER 6/55`, tự động đồng bộ CSDL tương ứng.
-
-### B. 3 Chế Độ Trực Quan Hóa Chuyên Sâu
-1. **🌊 Dòng Chảy Chuyển Dịch Kỳ (Sequence Transition Flow)**:
-   - Dựng timeline các kỳ mở thưởng gần nhất của category được chọn.
-   - Mỗi kỳ hiển thị đầy đủ 6 bóng (và bóng ★ đối với Power 6/55), tổng điểm và tỷ lệ Chẵn/Lẻ.
-   - Thể hiện các mối liên kết chuyển dịch:
-     - **Lặp số chính xác ($\Delta = 0$)**: Màu xanh lá (Emerald).
-     - **Lệch lân cận ($\Delta = \pm 1$)**: Màu vàng cam (Amber) - hóa giải lệch 1 nút.
-     - **Cùng đuôi hàng đơn vị ($* \text{mod } 10$)**: Màu tím (Purple).
-     - **Di cư bóng Jackpot 2 (★)**: Màu hồng (Rose) - áp dụng cho Power 6/55.
-   - Tương tác: Rê chuột vào bất kỳ quả bóng nào sẽ sáng bừng toàn bộ đường dẫn liên kết của bóng đó với kỳ trước và kỳ sau.
-2. **🕸️ Đồ Thị Mạng Lưới Đồng Xuất Hiện (Circular Co-occurrence Chord Graph)**:
-   - Dựng SVG vành tròn 45 số (Mega) hoặc 55 số (Power).
-   - Các dây cung cong Bézier kết nối các cặp số cùng nhau nổ trong cùng 1 kỳ CSDL:
-     - Đỏ đậm: $\ge 4$ kỳ cùng về.
-     - Vàng cam: 3 kỳ cùng về.
-     - Xanh ngọc: 2 kỳ cùng về.
-   - Khi hover vào một số trên vành tròn: Sáng bừng tất cả các bạn đồng hành mạnh nhất của số đó.
-3. **💎 Top Cặp Số & Cụm Hạt Nhân (Pairs & Cliques)**:
-   - Bảng xếp hạng Top 10 cặp số đồng hành nhiều nhất kèm chỉ số nâng Lift index.
-   - Nhóm Cliques 3 số xuất hiện đồng thời trong CSDL.
-
-### C. Dải Thống Kê Chỉ Số CSDL Thực Tế (Metric Strip)
-- Tỷ lệ Lệch lân cận $\pm 1$ qua các kỳ.
-- Tỷ lệ Lặp số kỳ sau ($\Delta = 0$).
-- Tỷ lệ Cùng đuôi đơn vị.
-- Cặp hạt nhân mạnh nhất kèm tần suất.
+## 1. Yêu Cầu Thay Đổi
+- Người dùng nhận xét: *"Chord graph" và "Pairs & Cliques", 2 chart này có vẻ không phù hợp lắm để đưa ra nhận định , thay đổi 2 chart này bằng chart khác phù hợp với mô hình dự đoán*.
+- Cần cung cấp các biểu đồ mang tính hành động cao (Actionable Analytics), giúp người chơi và mô hình AI định vị:
+  1. Những con số nào sắp tới điểm rơi phục hồi xác suất (Poisson Gap & Mean Reversion).
+  2. Dãy số kỳ tiếp theo nên có cấu trúc dãn cách Delta như thế nào và tổng điểm rơi vào khoảng bao nhiêu.
 
 ---
 
-## 3. Kết Quả Kiểm Thử & Biên Dịch
-- `bun install --cwd frontend && npm --prefix frontend run build:sync`: Thành công 100%, bundles Angular cập nhật vào `backend/src/main/resources/static/`.
+## 2. Các Biểu Đồ Mới Đã Triển Khai
+
+### A. Giữ Nguyên Chế Độ 1: 🌊 Dòng Chảy Chuyển Dịch Kỳ (Transition Flow & Drift ±1)
+- Trực quan hóa timeline các kỳ CSDL gần nhất.
+- Bắt trọn các liên kết: Lặp số ($\Delta = 0$), Lệch lân cận ($\pm 1$), Cùng đuôi đơn vị, Di cư bóng Jackpot 2 (★ đối với Power 6/55).
+
+### B. Biểu Đồ Thay Thế 1: ⚡ Áp Suất Chu Kỳ & Điểm Rơi Poisson (Gap Pressure Matrix)
+- **Cơ sở khoa học**:
+  - Dựa trên phân phối xác suất Poisson Inter-Arrival và giải thuật hồi quy Mean Reversion của thuật toán Top 4 (Poisson & Lô Gan) và Top 2 (DSE-Copula).
+  - Chu kỳ kỳ vọng lý thuyết $\lambda$: Mega 6/45 là 7.5 kỳ/lần; Power 6/55 là 9.17 kỳ/lần.
+- **Tính năng trực quan**:
+  - **Top 6 Bóng Áp Suất Phục Hồi Cao**: Các con số có độ trễ vượt ngưỡng $\lambda$, tích lũy áp suất xác suất cực đại, có xác suất nổ phục hồi cao nhất ở kỳ này.
+  - **Top 6 Bóng Quán Tính Nóng (Hot Momentum)**: Các con số đang có nhịp về dày đặc (trễ 0 - 2 kỳ), duy trì lực kéo theo chuỗi Markov.
+  - **Ma Trận Phân Bổ Áp Suất 45/55 Số**:
+    - Bộ lọc trạng thái: `Tất cả` | `🟢 Đang có đà (Gap 0-2)` | `🟡 Nhịp chuẩn` | `🟠 Áp suất tới hạn` | `🔴 Lô gan tích lũy`.
+    - Thanh đo áp suất tiến trình từ 0% đến 100% kèm Z-Score độ trễ cho từng quả bóng.
+    - Nhấp chọn từng số để xem thẻ thanh tra chi tiết.
+
+### C. Biểu Đồ Thay Thế 2: 📐 Phổ Dãn Cách Delta & Đường Cong Tổng Gauss (Delta Spacing & Bell Distribution)
+- **Cơ sở khoa học**:
+  - Dựa trên ma trận Wheeling System & Delta Spacing của thuật toán Top 5 (Delta & Wheeling System).
+  - Kiểm soát khoảng cách giữa các số liền kề $\Delta = n_{i+1} - n_i$ và phân phối Gauss của tổng 6 số.
+- **Tính năng trực quan**:
+  - **Phổ Dãn Cách Delta**: Thống kê 4 dải dãn cách thực tế trong CSDL:
+    - $\Delta = 1$: Cặp số kẹp sát / liền kề (ví dụ 14-15, 31-32).
+    - $\Delta = 2 - 4$: Dãn cách bước ngắn.
+    - $\Delta = 5 - 8$: Dãn cách vàng Jackpot bảo toàn độ phủ tối ưu.
+    - $\Delta \ge 9$: Bước nhảy dãn cách xa.
+  - **Đường Cong Tổng Điểm (Sum Gauss)**:
+    - Biểu đồ phân phối chuẩn hình chuông xác định **Đỉnh Vàng Gauss** (Mega: 126 - 150 điểm; Power: 156 - 185 điểm).
+  - **Tỷ Lệ Chẵn / Lẻ**:
+    - Thống kê tỷ trọng 3C-3L (áp đảo $\approx 35-40\%$), 4C-2L, 2C-4L.
+  - **Banner Khuyến Nghị Chiến Thuật**:
+    - Đưa ra nhận định cấu trúc vé tối ưu cho kỳ tiếp theo: Nên giữ ít nhất 1 cặp liền kề ($\Delta=1$), dãn cách trung bình 5-8 nút và tổng điểm rơi vào vùng Đỉnh Vàng.
+
+---
+
+## 3. Kết Quả Kiểm Thử
+- `npm --prefix frontend run build:sync`: Thành công 100%, bundles Angular cập nhật vào `backend/src/main/resources/static/`.
 - `compile_applet`: Build succeeded - the applet is compiled.
-- `lint_applet`: Linting completed successfully (0 errors).
-- Server dev chạy ổn định trên cổng 3000.
+- `lint_applet`: 0 errors.
+- Dev server hoạt động bình thường trên cổng 3000.
