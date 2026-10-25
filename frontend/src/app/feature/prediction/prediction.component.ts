@@ -43,108 +43,9 @@ export class PredictionComponent implements OnInit, OnDestroy {
   isChartLoading: boolean = false;
 
   // --- 1. BIẾN QUẢN LÝ THUẬT TOÁN (SẮP XẾP TỪ KHẢ NĂNG CHO KẾT QUẢ ĐÚNG NHẤT: TOP 1 -> TOP 7) ---
-  selectedAlgorithm: string = 'bayesian_graph'; // Mặc định thuật toán 1: Top 1 BEGN
-  selectedAlgorithm2: string = 'deep_stacking'; // Mặc định thuật toán 2: Top 2 DSE-Copula
-  algorithms = [
-    {
-      id: 'bayesian_graph',
-      rank: 1,
-      rankBadge: 'Top 1 - Tối ưu nhất',
-      accuracyScore: 28.5,
-      hitRate: '14.3%',
-      nearHitRate: '32.1%',
-      name: 'Mạng Đồ Thị Bayes AI (BEGN)',
-      icon: '🔮',
-      badge: '🏆 Top 1 - Tối ưu thực tế',
-      formula: 'Bayes Posterior + Graph Clique + Fourier Phase',
-      description: 'Mô hình mạng đồ thị kết hợp xác suất hậu nghiệm Bayes, cộng hưởng sóng hài Fourier và tương tác liên kết cặp số. Đạt tỷ lệ bao phủ bóng trúng 28.5% trên CSDL lịch sử (cao gấp 2.6 lần so với chọn ngẫu nhiên 10.9%).',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 28.5% CSDL thực tế; tỷ lệ dàn vé trúng ≥3 số đạt 14.3%.'
-    },
-    {
-      id: 'deep_stacking',
-      rank: 2,
-      rankBadge: 'Top 2 - Đột phá AI',
-      accuracyScore: 26.8,
-      hitRate: '12.5%',
-      nearHitRate: '28.6%',
-      name: 'Xếp Chồng AI & Copula (DSE-Copula)',
-      icon: '⚡',
-      badge: '⭐ Top 2 - Khai thác CSDL',
-      formula: 'Deep Stacking + Empirical Copula + Gap Z-Score',
-      description: 'Mô hình học máy xếp chồng đa tầng khai thác chuyên sâu CSDL: chuẩn hóa Z-Score độ trễ cá thể, tương quan Jaccard đa biến và giải thuật Pareto Wheeling bảo toàn tối đa độ phủ giải thưởng.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 26.8% CSDL thực tế; kiểm soát độ trễ cá thể theo từng bóng số.'
-    },
-    {
-      id: 'xgboost',
-      rank: 3,
-      rankBadge: 'Top 3 - Khuyên dùng',
-      accuracyScore: 22.4,
-      hitRate: '10.7%',
-      nearHitRate: '25.0%',
-      name: 'AI XGBoost + Wheeling',
-      icon: '🧠',
-      badge: '🎯 Top 3 - Học máy kết hợp',
-      formula: 'Tối ưu Z-Score + Gradient Boosting + Trộn vé',
-      description: 'Phân tích đa chiều Gradient Boosting: Quán tính chuỗi (Momentum), điểm rơi Lô Gan và ma trận tương tác cặp số để lọc 10 số ưu tú nhất.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 22.4%; học máy phân loại hồi quy gradient boosting lọc nhiễu tần suất.'
-    },
-    {
-      id: 'poisson_gap',
-      rank: 4,
-      rankBadge: 'Top 4 - Phục hồi gan',
-      accuracyScore: 21.9,
-      hitRate: '9.5%',
-      nearHitRate: '22.7%',
-      name: 'Poisson & Lô Gan Hồi Quy',
-      icon: '📊',
-      badge: '📈 Top 4 - Điểm rơi Poisson',
-      formula: 'Poisson Inter-Arrival + Mean Reversion + Pressure',
-      description: 'Phát hiện sự tích lũy độ trễ của các biến cố hiếm theo phân phối Poisson, định vị điểm rơi phục hồi xác suất (Mean Reversion) khi áp lực tới hạn.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 21.9%; bắt điểm rơi giải phóng áp suất Poisson khi độ trễ đạt ngưỡng.'
-    },
-    {
-      id: 'delta_wheeling',
-      rank: 5,
-      rankBadge: 'Top 5 - Bảo toàn phủ',
-      accuracyScore: 20.8,
-      hitRate: '8.8%',
-      nearHitRate: '25.0%',
-      name: 'Delta & Wheeling System',
-      icon: '🛡️',
-      badge: '📐 Top 5 - Dãn cách Delta',
-      formula: 'Delta Spacing + Wheeling Matrix 10-to-6',
-      description: 'Phân tích khoảng cách Delta giữa các số liền kề kết hợp ma trận xoay vòng Wheeling System 10-to-6 để tối đa hóa diện tích bao phủ giải thưởng.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 20.8%; duy trì khoảng cách dãn cách 4-8 đơn vị an toàn.'
-    },
-    {
-      id: 'montecarlo',
-      rank: 6,
-      rankBadge: 'Top 6 - Mô phỏng EV',
-      accuracyScore: 20.1,
-      hitRate: '8.2%',
-      nearHitRate: '22.7%',
-      name: 'Monte Carlo 100K Lồng Cầu',
-      icon: '🎲',
-      badge: '🎲 Top 6 - Mô phỏng ngẫu nhiên',
-      formula: '100.000 Random Walk Simulations + Expected Value',
-      description: 'Mô phỏng 100.000 lượt quay ngẫu nhiên có trọng số xác suất, đối chuẩn dữ liệu Powerball & Mega Millions tìm điểm hội tụ kỳ vọng (EV).',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 20.1%; mô phỏng ngẫu nhiên vật lý lồng cầu tìm các điểm hội tụ EV.'
-    },
-    {
-      id: 'markov',
-      rank: 7,
-      rankBadge: 'Top 7 - Bước nhảy chuỗi',
-      accuracyScore: 19.5,
-      hitRate: '7.5%',
-      nearHitRate: '18.2%',
-      name: 'Chuỗi Chuyển Dịch Markov',
-      icon: '🔗',
-      badge: '🔗 Top 7 - Chuyển trạng thái',
-      formula: 'P(State A -> State B) Conditional Transition',
-      description: 'Tính xác suất chuyển dịch có điều kiện giữa các kỳ quay liên tiếp, dự báo bước nhảy không gian trạng thái từ kết quả gần nhất.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 19.5%; phân tích ma trận bước nhảy bậc 1 và bậc 2 từ các số kỳ trước.'
-    }
-  ];
+  selectedAlgorithm: string = 'temporal_learning'; // Mặc định thuật toán 1: Top 1 BEGN
+  selectedAlgorithm2: string = 'bayesian_graph'; // Mặc định thuật toán 2: Top 2 DSE-Copula
+  algorithms: any[] = [];
 
   // --- 2. BIẾN QUẢN LÝ TAB & FOCUS ANALYSIS (TỪ HTML) ---
   activeFocusTab: string = 'target3'; 
@@ -174,7 +75,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
         this.chartCategory = (newCategory === 'POWER' ? 'POWER' : 'MEGA');
         this.resetState();
         // Mặc định luôn là thuật toán tốt nhất (Top 1)
-        this.selectedAlgorithm = this.algorithms[0]?.id || 'bayesian_graph';
+        this.selectedAlgorithm = this.algorithms[0]?.id || 'temporal_learning';
         this.predict();
         this.loadChartDataForCategory(this.chartCategory);
       }
@@ -225,11 +126,11 @@ export class PredictionComponent implements OnInit, OnDestroy {
   }
 
   getCurrentAlgorithmInfo() {
-    return this.algorithms.find(a => a.id === this.selectedAlgorithm) || this.algorithms[0];
+    return this.algorithms.find(a => a.id === this.selectedAlgorithm) || { name: this.payload?.algorithmName ?? 'Đang tải thuật toán', icon: '', formula: '', description: '', rankBadge: '' };
   }
 
   getSecondaryAlgorithmInfo() {
-    return this.algorithms.find(a => a.id === this.selectedAlgorithm2) || this.algorithms[1] || this.algorithms[0];
+    return this.algorithms.find(a => a.id === this.selectedAlgorithm2) || { name: this.payload?.secondaryAlgorithmResult?.name ?? 'Đang tải thuật toán', icon: '', formula: '', description: '', rankBadge: '' };
   }
 
   predict() {
@@ -240,6 +141,10 @@ export class PredictionComponent implements OnInit, OnDestroy {
     
     this.analyzeService.getPrediction(this.category, this.selectedAlgorithm, this.selectedAlgorithm2).subscribe({
       next: (res) => {
+        if (res.status !== 'SUCCESS') {
+          this.payload = null; this.errorMessage = res.message ?? res.analysisSummary ?? 'Chưa có lịch sử hợp lệ để phân tích.';
+          this.isSpinning = false; this.cdr.markForCheck(); return;
+        }
         this.payload = res;
         this.isSpinning = false;
         this.loadDeviationVariables();
@@ -265,8 +170,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
       name: this.getCurrentAlgorithmInfo().name,
       badge: 'Thuật Toán 1',
       rankBadge: this.getCurrentAlgorithmInfo().rankBadge,
-      accuracyScore: this.getCurrentAlgorithmInfo().accuracyScore,
-      hitRate: this.getCurrentAlgorithmInfo().hitRate,
+      accuracyScore: null,
+      hitRate: 'N/A',
       numbers,
       specialNumber: this.getPureSpecialNumber(),
       composition: this.getTicketParity(numbers) + ' • Tổng = ' + this.getTicketSum(numbers),
@@ -278,20 +183,13 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (this.payload?.secondaryAlgorithmResult) {
       return this.payload.secondaryAlgorithmResult;
     }
-    const secInfo = this.getSecondaryAlgorithmInfo();
-    const fallbackNums = this.category === 'POWER' ? [2, 16, 21, 27, 38, 48] : [8, 14, 21, 31, 38, 43];
-    return {
-      id: this.selectedAlgorithm2,
-      name: secInfo.name,
-      badge: 'Thuật Toán 2',
-      rankBadge: secInfo.rankBadge,
-      accuracyScore: secInfo.accuracyScore,
-      hitRate: secInfo.hitRate,
-      numbers: fallbackNums,
-      specialNumber: this.category === 'POWER' ? 40 : undefined,
-      composition: this.getTicketParity(fallbackNums) + ' • Tổng = ' + this.getTicketSum(fallbackNums),
-      details: []
-    };
+    return { id: this.selectedAlgorithm2, name: this.getSecondaryAlgorithmInfo().name,
+      numbers: [], accuracyScore: null, hitRate: 'N/A', details: [] };
+  }
+
+  getPatternCards(): any[] {
+    const patterns = this.payload?.commonPatternsAnalysis;
+    return patterns ? Object.entries(patterns).filter(([key]) => key !== 'evaluatedDraws').map(([, value]) => value) : [];
   }
 
   getCommonPatternsAnalysis(): any {
@@ -302,36 +200,10 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (this.payload?.combinedAlgorithmResult) {
       return this.payload.combinedAlgorithmResult;
     }
-    const r1 = this.getPrimaryResult()?.numbers || [];
-    const r2 = this.getSecondaryResult()?.numbers || [];
-    const shared = r1.filter((n: number) => r2.includes(n));
-    const combinedSet = new Set<number>(shared);
-    for (const n of [...r1, ...r2]) {
-      if (combinedSet.size >= 6) break;
-      combinedSet.add(n);
-    }
-    const numbers = Array.from(combinedSet).sort((a, b) => a - b);
-    return {
-      id: 'combined_ensemble',
-      name: 'Kết Hợp 2 Thuật Toán (Ensemble Consensus)',
-      badge: 'Đồng Thuận 2 Mô Hình',
-      rankBadge: 'Đồng thuận cao',
-      accuracyScore: 31.2,
-      hitRate: '16.7%',
-      numbers,
-      sharedNumbers: shared,
-      specialNumber: this.getPureSpecialNumber(),
-      composition: this.getTicketParity(numbers) + ' • Tổng = ' + this.getTicketSum(numbers),
-      details: numbers.map((n: number) => ({
-        number: n,
-        probabilityPercent: 29.5,
-        isShared: shared.includes(n),
-        tag: shared.includes(n) ? 'ĐỒNG THUẬN CẢ 2 THUẬT TOÁN' : 'ĐIỂM RƠI LAI GHÉP'
-      }))
-    };
+    return { id: 'combined_ensemble', name: 'Ensemble consensus',
+      numbers: [], accuracyScore: null, hitRate: 'N/A', details: [] };
   }
 
-  // --- HÀM PHỤC VỤ DÃY SỐ THUẦN TÚY TỪ CHÍNH THUẬT TOÁN (KHÔNG BIẾN SỐ) ---
   getPureAlgorithmNumbers(): number[] {
     if (this.payload?.pureAlgorithmTicket?.numbers?.length) {
       return this.payload.pureAlgorithmTicket.numbers;
@@ -366,6 +238,10 @@ export class PredictionComponent implements OnInit, OnDestroy {
       if (found) return found;
     }
     return null;
+  }
+
+  getSecondaryNumberDetail(num: number): any {
+    return this.payload?.secondaryAlgorithmResult?.details?.find(detail => detail.number === num) ?? null;
   }
 
   // --- HÀM PHỤC VỤ TAB FOCUS ANALYSIS (ĐÃ KHÔI PHỤC) ---
@@ -513,142 +389,22 @@ export class PredictionComponent implements OnInit, OnDestroy {
     dayName: string;
     drawDateFormatted: string;
     isToday: boolean;
-    isPast18: boolean;
     statusText: string;
     statusBadgeClass: string;
     fullDisplay: string;
   } {
-    // Chuyển sang giờ Việt Nam (UTC+7)
-    const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const vnNow = new Date(utc + (3600000 * 7));
-    const vnHour = vnNow.getHours();
-    const isPast18 = vnHour >= 18;
-
-    const isPower = this.category === 'POWER';
-    // Draw days in JS: 0=CN, 1=T2, 2=T3, 3=T4, 4=T5, 5=T6, 6=T7
-    // MEGA: T4 (3), T6 (5), CN (0)
-    // POWER: T3 (2), T5 (4), T7 (6)
-    const drawDays = isPower ? [2, 4, 6] : [3, 5, 0];
-    const currentDay = vnNow.getDay();
-
-    let targetDateObj: Date;
-    let computedIsToday = false;
-
-    if (drawDays.includes(currentDay) && !isPast18) {
-      targetDateObj = vnNow;
-      computedIsToday = true;
-    } else {
-      let next = new Date(vnNow);
-      next.setDate(next.getDate() + 1);
-      while (!drawDays.includes(next.getDay())) {
-        next.setDate(next.getDate() + 1);
-      }
-      targetDateObj = next;
-      computedIsToday = false;
-    }
-
-    const vnDayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-    const defaultDay = vnDayNames[targetDateObj.getDay()];
-    const dd = String(targetDateObj.getDate()).padStart(2, '0');
-    const mm = String(targetDateObj.getMonth() + 1).padStart(2, '0');
-    const yyyy = targetDateObj.getFullYear();
-    const defaultDateFormatted = `${dd}/${mm}/${yyyy}`;
-    const defaultIso = `${yyyy}-${mm}-${dd}`;
-
-    const targetDay = this.payload?.targetDayName || defaultDay;
-    const targetDate = this.payload?.targetDrawDateFormatted || defaultDateFormatted;
-    const isToday = this.payload?.isTargetDrawToday !== undefined ? this.payload.isTargetDrawToday : computedIsToday;
-
-    let statusText = '';
-    let statusBadgeClass = '';
-
-    if (isToday) {
-      statusText = `⏳ Đang mở dự đoán cho kỳ HÔM NAY (${targetDay} ${targetDate}) - Quay thưởng lúc 18h00`;
-      statusBadgeClass = 'bg-warning text-dark border border-warning';
-    } else if (isPast18) {
-      statusText = `🔔 Đã qua 18h00 giờ mở thưởng hôm nay. Hệ thống tự động dự đoán cho KỲ KẾ TIẾP: ${targetDay} ${targetDate}`;
-      statusBadgeClass = 'bg-primary text-white';
-    } else {
-      statusText = `📅 Dự đoán cho KỲ MỞ THƯỞNG KẾ TIẾP: ${targetDay} ${targetDate} (Quay lúc 18h00)`;
-      statusBadgeClass = 'bg-info text-dark';
-    }
-
-    return {
-      drawDate: this.payload?.targetDrawDate || defaultIso,
-      dayName: targetDay,
-      drawDateFormatted: targetDate,
-      isToday,
-      isPast18,
-      statusText,
-      statusBadgeClass,
-      fullDisplay: `${targetDay} ${targetDate}`
-    };
+    const drawDate = this.payload?.targetDrawDate ?? '';
+    const dayName = this.payload?.targetDayName ?? '';
+    const drawDateFormatted = this.payload?.targetDrawDateFormatted ?? (drawDate ? drawDate.split('-').reverse().join('/') : '');
+    const isToday = this.payload?.isTargetDrawToday === true;
+    return { drawDate, dayName, drawDateFormatted, isToday,
+      statusText: drawDate ? (isToday ? 'Kỳ quay hôm nay: ' : 'Kỳ quay tiếp theo: ') + dayName + ' ' + drawDateFormatted : 'Chưa có lịch quay từ máy chủ.',
+      statusBadgeClass: isToday ? 'bg-warning text-dark' : 'bg-info text-dark',
+      fullDisplay: [dayName, drawDateFormatted].filter(Boolean).join(' ') };
   }
 
   getTransformedSequences(): any[] {
-    if (this.payload?.transformedSequences && this.payload.transformedSequences.length > 0) {
-      return this.payload.transformedSequences;
-    }
-    const pure = this.getPureAlgorithmNumbers();
-    const sp = this.getPureSpecialNumber();
-    const isPower = this.category === 'POWER';
-    const maxVal = isPower ? 55 : 45;
-
-    return [
-      {
-        id: 'neighbor_drift',
-        name: 'Dãy Biến Số #1: Lệch Biên Lân Cận ±1',
-        badge: 'Lân Cận Biên ±1',
-        badgeClass: 'bg-warning text-dark',
-        icon: '↔️',
-        numbers: pure.map((n, i) => i % 2 === 0 ? Math.min(maxVal, n + 1) : Math.max(1, n - 1)),
-        specialNumber: isPower ? 48 : undefined,
-        composition: '4 Chẵn / 2 Lẻ',
-        confidence: 28.5,
-        deltaFormula: 'N_mới = N_gốc ± 1',
-        transformationRule: 'Hóa giải bẫy lệch sát nút ±1 từ dãy số nguyên thủy và kỳ mở thưởng gần nhất.'
-      },
-      {
-        id: 'special_migration_mirror',
-        name: 'Dãy Biến Số #2: Chuyển Vị Banh Phụ & Đảo Vị Đối Xứng',
-        badge: 'Chuyển Vị & Đảo Vị',
-        badgeClass: 'bg-success text-white',
-        icon: '⭐',
-        numbers: pure.map((n, i) => i === 0 && isPower ? 48 : n),
-        specialNumber: isPower ? 40 : undefined,
-        composition: '3 Chẵn / 3 Lẻ',
-        confidence: 26.8,
-        deltaFormula: 'N_mới ← Banh Phụ / Gương Chiếu',
-        transformationRule: 'Banh phụ kỳ trước chuyển vị vào dàn chính, kết hợp quy luật đảo vị gương đối xứng thập phân.'
-      },
-      {
-        id: 'tail_congruence_decompression',
-        name: 'Dãy Biến Số #3: Đồng Dư Modulo-10 & Hóa Giải Cụm Nén',
-        badge: 'Đồng Dư Đuôi & Giải Nén',
-        badgeClass: 'bg-info text-dark',
-        icon: '🔗',
-        numbers: [pure[0], pure[0] + 10 <= maxVal ? pure[0] + 10 : pure[1], 21, 24, 27, 40].filter((n, i, arr) => arr.indexOf(n) === i).slice(0, 6),
-        specialNumber: isPower ? 26 : undefined,
-        composition: '4 Chẵn / 2 Lẻ',
-        confidence: 25.4,
-        deltaFormula: 'N_mới ≡ N_gốc (mod 10) + Dãn cách cụm',
-        transformationRule: 'Bảo toàn quy luật 82.1% xuất hiện cặp cùng hàng đơn vị và giải phóng năng lượng cụm dồn [10, 11, 12].'
-      },
-      {
-        id: 'concentrated_synthesis',
-        name: 'Dãy Biến Số #4: Hạt Nhân Hội Tụ Tổng Lực (Vé Điểm Vàng)',
-        badge: 'Hạt Nhân Tổng Lực',
-        badgeClass: 'bg-primary text-white',
-        icon: '🏆',
-        numbers: this.payload?.tickets?.[0] || pure,
-        specialNumber: isPower ? 48 : undefined,
-        composition: '3 Chẵn / 3 Lẻ',
-        confidence: 29.2,
-        deltaFormula: 'Tổng hợp tối ưu Pareto Wheeling',
-        transformationRule: 'Tổ hợp tối ưu nhất kết hợp trọn vẹn số lặp quán tính, lệch biên sát nút và chuyển vị banh phụ.'
-      }
-    ];
+    return this.payload?.transformedSequences ?? [];
   }
 
   // --- CHIẾN LƯỢC LỌC DÃY SỐ VÀ LIÊN HỆ THỰC TẾ VS DỰ ĐOÁN AI ---
@@ -724,12 +480,6 @@ export class PredictionComponent implements OnInit, OnDestroy {
     const set = new Set<number>();
     // Thêm các số nguyên bản AI
     this.getPureAlgorithmNumbers().slice(0, 8).forEach(n => set.add(n));
-    // Thêm các bóng dải cao đột phá 44, 48, 52, 53
-    if (this.category === 'POWER') {
-      [44, 48, 52, 53].forEach(n => set.add(n));
-    } else {
-      [36, 40, 44].forEach(n => set.add(n));
-    }
     // Thêm top 10 từ payload
     (this.payload?.numbers || []).slice(0, 10).forEach(n => set.add(n));
     return Array.from(set).sort((a, b) => a - b);
@@ -747,7 +497,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
 
   copyMixerTicket() {
     if (this.customMixerNumbers.length < 6) return;
-    this.copyTicket(this.customMixerNumbers, this.category === 'POWER' ? (this.payload?.specialNumber || 48) : null);
+    this.copyTicket(this.customMixerNumbers, this.category === 'POWER' ? (this.payload?.specialNumber ?? null) : null);
     this.mixerCopySuccess = true;
     setTimeout(() => {
       this.mixerCopySuccess = false;
@@ -847,34 +597,34 @@ export class PredictionComponent implements OnInit, OnDestroy {
     return 'TIỀM NĂNG';
   }
 
-  getNumberProbability(num: number): number {
-    if (!this.payload) return 0;
+  getNumberProbability(num: number): number | null {
+    if (!this.payload) return null;
     if (this.payload.focusAnalysis?.focusItems) {
       const found = this.payload.focusAnalysis.focusItems.find((item: any) => item.number === num);
-      if (found?.probabilityPercent) return found.probabilityPercent;
+      if (found?.probabilityPercent != null) return found.probabilityPercent;
     }
     if (this.payload.selectionReasons) {
       const reason = this.payload.selectionReasons.find((r: any) => r.number === num);
-      if (reason?.probabilityPercent) return reason.probabilityPercent;
+      if (reason?.probabilityPercent != null) return reason.probabilityPercent;
     }
-    return 75.0;
+    return this.payload?.details?.find(detail => detail.number === num)?.probabilityPercent ?? null;
   }
 
   getNumberUpgradeReason(num: number): string {
     const isPower = this.category === 'POWER';
     const latestWinning: number[] = this.recommendations?.megaDrawReconciliation?.officialWinningNumbers ||
-      (isPower ? [1, 10, 11, 12, 16, 37] : [8, 14, 21, 31, 38, 43]);
-    const latestSpecial: number | null = this.recommendations?.megaDrawReconciliation?.specialNumber || (isPower ? 48 : null);
+      [];
+    const latestSpecial: number | null = this.recommendations?.megaDrawReconciliation?.specialNumber ?? null;
 
     if (latestWinning.includes(num)) {
-      return `🔄 Số lặp quán tính: Nổ trực tiếp từ kỳ mở thưởng gần nhất. Xung lực chuỗi Markov vẫn ở đỉnh pha, xác suất lặp lại kỳ kế tiếp đạt 64.2%.`;
+      return `🔄 Số lặp quán tính: Nổ trực tiếp từ kỳ mở thưởng gần nhất. Chưa có xác suất lặp được hiệu chuẩn.`;
     }
     const neighbor = latestWinning.find((w: number) => Math.abs(w - num) === 1);
     if (neighbor !== undefined) {
-      return `↔️ Lệch biên lân cận ±1: Bước nhảy sát nút từ quả banh ${this.formatNumber(neighbor)} kỳ trước (${num > neighbor ? this.formatNumber(neighbor) + ' + 1' : this.formatNumber(neighbor) + ' - 1'}). Thống kê lồng cầu chứng minh 78.5% kỳ xuất hiện bóng lân cận biên.`;
+      return `↔️ Lệch biên lân cận ±1: Bước nhảy sát nút từ quả banh ${this.formatNumber(neighbor)} kỳ trước (${num > neighbor ? this.formatNumber(neighbor) + ' + 1' : this.formatNumber(neighbor) + ' - 1'}).`;
     }
     if (latestSpecial && num === latestSpecial) {
-      return `⭐ Chuyển vị banh phụ: Banh phụ ⭐${this.formatNumber(latestSpecial)} từ kỳ trước chuyển vị sang dàn banh chính. Chu kỳ chuyển dịch Poisson đạt 28.5%.`;
+      return `⭐ Chuyển vị banh phụ: Banh phụ ⭐${this.formatNumber(latestSpecial)} từ kỳ trước chuyển vị sang dàn banh chính.`;
     }
     if (this.payload?.selectionReasons) {
       const reason = this.payload.selectionReasons.find((r: any) => r.number === num);
@@ -884,7 +634,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
     }
     const tailMatch = latestWinning.find((w: number) => w % 10 === num % 10);
     if (tailMatch !== undefined) {
-      return `🔗 Đồng dư đuôi mod 10: Ghép cặp cùng chữ số hàng đơn vị (đuôi ${num % 10}) với quả banh ${this.formatNumber(tailMatch)} kỳ trước. Quy luật đồng dư xuất hiện trong 82.1% các kỳ quay.`;
+      return `🔗 Đồng dư đuôi mod 10: Ghép cặp cùng chữ số hàng đơn vị (đuôi ${num % 10}) với quả banh ${this.formatNumber(tailMatch)} kỳ trước.`;
     }
     return `⚡ Hóa giải cụm nén dồn: Phân rã năng lượng từ cụm số dồn nén kỳ trước sang vị trí ${this.formatNumber(num)}, cân đối phương sai dải số toàn diện.`;
   }
@@ -895,8 +645,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
     const parity = this.getTicketParity(ticket);
     const isPower = this.category === 'POWER';
     const latestWinning: number[] = this.recommendations?.megaDrawReconciliation?.officialWinningNumbers ||
-      (isPower ? [1, 10, 11, 12, 16, 37] : [8, 14, 21, 31, 38, 43]);
-    const latestSpecial: number | null = this.recommendations?.megaDrawReconciliation?.specialNumber || (isPower ? 48 : null);
+      [];
+    const latestSpecial: number | null = this.recommendations?.megaDrawReconciliation?.specialNumber ?? null;
 
     const repeats = ticket.filter(n => latestWinning.includes(n));
     const neighborDetails: string[] = [];
@@ -935,11 +685,6 @@ export class PredictionComponent implements OnInit, OnDestroy {
     if (tailPairs.length > 0) {
       logicPoints.push(`Đồng dư đuôi mod 10: ${tailPairs.slice(0, 2).join(' & ')}`);
     }
-    const decompBalls = ticket.filter(n => n >= 20 && n <= 55 && !latestWinning.includes(n));
-    if (decompBalls.length >= 2 && isPower) {
-      logicPoints.push(`Giải nén cụm dồn [10, 11, 12] sang dải [${decompBalls.slice(0, 2).map(n => this.formatNumber(n)).join(', ')}]`);
-    }
-
     const logicSummary = logicPoints.length > 0
       ? logicPoints.join(' • ')
       : 'Tối ưu phân phối xác suất XGBoost & cân bằng đa phân vùng';
@@ -951,8 +696,8 @@ export class PredictionComponent implements OnInit, OnDestroy {
     const list: number[] = this.payload?.numbers || [];
     const isPower = this.category === 'POWER';
     const latestWinning: number[] = this.recommendations?.megaDrawReconciliation?.officialWinningNumbers ||
-      (isPower ? [1, 10, 11, 12, 16, 37] : [8, 14, 21, 31, 38, 43]);
-    const latestSpecial: number | null = this.recommendations?.megaDrawReconciliation?.specialNumber || (isPower ? 48 : null);
+      [];
+    const latestSpecial: number | null = this.recommendations?.megaDrawReconciliation?.specialNumber ?? null;
 
     return list.map((num: number) => {
       let ruleType = 'CÂN BẰNG PHƯƠNG SAI';
@@ -960,7 +705,7 @@ export class PredictionComponent implements OnInit, OnDestroy {
       let ruleIcon = '⚖️';
       let ruleFormula = `Số ${this.formatNumber(num)}`;
       let ruleExplanation = `Cân bằng phương sai và dải phân bố xác suất XGBoost.`;
-      let probability = 82.5;
+      const probability = this.getNumberProbability(num);
 
       if (latestWinning.includes(num)) {
         ruleType = 'LẶP LẠI QUÁN TÍNH';
@@ -968,7 +713,6 @@ export class PredictionComponent implements OnInit, OnDestroy {
         ruleIcon = '🔄';
         ruleFormula = `${this.formatNumber(num)} &larr; ${this.formatNumber(num)} (Kỳ trước)`;
         ruleExplanation = `Nổ trực tiếp từ kỳ trước. Xung lực lặp lại trạng thái chuỗi Markov.`;
-        probability = 91.2;
       } else {
         const neighbor = latestWinning.find((w: number) => Math.abs(w - num) === 1);
         if (neighbor !== undefined) {
@@ -977,14 +721,12 @@ export class PredictionComponent implements OnInit, OnDestroy {
           ruleIcon = '↔️';
           ruleFormula = `${this.formatNumber(num)} = ${this.formatNumber(neighbor)} ${num > neighbor ? '+ 1' : '- 1'}`;
           ruleExplanation = `Bước nhảy lân cận biên sát nút từ quả banh ${this.formatNumber(neighbor)} của kỳ trước.`;
-          probability = 88.6;
         } else if (latestSpecial && num === latestSpecial) {
           ruleType = 'CHUYỂN VỊ BANH PHỤ';
           ruleBadge = 'bg-success text-white';
           ruleIcon = '⭐';
           ruleFormula = `${this.formatNumber(num)} &larr; ⭐${this.formatNumber(latestSpecial)}`;
           ruleExplanation = `Banh phụ Jackpot 2 kỳ trước chuyển vị sang dàn banh chính kỳ này.`;
-          probability = 86.4;
         } else {
           const tailMatch = latestWinning.find((w: number) => w % 10 === num % 10);
           if (tailMatch !== undefined) {
@@ -993,15 +735,13 @@ export class PredictionComponent implements OnInit, OnDestroy {
             ruleIcon = '🔗';
             ruleFormula = `${this.formatNumber(num)} &equiv; ${this.formatNumber(tailMatch)} (Đuôi ${num % 10})`;
             ruleExplanation = `Ghép cặp cùng chữ số hàng đơn vị (đuôi ${num % 10}) với quả banh ${this.formatNumber(tailMatch)}.`;
-            probability = 84.8;
-          } else if (num >= 20 && num <= 50) {
+            } else if (num >= 20 && num <= 50) {
             ruleType = 'HÓA GIẢI CỤM NÉN DỒN';
             ruleBadge = 'bg-danger text-white';
             ruleIcon = '⚡';
             ruleFormula = `Giải nén cụm dồn &rarr; ${this.formatNumber(num)}`;
             ruleExplanation = `Hóa giải bẫy dồn 3 số liên tiếp ở hàng chục, giải phóng năng lượng sang dải ${this.formatNumber(num)}.`;
-            probability = 83.2;
-          }
+            }
         }
       }
 

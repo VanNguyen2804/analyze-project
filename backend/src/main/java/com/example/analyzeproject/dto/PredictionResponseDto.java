@@ -3,6 +3,12 @@ package com.example.analyzeproject.dto;
 import java.util.List;
 
 public class PredictionResponseDto {
+    private java.util.Map<String, Object> relationshipLearning;
+    private java.util.Map<String, Object> commonPatternsAnalysis;
+    public java.util.Map<String, Object> getRelationshipLearning() { return relationshipLearning; }
+    public void setRelationshipLearning(java.util.Map<String, Object> value) { relationshipLearning = value; }
+    public java.util.Map<String, Object> getCommonPatternsAnalysis() { return commonPatternsAnalysis; }
+    public void setCommonPatternsAnalysis(java.util.Map<String, Object> value) { commonPatternsAnalysis = value; }
     private String status;
     private String message;
     private String drawDate;

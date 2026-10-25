@@ -242,9 +242,23 @@ public class AnalyzeService {
             dto.setFrequency(frequency[wNum]);
             dto.setDrawGap(drawGap[wNum]);
             dto.setMomentum(Math.round((momentum[wNum] / maxMom) * 100.0) / 100.0);
-            dto.setMarkov(80 + new Random().nextInt(15)); 
-            dto.setPoisson(85 + new Random().nextInt(10));
-            dto.setCompanion(90 + new Random().nextInt(10));
+            int transitions = 0, matches = 0;
+            List<Integer> previousNumbers = totalDraws > 0 ? pastRecords.get(totalDraws - 1).getNumbers() : Collections.emptyList();
+            for (int t = 1; t < totalDraws; t++) {
+                List<Integer> previous = pastRecords.get(t - 1).getNumbers();
+                List<Integer> next = pastRecords.get(t).getNumbers();
+                if (previous == null || next == null) continue;
+                for (int seed : previousNumbers) {
+                    if (previous.contains(seed)) {
+                        transitions++;
+                        if (next.contains(wNum)) matches++;
+                    }
+                }
+            }
+            dto.setMarkov(transitions == 0 ? 0 : (int) Math.round(100.0 * matches / transitions));
+            dto.setPoisson((int) Math.round(100 * (1 - Math.pow(1 - 6.0 / maxLimit, drawGap[wNum]))));
+            dto.setCompanion(frequency[wNum] == 0 || pairs.isEmpty() ? 0
+                    : (int) Math.round(100.0 * pairs.get(0).count / frequency[wNum]));
             dto.setPairedNumbers(pairedStr.isEmpty() ? "N/A" : pairedStr);
 
             if (drawGap[wNum] > 10) {
@@ -279,13 +293,15 @@ public class AnalyzeService {
     // 2. CHỨC NĂNG DỰ ĐOÁN (XGBOOST + WHEELING)
     // =========================================================================================
     public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithm) {
-        String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
-        return analyzeAndPredict(category, algorithm, null, repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category));
+        return analyzeAndPredict(categoryInput, algorithm, (String) null);
     }
 
     public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithm, String algorithm2) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
-        return analyzeAndPredict(category, algorithm, algorithm2, repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category));
+        List<LotteryNumber> history = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        PredictionResponseDto result = analyzeAndPredict(category, algorithm, algorithm2, history);
+        if (result.getRelationshipLearning() != null) result.getRelationshipLearning().put("verifiedWinningTickets", verifiedWinningTickets(history, category));
+        return result;
     }
 
     public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithm, List<LotteryNumber> customRecords) {
@@ -320,10 +336,36 @@ public class AnalyzeService {
             adaptiveRepeatWeight = parseDoubleFromJson(json, "adaptiveRepeatWeight", adaptiveRepeatWeight);
         }
 
-        List<LotteryNumber> records = (customRecords != null) ? customRecords : repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        List<LotteryNumber> source = customRecords != null ? customRecords : repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        List<LotteryNumber> records = source.stream()
+                .filter(r -> r != null && category.equalsIgnoreCase(r.getCategory()) && r.getDrawDate() != null)
+                .filter(r -> r.getNumbers() != null && r.getNumbers().size() == 6
+                        && new HashSet<>(r.getNumbers()).size() == 6
+                        && r.getNumbers().stream().allMatch(n -> n != null && n >= 1 && n <= maxLimit))
+                .sorted(Comparator.comparing(LotteryNumber::getDrawDate).reversed()
+                        .thenComparing(LotteryNumber::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+        Set<java.time.LocalDate> seenDates = new HashSet<>();
+        records.removeIf(r -> !seenDates.add(r.getDrawDate()));
+        if (records.isEmpty()) {
+            PredictionResponseDto empty = new PredictionResponseDto();
+            empty.setStatus("ERROR");
+            empty.setMessage("No valid draw history available for " + category);
+            empty.setCategory(category);
+            empty.setLotteryType(category);
+            empty.setNumbers(Collections.emptyList());
+            empty.setTickets(Collections.emptyList());
+            empty.setTotalDrawsAnalyzed(0);
+            return empty;
+        }
         List<LotteryNumber> chronologicalRecords = new ArrayList<>(records);
         Collections.reverse(chronologicalRecords);
         int totalDraws = chronologicalRecords.size();
+        String learningJson = latestHyp == null ? null : latestHyp.getHyperparametersJson();
+        TemporalRelationshipModel.Result learned = TemporalRelationshipModel.fit(records, category,
+                parseDoubleFromJson(learningJson, "temporalPriorStrength", maxLimit / 6.0),
+                parseDoubleFromJson(learningJson, "temporalLearningRate", 0.5),
+                (int) parseDoubleFromJson(learningJson, "temporalMinHistory", 5));
 
         int[] mainFrequency = new int[maxLimit + 1];
         int[] freqLast10 = new int[maxLimit + 1];
@@ -427,7 +469,6 @@ public class AnalyzeService {
         if (maxMainMom == 0.0) maxMainMom = 1.0;
         if (maxSpecMom == 0.0) maxSpecMom = 1.0;
 
-        Random random = new Random();
         double avgCycle = (double) maxLimit / 6.0;
 
         // Chuẩn bị các cấu trúc cho DSE-Copula
@@ -516,7 +557,7 @@ public class AnalyzeService {
                 mainFrequency, freqLast5, freqLast10, mainMomentum, drawGap, pairMatrix,
                 lastSeenSpecial, avgCycle, maxMainMom, extremeGanBonus, specialMigrationWeight,
                 adaptiveRepeatWeight, coOccurrenceWeight, markov2Score, specialMigrationScore,
-                empiricalMeanGap, empiricalStdGap, copulaCentrality, maxCopula, drawT1
+                empiricalMeanGap, empiricalStdGap, copulaCentrality, maxCopula, drawT1, learned
         );
 
         // 1. STRATIFIED MULTI-PILLAR CANDIDATE SELECTION
@@ -616,6 +657,9 @@ public class AnalyzeService {
             }
         }
 
+        if ("temporal_learning".equalsIgnoreCase(algorithm)) {
+            selected10.clear(); selected10.addAll(candidateList.stream().limit(10).collect(Collectors.toList()));
+        }
         selected10.sort(Comparator.comparingInt(s -> s.number));
 
         List<Integer> selected10NumbersForWheeling = selected10.stream()
@@ -851,9 +895,14 @@ public class AnalyzeService {
         PredictionResponseDto response = new PredictionResponseDto();
         response.setStatus("SUCCESS");
         response.setMessage("Phân tích thành công");
-        response.setAlgorithm(algorithm); 
+        response.setAlgorithm(algorithm);
+        response.setRelationshipLearning(learned.analysis());
+        response.setCommonPatternsAnalysis(PredictionSupport.commonPatterns(chronologicalRecords, maxLimit));
         
-        if (algorithm != null && (algorithm.toLowerCase().contains("bayes") || algorithm.toLowerCase().contains("graph") || algorithm.toLowerCase().contains("begn"))) {
+        if ("temporal_learning".equalsIgnoreCase(algorithm)) {
+            response.setAlgorithmName("Học liên kết giữa các kỳ");
+            response.setAlgorithmDesc("Trọng số học tuần tự từ các kỳ trước; chuyển tiếp được làm trơn theo số mẫu và kiểm tra trước khi cập nhật kết quả.");
+        } else if (algorithm != null && (algorithm.toLowerCase().contains("bayes") || algorithm.toLowerCase().contains("graph") || algorithm.toLowerCase().contains("begn"))) {
             response.setAlgorithm("bayesian_graph");
             response.setAlgorithmName("Mạng Đồ Thị Bayes AI (BEGN)");
             response.setAlgorithmDesc("Mô hình mạng đồ thị kết hợp xác suất hậu nghiệm Bayes (Beta-Binomial), tương tác cụm liên kết (Graph Clique Synergy), cộng hưởng sóng hài Fourier và cầu nối chuyển vị banh phụ.");
@@ -869,7 +918,7 @@ public class AnalyzeService {
             response.setAlgorithmDesc("Phân tích thuật toán " + algorithm);
         }
 
-        response.setModelVersion(latestHyp != null ? latestHyp.getModel() : "XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)");
+        response.setModelVersion("temporal_learning".equalsIgnoreCase(algorithm) ? "temporal-links-v1" : (latestHyp != null ? latestHyp.getModel() : "History-based heuristic"));
         response.setHyperparameterVersion(latestHyp != null ? latestHyp.getVersion() : "v1.1.0");
 
         if (!records.isEmpty() && records.get(0).getDrawDate() != null) {
@@ -902,27 +951,8 @@ public class AnalyzeService {
         // Dựa trên múi giờ Việt Nam (UTC+7). Nếu trước 18h00 ngày quay: mục tiêu là HÔM NAY.
         // Nếu sau 18h00 hoặc không phải ngày quay: mục tiêu là kỳ mở thưởng tiếp theo trong tương lai.
         java.time.ZonedDateTime nowVn = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
-        java.time.LocalDate todayVn = nowVn.toLocalDate();
-        java.time.LocalTime timeVn = nowVn.toLocalTime();
-        boolean past18 = !timeVn.isBefore(java.time.LocalTime.of(18, 0));
-
-        Set<java.time.DayOfWeek> categoryDrawDays = isPower
-            ? Set.of(java.time.DayOfWeek.TUESDAY, java.time.DayOfWeek.THURSDAY, java.time.DayOfWeek.SATURDAY)
-            : Set.of(java.time.DayOfWeek.WEDNESDAY, java.time.DayOfWeek.FRIDAY, java.time.DayOfWeek.SUNDAY);
-
-        java.time.LocalDate targetDate;
-        boolean isTargetToday;
-        if (categoryDrawDays.contains(todayVn.getDayOfWeek()) && !past18) {
-            targetDate = todayVn;
-            isTargetToday = true;
-        } else {
-            isTargetToday = false;
-            java.time.LocalDate candidate = todayVn.plusDays(1);
-            while (!categoryDrawDays.contains(candidate.getDayOfWeek())) {
-                candidate = candidate.plusDays(1);
-            }
-            targetDate = candidate;
-        }
+        java.time.LocalDate targetDate = PredictionSupport.nextDraw(isPower, nowVn, records.get(0).getDrawDate());
+        boolean isTargetToday = targetDate.equals(nowVn.toLocalDate());
 
         String targetDayName;
         switch (targetDate.getDayOfWeek()) {
@@ -939,39 +969,25 @@ public class AnalyzeService {
         String targetDateFormatted = targetDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
         // DÃY SỐ NGUYÊN THỦY TỪ THUẬT TOÁN 1 (TOP 6 SỐ NGUYÊN BẢN CỦA THUẬT TOÁN ĐANG CHỌN)
-        List<Integer> pureNumbers = new ArrayList<>();
-        if ("MEGA".equalsIgnoreCase(category)) {
-            if (isBayesianGraph) {
-                pureNumbers = List.of(6, 14, 21, 25, 33, 40);
-            } else if (isDeepStacking) {
-                pureNumbers = List.of(7, 15, 24, 31, 38, 43);
-            } else {
-                pureNumbers = candidateList.stream().limit(6).map(c -> c.number).sorted().collect(Collectors.toList());
-            }
-        } else {
-            pureNumbers = candidateList.stream().limit(6).map(c -> c.number).sorted().collect(Collectors.toList());
-        }
-
-        List<Map<String, Object>> pureDetails = new ArrayList<>();
-        for (int num : pureNumbers) {
-            Map<String, Object> pd = new HashMap<>();
-            pd.put("number", num);
-            pd.put("probabilityPercent", List.of(14, 21).contains(num) ? 98.5 : 89.2);
-            pd.put("frequency", mainFrequency[num]);
-            pd.put("drawGap", drawGap[num]);
-            pd.put("tag", List.of(14, 21).contains(num) ? "QUÁN TÍNH LẶP KỲ 21/10" : "MẠNG BAYES & SÓNG HÀI");
-            pureDetails.add(pd);
-        }
+        List<Integer> primaryRanking = candidateList.stream().map(c -> c.number).collect(Collectors.toList());
+        List<Integer> pureNumbers = primaryRanking.stream().limit(6).sorted().collect(Collectors.toList());
+        List<Map<String, Object>> pureDetails = predictionDetails(pureNumbers, candidateList);
 
         Map<String, Object> primaryResult = new HashMap<>();
         primaryResult.put("id", response.getAlgorithm());
         primaryResult.put("name", response.getAlgorithmName());
         primaryResult.put("badge", "Thuật Toán 1");
-        primaryResult.put("rankBadge", isBayesianGraph ? "Top 1 - Tối ưu nhất" : (isDeepStacking ? "Top 2 - Đột phá AI" : "Top 3"));
-        primaryResult.put("accuracyScore", isBayesianGraph ? 28.5 : (isDeepStacking ? 26.8 : 22.4));
-        primaryResult.put("hitRate", isBayesianGraph ? "14.3%" : (isDeepStacking ? "12.5%" : "10.7%"));
+        primaryResult.put("rankBadge", "History-based ranking");
+        primaryResult.put("accuracyScore", null);
+        if ("temporal_learning".equalsIgnoreCase(algorithm)) {
+            Map<?, ?> evaluation = (Map<?, ?>) learned.analysis().get("evaluation");
+            Object hitRate = evaluation.get("hit3RatePercent");
+            primaryResult.put("evaluation", evaluation);
+            primaryResult.put("hitRate", hitRate == null ? "N/A" : String.format(java.util.Locale.ROOT, "%.1f%%", ((Number) hitRate).doubleValue()));
+        }
+        primaryResult.putIfAbsent("hitRate", "N/A");
         primaryResult.put("numbers", pureNumbers);
-        primaryResult.put("specialNumber", isPower ? recommendedSpecialNumber : null);
+        primaryResult.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, pureNumbers, primaryRanking));
         primaryResult.put("formulaNote", response.getAlgorithmDesc());
         primaryResult.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d",
                 (int) pureNumbers.stream().filter(n -> n % 2 == 0).count(),
@@ -987,42 +1003,27 @@ public class AnalyzeService {
         boolean isAlg2Bayes = (resolvedAlg2.toLowerCase().contains("bayes") || resolvedAlg2.toLowerCase().contains("graph") || resolvedAlg2.toLowerCase().contains("begn"));
         boolean isAlg2Stack = (resolvedAlg2.toLowerCase().contains("deep") || resolvedAlg2.toLowerCase().contains("stack") || resolvedAlg2.equalsIgnoreCase("dse_copula"));
 
-        List<Integer> pureNumbers2 = new ArrayList<>();
-        if ("MEGA".equalsIgnoreCase(category)) {
-            if (isAlg2Bayes) {
-                pureNumbers2 = List.of(6, 14, 21, 25, 33, 40);
-            } else if (isAlg2Stack) {
-                pureNumbers2 = List.of(7, 15, 24, 31, 38, 43);
-            } else {
-                pureNumbers2 = List.of(10, 14, 23, 31, 37, 41);
-            }
-        } else {
-            pureNumbers2 = List.of(9, 11, 13, 15, 36, 52);
-        }
-
-        String alg2Name = isAlg2Bayes ? "Mạng Đồ Thị Bayes AI (BEGN)" : (isAlg2Stack ? "Xếp Chồng Học Máy AI & Copula (DSE-Copula)" : "AI XGBoost + Wheeling");
-        String alg2Desc = isAlg2Bayes ? "Mô hình mạng đồ thị kết hợp xác suất hậu nghiệm Bayes, cộng hưởng sóng hài Fourier và tương tác liên kết cặp số." : (isAlg2Stack ? "Mô hình học máy xếp chồng đa tầng khai thác chuyên sâu CSDL: chuẩn hóa Z-Score độ trễ cá thể, tương quan Jaccard đa biến." : "AI XGBoost đa nhân");
-
-        List<Map<String, Object>> pureDetails2 = new ArrayList<>();
-        for (int num : pureNumbers2) {
-            Map<String, Object> pd = new HashMap<>();
-            pd.put("number", num);
-            pd.put("probabilityPercent", List.of(31, 38).contains(num) ? 98.2 : 88.7);
-            pd.put("frequency", mainFrequency[num]);
-            pd.put("drawGap", drawGap[num]);
-            pd.put("tag", List.of(31, 38).contains(num) ? "QUÁN TÍNH LẶP KỲ 21/10" : "Z-SCORE COPULA ĐIỂM RƠI");
-            pureDetails2.add(pd);
-        }
+        List<ScoredNumber> secondaryCandidates = scoreCandidatesForAlgorithm(
+                resolvedAlg2, category, maxLimit, totalDraws, chronologicalRecords,
+                mainFrequency, freqLast5, freqLast10, mainMomentum, drawGap, pairMatrix,
+                lastSeenSpecial, avgCycle, maxMainMom, extremeGanBonus, specialMigrationWeight,
+                adaptiveRepeatWeight, coOccurrenceWeight, markov2Score, specialMigrationScore,
+                empiricalMeanGap, empiricalStdGap, copulaCentrality, maxCopula, drawT1, learned);
+        List<Integer> secondaryRanking = secondaryCandidates.stream().map(c -> c.number).collect(Collectors.toList());
+        List<Integer> pureNumbers2 = secondaryRanking.stream().limit(6).sorted().collect(Collectors.toList());
+        String alg2Name = isAlg2Bayes ? "Bayesian graph heuristic" : (isAlg2Stack ? "Copula ensemble heuristic" : resolvedAlg2);
+        String alg2Desc = "Deterministic ranking calculated from the supplied draw history.";
+        List<Map<String, Object>> pureDetails2 = predictionDetails(pureNumbers2, secondaryCandidates);
 
         Map<String, Object> secondaryResult = new HashMap<>();
         secondaryResult.put("id", resolvedAlg2);
         secondaryResult.put("name", alg2Name);
         secondaryResult.put("badge", "Thuật Toán 2");
-        secondaryResult.put("rankBadge", isAlg2Bayes ? "Top 1 - Tối ưu nhất" : (isAlg2Stack ? "Top 2 - Đột phá AI" : "Top 3"));
-        secondaryResult.put("accuracyScore", isAlg2Bayes ? 28.5 : (isAlg2Stack ? 26.8 : 22.4));
-        secondaryResult.put("hitRate", isAlg2Bayes ? "14.3%" : (isAlg2Stack ? "12.5%" : "10.7%"));
+        secondaryResult.put("rankBadge", "History-based ranking");
+        secondaryResult.put("accuracyScore", null);
+        secondaryResult.put("hitRate", "N/A");
         secondaryResult.put("numbers", pureNumbers2);
-        secondaryResult.put("specialNumber", isPower ? recommendedSpecialNumber : null);
+        secondaryResult.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, pureNumbers2, secondaryRanking));
         secondaryResult.put("formulaNote", alg2Desc);
         secondaryResult.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d",
                 (int) pureNumbers2.stream().filter(n -> n % 2 == 0).count(),
@@ -1032,23 +1033,14 @@ public class AnalyzeService {
 
         // KẾT HỢP 2 THUẬT TOÁN (ENSEMBLE CONSENSUS)
         List<Integer> sharedNumbers = pureNumbers.stream().filter(pureNumbers2::contains).collect(Collectors.toList());
-        Set<Integer> combinedSet = new LinkedHashSet<>(sharedNumbers);
-
-        // Ưu tiên các số hạt nhân nổ từ cả 2 thuật toán theo thực nghiệm 21/10
-        List<Integer> coreSeeds = List.of(14, 21, 31, 38, 15, 43);
-        for (int seed : coreSeeds) {
-            if (combinedSet.size() >= 6) break;
-            combinedSet.add(seed);
-        }
-
-        List<Integer> combinedNumbers = new ArrayList<>(combinedSet);
-        Collections.sort(combinedNumbers);
+        List<Integer> combinedNumbers = PredictionSupport.fuse(primaryRanking, secondaryRanking, 6);
 
         List<Map<String, Object>> combinedDetails = new ArrayList<>();
         for (int num : combinedNumbers) {
             Map<String, Object> cd = new HashMap<>();
             cd.put("number", num);
-            cd.put("probabilityPercent", 96.5);
+            cd.put("probabilityPercent", predictionScore(num, candidateList, secondaryCandidates));
+            cd.put("scoreType", "heuristic");
             cd.put("drawGap", drawGap[num]);
             cd.put("frequency", mainFrequency[num]);
             boolean isShared = sharedNumbers.contains(num);
@@ -1068,13 +1060,13 @@ public class AnalyzeService {
         combinedResult.put("id", "combined_ensemble");
         combinedResult.put("name", "Kết Hợp 2 Thuật Toán (Ensemble Consensus)");
         combinedResult.put("badge", "Đồng Thuận 2 Mô Hình");
-        combinedResult.put("rankBadge", "Độ chính xác vượt trội");
-        combinedResult.put("accuracyScore", 36.8);
-        combinedResult.put("hitRate", "25.0%");
+        combinedResult.put("rankBadge", "History-based ranking");
+        combinedResult.put("accuracyScore", null);
+        combinedResult.put("hitRate", "N/A");
         combinedResult.put("numbers", combinedNumbers);
         combinedResult.put("sharedNumbers", sharedNumbers);
-        combinedResult.put("specialNumber", isPower ? recommendedSpecialNumber : null);
-        combinedResult.put("formulaNote", "🌟 Kết hợp 2 dãy số từ kỳ 21/10: Thuật toán 1 đóng góp [14, 21], Thuật toán 2 đóng góp [31, 38]. Dãy kết hợp hội tụ toàn diện cả 4 số trúng, đạt độ chính xác (36.8% bao phủ, 25.0% trúng ≥3 số) cao hơn hẳn từng mô hình đơn lẻ.");
+        combinedResult.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, combinedNumbers, primaryRanking));
+        combinedResult.put("formulaNote", "Equal-weight reciprocal rank fusion of both history-based rankings. Scores are not winning probabilities.");
         combinedResult.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d",
                 (int) combinedNumbers.stream().filter(n -> n % 2 == 0).count(),
                 (int) combinedNumbers.stream().filter(n -> n % 2 != 0).count(),
@@ -1084,121 +1076,26 @@ public class AnalyzeService {
         response.setPureAlgorithmTicket(primaryResult);
         response.setPrimaryAlgorithmResult(primaryResult);
         response.setSecondaryAlgorithmResult(secondaryResult);
+        response.setCombinedAlgorithmResult(combinedResult);
 
         // CÁC DÃY SỐ KẾ TIẾP KHI CÓ BIẾN SỐ (TRANSFORMED SEQUENCES)
         List<Map<String, Object>> transformedSequences = new ArrayList<>();
-
-        // 1. Dãy Biến Số #1: Lệch Biên Độ ±1 (Hóa Giải Biên Độ 1 Nút Kỳ 23/10)
-        List<Integer> seq1 = new ArrayList<>();
+        List<Integer> shifted = new ArrayList<>();
         for (int i = 0; i < pureNumbers.size(); i++) {
             int n = pureNumbers.get(i);
-            int shifted = (i % 2 == 0) ? Math.min(maxLimit, n + 1) : Math.max(1, n - 1);
-            if (seq1.contains(shifted)) {
-                shifted = (shifted % maxLimit) + 1;
-            }
-            seq1.add(shifted);
+            shifted.add(Math.max(1, Math.min(maxLimit, n + (i % 2 == 0 ? 1 : -1))));
         }
-        Collections.sort(seq1);
-        int oddCount1 = (int) seq1.stream().filter(n -> n % 2 != 0).count();
-        int sum1 = seq1.stream().mapToInt(Integer::intValue).sum();
-        Map<String, Object> ts1 = new HashMap<>();
-        ts1.put("id", "neighbor_drift");
-        ts1.put("name", "Dãy Biến Số #1: Lệch Biên Độ ±1 (Hóa Giải Biên Độ 1 Nút Kỳ 23/10)");
-        ts1.put("badge", "Lệch Biên Độ ±1");
-        ts1.put("badgeClass", "bg-warning text-dark");
-        ts1.put("icon", "↔️");
-        ts1.put("numbers", seq1);
-        ts1.put("specialNumber", isPower ? 48 : null);
-        ts1.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d", seq1.size() - oddCount1, oddCount1, sum1));
-        ts1.put("confidence", 88.5);
-        ts1.put("deltaFormula", "N_mới = N_gốc ± 1");
-        ts1.put("transformationRule", "Áp dụng bước nhảy biên độ sát nút Δ = ±1 từ dãy số nguyên thủy và chu kỳ mở thưởng gần nhất. Hóa giải triệt để hiện tượng lệch biên độ 1 nút từng xảy ra ở kỳ Mega 23/10/2026 và Power 22/10/2026.");
-        transformedSequences.add(ts1);
-
-        // 2. Dãy Biến Số #2: Chuyển Vị Banh Phụ & Đảo Vị Đối Xứng
-        List<Integer> seq2 = new ArrayList<>(pureNumbers);
-        if (isPower && recommendedSpecialNumber != null) {
-            seq2.set(0, recommendedSpecialNumber);
-        } else if (!pureNumbers.isEmpty()) {
-            int first = pureNumbers.get(0);
-            int mirror = (first % 10) * 10 + (first / 10);
-            if (mirror >= 1 && mirror <= maxLimit && !seq2.contains(mirror)) {
-                seq2.set(0, mirror);
-            }
-        }
-        Collections.sort(seq2);
-        int oddCount2 = (int) seq2.stream().filter(n -> n % 2 != 0).count();
-        int sum2 = seq2.stream().mapToInt(Integer::intValue).sum();
-        Map<String, Object> ts2 = new HashMap<>();
-        ts2.put("id", "special_migration_mirror");
-        ts2.put("name", "Dãy Biến Số #2: Chuyển Vị Banh Phụ & Đảo Vị Đối Xứng");
-        ts2.put("badge", "Chuyển Vị & Đảo Vị");
-        ts2.put("badgeClass", "bg-success text-white");
-        ts2.put("icon", "⭐");
-        ts2.put("numbers", seq2);
-        ts2.put("specialNumber", isPower ? 40 : null);
-        ts2.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d", seq2.size() - oddCount2, oddCount2, sum2));
-        ts2.put("confidence", 26.8);
-        ts2.put("deltaFormula", "N_mới ← Banh Phụ / Gương Chiếu Đối Xứng");
-        ts2.put("transformationRule", "Banh phụ kỳ trước chuyển vị vào dàn chính, kết hợp quy luật đảo vị gương đối xứng thập phân.");
-        transformedSequences.add(ts2);
-
-        // 3. Dãy Biến Số #3: Đồng Dư Modulo-10 Đuôi Số & Giải Nén Cụm Dồn
-        List<Integer> seq3 = new ArrayList<>();
-        if (!pureNumbers.isEmpty()) {
-            int base = pureNumbers.get(0);
-            seq3.add(base);
-            int tailPair = base + 10 <= maxLimit ? base + 10 : (base % 10 == 0 ? 10 : base % 10);
-            if (!seq3.contains(tailPair) && tailPair >= 1 && tailPair <= maxLimit) seq3.add(tailPair);
-            for (int n : pureNumbers) {
-                if (seq3.size() < 6 && !seq3.contains(n)) seq3.add(n);
-            }
-            while (seq3.size() < 6) {
-                for (int c : selected10NumbersForWheeling) {
-                    if (!seq3.contains(c)) { seq3.add(c); break; }
-                }
-            }
-        } else {
-            seq3.addAll(isPower ? List.of(8, 14, 21, 31, 40, 50) : List.of(8, 15, 21, 24, 31, 42));
-        }
-        Collections.sort(seq3);
-        int oddCount3 = (int) seq3.stream().filter(n -> n % 2 != 0).count();
-        int sum3 = seq3.stream().mapToInt(Integer::intValue).sum();
-        Map<String, Object> ts3 = new HashMap<>();
-        ts3.put("id", "tail_congruence");
-        ts3.put("name", "Dãy Biến Số #3: Đồng Dư Modulo-10 & Hóa Giải Cụm Nén");
-        ts3.put("badge", "Đồng Dư Đuôi & Giải Nén");
-        ts3.put("badgeClass", "bg-info text-dark");
-        ts3.put("icon", "🔗");
-        ts3.put("numbers", seq3);
-        ts3.put("specialNumber", isPower ? 26 : null);
-        ts3.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d", seq3.size() - oddCount3, oddCount3, sum3));
-        ts3.put("confidence", 25.4);
-        ts3.put("deltaFormula", "N_mới ≡ N_gốc (mod 10) + Dãn cách an toàn");
-        ts3.put("transformationRule", "Bảo toàn quy luật 82.1% xuất hiện cặp cùng hàng đơn vị và giải phóng cụm dồn liên tiếp.");
-        transformedSequences.add(ts3);
-
-        // 4. Dãy Biến Số #4: Hạt Nhân Hội Tụ Tổng Lực
-        List<Integer> seq4 = (generatedTickets != null && !generatedTickets.isEmpty())
-            ? new ArrayList<>(generatedTickets.get(0))
-            : new ArrayList<>(pureNumbers);
-        Collections.sort(seq4);
-        int oddCount4 = (int) seq4.stream().filter(n -> n % 2 != 0).count();
-        int sum4 = seq4.stream().mapToInt(Integer::intValue).sum();
-        Map<String, Object> ts4 = new HashMap<>();
-        ts4.put("id", "concentrated_synthesis");
-        ts4.put("name", "Dãy Biến Số #4: Hạt Nhân Hội Tụ Tổng Lực (Vé Điểm Vàng)");
-        ts4.put("badge", "Hạt Nhân Tổng Lực");
-        ts4.put("badgeClass", "bg-primary text-white");
-        ts4.put("icon", "🏆");
-        ts4.put("numbers", seq4);
-        ts4.put("specialNumber", isPower ? 48 : null);
-        ts4.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d", seq4.size() - oddCount4, oddCount4, sum4));
-        ts4.put("confidence", 29.2);
-        ts4.put("deltaFormula", "Tối ưu hóa Pareto Wheeling Synergy");
-        ts4.put("transformationRule", "Tổ hợp tối ưu nhất kết hợp trọn vẹn số lặp quán tính, lệch biên sát nút và chuyển vị banh phụ.");
-        transformedSequences.add(ts4);
-
+        List<Integer> shiftedTicket = PredictionSupport.distinctTicket(shifted, primaryRanking, maxLimit);
+        Map<String, Object> variant = new HashMap<>();
+        variant.put("id", "neighbor_drift");
+        variant.put("name", "Neighbor shift variant");
+        variant.put("badge", "+/-1");
+        variant.put("badgeClass", "bg-warning text-dark");
+        variant.put("numbers", shiftedTicket);
+        variant.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, shiftedTicket, primaryRanking));
+        variant.put("composition", PredictionSupport.composition(shiftedTicket));
+        variant.put("transformationRule", "Alternating shifts of the primary selection; no measured accuracy is available.");
+        transformedSequences.add(variant);
         response.setTransformedSequences(transformedSequences);
 
         Map<String, Object> recMap = new HashMap<>();
@@ -1211,101 +1108,39 @@ public class AnalyzeService {
         recMap.put("summaryTitle", String.format("Dự Đoán Tối Ưu Cho Kỳ Quay %s %s %s (Quay lúc 18h00)",
             isPower ? "Power 6/55" : "Mega 6/45", targetDayName, targetDateFormatted));
 
-        Map<String, Object> megaReconcile = new HashMap<>();
-        if (isPower) {
-            megaReconcile.put("officialWinningNumbers", List.of(1, 10, 11, 12, 16, 37));
-            megaReconcile.put("specialNumber", 48);
-            megaReconcile.put("initialAiHitCount", 3);
-            megaReconcile.put("initialHitNumbers", List.of(10, 11, 12));
-            megaReconcile.put("upgradedAiCoverage", 6);
-            megaReconcile.put("upgradedNumbers", List.of(1, 10, 11, 12, 16, 37));
-            megaReconcile.put("rootCauseSummary", "Tại kỳ quay Power 17/10/2026, lồng cầu nổ dãy [01, 10, 11, 12, 16, 37] (⭐48). Mô hình v2.1.0 đã nhận diện cụm tam giác liên kề [10, 11, 12] và banh phụ ⭐48.");
-            megaReconcile.put("remedySummary", "Kích hoạt toàn diện cơ chế điều hòa đa phân vùng cho kỳ Thứ Ba 20/10/2026.");
-        } else {
-            megaReconcile.put("officialWinningNumbers", List.of(8, 14, 21, 31, 38, 43));
-            megaReconcile.put("initialAiHitCount", 0);
-            megaReconcile.put("initialHitNumbers", List.of());
-            megaReconcile.put("upgradedAiCoverage", 6);
-            megaReconcile.put("upgradedNumbers", List.of(8, 14, 21, 31, 38, 43));
-            megaReconcile.put("rootCauseSummary", "Tại kỳ Mega 16/10/2026, lồng cầu nổ dãy [08, 14, 21, 31, 38, 43]. Dữ liệu đã được nạp đối soát.");
-            megaReconcile.put("remedySummary", "Tái cấu trúc ma trận chuyển dịch cho kỳ Thứ Tư 21/10/2026.");
-        }
-        recMap.put("megaDrawReconciliation", megaReconcile);
-
-        List<Map<String, Object>> strategies = new ArrayList<>();
-        Map<String, Object> s1 = new HashMap<>();
-        s1.put("pillar", isPower ? "Trụ cột 1: Bánh Xe Hội Tụ Hạt Nhân (Concentrated Wheeling Synergy)" : "Trụ cột 1: Cặp Số Đảo Vị Gương Chiếu & Sóng Di Cư");
-        s1.put("recommendedNumbers", isPower ? List.of(14, 27, 50, 53) : List.of(14, 21, 38));
-        s1.put("roleBadge", isPower ? "Bánh xe hội tụ" : "Đảo vị đối xứng");
-        s1.put("rationale", isPower ? "Gom trọn vẹn 4 số có ái lực tương quan cao nhất vào vé hạt nhân duy nhất thay vì chia đều ra nhiều vé." : "Khai thác quy luật đối xứng và sóng di cư.");
-        strategies.add(s1);
-
-        Map<String, Object> s2 = new HashMap<>();
-        s2.put("pillar", isPower ? "Trụ cột 2: Đồng Dư Modulo-10 Đuôi 0 & Cặp Hàng Đơn Vị" : "Trụ cột 2: Bứt Phá Bẫy Ép Biên Sát Nút (±1 Neighbor Drift)");
-        s2.put("recommendedNumbers", isPower ? List.of(40, 50, 20, 30) : List.of(6, 13, 24, 40));
-        s2.put("roleBadge", isPower ? "Đồng dư đuôi 0" : "Hóa giải bẫy ±1");
-        s2.put("rationale", isPower ? "Đón đầu liên kết thập phân dải cao 40 và 50." : "Chủ động mở rộng biên độ đón đầu các số liền kề.");
-        strategies.add(s2);
-
-        Map<String, Object> s3 = new HashMap<>();
-        s3.put("pillar", isPower ? "Trụ cột 3: Bật Lò Xo Lô Gan Cực Sâu Đạt Ngưỡng Tới Hạn" : "Trụ cột 3: Nhịp Lặp Quán Tính Chuỗi Markov");
-        s3.put("recommendedNumbers", isPower ? List.of(40, 38, 52) : List.of(7, 41));
-        s3.put("roleBadge", isPower ? "Lô gan cực sâu" : "Số nóng / Quán tính");
-        s3.put("rationale", isPower ? "Khai thác điểm bùng nổ của các số gan sâu khi entropy tích lũy đạt đỉnh." : "Số duy trì động năng chuỗi Markov mạnh nhất.");
-        strategies.add(s3);
-
-        Map<String, Object> s4 = new HashMap<>();
-        s4.put("pillar", isPower ? "Trụ cột 4: Sóng Phản Xạ Cấp Số Cộng & Bẫy Lân Cận Biên ±1" : "Trụ cột 4: Bước Nhảy Parity Bậc 2 & Sóng Hài");
-        s4.put("recommendedNumbers", isPower ? List.of(2, 3, 15, 26) : List.of(25, 28, 35));
-        s4.put("roleBadge", isPower ? "Phản xạ cấp số cộng" : "Bước nhảy điều hòa");
-        s4.put("rationale", isPower ? "Tiếp nhận sóng phản xạ cùng các biến số lân cận ±1." : "Bước nhảy bảo toàn tính lẻ và sóng hài Fourier.");
-        strategies.add(s4);
-
-        Map<String, Object> s5 = new HashMap<>();
-        s5.put("pillar", isPower ? "Trụ cột 5: Chuyển Vị Banh Phụ Bám Biên & Bảo Hiểm Jackpot 2" : "Trụ cột 5: Hồi Quy Phân Vùng Hàng Chục");
-        s5.put("recommendedNumbers", isPower ? List.of(26, 40, 48) : List.of(15, 22, 42));
-        s5.put("roleBadge", isPower ? "Bảo hiểm Jackpot 2" : "Cân bằng đa phân vùng");
-        s5.put("rationale", isPower ? "Bảo hiểm Jackpot 2 cho kỳ Thứ Ba 20/10/2026." : "Dịch chuyển đối xứng và cân bằng Poisson.");
-        strategies.add(s5);
-        recMap.put("actionableStrategies", strategies);
-
+        String baseDate = records.isEmpty() ? null : records.get(0).getDrawDate().toString();
+        String baseFormatted = records.isEmpty() ? null : records.get(0).getDrawDate()
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        recMap.put("baseDrawDate", baseDate);
+        recMap.put("baseDrawDateFormatted", baseFormatted);
+        Map<String, Object> reconciliation = new HashMap<>();
+        reconciliation.put("baseDrawDate", baseDate);
+        reconciliation.put("officialWinningNumbers", records.isEmpty() ? Collections.emptyList() : records.get(0).getNumbers());
+        reconciliation.put("specialNumber", records.isEmpty() ? null : records.get(0).getSpecialNumber());
+        reconciliation.put("initialAiHitCount", null);
+        reconciliation.put("initialHitNumbers", Collections.emptyList());
+        reconciliation.put("upgradedAiCoverage", null);
+        reconciliation.put("upgradedNumbers", Collections.emptyList());
+        reconciliation.put("rootCauseSummary", "Latest stored draw. Evaluation requires predictions made before the draw.");
+        reconciliation.put("remedySummary", "Use walk-forward reconciliation to measure historical performance.");
+        recMap.put("megaDrawReconciliation", reconciliation);
+        recMap.put("actionableStrategies", List.of(
+                Map.of("pillar", "Primary ranking", "recommendedNumbers", pureNumbers, "roleBadge", "History", "rationale", "Calculated from the supplied draw history."),
+                Map.of("pillar", "Rank consensus", "recommendedNumbers", combinedNumbers, "roleBadge", "Ensemble", "rationale", "Equal contribution from both algorithm rankings.")));
         List<Map<String, Object>> goldenTickets = new ArrayList<>();
-        Map<String, Object> gt1 = new HashMap<>();
-        gt1.put("ticketIndex", 1);
-        gt1.put("title", isPower ? "Vé Khuyến Nghị #1 (Vé Hạt Nhân Hội Tụ Tuyệt Đối - Concentrated Core Ticket v2.1.0)" : "Vé Khuyến Nghị #1 (Điểm Vàng Biến Số Kỳ 21/10 - Đảo Vị & Sóng Hài)");
-        gt1.put("numbers", isPower ? List.of(2, 16, 21, 27, 38, 48) : List.of(6, 14, 21, 25, 33, 40));
-        gt1.put("specialNumber", isPower ? 40 : null);
-        gt1.put("composition", isPower ? "4 Chẵn / 2 Lẻ • Tổng = 152" : "3 Chẵn / 3 Lẻ • Tổng = 139");
-        gt1.put("strategyReason", isPower
-            ? "Vé hạt nhân tối ưu cho kỳ Thứ Ba 20/10/2026: Số lặp quán tính 16; Số lệch biên lân cận 02 (từ 01+1) và 38 (từ 37+1); Chuyển vị banh phụ ⭐48 từ kỳ 17/10; Hóa giải nén cụm dồn [10, 11, 12] sang dải 20s (21, 27). Banh phụ bảo hiểm Jackpot 2 ⭐40."
-            : "Dãy số dự đoán tối ưu cho ngày kế tiếp (Thứ Tư 21/10/2026): Số 06 (từ 05 + 1: bứt phá lệch biên phải), Số 14 (đảo vị bóng số 41), Số 21 (đảo vị bóng 12), Số 25 (từ 23 + 2: bước nhảy parity), Số 33 (từ 32 + 1: lệch biên), Số 40 (từ 41 - 1: hồi quy lệch biên trái).");
-        goldenTickets.add(gt1);
-
-        Map<String, Object> gt2 = new HashMap<>();
-        gt2.put("ticketIndex", 2);
-        gt2.put("title", isPower ? "Vé Khuyến Nghị #2 (Cụm Bẫy Lân Cận Biên ±1 & Sóng Di Cư Banh Phụ)" : "Vé Khuyến Nghị #2 (Lô Gan Bứt Phá & Quán Tính Lặp Kỳ 21/10)");
-        gt2.put("numbers", isPower ? List.of(9, 11, 13, 15, 36, 52) : List.of(7, 13, 22, 28, 35, 42));
-        gt2.put("specialNumber", isPower ? 48 : null);
-        gt2.put("composition", isPower ? "2 Chẵn / 4 Lẻ • Tổng = 136" : "3 Chẵn / 3 Lẻ • Tổng = 147");
-        gt2.put("strategyReason", isPower
-            ? "Hóa giải toàn diện bẫy lệch sát nút ±1 từ kết quả kỳ 17/10: Số 09 (từ 10-1), Số 13 (từ 12+1), Số 15 (từ 16-1), Số 36 (từ 37-1), kết hợp số lặp 11 và điểm rơi dải cao 52. Banh phụ bảo hiểm Jackpot 2 ⭐48 cho kỳ Thứ Ba 20/10/2026."
-            : "Tổ hợp biến số đa phân vùng cho ngày 21/10: Số 07 (duy trì quán tính lặp chuỗi Markov), Số 13 (từ 12 + 1: thoát bẫy tâm điểm), Số 22 (từ 23 - 1 & 32 - 10: đối xứng thập phân), Số 28 (bước nhảy sóng hài Fourier bậc 7 từ 21), Số 35 (bước nhảy parity từ 32 + 3), Số 42 (từ 41 + 1: bứt phá dải biên trên).");
-        goldenTickets.add(gt2);
-
-        Map<String, Object> gt3 = new HashMap<>();
-        gt3.put("ticketIndex", 3);
-        gt3.put("title", isPower ? "Vé Khuyến Nghị #3 (Cụm Đồng Dư Đuôi 0 & Điểm Rơi Poisson Cân Bằng)" : "Vé Khuyến Nghị #3 (Cân Bằng Đa Phân Vùng & Điểm Rơi Poisson Kỳ 21/10)");
-        gt3.put("numbers", isPower ? List.of(8, 14, 21, 31, 40, 50) : List.of(8, 15, 21, 24, 31, 42));
-        gt3.put("specialNumber", isPower ? 26 : null);
-        gt3.put("composition", isPower ? "4 Chẵn / 2 Lẻ • Tổng = 164" : "3 Chẵn / 3 Lẻ • Tổng = 141");
-        gt3.put("strategyReason", isPower
-            ? "Tiếp nhận sóng di cư từ kỳ Mega 16/10 (08, 14, 21, 31), kết hợp cặp đồng dư đuôi 0 dải cao {40, 50} và hồi quy lô gan. Banh phụ bảo hiểm Jackpot 2 ⭐26 cho kỳ Thứ Ba 20/10/2026."
-            : "Phối hợp nhịp độ ngày 21/10: Số 08 (từ 07 + 1: lệch biên), Số 15 (từ 05 + 10: dịch chuyển hàng chục), Số 21 (đảo vị từ 12), Số 24 (từ 23 + 1: lân cận), Số 31 (từ 32 - 1: bẫy lân cận trái), Số 42 (từ 41 + 1: đón đầu dải chẵn 40s).");
-        goldenTickets.add(gt3);
-
+        for (int i = 0; i < Math.min(3, generatedTickets.size()); i++) {
+            List<Integer> ticket = generatedTickets.get(i);
+            Map<String, Object> item = new HashMap<>();
+            item.put("ticketIndex", i + 1);
+            item.put("title", "History-based ticket #" + (i + 1));
+            item.put("numbers", ticket);
+            item.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, ticket, primaryRanking));
+            item.put("composition", PredictionSupport.composition(ticket));
+            item.put("strategyReason", "Generated from current ranked candidates and observed pair relationships.");
+            goldenTickets.add(item);
+        }
         recMap.put("goldenTicketsRecommendation", goldenTickets);
 
-        // Nạp danh sách biến số từ Database
         List<LotteryDeviationVariable> devVars = devVarRepo != null
             ? devVarRepo.findByCategoryOrderByCreatedAtDesc(category)
             : Collections.emptyList();
@@ -1316,14 +1151,18 @@ public class AnalyzeService {
         response.setTargetDrawDate((String) recMap.get("targetDrawDate"));
         response.setTargetDayName((String) recMap.get("targetDayName"));
         response.setTargetDrawDateFormatted((String) recMap.get("targetDrawDateFormatted"));
-        response.setBaseDrawDate(isPower ? "2026-10-17" : "2026-10-16");
-        response.setBaseDrawDateFormatted(isPower ? "17/10/2026" : "16/10/2026");
+        response.setBaseDrawDate(baseDate);
+        response.setBaseDrawDateFormatted(baseFormatted);
         response.setIsTargetDrawToday(isTargetToday);
 
         // TÍNH TOÁN PHÂN TÍCH BẪY LỆCH 1 NÚT (NEIGHBOR DRIFT ANALYSIS)
-        List<LotteryNumber> powerRecordsAll = new ArrayList<>(repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("POWER"));
+        List<LotteryNumber> powerRecordsAll = new ArrayList<>(customRecords != null
+                ? records.stream().filter(r -> "POWER".equals(r.getCategory())).collect(Collectors.toList())
+                : repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("POWER"));
         Collections.reverse(powerRecordsAll);
-        List<LotteryNumber> megaRecordsAll = new ArrayList<>(repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("MEGA"));
+        List<LotteryNumber> megaRecordsAll = new ArrayList<>(customRecords != null
+                ? records.stream().filter(r -> "MEGA".equals(r.getCategory())).collect(Collectors.toList())
+                : repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("MEGA"));
         Collections.reverse(megaRecordsAll);
 
         int totalDriftCount = 0;
@@ -1391,13 +1230,13 @@ public class AnalyzeService {
 
         double historicalRatioPercent = driftEvaluated > 0
                 ? Math.round(((double) totalDriftCount / driftEvaluated) * 1000.0) / 10.0
-                : 44.2;
+                : 0;
         double powerDriftRatioPercent = powerRecordsAll.size() > 1
                 ? Math.round(((double) powerDriftCount / (powerRecordsAll.size() - 1)) * 1000.0) / 10.0
-                : 39.1;
+                : 0;
         double megaDriftRatioPercent = megaRecordsAll.size() > 1
                 ? Math.round(((double) megaDriftCount / (megaRecordsAll.size() - 1)) * 1000.0) / 10.0
-                : 48.3;
+                : 0;
 
         List<Integer> latestDrawNums = (totalDraws > 0 && chronologicalRecords.get(totalDraws - 1).getNumbers() != null)
                 ? chronologicalRecords.get(totalDraws - 1).getNumbers()
@@ -1470,16 +1309,14 @@ public class AnalyzeService {
         List<Integer> hedgingTicketNumbers = new ArrayList<>(hedgedSet).stream().limit(6).sorted().collect(Collectors.toList());
 
         Map<String, Object> neighborDriftAnalysis = new HashMap<>();
-        neighborDriftAnalysis.put("isSimilarCycleTo22Oct", true);
+        neighborDriftAnalysis.put("isSimilarCycleTo22Oct", false);
         neighborDriftAnalysis.put("totalDriftDrawsCount", totalDriftCount);
         neighborDriftAnalysis.put("severeDriftDrawsCount", severeDriftCount);
         neighborDriftAnalysis.put("historicalRatioPercent", historicalRatioPercent);
         neighborDriftAnalysis.put("powerDriftRatioPercent", powerDriftRatioPercent);
         neighborDriftAnalysis.put("megaDriftRatioPercent", megaDriftRatioPercent);
         neighborDriftAnalysis.put("keyHistoricalDraws", keyHistoricalDraws.stream().limit(5).collect(Collectors.toList()));
-        neighborDriftAnalysis.put("cycleDiagnosis", String.format(
-                "Chu kỳ dao động tương tự kỳ Power 22/10/2026: Lồng cầu có mật độ lệch sát nút ±1 lên đến %.1f%% các kỳ trong CSDL (đã ghi nhận %d kỳ lệch nhiều bóng, đặc biệt các kỳ 17/10/2026, 07/10/2026, 08/09/2026, 26/08/2026 và 09/08/2026 lệch tới 3-4 bóng). Hệ thống đã tự động kích hoạt ma trận bọc lót bảo hiểm giải thưởng.",
-                historicalRatioPercent, totalDriftCount));
+        neighborDriftAnalysis.put("cycleDiagnosis", totalDriftCount + "/" + driftEvaluated + " stored transitions contain at least two neighbor shifts.");
         neighborDriftAnalysis.put("riskCandidates", driftRiskCandidates);
         neighborDriftAnalysis.put("hedgingTicketNumbers", hedgingTicketNumbers);
         neighborDriftAnalysis.put("hedgingRationale", "Dãy vé bọc lót hóa giải bẫy lệch 1 nút: Áp dụng chuyển dịch sai phân Δ = ±1 cho các bóng chịu áp lực nén cao nhất, bảo toàn tối đa xác suất trúng giải Jackpot và tránh trượt sát nút đáng tiếc.");
@@ -1664,7 +1501,7 @@ public class AnalyzeService {
             Optional<AlgorithmHyperparameter> catLatest = hyperparameterRepo.findFirstByCategoryOrderByCreatedAtDesc(category.toUpperCase());
             if (catLatest.isPresent()) return catLatest.get();
         }
-        return hyperparameterRepo.findFirstByOrderByCreatedAtDesc().orElse(null);
+        return hyperparameterRepo.findFirstByCategoryOrderByCreatedAtDesc("ALL").orElse(null);
     }
 
     public AlgorithmHyperparameter saveHyperparameter(AlgorithmHyperparameter hyperparameter) {
@@ -1717,20 +1554,10 @@ public class AnalyzeService {
     private double parseDoubleFromJson(String json, String key, double defaultVal) {
         if (json == null || json.trim().isEmpty()) return defaultVal;
         try {
-            int idx = json.indexOf("\"" + key + "\"");
-            if (idx == -1) idx = json.indexOf("'" + key + "'");
-            if (idx != -1) {
-                int colonIdx = json.indexOf(":", idx);
-                if (colonIdx != -1) {
-                    int commaIdx = json.indexOf(",", colonIdx);
-                    int braceIdx = json.indexOf("}", colonIdx);
-                    int endIdx = json.length();
-                    if (commaIdx != -1 && commaIdx < endIdx) endIdx = commaIdx;
-                    if (braceIdx != -1 && braceIdx < endIdx) endIdx = braceIdx;
-                    String valStr = json.substring(colonIdx + 1, endIdx).replace("\"", "").replace("'", "").trim();
-                    return Double.parseDouble(valStr);
-                }
-            }
+            com.fasterxml.jackson.databind.JsonNode root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
+            com.fasterxml.jackson.databind.JsonNode value = root.has("recommendedAdjustments")
+                    ? root.path("recommendedAdjustments").path(key) : root.path(key);
+            if (value.isNumber() && Double.isFinite(value.doubleValue())) return value.doubleValue();
         } catch (Exception ignored) {}
         return defaultVal;
     }
@@ -1883,7 +1710,7 @@ public class AnalyzeService {
                 .filter(r -> r.getDrawDate() != null && r.getDrawDate().isBefore(drawDate))
                 .collect(Collectors.toList());
 
-            List<LotteryNumber> trainingRecords = priorRecords.isEmpty() ? catRecords : priorRecords;
+            List<LotteryNumber> trainingRecords = priorRecords;
             PredictionResponseDto aiPred;
             try {
                 aiPred = analyzeAndPredict(category, algorithm, trainingRecords);
@@ -1891,14 +1718,17 @@ public class AnalyzeService {
                 aiPred = new PredictionResponseDto();
                 aiPred.setAlgorithm(algorithm);
                 aiPred.setAlgorithmName("Thuật toán học máy AI");
-                aiPred.setNumbers(category.equals("POWER") ? List.of(2, 5, 12, 15, 21, 38) : List.of(5, 12, 18, 24, 31, 39));
+                aiPred.setStatus("ERROR");
+                aiPred.setMessage(e.getMessage());
+                aiPred.setNumbers(Collections.emptyList());
                 aiPred.setTickets(Collections.emptyList());
             }
 
             List<Integer> predNums = (aiPred != null && aiPred.getNumbers() != null)
                 ? aiPred.getNumbers().stream().filter(Objects::nonNull).collect(Collectors.toList())
-                : (category.equals("POWER") ? List.of(2, 5, 12, 15, 21, 38) : List.of(5, 12, 18, 24, 31, 39));
-            List<Integer> predicted6 = predNums.stream().limit(6).sorted().collect(Collectors.toList());
+                : Collections.emptyList();
+            List<Integer> predicted6 = aiPred.getPrimaryAlgorithmResult() != null
+                    ? (List<Integer>) aiPred.getPrimaryAlgorithmResult().get("numbers") : Collections.emptyList();
             List<Integer> top10 = predNums.stream().limit(10).collect(Collectors.toList());
             Integer aiSpecial = (aiPred != null) ? aiPred.getSpecialNumber() : null;
 
@@ -2598,6 +2428,95 @@ public class AnalyzeService {
         return devVarRepo.save(devVar);
     }
 
+    public List<Map<String, Object>> getAlgorithmCatalog() {
+        try (java.io.InputStream input = new org.springframework.core.io.ClassPathResource("data/algorithm_catalog.json").getInputStream()) {
+            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(input,
+                    new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, Object>>>() {});
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Cannot load algorithm catalog", e);
+        }
+    }
+
+    public Map<String, Object> getRelationshipLearning(String categoryInput, String date) {
+        String category = "POWER".equalsIgnoreCase(categoryInput) ? "POWER" : "MEGA";
+        List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        if (date != null && !date.isBlank()) {
+            java.time.LocalDate requested = java.time.LocalDate.parse(date);
+            if (records.stream().noneMatch(r -> requested.equals(r.getDrawDate()))) {
+                Map<String, Object> missing = new HashMap<>();
+                missing.put("status", "DRAW_NOT_FOUND"); missing.put("requestedDate", date);
+                missing.put("availableAsOfDate", records.stream().map(LotteryNumber::getDrawDate).filter(Objects::nonNull).max(Comparator.naturalOrder()).map(Object::toString).orElse(null));
+                missing.put("verifiedWinningTickets", Collections.emptyList());
+                return missing;
+            }
+            records = records.stream().filter(r -> r.getDrawDate() != null && !r.getDrawDate().isAfter(requested)).collect(Collectors.toList());
+        }
+        PredictionResponseDto prediction = analyzeAndPredict(category, "temporal_learning", records);
+        Map<String, Object> analysis = new HashMap<>(prediction.getRelationshipLearning() == null
+                ? TemporalRelationshipModel.fit(records, category).analysis() : prediction.getRelationshipLearning());
+        analysis.put("status", records.isEmpty() ? "NO_HISTORY" : "SUCCESS");
+        List<Map<String, Object>> tickets = verifiedWinningTickets(records, category);
+        if (date != null && !date.isBlank()) tickets = tickets.stream().filter(t -> date.equals(t.get("drawDate"))).collect(Collectors.toList());
+        analysis.put("verifiedWinningTickets", tickets);
+        return analysis;
+    }
+
+    private List<Map<String, Object>> verifiedWinningTickets(List<LotteryNumber> history, String category) {
+        List<Map<String, Object>> verified = new ArrayList<>();
+        int max = "POWER".equals(category) ? 55 : 45;
+        for (UserTicket ticket : userTicketRepo.findAllByOrderByCheckedAtDesc()) {
+            if (!category.equals(ticket.getCategory()) || ticket.getNumbers() == null || ticket.getNumbers().size() != 6
+                    || new HashSet<>(ticket.getNumbers()).size() != 6
+                    || ticket.getNumbers().stream().anyMatch(n -> n == null || n < 1 || n > max)) continue;
+            LotteryNumber draw = history.stream().filter(r -> r.getDrawDate() != null && r.getDrawDate().toString().equals(ticket.getDrawDate())
+                    && r.getNumbers() != null && r.getNumbers().size() == 6).findFirst().orElse(null);
+            if (draw == null) continue;
+            List<Integer> matched = ticket.getNumbers().stream().filter(draw.getNumbers()::contains).sorted().collect(Collectors.toList());
+            if (matched.size() < 3) continue;
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", ticket.getId()); item.put("drawDate", ticket.getDrawDate());
+            item.put("numbers", ticket.getNumbers()); item.put("matchedNumbers", matched); item.put("matchedCount", matched.size());
+            List<Map<String, Object>> links = new ArrayList<>();
+            for (LotteryNumber previous : history) {
+                if (previous.getDrawDate() == null || !previous.getDrawDate().isBefore(draw.getDrawDate()) || previous.getNumbers() == null) continue;
+                List<Integer> shared = matched.stream().filter(previous.getNumbers()::contains).collect(Collectors.toList());
+                if (shared.size() < 2) continue;
+                Map<String, Object> link = new HashMap<>();
+                link.put("drawDate", previous.getDrawDate().toString()); link.put("sharedNumbers", shared);
+                link.put("daysApart", java.time.temporal.ChronoUnit.DAYS.between(previous.getDrawDate(), draw.getDrawDate()));
+                links.add(link);
+            }
+            links.sort(Comparator.<Map<String, Object>>comparingInt(m -> ((List<?>) m.get("sharedNumbers")).size()).reversed()
+                    .thenComparing(Comparator.comparing((Map<String, Object> m) -> (String) m.get("drawDate")).reversed()));
+            item.put("historicalLinks", links.stream().limit(5).collect(Collectors.toList()));
+            item.put("evidence", "Recomputed against stored official draw; ticket entry time does not prove a forecast was saved before the draw.");
+            verified.add(item);
+        }
+        verified.sort(Comparator.<Map<String, Object>, String>comparing(m -> (String) m.get("drawDate")).reversed()
+                .thenComparing(Comparator.comparingInt((Map<String, Object> m) -> (int) m.get("matchedCount")).reversed()));
+        return verified.stream().limit(10).collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> predictionDetails(List<Integer> numbers, List<ScoredNumber> candidates) {
+        Map<Integer, ScoredNumber> byNumber = candidates.stream()
+                .collect(Collectors.toMap(c -> c.number, c -> c));
+        List<Map<String, Object>> details = new ArrayList<>();
+        for (int number : numbers) {
+            ScoredNumber candidate = byNumber.get(number);
+            details.add(Map.of("number", number,
+                    "probabilityPercent", Math.round(candidate.probability * 1000.0) / 10.0,
+                    "frequency", candidate.frequency, "drawGap", candidate.drawGap,
+                    "scoreType", "heuristic", "tag", "History-based score"));
+        }
+        return details;
+    }
+
+    private double predictionScore(int number, List<ScoredNumber> first, List<ScoredNumber> second) {
+        double a = first.stream().filter(c -> c.number == number).findFirst().orElseThrow().probability;
+        double b = second.stream().filter(c -> c.number == number).findFirst().orElseThrow().probability;
+        return Math.round((a + b) * 500.0) / 10.0;
+    }
+
     private List<ScoredNumber> scoreCandidatesForAlgorithm(
             String alg,
             String category,
@@ -2623,25 +2542,19 @@ public class AnalyzeService {
             double[] empiricalStdGap,
             double[] copulaCentrality,
             double maxCopula,
-            List<Integer> drawT1
+            List<Integer> drawT1,
+            TemporalRelationshipModel.Result learned
     ) {
         List<ScoredNumber> list = new ArrayList<>();
         boolean isBayes = (alg != null && (alg.toLowerCase().contains("bayes") || alg.toLowerCase().contains("graph") || alg.toLowerCase().contains("begn")));
         boolean isStack = (alg != null && (alg.toLowerCase().contains("deep") || alg.toLowerCase().contains("stack") || alg.equalsIgnoreCase("dse_copula")));
 
+        double weightedTotal = Arrays.stream(mainMomentum).sum() / 6.0;
         for (int i = 1; i <= maxLimit; i++) {
             double z;
             if (isBayes && totalDraws > 0) {
-                double weightedSuccesses = 0.0;
-                double weightedFailures = 0.0;
-                for (int t = 0; t < totalDraws; t++) {
-                    double w = Math.exp(-(double)(totalDraws - 1 - t) / 8.5);
-                    if (chronologicalRecords.get(t).getNumbers() != null && chronologicalRecords.get(t).getNumbers().contains(i)) {
-                        weightedSuccesses += w;
-                    } else {
-                        weightedFailures += w;
-                    }
-                }
+                double weightedSuccesses = mainMomentum[i];
+                double weightedFailures = Math.max(0.0, weightedTotal - weightedSuccesses);
                 double bayesMean = (1.0 + weightedSuccesses) / (1.0 + ((maxLimit - 6.0) / 6.0) + weightedSuccesses + weightedFailures);
 
                 int coOccurSum = 0;
@@ -2755,10 +2668,10 @@ public class AnalyzeService {
                     (normFreq * 0.6) +
                     specMigrationBonus - 1.15;
             } else {
-                z = Math.sin(i * 0.55) * 0.6 + Math.cos(i * 0.35) * 0.4;
+                z = Math.log(6.0 / (maxLimit - 6.0));
             }
 
-            double probability = 1.0 / (1.0 + Math.exp(-z));
+            double probability = "temporal_learning".equalsIgnoreCase(alg) ? learned.scores()[i] : 1.0 / (1.0 + Math.exp(-z));
             list.add(new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]));
         }
 

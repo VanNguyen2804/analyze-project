@@ -1,0 +1,378 @@
+{
+  "source": "User-supplied draw and played tickets; historical results from repository data.",
+  "draw": {
+    "id": 56,
+    "category": "POWER",
+    "drawDate": "2026-10-24",
+    "numbers": [
+      6,
+      7,
+      18,
+      41,
+      44,
+      50
+    ],
+    "specialNumber": 53,
+    "createdAt": "2026-10-25T07:07:04.080Z",
+    "note": "Kết quả do người dùng cung cấp ngày 25/10/2026; chưa đối chiếu nguồn độc lập."
+  },
+  "ticketChecks": [
+    {
+      "numbers": [
+        6,
+        7,
+        11,
+        13,
+        18,
+        25
+      ],
+      "matchedNumbers": [
+        6,
+        7,
+        18
+      ]
+    },
+    {
+      "numbers": [
+        8,
+        10,
+        14,
+        17,
+        25,
+        48
+      ],
+      "matchedNumbers": []
+    },
+    {
+      "numbers": [
+        7,
+        13,
+        22,
+        24,
+        45,
+        52
+      ],
+      "matchedNumbers": [
+        7
+      ]
+    }
+  ],
+  "verifiedWinningTickets": [
+    {
+      "id": 31,
+      "drawDate": "2026-10-24",
+      "numbers": [
+        6,
+        7,
+        11,
+        13,
+        18,
+        25
+      ],
+      "matchedNumbers": [
+        6,
+        7,
+        18
+      ],
+      "matchedCount": 3,
+      "historicalLinks": [
+        {
+          "drawDate": "2026-10-06",
+          "sharedNumbers": [
+            6,
+            7,
+            18
+          ],
+          "daysApart": 18
+        },
+        {
+          "drawDate": "2026-10-03",
+          "sharedNumbers": [
+            7,
+            18
+          ],
+          "daysApart": 21
+        },
+        {
+          "drawDate": "2026-09-19",
+          "sharedNumbers": [
+            7,
+            18
+          ],
+          "daysApart": 35
+        },
+        {
+          "drawDate": "2026-08-25",
+          "sharedNumbers": [
+            7,
+            18
+          ],
+          "daysApart": 60
+        }
+      ]
+    }
+  ],
+  "learning": {
+    "modelVersion": "temporal-links-v1",
+    "category": "POWER",
+    "asOfDate": "2026-10-24",
+    "trainingDraws": 25,
+    "forecastPolicy": "frequency_fallback",
+    "skippedGapTransitions": 4,
+    "parameters": {
+      "priorStrength": 9.166666666666666,
+      "learningRate": 0.5,
+      "minHistory": 5
+    },
+    "patterns": [
+      {
+        "id": "frequency",
+        "name": "Tần suất nền",
+        "weightPercent": 7.984756320274494,
+        "support": 25,
+        "occurrences": null
+      },
+      {
+        "id": "lag1",
+        "name": "Chuyển tiếp một kỳ",
+        "weightPercent": 4.90160466931781,
+        "support": 20,
+        "occurrences": null
+      },
+      {
+        "id": "lag2",
+        "name": "Chuyển tiếp hai kỳ",
+        "weightPercent": 6.001545714512833,
+        "support": 17,
+        "occurrences": null
+      },
+      {
+        "id": "repeat",
+        "name": "Lặp số",
+        "weightPercent": 22.910790449818943,
+        "support": 120,
+        "occurrences": 16
+      },
+      {
+        "id": "neighbor",
+        "name": "Lân cận ±1",
+        "weightPercent": 23.765256547192067,
+        "support": 220,
+        "occurrences": 27
+      },
+      {
+        "id": "same_tail",
+        "name": "Cùng đuôi",
+        "weightPercent": 22.411343994423554,
+        "support": 463,
+        "occurrences": 53
+      },
+      {
+        "id": "special_to_main",
+        "name": "Số phụ sang số chính",
+        "weightPercent": 12.024702304460304,
+        "support": 8,
+        "occurrences": 2
+      }
+    ],
+    "topTransitions": [
+      {
+        "fromNumber": 7,
+        "toNumber": 11,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 33.52886693423897
+      },
+      {
+        "fromNumber": 18,
+        "toNumber": 11,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 33.52886693423897
+      },
+      {
+        "fromNumber": 18,
+        "toNumber": 18,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 31.491200987959246
+      },
+      {
+        "fromNumber": 6,
+        "toNumber": 11,
+        "support": 2,
+        "occurrences": 1,
+        "conditionalPercent": 30.57881325081908
+      },
+      {
+        "fromNumber": 50,
+        "toNumber": 11,
+        "support": 2,
+        "occurrences": 1,
+        "conditionalPercent": 30.57881325081908
+      },
+      {
+        "fromNumber": 18,
+        "toNumber": 7,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 29.453535041679533
+      },
+      {
+        "fromNumber": 6,
+        "toNumber": 18,
+        "support": 2,
+        "occurrences": 1,
+        "conditionalPercent": 28.176192209683293
+      },
+      {
+        "fromNumber": 7,
+        "toNumber": 1,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 27.415869095399817
+      },
+      {
+        "fromNumber": 18,
+        "toNumber": 1,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 27.415869095399817
+      },
+      {
+        "fromNumber": 6,
+        "toNumber": 7,
+        "support": 2,
+        "occurrences": 1,
+        "conditionalPercent": 25.77357116854751
+      },
+      {
+        "fromNumber": 7,
+        "toNumber": 24,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 25.378203149120097
+      },
+      {
+        "fromNumber": 7,
+        "toNumber": 27,
+        "support": 4,
+        "occurrences": 2,
+        "conditionalPercent": 25.378203149120097
+      }
+    ],
+    "predictedNumbers": [
+      1,
+      2,
+      7,
+      11,
+      18,
+      25
+    ],
+    "evaluation": {
+      "method": "prequential",
+      "evaluatedDraws": 16,
+      "minHistory": 5,
+      "averageMatched": 0.9375,
+      "baselineAverageMatched": 1,
+      "candidateAverageMatched": 0.75,
+      "baselineFallbackDraws": 13,
+      "hit3RatePercent": 0,
+      "brierScore": 0.09939824346795137,
+      "baselineBrierScore": 0.09978795045889631
+    }
+  },
+  "targetDrawDate": "2026-10-27",
+  "limitation": "25 stored POWER draws; four missing-draw transitions are excluded. A repeated group is descriptive, not proof of predictability. Forecast policy may use the frequency baseline when the learned mixture has not matched more numbers on past evaluations.",
+  "runtimeValidation": {
+    "source": "Temporary PostgreSQL initialized by Flyway V1 through V10; not a production deployment",
+    "trainingDraws": 22,
+    "forecastPolicy": "frequency_fallback",
+    "evaluation": {
+      "method": "prequential",
+      "evaluatedDraws": 13,
+      "minHistory": 5,
+      "averageMatched": 0.9230769230769231,
+      "candidateAverageMatched": 0.8461538461538461,
+      "baselineFallbackDraws": 10,
+      "baselineAverageMatched": 1,
+      "hit3RatePercent": 0,
+      "brierScore": 0.09882905378911036,
+      "baselineBrierScore": 0.09930869316258106
+    },
+    "predictedNumbers": [
+      1,
+      5,
+      7,
+      11,
+      18,
+      25
+    ],
+    "targetDrawDate": "2026-10-27",
+    "verifiedWinningTickets": [
+      {
+        "evidence": "Recomputed against stored official draw; ticket entry time does not prove a forecast was saved before the draw.",
+        "numbers": [
+          6,
+          7,
+          11,
+          13,
+          18,
+          25
+        ],
+        "matchedCount": 3,
+        "id": 28,
+        "matchedNumbers": [
+          6,
+          7,
+          18
+        ],
+        "drawDate": "2026-10-24",
+        "historicalLinks": [
+          {
+            "sharedNumbers": [
+              6,
+              7,
+              18
+            ],
+            "daysApart": 18,
+            "drawDate": "2026-10-06"
+          },
+          {
+            "sharedNumbers": [
+              7,
+              18
+            ],
+            "daysApart": 21,
+            "drawDate": "2026-10-03"
+          },
+          {
+            "sharedNumbers": [
+              7,
+              18
+            ],
+            "daysApart": 35,
+            "drawDate": "2026-09-19"
+          },
+          {
+            "sharedNumbers": [
+              7,
+              18
+            ],
+            "daysApart": 60,
+            "drawDate": "2026-08-25"
+          }
+        ]
+      }
+    ]
+  },
+  "historyDifferences": {
+    "missingInMigrationSeeds": [
+      "2026-10-17",
+      "2026-10-15",
+      "2026-10-13"
+    ],
+    "differentNumbersOnSameDate": [],
+    "explanation": "Existing seed histories differ. Existing stored historical results were not silently overwritten; metrics and predictions are specific to the history used."
+  }
+}

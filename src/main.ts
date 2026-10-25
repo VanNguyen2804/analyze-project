@@ -98,16 +98,14 @@ let filterCategory: string = 'POWER';
 
 // Prediction State
 let predictionCategory: 'MEGA' | 'POWER' = 'POWER';
-let predictionAlgorithm: string = 'bayesian_graph';
-const algorithmList = [
-  { id: 'bayesian_graph', rank: 1, name: 'Mạng Đồ Thị Bayes AI (BEGN)', icon: '🔮', accuracy: 94.8, hitRate: '86.2%' },
-  { id: 'deep_stacking', rank: 2, name: 'Xếp Chồng AI & Copula (DSE-Copula)', icon: '⚡', accuracy: 92.6, hitRate: '83.5%' },
-  { id: 'xgboost', rank: 3, name: 'AI XGBoost + Wheeling', icon: '🧠', accuracy: 89.4, hitRate: '78.9%' },
-  { id: 'poisson_gap', rank: 4, name: 'Poisson & Lô Gan Hồi Quy', icon: '📊', accuracy: 86.7, hitRate: '74.6%' },
-  { id: 'delta_wheeling', rank: 5, name: 'Delta & Wheeling System', icon: '🛡️', accuracy: 83.1, hitRate: '71.2%' },
-  { id: 'montecarlo', rank: 6, name: 'Monte Carlo 100K Lồng Cầu', icon: '🎲', accuracy: 80.5, hitRate: '68.0%' },
-  { id: 'markov', rank: 7, name: 'Chuỗi Chuyển Dịch Markov', icon: '🔗', accuracy: 76.2, hitRate: '62.5%' }
-];
+let predictionAlgorithm: string = 'temporal_learning';
+let algorithmList: Array<{id: string; name: string; icon: string}> = [];
+async function loadAlgorithmCatalog() {
+  const response = await fetch('/api/analyze/algorithms');
+  if (!response.ok) return;
+  algorithmList = await response.json();
+  render();
+}
 let predictedNumbers: number[] = [];
 let predictedSpecialNumber: number | null = null;
 let predictionResultData: PredictionResponse | null = null;
@@ -1479,10 +1477,10 @@ function renderPredictionView(): string {
           <div class="p-3 mt-3 rounded-4 bg-light border border-2 border-primary-subtle shadow-xs">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
               <label for="select-alg-dropdown" class="form-label small fw-bold text-dark d-flex align-items-center gap-2 mb-0">
-                <span class="fs-5">📊</span> CHỌN THUẬT TOÁN DỰ ĐOÁN (ĐÃ SẮP XẾP TỪ TOP 1 ĐẾN TOP 7):
+                <span class="fs-5">📊</span> CHỌN THUẬT TOÁN DỰ ĐOÁN:
               </label>
               <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 small">
-                🏆 Mặc định: Thuật toán tốt nhất (Top 1)
+                Học liên kết từ dữ liệu lịch sử
               </span>
             </div>
             <div class="input-group input-group-lg">
@@ -1490,7 +1488,7 @@ function renderPredictionView(): string {
               <select id="select-alg-dropdown" class="form-select form-select-lg fw-bold border-primary shadow-xs">
                 ${algorithmList.map(a => `
                   <option value="${a.id}" ${predictionAlgorithm === a.id ? 'selected' : ''}>
-                    ${a.icon} Top ${a.rank}: ${a.name} — Độ chuẩn xác ${a.accuracy}% (Trúng ≥3 số: ${a.hitRate}) ${a.rank === 1 ? '⭐️ [Mặc định tốt nhất]' : ''}
+                    ${a.icon} ${a.name}
                   </option>
                 `).join('')}
               </select>
@@ -1524,7 +1522,7 @@ function renderPredictionView(): string {
               </div>
             </div>
             <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold shadow-xs">
-              🎯 Độ Chuẩn Xác: ${predictionResultData.pureAlgorithmTicket?.confidence || 94.8}%
+              Điểm xếp hạng: ${predictionResultData.pureAlgorithmTicket?.confidence ?? 'N/A'}/100
             </span>
           </div>
 
@@ -1603,7 +1601,7 @@ function renderPredictionView(): string {
 
               <div class="d-flex align-items-center gap-2 flex-wrap p-2 rounded-3 bg-white border mb-3">
                 <span class="small fw-bold text-dark me-2">6 Banh Mở Thưởng:</span>
-                ${(predictionResultData.recommendations?.megaDrawReconciliation?.officialWinningNumbers || [10, 14, 36, 37, 41, 43]).map((n: number) => `
+                ${(predictionResultData.recommendations?.megaDrawReconciliation?.officialWinningNumbers || []).map((n: number) => `
                   <div class="ball ball-sm ${n === 10 ? 'bg-danger text-white border border-3 border-danger' : 'bg-danger text-white'} rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 38px; height: 38px; font-size: 0.95rem;">
                     ${n < 10 ? '0' + n : n}
                   </div>
@@ -1711,10 +1709,10 @@ function renderPredictionView(): string {
                   ĐỀ XUẤT TỐI ƯU &bull; ${catName.toUpperCase()}
                 </span>
                 <span class="badge bg-success text-white px-3 py-1 mb-1 ms-1">
-                  🗓️ Kỳ Dự Đoán Kế Tiếp: ${predictionResultData.recommendations?.targetDayName || (isPower ? 'Thứ Ba' : 'Thứ Tư')} ${predictionResultData.recommendations?.targetDrawDateFormatted || (isPower ? '20/10/2026' : '21/10/2026')}
+                  🗓️ Kỳ Dự Đoán Kế Tiếp: ${predictionResultData.recommendations?.targetDayName || (isPower ? 'Thứ Ba' : 'Thứ Tư')} ${predictionResultData.recommendations?.targetDrawDateFormatted || predictionResultData.targetDrawDate || ''}
                 </span>
                 <h3 class="h4 fw-bold text-dark mb-0">
-                  Dãy số được AI đề xuất cho ${catName} (Kỳ ${predictionResultData.recommendations?.targetDayName || (isPower ? 'Thứ Ba' : 'Thứ Tư')} ${predictionResultData.recommendations?.targetDrawDateFormatted || (isPower ? '20/10/2026' : '21/10/2026')})
+                  Dãy số được AI đề xuất cho ${catName} (Kỳ ${predictionResultData.recommendations?.targetDayName || (isPower ? 'Thứ Ba' : 'Thứ Tư')} ${predictionResultData.recommendations?.targetDrawDateFormatted || predictionResultData.targetDrawDate || ''})
                 </h3>
               </div>
 
@@ -2365,6 +2363,7 @@ function attachEventListeners(): void {
 }
 
 // Initial bootstrap
+loadAlgorithmCatalog().catch(() => {});
 fetchSavedRecords();
 loadCrossGameComparison();
 runPrediction();

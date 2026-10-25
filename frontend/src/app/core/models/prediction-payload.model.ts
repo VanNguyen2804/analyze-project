@@ -127,7 +127,7 @@ export interface AlgorithmResultItem {
   badgeClass?: string;
   rankBadge?: string;
   icon?: string;
-  accuracyScore?: number;
+  accuracyScore?: number | null;
   hitRate?: string;
   numbers: number[];
   specialNumber?: number;
@@ -146,6 +146,7 @@ export interface AlgorithmResultItem {
 }
 
 export interface PredictionPayload {
+  relationshipLearning?: RelationshipLearning;
   status: string;
   message?: string;
   category?: string;
@@ -193,6 +194,29 @@ export interface PredictionPayload {
   neighborDriftAnalysis?: NeighborDriftAnalysis;
   commonPatternsAnalysis?: CommonPatternsAnalysis;
   realityVsAiAnalysis?: any;
+}
+
+export interface RelationshipLearning {
+  modelVersion: string;
+  category: string;
+  asOfDate: string | null;
+  trainingDraws: number;
+  forecastPolicy: 'frequency_fallback' | 'learned_mixture';
+  skippedGapTransitions: number;
+  predictedNumbers: number[];
+  patterns: Array<{ id: string; name: string; weightPercent: number; support: number; occurrences: number | null }>;
+  topTransitions: Array<{ fromNumber: number; toNumber: number; support: number; occurrences: number; conditionalPercent: number }>;
+  verifiedWinningTickets?: Array<{ id?: number; drawDate: string; numbers: number[]; matchedNumbers: number[]; matchedCount: number;
+    historicalLinks?: Array<{ drawDate: string; sharedNumbers: number[]; daysApart: number }> }>;
+  evaluation: {
+    method: string;
+    evaluatedDraws: number;
+    averageMatched: number | null;
+    baselineAverageMatched: number | null;
+    hit3RatePercent: number | null;
+    brierScore: number | null;
+    baselineBrierScore: number | null;
+  };
 }
 
 export interface CommonPatternDetail {

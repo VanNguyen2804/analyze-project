@@ -28,6 +28,18 @@ public class AnalyzeController {
         this.analyzeService = analyzeService;
     }
 
+    @GetMapping("/algorithms")
+    public List<Map<String, Object>> algorithms() {
+        return analyzeService.getAlgorithmCatalog();
+    }
+
+    @GetMapping("/relationship-learning")
+    public ResponseEntity<?> relationshipLearning(@RequestParam(defaultValue = "POWER") String category,
+            @RequestParam(required = false) String date) {
+        Map<String, Object> result = analyzeService.getRelationshipLearning(category, date);
+        return ResponseEntity.status("DRAW_NOT_FOUND".equals(result.get("status")) ? 404 : 200).body(result);
+    }
+
     /**
      * ĐỐI SOÁT & KIỂM THỬ CÁC KỲ QUAY TRƯỚC (WALK-FORWARD BACKTESTING)
      * Endpoint: /api/analyze/reconcile-5-draws HOẶC /analyze/reconcile-5-draws
@@ -51,7 +63,7 @@ public class AnalyzeController {
     @RequestMapping(value = "/predict", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<PredictionResponseDto> predictNumbers(
             @RequestParam(required = false, defaultValue = "MEGA") String category,
-            @RequestParam(required = false, defaultValue = "bayesian_graph") String algorithm,
+            @RequestParam(required = false, defaultValue = "temporal_learning") String algorithm,
             @RequestParam(required = false) String algorithm2) {
         PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm, algorithm2);
         return ResponseEntity.ok(result);

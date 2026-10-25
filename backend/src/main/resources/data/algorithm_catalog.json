@@ -1,0 +1,29 @@
+[
+  {
+    "id": "temporal_learning",
+    "name": "Học liên kết giữa các kỳ",
+    "icon": "🔗",
+    "rankBadge": "Trọng số học từ lịch sử",
+    "formula": "Online expert weighting + smoothed transitions",
+    "description": "Học trọng số tần suất, chuyển tiếp một/hai kỳ, lặp số, lân cận, cùng đuôi và số phụ từ các kỳ đã có kết quả. Đánh giá mỗi dự đoán trước khi cập nhật bằng kết quả tiếp theo.",
+    "highlight": "Xem số mẫu và kết quả kiểm tra theo thời gian trong phần học liên kết."
+  },
+  {
+    "id": "bayesian_graph",
+    "name": "Bayes và liên kết cặp số",
+    "icon": "🔮",
+    "rankBadge": "Heuristic",
+    "formula": "Weighted Bayesian frequency + pair relationships",
+    "description": "Xếp hạng heuristic dựa trên tần suất có suy giảm theo thời gian và liên kết cặp số.",
+    "highlight": "Điểm xếp hạng chưa phải xác suất trúng đã hiệu chuẩn."
+  },
+  {
+    "id": "deep_stacking",
+    "name": "Tổ hợp Copula và độ trễ",
+    "icon": "⚡",
+    "rankBadge": "Heuristic",
+    "formula": "Frequency + Jaccard + gap features",
+    "description": "Kết hợp các đặc trưng tần suất, tương quan Jaccard và độ trễ để xếp hạng số.",
+    "highlight": "So sánh với kết quả kiểm tra theo thời gian trước khi kết luận hiệu quả."
+  }
+]

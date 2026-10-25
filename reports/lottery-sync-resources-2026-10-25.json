@@ -1,0 +1,348 @@
+{
+  "enabled": true,
+  "intervalSeconds": 900,
+  "timezone": "Asia/Ho_Chi_Minh",
+  "lookbackDays": 90,
+  "lastRun": {
+    "checkedAt": "2026-10-25T08:25:28.416Z",
+    "fromDate": "2026-07-27",
+    "categories": {
+      "MEGA": {
+        "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+        "status": "CONFLICT",
+        "latestSourceDate": "2026-10-23",
+        "expectedLatestDate": "2026-10-23",
+        "sourceStale": false,
+        "inserted": 8,
+        "unchanged": 29,
+        "conflicts": [
+          {
+            "date": "2026-10-16",
+            "stored": [
+              8,
+              14,
+              21,
+              31,
+              38,
+              43
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              9,
+              20,
+              26,
+              35,
+              36,
+              38
+            ]
+          }
+        ]
+      },
+      "POWER": {
+        "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+        "status": "CONFLICT",
+        "latestSourceDate": "2026-10-24",
+        "expectedLatestDate": "2026-10-24",
+        "sourceStale": false,
+        "inserted": 15,
+        "unchanged": 10,
+        "conflicts": [
+          {
+            "date": "2026-08-20",
+            "stored": [
+              2,
+              8,
+              29,
+              38,
+              39,
+              51
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              2,
+              8,
+              29,
+              38,
+              39,
+              51
+            ],
+            "incomingSpecial": 47
+          },
+          {
+            "date": "2026-08-22",
+            "stored": [
+              9,
+              18,
+              19,
+              21,
+              25,
+              36
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              9,
+              18,
+              19,
+              21,
+              25,
+              36
+            ],
+            "incomingSpecial": 8
+          },
+          {
+            "date": "2026-08-25",
+            "stored": [
+              5,
+              7,
+              13,
+              18,
+              31,
+              40
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              5,
+              7,
+              13,
+              18,
+              31,
+              40
+            ],
+            "incomingSpecial": 14
+          },
+          {
+            "date": "2026-08-27",
+            "stored": [
+              1,
+              3,
+              11,
+              21,
+              26,
+              44
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              1,
+              3,
+              11,
+              21,
+              26,
+              44
+            ],
+            "incomingSpecial": 10
+          },
+          {
+            "date": "2026-08-29",
+            "stored": [
+              5,
+              10,
+              15,
+              29,
+              34,
+              45
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              5,
+              10,
+              15,
+              29,
+              34,
+              45
+            ],
+            "incomingSpecial": 24
+          },
+          {
+            "date": "2026-09-01",
+            "stored": [
+              1,
+              17,
+              41,
+              44,
+              49,
+              55
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              1,
+              17,
+              41,
+              44,
+              49,
+              55
+            ],
+            "incomingSpecial": 45
+          },
+          {
+            "date": "2026-09-03",
+            "stored": [
+              8,
+              9,
+              16,
+              42,
+              46,
+              47
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              8,
+              9,
+              16,
+              42,
+              46,
+              47
+            ],
+            "incomingSpecial": 11
+          },
+          {
+            "date": "2026-09-05",
+            "stored": [
+              9,
+              11,
+              24,
+              31,
+              33,
+              47
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              9,
+              11,
+              24,
+              31,
+              33,
+              47
+            ],
+            "incomingSpecial": 21
+          },
+          {
+            "date": "2026-09-08",
+            "stored": [
+              8,
+              11,
+              14,
+              23,
+              25,
+              54
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              8,
+              11,
+              14,
+              23,
+              25,
+              54
+            ],
+            "incomingSpecial": 17
+          },
+          {
+            "date": "2026-09-10",
+            "stored": [
+              2,
+              5,
+              28,
+              32,
+              51,
+              53
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              2,
+              5,
+              28,
+              32,
+              51,
+              53
+            ],
+            "incomingSpecial": 50
+          },
+          {
+            "date": "2026-09-12",
+            "stored": [
+              7,
+              24,
+              31,
+              43,
+              47,
+              54
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              7,
+              24,
+              31,
+              43,
+              47,
+              54
+            ],
+            "incomingSpecial": 22
+          },
+          {
+            "date": "2026-09-15",
+            "stored": [
+              24,
+              27,
+              32,
+              36,
+              47,
+              52
+            ],
+            "storedSpecial": null,
+            "incoming": [
+              24,
+              27,
+              32,
+              36,
+              38,
+              47
+            ],
+            "incomingSpecial": 52
+          },
+          {
+            "date": "2026-10-10",
+            "stored": [
+              4,
+              5,
+              6,
+              29,
+              32,
+              44
+            ],
+            "storedSpecial": 53,
+            "incoming": [
+              14,
+              17,
+              21,
+              23,
+              24,
+              39
+            ],
+            "incomingSpecial": 30
+          },
+          {
+            "date": "2026-10-15",
+            "stored": [
+              2,
+              15,
+              26,
+              38,
+              50,
+              53
+            ],
+            "storedSpecial": 40,
+            "incoming": [
+              7,
+              23,
+              25,
+              42,
+              45,
+              51
+            ],
+            "incomingSpecial": 4
+          }
+        ]
+      }
+    }
+  }
+}

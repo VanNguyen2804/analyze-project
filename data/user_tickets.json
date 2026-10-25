@@ -1,5 +1,68 @@
 [
   {
+    "id": 31,
+    "category": "POWER",
+    "drawDate": "2026-10-24",
+    "numbers": [
+      6,
+      7,
+      11,
+      13,
+      18,
+      25
+    ],
+    "matchedNumbers": [
+      6,
+      7,
+      18
+    ],
+    "matchedCount": 3,
+    "matchedSpecial": false,
+    "prize": "GIẢI BA",
+    "checkedAt": "2026-10-25T07:07:04.080Z",
+    "note": "Vé do người dùng cung cấp ngày 25/10/2026; đối chiếu lại với kết quả đã cung cấp, không phải snapshot dự đoán trước kỳ quay."
+  },
+  {
+    "id": 30,
+    "category": "POWER",
+    "drawDate": "2026-10-24",
+    "numbers": [
+      8,
+      10,
+      14,
+      17,
+      25,
+      48
+    ],
+    "matchedNumbers": [],
+    "matchedCount": 0,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "checkedAt": "2026-10-25T07:07:04.080Z",
+    "note": "Vé do người dùng cung cấp ngày 25/10/2026; đối chiếu lại với kết quả đã cung cấp, không phải snapshot dự đoán trước kỳ quay."
+  },
+  {
+    "id": 29,
+    "category": "POWER",
+    "drawDate": "2026-10-24",
+    "numbers": [
+      7,
+      13,
+      22,
+      24,
+      45,
+      52
+    ],
+    "matchedNumbers": [
+      7
+    ],
+    "matchedCount": 1,
+    "matchedSpecial": false,
+    "prize": "KHÔNG TRÚNG",
+    "checkedAt": "2026-10-25T07:07:04.080Z",
+    "note": "Vé do người dùng cung cấp ngày 25/10/2026; đối chiếu lại với kết quả đã cung cấp, không phải snapshot dự đoán trước kỳ quay."
+  },
+  {
     "id": 26,
     "category": "POWER",
     "drawDate": "2026-10-17",

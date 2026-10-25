@@ -1,5 +1,21 @@
 [
   {
+    "id": 56,
+    "category": "POWER",
+    "drawDate": "2026-10-24",
+    "numbers": [
+      6,
+      7,
+      18,
+      41,
+      44,
+      50
+    ],
+    "specialNumber": 53,
+    "createdAt": "2026-10-25T07:07:04.080Z",
+    "note": "Kết quả do người dùng cung cấp ngày 25/10/2026; chưa đối chiếu nguồn độc lập."
+  },
+  {
     "id": 55,
     "drawDate": "2026-10-17",
     "category": "POWER",
@@ -862,5 +878,388 @@
     "specialNumber": null,
     "createdAt": "2026-09-19T16:18:43.235453",
     "note": ""
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-07-29",
+    "sourceDrawId": "01542",
+    "numbers": [
+      2,
+      6,
+      21,
+      31,
+      36,
+      45
+    ],
+    "id": 57,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01542 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-07-31",
+    "sourceDrawId": "01543",
+    "numbers": [
+      6,
+      16,
+      24,
+      25,
+      38,
+      43
+    ],
+    "id": 58,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01543 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-08-02",
+    "sourceDrawId": "01544",
+    "numbers": [
+      3,
+      12,
+      20,
+      25,
+      27,
+      37
+    ],
+    "id": 59,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01544 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-10-11",
+    "sourceDrawId": "01574",
+    "numbers": [
+      3,
+      9,
+      16,
+      29,
+      30,
+      44
+    ],
+    "id": 60,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01574 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-10-14",
+    "sourceDrawId": "01575",
+    "numbers": [
+      6,
+      16,
+      19,
+      21,
+      34,
+      43
+    ],
+    "id": 61,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01575 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-10-18",
+    "sourceDrawId": "01577",
+    "numbers": [
+      10,
+      11,
+      31,
+      38,
+      40,
+      44
+    ],
+    "id": 62,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01577 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-10-21",
+    "sourceDrawId": "01578",
+    "numbers": [
+      4,
+      10,
+      14,
+      22,
+      25,
+      44
+    ],
+    "id": 63,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01578 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-10-23",
+    "sourceDrawId": "01579",
+    "numbers": [
+      2,
+      5,
+      11,
+      22,
+      32,
+      40
+    ],
+    "id": 64,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01579 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-07-28",
+    "sourceDrawId": "01377",
+    "numbers": [
+      7,
+      22,
+      23,
+      27,
+      41,
+      44
+    ],
+    "specialNumber": 48,
+    "id": 65,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01377 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-07-30",
+    "sourceDrawId": "01378",
+    "numbers": [
+      2,
+      12,
+      24,
+      28,
+      43,
+      49
+    ],
+    "specialNumber": 51,
+    "id": 66,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01378 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-01",
+    "sourceDrawId": "01379",
+    "numbers": [
+      11,
+      14,
+      16,
+      44,
+      49,
+      55
+    ],
+    "specialNumber": 39,
+    "id": 67,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01379 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-04",
+    "sourceDrawId": "01380",
+    "numbers": [
+      14,
+      39,
+      40,
+      42,
+      47,
+      54
+    ],
+    "specialNumber": 31,
+    "id": 68,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01380 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-06",
+    "sourceDrawId": "01381",
+    "numbers": [
+      14,
+      18,
+      23,
+      35,
+      51,
+      55
+    ],
+    "specialNumber": 1,
+    "id": 69,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01381 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-08",
+    "sourceDrawId": "01382",
+    "numbers": [
+      5,
+      29,
+      33,
+      38,
+      40,
+      45
+    ],
+    "specialNumber": 37,
+    "id": 70,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01382 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-11",
+    "sourceDrawId": "01383",
+    "numbers": [
+      2,
+      7,
+      19,
+      20,
+      39,
+      50
+    ],
+    "specialNumber": 31,
+    "id": 71,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01383 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-13",
+    "sourceDrawId": "01384",
+    "numbers": [
+      5,
+      9,
+      27,
+      29,
+      45,
+      46
+    ],
+    "specialNumber": 42,
+    "id": 72,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01384 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-15",
+    "sourceDrawId": "01385",
+    "numbers": [
+      16,
+      20,
+      25,
+      27,
+      30,
+      50
+    ],
+    "specialNumber": 2,
+    "id": 73,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01385 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-08-18",
+    "sourceDrawId": "01386",
+    "numbers": [
+      3,
+      15,
+      18,
+      38,
+      41,
+      48
+    ],
+    "specialNumber": 30,
+    "id": 74,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01386 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-09-29",
+    "sourceDrawId": "01404",
+    "numbers": [
+      2,
+      4,
+      13,
+      17,
+      35,
+      36
+    ],
+    "specialNumber": 11,
+    "id": 75,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01404 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-10-01",
+    "sourceDrawId": "01405",
+    "numbers": [
+      4,
+      5,
+      13,
+      34,
+      52,
+      55
+    ],
+    "specialNumber": 15,
+    "id": 76,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01405 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-10-08",
+    "sourceDrawId": "01408",
+    "numbers": [
+      1,
+      7,
+      12,
+      27,
+      31,
+      52
+    ],
+    "specialNumber": 6,
+    "id": 77,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01408 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-10-20",
+    "sourceDrawId": "01413",
+    "numbers": [
+      13,
+      20,
+      23,
+      30,
+      50,
+      55
+    ],
+    "specialNumber": 45,
+    "id": 78,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01413 | community mirror of vietlott.vn"
+  },
+  {
+    "category": "POWER",
+    "drawDate": "2026-10-22",
+    "sourceDrawId": "01414",
+    "numbers": [
+      14,
+      19,
+      24,
+      31,
+      34,
+      42
+    ],
+    "specialNumber": 37,
+    "id": 79,
+    "createdAt": "2026-10-25T08:24:46.548Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01414 | community mirror of vietlott.vn"
   }
 ]

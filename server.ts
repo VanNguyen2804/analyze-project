@@ -1,7 +1,10 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
+import { fuseRankings, seededRandom, nextDraw, specialFor, summarizePatterns } from './src/algorithm-support';
+import { learnTemporalRelationships, verifiedWinningTickets } from './src/temporal-learning';
+import algorithmCatalog from './backend/src/main/resources/data/algorithm_catalog.json';
+import { LotterySync, syncConfig, writeResults } from './src/lottery-sync';
 
 interface LotteryNumberRecord {
   id: number;
@@ -415,10 +418,12 @@ function saveHyperparametersToDisk(): void {
 
 function getLatestHyperparameters(category?: string): AlgorithmHyperparameterRecord {
   const cat = category ? category.toUpperCase() : 'POWER';
-  const match = hyperparameters.find(
-    (h) => h.category === cat || h.category === 'ALL'
-  );
-  return match || hyperparameters[0];
+  return hyperparameters.find(h => h.category === cat)
+    ?? hyperparameters.find(h => h.category === 'ALL')
+    ?? {
+      id: 0, version: 'default', drawDate: '', category: 'ALL',
+      model: 'History-based heuristic', hyperparameters: {}, hyperparametersJson: '{}', createdAt: '',
+    };
 }
 
 function recordAlgorithmUpdate(
@@ -546,81 +551,8 @@ function loadInitialData(): void {
         loaded = true;
       }
     }
-    if (records.length > 0) {
-      nextId = Math.max(...records.map((r) => r.id || 0)) + 1;
-    } else {
-      records = [
-        {
-          id: 1,
-          drawDate: '2026-09-17',
-          category: 'POWER',
-          numbers: [7, 14, 23, 31, 45, 52],
-          specialNumber: 18,
-          createdAt: new Date().toISOString(),
-          note: 'Bộ số mẫu khởi tạo Power 6/55',
-        },
-        {
-          id: 2,
-          drawDate: '2026-09-25',
-          category: 'MEGA',
-          numbers: [3, 12, 19, 27, 34, 42],
-          createdAt: new Date().toISOString(),
-          note: 'Bộ số mẫu khởi tạo Mega 6/45',
-        },
-      ];
-      nextId = 3;
-      saveDataToDisk();
-    }
-
-    // Ensure 2026-09-28 POWER draw from the report is present
-    const power28 = records.find(
-      (r) => r.category === 'POWER' && r.drawDate === '2026-09-28'
-    );
-    if (!power28) {
-      records.unshift({
-        id: nextId++,
-        drawDate: '2026-09-28',
-        category: 'POWER',
-        numbers: [2, 4, 13, 17, 35, 36],
-        specialNumber: 11,
-        createdAt: '2026-09-28T18:00:00.000Z',
-        note: 'Kết quả mở thưởng chính thức Vietlott Power 6/55',
-      });
-      saveDataToDisk();
-    }
-
-    // Ensure 2026-10-17 POWER draw is present
-    const power17 = records.find(
-      (r) => r.category === 'POWER' && r.drawDate === '2026-10-17'
-    );
-    if (!power17) {
-      records.unshift({
-        id: nextId++,
-        drawDate: '2026-10-17',
-        category: 'POWER',
-        numbers: [1, 10, 11, 12, 16, 37],
-        specialNumber: 48,
-        createdAt: '2026-10-17T18:30:00.000Z',
-        note: 'Kết quả mở thưởng chính thức Vietlott Power 6/55 Thứ Bảy 17/10/2026 (Jackpot 1: 01, 10, 11, 12, 16, 37; Jackpot 2: ⭐48)',
-      });
-      saveDataToDisk();
-    }
-
-    // Ensure 2026-10-16 MEGA draw is present
-    const mega16 = records.find(
-      (r) => r.category === 'MEGA' && r.drawDate === '2026-10-16'
-    );
-    if (!mega16) {
-      records.unshift({
-        id: nextId++,
-        drawDate: '2026-10-16',
-        category: 'MEGA',
-        numbers: [8, 14, 21, 31, 38, 43],
-        createdAt: '2026-10-16T18:30:00.000Z',
-        note: 'Kết quả mở thưởng chính thức Vietlott Mega 6/45 Thứ Sáu 16/10/2026 (08, 14, 21, 31, 38, 43)',
-      });
-      saveDataToDisk();
-    }
+    // Results come from persisted data and the public feed, never dated bootstrap examples.
+    nextId = Math.max(0, ...records.map((r) => r.id || 0)) + 1;
 
     loadUserTicketsFromDisk();
     loadHyperparametersFromDisk();
@@ -731,6 +663,7 @@ interface FocusAnalysis {
 }
 
 interface PredictionResult {
+  relationshipLearning?: ReturnType<typeof learnTemporalRelationships>['analysis'] & { verifiedWinningTickets?: ReturnType<typeof verifiedWinningTickets> };
   status: 'SUCCESS' | 'ERROR';
   category: 'MEGA' | 'POWER';
   lotteryType: 'MEGA' | 'POWER';
@@ -839,92 +772,9 @@ function getNextVietlottDraw(
   baseDrawDate: string;
   baseDrawFormatted: string;
 } {
-  // Convert server time to Vietnam Timezone (UTC+7)
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const vnNow = new Date(utc + (3600000 * 7));
-
-  let currentYear = vnNow.getFullYear();
-  let currentMonth = vnNow.getMonth();
-  let currentDate = vnNow.getDate();
-  const currentHour = vnNow.getHours();
-  const currentMinute = vnNow.getMinutes();
-  const isPast18 = currentHour >= 18;
-
-  if (fromDateStr && /^\d{4}-\d{2}-\d{2}$/.test(fromDateStr.trim())) {
-    const [fY, fM, fD] = fromDateStr.trim().split('-').map(Number);
-    currentYear = fY;
-    currentMonth = fM - 1;
-    currentDate = fD;
-  }
-
-  const simulatedDate = new Date(currentYear, currentMonth, currentDate);
-  const currentDow = simulatedDate.getDay(); // 0: CN, 1: T2, 2: T3, 3: T4, 4: T5, 5: T6, 6: T7
-
-  // Lịch mở thưởng Vietlott:
-  // POWER 6/55: Thứ 3 (2), Thứ 5 (4), Thứ 7 (6)
-  // MEGA 6/45: Thứ 4 (3), Thứ 6 (5), Chủ Nhật (0)
-  const validDays = category === 'POWER' ? [2, 4, 6] : [0, 3, 5];
-  const dayNames: { [key: number]: string } = {
-    0: 'Chủ Nhật',
-    1: 'Thứ Hai',
-    2: 'Thứ Ba',
-    3: 'Thứ Tư',
-    4: 'Thứ Năm',
-    5: 'Thứ Sáu',
-    6: 'Thứ Bảy'
-  };
-
-  const catRecords = records
-    .filter((r) => r.category === category)
-    .sort((a, b) => b.drawDate.localeCompare(a.drawDate));
-  const latestDbDrawDate = catRecords[0]?.drawDate || (category === 'POWER' ? '2026-10-17' : '2026-10-16');
-
-  const todayStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDate).padStart(2, '0')}`;
-
-  // 1. Nếu hôm nay là ngày quay của loại vé đó VÀ CHƯA ĐẾN 18H00 VÀ ngày này chưa có kết quả trong CSDL
-  if (validDays.includes(currentDow) && !isPast18 && todayStr > latestDbDrawDate) {
-    return {
-      drawDate: todayStr,
-      dayName: dayNames[currentDow],
-      drawDateFormatted: formatDateVN(todayStr),
-      isToday: true,
-      baseDrawDate: latestDbDrawDate,
-      baseDrawFormatted: formatDateVN(latestDbDrawDate)
-    };
-  }
-
-  // 2. Nếu đã quá 18h00 hoặc hôm nay không phải ngày mở thưởng: Tìm ngày quay hợp lệ kế tiếp trong tương lai
-  const next = new Date(simulatedDate.getTime());
-  for (let i = 1; i <= 7; i++) {
-    next.setDate(next.getDate() + 1);
-    const day = next.getDay();
-    const yyyy = next.getFullYear();
-    const mm = String(next.getMonth() + 1).padStart(2, '0');
-    const dd = String(next.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-    if (validDays.includes(day) && dateStr > latestDbDrawDate) {
-      return {
-        drawDate: dateStr,
-        dayName: dayNames[day],
-        drawDateFormatted: `${dd}/${mm}/${yyyy}`,
-        isToday: false,
-        baseDrawDate: latestDbDrawDate,
-        baseDrawFormatted: formatDateVN(latestDbDrawDate)
-      };
-    }
-  }
-
-  const fallbackDate = category === 'POWER' ? '2026-10-22' : '2026-10-21';
-  const fallbackDay = category === 'POWER' ? 'Thứ Năm' : 'Thứ Tư';
-  return {
-    drawDate: fallbackDate,
-    dayName: fallbackDay,
-    drawDateFormatted: formatDateVN(fallbackDate),
-    isToday: false,
-    baseDrawDate: latestDbDrawDate,
-    baseDrawFormatted: formatDateVN(latestDbDrawDate)
-  };
+  const latest = records.filter(r => r.category === category)
+    .map(r => r.drawDate).sort().at(-1) ?? '';
+  return nextDraw(category, new Date(), latest, fromDateStr);
 }
 
 function generateRecommendations(
@@ -934,31 +784,18 @@ function generateRecommendations(
   top10Numbers: number[] = [],
   generatedTickets: number[][] = [],
   recommendedSpecialNumber: number | null = null,
-  scoredCandidates: CandidateScore[] = []
+  scoredCandidates: CandidateScore[] = [],
+  history: LotteryNumberRecord[] = records
 ) {
   const isPowerCategory = category === 'POWER';
   const maxLimit = isPowerCategory ? 55 : 45;
-  const catRecords = records
-    .filter((r) => r.category === category)
+  const catRecords = history.filter(r => r.category === category)
     .sort((a, b) => b.drawDate.localeCompare(a.drawDate));
-
   const latestOfficial = catRecords[0];
-  const baseDrawDate = latestOfficial
-    ? latestOfficial.drawDate
-    : isPowerCategory
-    ? '2026-10-17'
-    : '2026-10-16';
-
-  const officialWinningNumbers = latestOfficial
-    ? latestOfficial.numbers
-    : isPowerCategory
-    ? [1, 10, 11, 12, 16, 37]
-    : [8, 14, 21, 31, 38, 43];
-
-  const specialNumber = latestOfficial ? latestOfficial.specialNumber : (isPowerCategory ? 48 : undefined);
-
-  // Tính toán kỳ quay kế tiếp chuẩn xác từ ngày hôm nay
-  const nextDrawInfo = getNextVietlottDraw(category);
+  const baseDrawDate = latestOfficial?.drawDate ?? '';
+  const officialWinningNumbers = latestOfficial?.numbers ?? [];
+  const specialNumber = latestOfficial?.specialNumber;
+  const nextDrawInfo = nextDraw(category, new Date(), baseDrawDate);
   const targetDrawDate = nextDrawInfo.drawDate;
   const targetDayName = nextDrawInfo.dayName;
   const targetFormatted = nextDrawInfo.drawDateFormatted;
@@ -968,9 +805,7 @@ function generateRecommendations(
   const hypVer = getLatestHyperparameters(category)?.version || 'v2.2.0';
 
   // Đánh giá số bóng trùng giữa top10Numbers của thuật toán và kết quả kỳ mở thưởng gần nhất
-  const initialMatched = top10Numbers.filter(n => officialWinningNumbers.includes(n));
-  const initialHitCount = initialMatched.length;
-
+  // A forecast trained on the latest draw cannot be evaluated against that same draw.
   const summaryTitle = isPowerCategory
     ? `Dự Đoán Tối Ưu Cho Kỳ Quay Power 6/55 ${targetDayName} ${targetFormatted} (Mô Hình ${algName} & Dữ Liệu Đối Soát Kỳ ${baseFormatted} Từ CSDL)`
     : `Dự Đoán Tối Ưu Cho Kỳ Quay Mega 6/45 ${targetDayName} ${targetFormatted} (Mô Hình ${algName} & Dữ Liệu Đối Soát Kỳ ${baseFormatted} Từ CSDL)`;
@@ -979,13 +814,11 @@ function generateRecommendations(
     baseDrawDate,
     officialWinningNumbers,
     specialNumber,
-    initialAiHitCount: initialHitCount,
-    initialHitNumbers: initialMatched,
-    upgradedAiCoverage: officialWinningNumbers.length,
-    upgradedNumbers: officialWinningNumbers,
-    performanceSummary: isPowerCategory
-      ? `Kết quả kỳ ${baseFormatted} trong CSDL: [${officialWinningNumbers.map(n => n < 10 ? '0' + n : n).join(', ')}]${specialNumber ? ' (⭐' + (specialNumber < 10 ? '0' + specialNumber : specialNumber) + ')' : ''}. Mô hình ${algName} khớp được ${initialHitCount} số [${initialMatched.join(', ') || 'Đang bứt phá'}]. Hệ thống đã tự động tái chuẩn hóa ma trận dãn cách cho kỳ kế tiếp ${targetFormatted}.`
-      : `Kết quả kỳ Mega ${baseFormatted} trong CSDL: [${officialWinningNumbers.map(n => n < 10 ? '0' + n : n).join(', ')}]. Dữ liệu đối soát trích xuất trực tiếp từ CSDL.`,
+    initialAiHitCount: null,
+    initialHitNumbers: [],
+    upgradedAiCoverage: null,
+    upgradedNumbers: [],
+    performanceSummary: 'Latest stored draw; use walk-forward reconciliation for measured performance.',
     characteristicsSummary: `Tổng = ${officialWinningNumbers.reduce((a, b) => a + b, 0)} • ${officialWinningNumbers.filter(n => n % 2 === 0).length} Chẵn / ${officialWinningNumbers.filter(n => n % 2 !== 0).length} Lẻ${specialNumber ? ' • Banh Phụ ⭐' + (specialNumber < 10 ? '0' + specialNumber : specialNumber) : ''}`,
     rootCauseSummary: isPowerCategory
       ? `Tại kỳ quay Power ${baseFormatted}, lồng cầu nổ chuỗi số nhỏ liên tiếp [${officialWinningNumbers.map(n => n < 10 ? '0' + n : n).join(', ')}]${specialNumber ? ' (⭐' + specialNumber + ')' : ''}. Thuật toán ${algName} đã nhận diện bước nhảy dồn dải để tái cấu trúc ma trận tương quan cho kỳ ${targetFormatted}.`
@@ -996,7 +829,7 @@ function generateRecommendations(
   };
 
   // TỔ HỢP 3 VÉ KHUYẾN NGHỊ (VÉ VÀNG) ĐỘC BẢN CỦA RIÊNG THUẬT TOÁN ĐANG CHỌN
-  const pool = (top10Numbers && top10Numbers.length >= 6) ? top10Numbers : (isPowerCategory ? [1, 2, 8, 10, 11, 12, 16, 18, 31, 37] : [8, 14, 21, 28, 35, 42]);
+  const pool = top10Numbers.length >= 6 ? top10Numbers : scoredCandidates.map(c => c.number);
   const t1 = (generatedTickets[0] && generatedTickets[0].length === 6)
     ? [...generatedTickets[0]].sort((a, b) => a - b)
     : pool.slice(0, 6);
@@ -1014,9 +847,10 @@ function generateRecommendations(
     return `${even} Chẵn / ${odd} Lẻ • Tổng = ${sum}`;
   };
 
-  const sp1 = recommendedSpecialNumber || (isPowerCategory ? (specialNumber || 48) : null);
-  const sp2 = isPowerCategory ? (sp1 === 40 ? 48 : 40) : null;
-  const sp3 = isPowerCategory ? 26 : null;
+  const specialRanking = scoredCandidates.map(c => c.number);
+  const sp1 = specialFor(recommendedSpecialNumber, t1, specialRanking) ?? null;
+  const sp2 = specialFor(recommendedSpecialNumber, t2, specialRanking) ?? null;
+  const sp3 = specialFor(recommendedSpecialNumber, t3, specialRanking) ?? null;
 
   const buildTicketStrategyReason = (ticketNums: number[], ticketSp: number | null, rankIdx: number): string => {
     const repeats = ticketNums.filter(n => officialWinningNumbers.includes(n));
@@ -1094,9 +928,9 @@ function generateRecommendations(
     },
     {
       pillar: `Trụ cột 3: Chuyển Vị Banh Phụ & Bật Lò Xo Lô Gan`,
-      recommendedNumbers: [specialNumber || 48, t1[4], t2[4]].filter(Boolean),
+      recommendedNumbers: [specialNumber ?? null, t1[4], t2[4]].filter(Boolean),
       roleBadge: 'Chuyển vị banh phụ',
-      rationale: `Banh phụ ${specialNumber || 48} từ kỳ ${baseFormatted} có xung lực chuyển vị thành banh chính kỳ ${targetFormatted}, kết hợp điểm rơi dải cao.`
+      rationale: `Banh phụ ${specialNumber ?? null} từ kỳ ${baseFormatted} có xung lực chuyển vị thành banh chính kỳ ${targetFormatted}, kết hợp điểm rơi dải cao.`
     },
     {
       pillar: `Trụ cột 4: Sóng Phản Xạ Parity & Cân Bằng Tổng Chẵn/Lẻ`,
@@ -1108,7 +942,7 @@ function generateRecommendations(
       pillar: isPowerCategory
         ? 'Trụ cột 5: Bảo Hiểm Toàn Diện Jackpot 2 (Special Ball Insurance)'
         : 'Trụ cột 5: Hồi Quy Phân Vùng Hàng Chục (Decade Shift & Poisson Balance)',
-      recommendedNumbers: isPowerCategory ? [sp1, sp2, sp3].filter(Boolean) : [15, 22, 42],
+      recommendedNumbers: isPowerCategory ? [sp1, sp2, sp3].filter(Boolean) : t3.slice(0, 3),
       roleBadge: isPowerCategory ? 'Bảo hiểm Jackpot 2' : 'Cân bằng đa phân vùng',
       rationale: isPowerCategory
         ? `Bảo hiểm Jackpot 2 với các số phụ tiềm năng ⭐${sp1}, ⭐${sp2}, ⭐${sp3} cho kỳ ${targetDayName} ${targetFormatted}.`
@@ -1133,9 +967,9 @@ function generateRecommendations(
   };
 }
 
-function analyzeAndPredict(
+export function analyzeAndPredict(
   categoryInput: string,
-  algorithmInput: string = 'bayesian_graph',
+  algorithmInput: string = 'temporal_learning',
   customRecords?: LotteryNumberRecord[],
   algorithm2Input?: string
 ): PredictionResult {
@@ -1145,7 +979,9 @@ function analyzeAndPredict(
 
   const cleanAlg = (algorithmInput || '').toLowerCase().replace(/[-_ ]/g, '');
   let algorithm = 'bayesian_graph';
-  if (cleanAlg.includes('bayes') || cleanAlg.includes('graph') || cleanAlg.includes('begn')) {
+  if (cleanAlg.includes('temporal') || cleanAlg.includes('learning')) {
+    algorithm = 'temporal_learning';
+  } else if (cleanAlg.includes('bayes') || cleanAlg.includes('graph') || cleanAlg.includes('begn')) {
     algorithm = 'bayesian_graph';
   } else if (cleanAlg.includes('stack') || cleanAlg.includes('copula') || cleanAlg.includes('dse')) {
     algorithm = 'deep_stacking';
@@ -1163,16 +999,34 @@ function analyzeAndPredict(
     algorithm = 'bayesian_graph'; // Default to the highest ranked algorithm (Top 1)
   }
 
-  const sourceRecords = customRecords && customRecords.length > 0 ? customRecords : records;
+  const sourceRecords = customRecords ?? records;
+  const seenDates = new Set<string>();
   const categoryRecords = sourceRecords
-    .filter((r) => r.category === category)
+    .filter((r) => r.category === category && /^\d{4}-\d{2}-\d{2}$/.test(r.drawDate)
+      && Array.isArray(r.numbers) && r.numbers.length === 6 && new Set(r.numbers).size === 6
+      && r.numbers.every(n => Number.isInteger(n) && n >= 1 && n <= maxLimit))
     .sort(
       (a, b) =>
-        a.drawDate.localeCompare(b.drawDate) ||
-        (a.createdAt || '').localeCompare(b.createdAt || '')
-    );
+        b.drawDate.localeCompare(a.drawDate) ||
+        (b.createdAt || '').localeCompare(a.createdAt || '')
+    )
+    .filter(r => {
+      if (seenDates.has(r.drawDate)) return false;
+      seenDates.add(r.drawDate);
+      return true;
+    }).reverse();
 
   const totalDraws = categoryRecords.length;
+  if (totalDraws === 0) {
+    return {
+      status: 'ERROR', category, lotteryType: category, algorithm,
+      algorithmName: algorithm, algorithmDesc: 'No valid draw history available',
+      numbers: [], tickets: [], totalDrawsAnalyzed: 0, hotNumbers: [], coldNumbers: [],
+      frequentPairs: [], oddEvenRatio: '', details: [], selectionReasons: [], recentDraws: [],
+      numberHistoryMap: {}, analysisSummary: 'No valid draw history available', overallReason: '',
+    };
+  }
+  const random = seededRandom(JSON.stringify([category, algorithm, categoryRecords.map(r => [r.drawDate, r.numbers, r.specialNumber])]));
 
   // 1. Core Feature Tracking
   const mainFrequency = new Array(maxLimit + 1).fill(0);
@@ -1226,7 +1080,7 @@ function analyzeAndPredict(
   // Cross-Game Carrier Wave: Tích hợp sóng di cư năng lượng từ kỳ mở thưởng gần nhất của loại hình đối ứng (Power <-> Mega)
   const otherCategory: 'MEGA' | 'POWER' = category === 'MEGA' ? 'POWER' : 'MEGA';
   const latestCurrentDate = totalDraws > 0 ? categoryRecords[totalDraws - 1].drawDate : '';
-  const allAvailableOther = (records || []).filter(
+  const allAvailableOther = sourceRecords.filter(
     (r) => r.category === otherCategory && (latestCurrentDate ? r.drawDate <= latestCurrentDate : true)
   ).sort((a, b) => a.drawDate.localeCompare(b.drawDate));
   const latestOtherRecord = allAvailableOther.length > 0 ? allAvailableOther[allAvailableOther.length - 1] : null;
@@ -1340,7 +1194,20 @@ function analyzeAndPredict(
 
   const latestDraw = totalDraws > 0 ? categoryRecords[totalDraws - 1].numbers : [];
 
-  if (algKey === 'deep_stacking') {
+  const learned = learnTemporalRelationships(categoryRecords, category, {
+    priorStrength: rawAdjustments.temporalPriorStrength,
+    learningRate: rawAdjustments.temporalLearningRate,
+    minHistory: rawAdjustments.temporalMinHistory,
+  });
+  if (algKey === 'temporal_learning') {
+    algName = 'Học liên kết giữa các kỳ';
+    algDesc = 'Trọng số học tuần tự từ các kỳ đã biết; mỗi dự đoán kiểm tra được chấm trước khi cập nhật kết quả.';
+    algSummary = `Phân tích ${totalDraws} kỳ; kiểm tra ${learned.analysis.evaluation.evaluatedDraws} kỳ tiếp nối đủ dữ liệu.`;
+    algOverallReason = 'Các trọng số liên kết thay đổi theo sai số trên lịch sử. Đây là ước lượng từ mẫu đã lưu, không bảo đảm kết quả kỳ tiếp theo.';
+    for (let number = 1; number <= maxLimit; number++) scoredCandidates.push({ number,
+      probability: learned.scores[number], frequency: mainFrequency[number], drawGap: drawGap[number],
+      tag: 'HỌC LIÊN KẾT', title: algName, reason: algOverallReason });
+  } else if (algKey === 'deep_stacking') {
     algName = 'Xếp Chồng Học Máy AI & Copula (DSE-Copula)';
     algDesc = 'Mô hình học máy xếp chồng đa tầng (Ensemble Stacking Meta-Learner) kết hợp ma trận phụ thuộc đa biến Empirical Copula Jaccard, độ trễ chuẩn hóa Z-Score theo phương sai cá thể trong Database và giải thuật Pareto Wheeling bảo toàn tối đa độ phủ giải thưởng.';
 
@@ -1498,7 +1365,7 @@ function analyzeAndPredict(
         repeatMod
       );
 
-      const z = (metaScore - 0.78) * 3.1 + (Math.random() * 0.06 - 0.03);
+      const z = (metaScore - 0.78) * 3.1;
       const prob = 1.0 / (1.0 + Math.exp(-z));
 
       // Lập danh sách bạn đồng hành Copula
@@ -1586,23 +1453,14 @@ function analyzeAndPredict(
     }
 
     // 2. Cập nhật xác suất Bayes với hàm phân rã thời gian (Exponential Half-Life tau = 8.5 kỳ)
-    const tau = 8.5;
     const priorAlpha = 1.0;
     const priorBeta = (maxLimit - 6.0) / 6.0;
+    const weightedTotal = mainMomentum.reduce((sum, value) => sum + value, 0) / 6;
 
     for (let i = 1; i <= maxLimit; i++) {
       // 2a. Xác suất kỳ vọng hậu nghiệm Bayes (Bayesian Expected Posterior)
-      let weightedSuccesses = 0.0;
-      let weightedFailures = 0.0;
-
-      for (let t = 0; t < totalDraws; t++) {
-        const w = Math.exp(-(totalDraws - 1 - t) / tau);
-        if (categoryRecords[t].numbers.includes(i)) {
-          weightedSuccesses += w;
-        } else {
-          weightedFailures += w;
-        }
-      }
+      const weightedSuccesses = mainMomentum[i];
+      const weightedFailures = Math.max(0, weightedTotal - weightedSuccesses);
 
       const bayesExpectedValue = (priorAlpha + weightedSuccesses) / (priorAlpha + priorBeta + weightedSuccesses + weightedFailures);
 
@@ -1820,7 +1678,7 @@ function analyzeAndPredict(
       // Pick 6 distinct
       const picked = new Set<number>();
       while (picked.size < 6) {
-        const r = Math.random();
+        const r = random();
         let low = 1, high = maxLimit, selected = 1;
         while (low <= high) {
           const mid = (low + high) >> 1;
@@ -1840,7 +1698,7 @@ function analyzeAndPredict(
 
     for (let i = 1; i <= maxLimit; i++) {
       const ev = mcCounts[i] / SIM_RUNS;
-      const z = (ev - 0.133) * 22.0 + (Math.random() * 0.2 - 0.1);
+      const z = (ev - 0.133) * 22.0;
       const prob = 1.0 / (1.0 + Math.exp(-z));
 
       let tag = 'PHÂN PHỐI CHUẨN';
@@ -1898,7 +1756,7 @@ function analyzeAndPredict(
       }
 
       const normFreq = totalDraws > 0 ? mainFrequency[i] / totalDraws : 0.15;
-      const z = markovTransitionSum * 2.5 + normFreq * 0.8 - 0.75 + (Math.random() * 0.2 - 0.1);
+      const z = markovTransitionSum * 2.5 + normFreq * 0.8 - 0.75;
       const prob = 1.0 / (1.0 + Math.exp(-z));
 
       let tag = 'BƯỚC NHẢY MARKOV';
@@ -1946,7 +1804,7 @@ function analyzeAndPredict(
 
       // Penalize excessively stale dead numbers that may have broken distribution
       const extremePenalty = gap > avgCycle * 4.0 ? 0.4 : 1.0;
-      const z = (reversionPressure * 2.2 * extremePenalty) + (lambda * 1.5) - 1.1 + (Math.random() * 0.2 - 0.1);
+      const z = (reversionPressure * 2.2 * extremePenalty) + (lambda * 1.5) - 1.1;
       const prob = 1.0 / (1.0 + Math.exp(-z));
 
       let tag = 'HỒI QUY POISSON';
@@ -2004,7 +1862,7 @@ function analyzeAndPredict(
       }
       const normPair = Math.min(1.0, pairSynergy / 6.0);
 
-      const z = (deltaFitness * 1.6 + normPair * 1.1 + normFreq * 0.9) * gateScore - 1.15 + (Math.random() * 0.08 - 0.04);
+      const z = (deltaFitness * 1.6 + normPair * 1.1 + normFreq * 0.9) * gateScore - 1.15;
       const prob = 1.0 / (1.0 + Math.exp(-z));
 
       let tag = 'DELTA LÝ TƯỞNG';
@@ -2142,13 +2000,10 @@ function analyzeAndPredict(
           specBonus +
           specMigrationBonus +
           repeatPenalty -
-          1.15 +
-          (Math.random() * 0.06 - 0.03);
+          1.15;
       } else {
         z =
-          Math.sin(i * 0.55) * 0.6 +
-          Math.cos(i * 0.35) * 0.4 +
-          (Math.random() * 0.8 - 0.4);
+          Math.log(6 / (maxLimit - 6));
       }
 
       const probability = 1.0 / (1.0 + Math.exp(-z));
@@ -2216,12 +2071,12 @@ function analyzeAndPredict(
       // Giới hạn số bóng lặp từ kỳ vừa quay tối đa 1 số
       const isRepeat = latestDraw.includes(c.number);
       const curRepeatCount = top10Candidates.filter(tc => latestDraw.includes(tc.number)).length;
-      if (isRepeat && curRepeatCount >= 1) return false;
+      if (algKey !== 'temporal_learning' && isRepeat && curRepeatCount >= 1) return false;
 
       // Giới hạn số bóng lệch biên lân cận (±1) từ kỳ vừa quay tối đa 2 số
       const isNeighbor = !isRepeat && latestDraw.some(w => Math.abs(w - c.number) === 1);
       const curNeighborCount = top10Candidates.filter(tc => !latestDraw.includes(tc.number) && latestDraw.some(w => Math.abs(w - tc.number) === 1)).length;
-      if (isNeighbor && curNeighborCount >= 2) return false;
+      if (algKey !== 'temporal_learning' && isNeighbor && curNeighborCount >= 2) return false;
 
       pickedNumberSet.add(c.number);
       top10Candidates.push(c);
@@ -2961,118 +2816,15 @@ function analyzeAndPredict(
       tag: c.tag,
       title: c.title,
       reason: c.reason,
-      upgradeReason:
-        c.number === 52
-          ? 'Loại bỏ hoàn toàn điểm phạt chu kỳ cũ; áp dụng trọng số lặp chuỗi Markov +0.96 và cộng hưởng liên kết siêu cấp với 14 (về cùng nhau 4 lần).'
-          : c.number === 14
-          ? 'Tích hợp xung nhịp tái lặp trạng thái (5/10 kỳ gần nhất có mặt) và ma trận tương quan đồng xuất hiện cực mạnh 14-52.'
-          : c.number === 48
-          ? 'Mở rộng cửa sổ điểm rơi Poisson từ 0.60 đến 2.6 lần chu kỳ trung bình (gap = 7 kỳ), đón đầu chính xác thời điểm hồi quy trung bình.'
-          : c.number === 21
-          ? 'Khai thác điểm dị biệt ngẫu nhiên (Lô gan 22 kỳ vượt 2.4 lần chu kỳ) theo mô hình phục hồi biên độ Powerball.'
-          : c.number === 38
-          ? 'Duy trì khoảng cách dãn cách Delta chuẩn xác (gap = 4 kỳ) phân bổ đều giữa các dải số.'
-          : c.number === 18
-          ? 'Số nóng toàn diện với 7 lần xuất hiện ở banh phụ và 3 lần banh chính, chu kỳ vắng mặt chỉ 2 kỳ.'
-          : c.number === 49
-          ? 'Banh phụ chiến lược đạt chỉ số tương hợp cao nhất với tổ hợp 5/6 số chính [14, 18, 21, 38, 48, 52] để bảo hiểm Jackpot 2.'
-          : 'Tối ưu hóa trọng số cân bằng đa tiêu chuẩn.',
-      isHitInPrevious: [18, 21, 38].includes(c.number),
-      isTargetUpgrade: [14, 48, 52].includes(c.number),
-      isSpecial: c.number === 49,
+      upgradeReason: c.reason,
+      isHitInPrevious: latestDraw.includes(c.number),
+      isTargetUpgrade: false,
+      isSpecial: c.number === recommendedSpecialNumber,
     }));
 
-  let focusAnalysis: FocusAnalysis | undefined = undefined;
-  if (category === 'POWER') {
-    const targetNumbers = [14, 18, 21, 38, 48, 52];
-    const targetSpecial = 49;
-    
-    const focusItems: FocusNumberDetail[] = [];
-    const orderedTargets = [52, 14, 48, 18, 38, 21, 49];
-    for (const num of orderedTargets) {
-      const isSpec = num === targetSpecial;
-      const foundCandidate = allNumberScores.find((s) => s.number === num);
-      if (foundCandidate) {
-        focusItems.push({
-          ...foundCandidate,
-          isSpecial: isSpec,
-          tag: isSpec
-            ? 'SỐ PHỤ JACKPOT 2'
-            : [18, 21, 38].includes(num)
-            ? 'ĐÃ TRÚNG BAN ĐẦU'
-            : 'ĐÃ BẮT ĐƯỢC SAU NÂNG CẤP',
-        });
-      }
-    }
+  // Historical success claims belong in walk-forward evaluation, not in a new forecast.
+  const focusAnalysis: FocusAnalysis | undefined = undefined;
 
-    focusAnalysis = {
-      actualDrawNumbers: targetNumbers,
-      actualSpecialNumber: targetSpecial,
-      matchedCountInitial: 3,
-      matchedNumbersInitial: [18, 21, 38],
-      upgradedNumbers: [14, 48, 52],
-      upgradedSpecialNumber: 49,
-      totalCoveragePercent: 100,
-      focusItems,
-      algorithmUpgradeNotes: [
-        'Xác suất Số Lặp Chuỗi (Markov State Repeat): Tăng trọng số bứt phá (+0.96) cho các số lặp từ kỳ trước có tần suất đỉnh cao như 14 (8 lần nổ) và 52 (8 lần nổ).',
-        'Cửa sổ Điểm Rơi Poisson Vàng (0.60 - 2.6x): Mở rộng biên độ đón đầu chu kỳ trung bình, thu nạp chính xác số 48 (gap 7 kỳ, gapRatio = 0.76) vào đỉnh phân phối xác suất.',
-        'Cộng Hưởng Cụm Siêu Liên Kết: Khai thác sức mạnh cặp đôi 14-52 (nổ cùng nhau 4 lần) và mối liên kết ba số 14-48-52 từng cùng xuất hiện.',
-        'Cân Bằng Chẵn / Lẻ Động (Adaptive Parity): Nới lỏng rào cản lọc cứng chẵn lẻ để tương thích tuyệt đối với phân bổ 5 Chẵn / 1 Lẻ thực nghiệm.',
-      ],
-    };
-  } else if (category === 'MEGA') {
-    const targetNumbers = [10, 14, 36, 37, 41, 43];
-    const focusItems: FocusNumberDetail[] = [];
-    const orderedTargets = [10, 14, 36, 37, 41, 43];
-    for (const num of orderedTargets) {
-      const foundCandidate = allNumberScores.find((s) => s.number === num);
-      if (foundCandidate) {
-        focusItems.push({
-          ...foundCandidate,
-          isSpecial: false,
-          tag: num === 10
-            ? 'ĐÃ TRÚNG BAN ĐẦU (1/6 SỐ)'
-            : 'ĐÃ BẮT ĐƯỢC SAU NÂNG CẤP (6/6 SỐ)',
-          isHitInPrevious: num === 10,
-          isTargetUpgrade: [14, 36, 37, 41, 43].includes(num),
-          upgradeReason:
-            num === 10
-              ? 'Số duy nhất được AI bắt trúng ban đầu: Điểm rơi hồi quy Poisson hoàn hảo (gap 6 kỳ) và xung lực dãn cách Delta.'
-              : num === 14
-              ? 'Thu nạp sau nâng cấp: Bứt phá Lô Gan cực hạn (gap 10 kỳ), kích hoạt cơ chế hoàn lưu trung bình phương sai cá thể.'
-              : num === 36
-              ? 'Thu nạp sau nâng cấp: Tần suất đỉnh cao (5 lần nổ), chu kỳ rơi lý tưởng (gap 4 kỳ) và ma trận tương quan cặp 36-43.'
-              : num === 37
-              ? 'Thu nạp sau nâng cấp: Gỡ bỏ bẫy phạt lặp kiệt sức sai lầm; bảo toàn quán tính lặp chuỗi Markov (gap 0 kỳ từ kỳ 04/10).'
-              : num === 41
-              ? 'Thu nạp sau nâng cấp: Nhịp rơi cận lặp chuỗi bậc 2 (gap 1 kỳ từ kỳ 02/10), cộng hưởng mạnh với 36 và 43.'
-              : 'Thu nạp sau nâng cấp: Điểm rơi vàng Poisson (gap 7 kỳ) và lực hút cụm cặp đôi tương hỗ bền vững {36, 41, 43}.'
-        });
-      }
-    }
-
-    focusAnalysis = {
-      actualDrawNumbers: targetNumbers,
-      actualSpecialNumber: 0,
-      matchedCountInitial: 1,
-      matchedNumbersInitial: [10],
-      upgradedNumbers: [14, 36, 37, 41, 43],
-      upgradedSpecialNumber: 0,
-      totalCoveragePercent: 100,
-      focusItems,
-      algorithmUpgradeNotes: [
-        '1. Gỡ bỏ triệt để Bẫy Phạt Lặp Kiệt Sức (Lagged Repeat Trap): Bắt nhịp số lặp 37 (gap 0 kỳ) và cận lặp 41 (gap 1 kỳ) từ các kỳ quay sát sườn thay vì phạt trừ điểm.',
-        '2. Mở rộng Cửa Sổ Điểm Rơi Poisson Vàng (0.55 - 2.5x): Bao phủ trọn vẹn cụm điểm rơi tầm trung gồm số 36 (gap 4 kỳ), số 10 (gap 6 kỳ) và số 43 (gap 7 kỳ).',
-        '3. Đón đầu Lô Gan Sâu Phục Hồi (Extreme Cold Mean-Reversion): Kích hoạt lò xo đàn hồi đối với số 14 (vắng bóng 10 kỳ), cân bằng năng lượng tích lũy.',
-        '4. Phân tầng Đa Cửa Sổ & Ma Trận Gom Cụm Wheeling: Tự động gom đủ cả 6 con số [10, 14, 36, 37, 41, 43] vào cùng nhóm hạt nhân Top vé, nâng tỷ lệ trúng từ 1/6 lên 6/6 trọn vẹn.',
-      ],
-    };
-  }
-
-
-
-  // Khởi tạo mục Khuyến nghị chuyên sâu AI (AI Recommendations) cho kỳ tiếp theo
   const recommendations = generateRecommendations(
     category,
     algorithm,
@@ -3080,7 +2832,8 @@ function analyzeAndPredict(
     top10Numbers,
     generatedTickets,
     recommendedSpecialNumber,
-    scoredCandidates
+    scoredCandidates,
+    categoryRecords
   );
   const devVarsForCat = deviationVariables.filter((v) => v.category === category);
 
@@ -3176,17 +2929,17 @@ function analyzeAndPredict(
     return picked.sort((a, b) => a.number - b.number);
   };
 
-  const pureTop6Candidates: CandidateScore[] = buildBalancedPureTicket(scoredCandidates, latestDraw, maxLimit);
+  const pureTop6Candidates: CandidateScore[] = algKey === 'temporal_learning' ? scoredCandidates.slice(0, 6) : buildBalancedPureTicket(scoredCandidates, latestDraw, maxLimit);
 
   const pureNumbers = pureTop6Candidates.map((c: CandidateScore) => c.number).sort((a: number, b: number) => a - b);
 
   const pureAlgorithmTicket = {
     numbers: pureNumbers,
-    specialNumber: category === 'POWER' ? recommendedSpecialNumber : undefined,
+    specialNumber: specialFor(recommendedSpecialNumber, pureNumbers, scoredCandidates.map(c => c.number)),
     confidence: Math.round((pureTop6Candidates.reduce((sum: number, c: CandidateScore) => sum + c.probability, 0) / 6.0) * 1000.0) / 10.0,
     algorithmId: algorithm,
     algorithmName: algName,
-    formulaNote: activeHyp.formula || `${algName} Pure Mathematical Formulation`,
+    formulaNote: algorithm === 'temporal_learning' ? algDesc : activeHyp.formula || algDesc,
     rationale: `Dãy 6 số thuần túy được tính toán trực tiếp từ nguyên lý toán học của mô hình ${algName}. Phân tầng cân bằng, giới hạn tối đa 1 số lặp từ kỳ trước và phân bổ đa dải số, phản ánh chính xác hiệu năng thực tế.`,
     details: pureTop6Candidates.map((c: CandidateScore) => ({
       number: c.number,
@@ -3284,13 +3037,6 @@ function analyzeAndPredict(
     .filter((c) => c.number >= highThreshold && !latestDraw.includes(c.number))
     .sort((a, b) => b.probability - a.probability);
   const pickedHigh: number[] = highZoneCandidates.slice(0, 3).map((c) => c.number);
-  if (category === 'POWER') {
-    [44, 53].forEach((n) => {
-      if (!pickedHigh.includes(n) && !latestDraw.includes(n) && pickedHigh.length < 3) {
-        pickedHigh.push(n);
-      }
-    });
-  }
   const lowMidBase = pureNumbers.filter((n) => n < highThreshold).slice(0, 3);
   const seq5Numbers = build6Distinct([...lowMidBase, ...pickedHigh], poolCandidates);
 
@@ -3349,7 +3095,6 @@ function analyzeAndPredict(
       numbers: seq1Numbers,
       specialNumber: category === 'POWER' ? (recommendedSpecialNumber || 48) : undefined,
       composition: calcTicketComp(seq1Numbers),
-      confidence: 88.5,
       deltaFormula: 'N_mới = N_gốc ± 1',
       transformationRule: `Áp dụng bước nhảy biên độ sát nút Δ = ±1 lên các vị trí trong dãy số nguyên thủy, hóa giải hiện tượng lệch biên độ 1 nút trong chu kỳ mở thưởng.`,
       keyShifts: seq1Numbers.filter((n: number) => !pureNumbers.includes(n)).map((n: number) => {
@@ -3367,7 +3112,6 @@ function analyzeAndPredict(
       numbers: seq2Numbers,
       specialNumber: category === 'POWER' ? 40 : undefined,
       composition: calcTicketComp(seq2Numbers),
-      confidence: 86.8,
       deltaFormula: 'N_mới ← Banh Phụ / Gương Chiếu',
       transformationRule: `Banh phụ ⭐${recommendedSpecialNumber || 48} chuyển vị thành banh chính, kết hợp các cặp số đảo vị gương thập phân đối xứng.`,
       keyShifts: seq2Numbers.filter((n: number) => !pureNumbers.includes(n)).map((n: number) => String(n).padStart(2, '0'))
@@ -3382,7 +3126,6 @@ function analyzeAndPredict(
       numbers: seq3Numbers,
       specialNumber: category === 'POWER' ? 26 : undefined,
       composition: calcTicketComp(seq3Numbers),
-      confidence: 85.2,
       deltaFormula: 'N_mới ≡ N_gốc (mod 10) + Dãn cách cụm',
       transformationRule: `Ghép cặp số có cùng chữ số hàng đơn vị (quy luật đồng dư mod 10) và giải nén năng lượng cụm dồn từ kỳ trước sang các dải phân vùng dãn cách.`,
       keyShifts: seq3Numbers.filter((n: number) => !pureNumbers.includes(n)).map((n: number) => String(n).padStart(2, '0'))
@@ -3397,7 +3140,6 @@ function analyzeAndPredict(
       numbers: seq4Numbers,
       specialNumber: category === 'POWER' ? (recommendedSpecialNumber || 48) : undefined,
       composition: calcTicketComp(seq4Numbers),
-      confidence: 93.5,
       deltaFormula: 'Tổng hợp tối ưu Pareto Wheeling',
       transformationRule: `Tổ hợp số tinh hoa nhất hội tụ đồng thời Quán tính lặp, Bước nhảy lân cận ±1 và Cầu nối chuyển vị banh phụ, tối ưu hóa điểm số bao phủ giải thưởng.`,
       keyShifts: seq4Numbers.map((n: number) => String(n).padStart(2, '0'))
@@ -3412,7 +3154,6 @@ function analyzeAndPredict(
       numbers: seq5Numbers,
       specialNumber: category === 'POWER' ? 52 : undefined,
       composition: calcTicketComp(seq5Numbers),
-      confidence: 90.2,
       deltaFormula: 'N_mới ∈ Phân vùng 40s - 55 (Đồng dư & Quán tính đỉnh)',
       transformationRule: `Đón đầu xu hướng phân dồn sang dải cao (bóng 44, 53...). Thống kê CSDL chứng minh hơn 82% các kỳ Power 6/55 xuất hiện từ 1 đến 3 bóng ở dải 40-55.`,
       keyShifts: seq5Numbers.filter((n: number) => n >= highThreshold).map((n: number) => String(n).padStart(2, '0'))
@@ -3427,7 +3168,6 @@ function analyzeAndPredict(
       numbers: seq6Numbers,
       specialNumber: category === 'POWER' ? (recommendedSpecialNumber || 48) : undefined,
       composition: calcTicketComp(seq6Numbers),
-      confidence: 89.0,
       deltaFormula: 'N_mới = N_gốc ± 1 hoặc ± 2',
       transformationRule: `Mở rộng biên độ bọc lót sai số 1 và 2 bước nhảy lân cận xung quanh các tọa độ hạt nhân của AI, chuyển hóa các vé trúng sát nút thành vé trúng trọn vẹn.`,
       keyShifts: seq6Numbers.filter((n: number) => !pureNumbers.includes(n)).map((n: number) => String(n).padStart(2, '0'))
@@ -3442,7 +3182,6 @@ function analyzeAndPredict(
       numbers: seq7Numbers,
       specialNumber: category === 'POWER' ? 38 : undefined,
       composition: calcTicketComp(seq7Numbers),
-      confidence: 87.6,
       deltaFormula: 'Gom cụm Lift Co-occurrence cao nhất CSDL',
       transformationRule: `Neo giữ cố định các cặp số có lực hút tương quan đồng xuất hiện cao nhất trong CSDL (Anti-Scattering), ngăn chặn hiện tượng các số trúng bị tản mạn sang nhiều vé khác nhau.`,
       keyShifts: seq7Numbers.map((n: number) => String(n).padStart(2, '0'))
@@ -3457,7 +3196,6 @@ function analyzeAndPredict(
       numbers: seq8Numbers,
       specialNumber: category === 'POWER' ? 18 : undefined,
       composition: calcTicketComp(seq8Numbers),
-      confidence: 86.4,
       deltaFormula: 'Giải phóng áp lực Poisson Gap tới hạn',
       transformationRule: `Đón đầu sự phục hồi xác suất của các bóng vắng bóng vượt ngưỡng kỳ vọng lý thuyết kết hợp nhịp rơi chu kỳ vàng Poisson 3-6 kỳ.`,
       keyShifts: seq8Numbers.map((n: number) => String(n).padStart(2, '0'))
@@ -3469,11 +3207,11 @@ function analyzeAndPredict(
     id: algorithm,
     name: algName,
     badge: 'Thuật Toán 1',
-    rankBadge: algorithm === 'bayesian_graph' ? 'Top 1 - Tối ưu nhất' : (algorithm === 'deep_stacking' ? 'Top 2 - Đột phá AI' : 'Top 3'),
-    accuracyScore: algorithm === 'bayesian_graph' ? 28.5 : (algorithm === 'deep_stacking' ? 26.8 : 22.4),
-    hitRate: algorithm === 'bayesian_graph' ? '14.3%' : (algorithm === 'deep_stacking' ? '12.5%' : '10.7%'),
+    rankBadge: 'History-based ranking',
+    accuracyScore: null,
+    hitRate: 'N/A',
     numbers: pureNumbers,
-    specialNumber: recommendedSpecialNumber,
+    specialNumber: pureAlgorithmTicket.specialNumber,
     formulaNote: algDesc,
     composition: calcTicketComp(pureNumbers),
     details: pureAlgorithmTicket.details
@@ -3496,52 +3234,25 @@ function analyzeAndPredict(
       id: secRes.algorithm,
       name: secRes.algorithmName,
       badge: 'Thuật Toán 2',
-      rankBadge: secRes.algorithm === 'bayesian_graph' ? 'Top 1 - Tối ưu nhất' : (secRes.algorithm === 'deep_stacking' ? 'Top 2 - Đột phá AI' : 'Top 3'),
-      accuracyScore: secRes.algorithm === 'bayesian_graph' ? 28.5 : (secRes.algorithm === 'deep_stacking' ? 26.8 : 22.4),
-      hitRate: secRes.algorithm === 'bayesian_graph' ? '14.3%' : (secRes.algorithm === 'deep_stacking' ? '12.5%' : '10.7%'),
+      rankBadge: 'History-based ranking',
+      accuracyScore: null,
+      hitRate: 'N/A',
       numbers: pure2,
-      specialNumber: secRes.specialNumber,
+      specialNumber: secRes.pureAlgorithmTicket?.specialNumber,
       formulaNote: secRes.algorithmDesc,
       composition: calcTicketComp(pure2),
       details: secRes.pureAlgorithmTicket?.details || []
     };
 
     const sharedNumbers = pureNumbers.filter((n) => pure2.includes(n));
-    const combinedSet = new Set<number>(sharedNumbers);
-
-    const p1Map = new Map<number, number>(scoredCandidates.map((c) => [c.number, c.probability]));
-    const p2Candidates = (secRes as any).allNumberScores || secRes.details || [];
-    const p2Map = new Map<number, number>();
-    for (const c of p2Candidates) {
-      p2Map.set(c.number, (c.probabilityPercent || 50) / 100);
-    }
-
-    // Ưu tiên các số từ chính pureNumbers và pure2 trước
-    for (const n of [...pureNumbers, ...pure2]) {
-      if (combinedSet.size >= 6) break;
-      const hasRepeatAlready = Array.from(combinedSet).some(x => latestDraw.includes(x));
-      if (hasRepeatAlready && latestDraw.includes(n)) continue;
-      combinedSet.add(n);
-    }
-
-    const allNums: number[] = [];
-    for (let i = 1; i <= maxLimit; i++) allNums.push(i);
-    allNums.sort((a, b) => {
-      const sA = 0.52 * (p1Map.get(a) || 0.5) + 0.48 * (p2Map.get(a) || 0.5);
-      const sB = 0.52 * (p1Map.get(b) || 0.5) + 0.48 * (p2Map.get(b) || 0.5);
-      return sB - sA;
-    });
-
-    for (const n of allNums) {
-      if (combinedSet.size >= 6) break;
-      const hasRepeatAlready = Array.from(combinedSet).some(x => latestDraw.includes(x));
-      if (hasRepeatAlready && latestDraw.includes(n)) continue;
-      combinedSet.add(n);
-    }
-
-    const combinedNumbers = Array.from(combinedSet).sort((a, b) => a - b);
+    const p1Map = new Map<number, number>(scoredCandidates.map(c => [c.number, c.probability]));
+    const p2Candidates = secRes.allNumberScores ?? [];
+    const p2Map = new Map<number, number>(p2Candidates.map(c => [c.number, c.probabilityPercent / 100]));
+    const combinedNumbers = fuseRankings(
+      scoredCandidates.map(c => c.number),
+      [...p2Candidates].sort((a, b) => b.probabilityPercent - a.probabilityPercent || a.number - b.number).map(c => c.number));
     const combinedDetails = combinedNumbers.map((n) => {
-      const hybridProb = 0.52 * (p1Map.get(n) || 0.5) + 0.48 * (p2Map.get(n) || 0.5);
+      const hybridProb = 0.5 * (p1Map.get(n) ?? 0) + 0.5 * (p2Map.get(n) ?? 0);
       const isShared = sharedNumbers.includes(n);
       const isFromAlg1 = pureNumbers.includes(n);
       const isFromAlg2 = pure2.includes(n);
@@ -3565,12 +3276,12 @@ function analyzeAndPredict(
       id: 'combined_ensemble',
       name: 'Kết Hợp 2 Thuật Toán (Ensemble Consensus)',
       badge: 'Đồng Thuận 2 Mô Hình',
-      rankBadge: 'Độ chính xác vượt trội',
-      accuracyScore: 36.8,
-      hitRate: '25.0%',
+      rankBadge: 'History-based ranking',
+      accuracyScore: null,
+      hitRate: 'N/A',
       numbers: combinedNumbers,
       sharedNumbers,
-      specialNumber: recommendedSpecialNumber,
+      specialNumber: specialFor(recommendedSpecialNumber, combinedNumbers, scoredCandidates.map(c => c.number)),
       formulaNote: `🌟 Kết hợp 2 thuật toán độc lập: Hội tụ các điểm rơi đồng thuận cao giữa Thuật toán 1 (${primaryAlgorithmResult.name}) và Thuật toán 2 (${secondaryAlgorithmResult.name}), tối ưu hóa độ bao phủ và cân bằng phân bổ dải số.`,
       composition: calcTicketComp(combinedNumbers),
       details: combinedDetails
@@ -3578,8 +3289,8 @@ function analyzeAndPredict(
   }
 
   // TÍNH TOÁN PHÂN TÍCH BẪY LỆCH 1 NÚT (NEIGHBOR DRIFT ANALYSIS)
-  const powerRecordsAll = (records || []).filter((r) => r.category === 'POWER').sort((a, b) => a.drawDate.localeCompare(b.drawDate));
-  const megaRecordsAll = (records || []).filter((r) => r.category === 'MEGA').sort((a, b) => a.drawDate.localeCompare(b.drawDate));
+  const powerRecordsAll = sourceRecords.filter((r) => r.category === 'POWER').sort((a, b) => a.drawDate.localeCompare(b.drawDate));
+  const megaRecordsAll = sourceRecords.filter((r) => r.category === 'MEGA').sort((a, b) => a.drawDate.localeCompare(b.drawDate));
 
   let totalDrawsEvaluated = 0;
   let totalDriftCount = 0; // Số kỳ có >= 2 bóng lệch 1 nút
@@ -3623,13 +3334,13 @@ function analyzeAndPredict(
 
   const historicalRatioPercent = totalDrawsEvaluated > 0
     ? Math.round((totalDriftCount / totalDrawsEvaluated) * 1000) / 10
-    : 44.2;
+    : 0;
   const powerDriftRatioPercent = powerRecordsAll.length > 1
     ? Math.round((powerDriftCount / (powerRecordsAll.length - 1)) * 1000) / 10
-    : 39.1;
+    : 0;
   const megaDriftRatioPercent = megaRecordsAll.length > 1
     ? Math.round((megaDriftCount / (megaRecordsAll.length - 1)) * 1000) / 10
-    : 48.3;
+    : 0;
 
   // Tính toán xác suất lệch và số bọc lót cho 6 bóng của dãy số dự đoán
   const driftRiskCandidates = pureNumbers.map((num: number) => {
@@ -3701,89 +3412,22 @@ function analyzeAndPredict(
   const hedgingTicketNumbers = Array.from(hedgedSet).slice(0, 6).sort((a, b) => a - b);
 
   const neighborDriftAnalysis = {
-    isSimilarCycleTo22Oct: true,
+    isSimilarCycleTo22Oct: false,
     totalDriftDrawsCount: totalDriftCount,
     severeDriftDrawsCount: severeDriftCount,
     historicalRatioPercent,
     powerDriftRatioPercent,
     megaDriftRatioPercent,
     keyHistoricalDraws: keyHistoricalDraws.slice(0, 5),
-    cycleDiagnosis: `Chu kỳ dao động tương tự kỳ Power 22/10/2026: Lồng cầu có mật độ lệch sát nút ±1 lên đến ${historicalRatioPercent}% các kỳ trong CSDL (đã ghi nhận ${totalDriftCount} kỳ lệch nhiều bóng, đặc biệt các kỳ 17/10/2026, 07/10/2026, 08/09/2026, 26/08/2026 và 09/08/2026 lệch tới 3-4 bóng). Hệ thống đã tự động kích hoạt ma trận bọc lót bảo hiểm giải thưởng.`,
+    cycleDiagnosis: `${totalDriftCount}/${totalDrawsEvaluated} stored transitions contain at least two neighbor shifts.`,
     riskCandidates: driftRiskCandidates,
     hedgingTicketNumbers,
     hedgingRationale: `Dãy vé bọc lót hóa giải bẫy lệch 1 nút: Áp dụng chuyển dịch sai phân Δ = ±1 cho các bóng chịu áp lực nén cao nhất, bảo toàn tối đa xác suất trúng giải Jackpot và tránh trượt sát nút đáng tiếc.`
   };
 
-  const commonPatternsAnalysis = {
-    evaluatedDraws: totalDrawsEvaluated,
-    amplitude1Pattern: {
-      rule: 'Quy Luật Biên Độ Lệch 1 Nút (Δ = ±1)',
-      occurrencesCount: totalDriftCount,
-      percentage: historicalRatioPercent,
-      insight: `44.2% các kỳ trong CSDL (23 kỳ) xuất hiện từ 2 bóng trở lên lệch đúng 1 nút. Hiện tượng lệch biên độ 1 nút ở kỳ Mega 23/10/2026 và Power 22/10/2026 phản ánh quán tính trượt lồng cầu. Cần sử dụng các dãy biến số bọc lót biên độ để đón đầu.`
-    },
-    parityPattern: {
-      rule: 'Tỷ Lệ Chẵn / Lẻ Cân Bằng',
-      balanceRatio: '3 Chẵn / 3 Lẻ hoặc 4/2 - 2/4',
-      percentage: 84.6,
-      insight: '84.6% các kỳ quay rơi vào thế cân bằng 3 Chẵn / 3 Lẻ (41.5%) hoặc 4/2 - 2/4 (43.1%). Rất hiếm khi xuất hiện 6 Chẵn hoặc 6 Lẻ cực đoan.'
-    },
-    zoneDistributionPattern: {
-      rule: 'Phân Bổ Đều 3 Phân Vùng (Zone 1: 01-15, Zone 2: 16-30, Zone 3: 31-45/55)',
-      percentage: 92.3,
-      insight: '92.3% các kỳ chia đều từ 1 đến 3 bóng trên mỗi phân vùng, giải phóng áp suất dồn và bảo toàn năng lượng dãn cách tự nhiên.'
-    },
-    tailModuloPattern: {
-      rule: 'Cặp Số Đồng Dư Đuôi Modulo-10 (Trùng Chữ Số Hàng Đơn Vị)',
-      percentage: 82.1,
-      insight: '82.1% các kỳ xuất hiện ít nhất 1 cặp số có cùng chữ số hàng đơn vị (vd: đuôi 1: 01-21-31, đuôi 4: 14-24, đuôi 8: 08-38).'
-    },
-    consecutivePairPattern: {
-      rule: 'Cặp Số Liền Kề Liên Tiếp (Δ = 1)',
-      percentage: 56.5,
-      insight: '56.5% các kỳ xuất hiện ít nhất 1 cặp số liền kề nhau trong cùng một giải mở thưởng (vd: 10-11, 36-37, 11-12).'
-    },
-    sumRangePattern: {
-      rule: 'Vùng Biên Độ Tổng Điểm Vàng',
-      optimalRange: category === 'POWER' ? '125 - 210' : '100 - 175',
-      percentage: 88.0,
-      insight: `88% các kỳ quay có tổng 6 bóng nằm trong biên độ vàng ${category === 'POWER' ? '125 - 210' : '100 - 175'}.`
-    }
-  };
+  const commonPatternsAnalysis = summarizePatterns(categoryRecords.map(r => r.numbers), maxLimit);
 
-  const realityVsAiAnalysis = {
-    title: 'Thấu Kính Đối Chiếu Thực Tế & Dự Đoán AI (Reality vs. AI Proximity)',
-    summary: 'Giải mã hiện tượng vé thực tế trúng 3 số rất gần dãy số AI và chiến lược đón đầu các bóng dải cao (44, 53) cho kỳ quay tiếp theo.',
-    recordedDate: latestCurrentDate || '24/10/2026',
-    insights: [
-      {
-        icon: '🎯',
-        badge: 'Cơ Chế Sát Nút',
-        badgeClass: 'bg-primary text-white',
-        title: 'Cơ Chế Vé Trúng Sát Nút (Near-Miss Tolerance ±1, ±2):',
-        description: 'Ở kỳ quay thực tế ngày 24/10, vé trúng 3 số xuất hiện ở dạng sai số sát nút 1-2 bước nhảy so với tọa độ AI do lồng cầu dao động đàn hồi. Giải pháp: Dãy Biến Số #1 và #6 bọc lót toàn diện sai số ±1 và ±2.'
-      },
-      {
-        icon: '🚀',
-        badge: 'Phân Vùng Dải Cao',
-        badgeClass: 'bg-danger text-white',
-        title: 'Sự Bứt Phá Của Phân Vùng Dải Cao 4x & 5x (Bóng 44, 53):',
-        description: 'Bóng 44 nổ theo quy luật đồng dư Modulo-10 đuôi 4 (14, 24). Bóng 53 giữ xung nhịp cặp dải đỉnh (50-53) của Power 6/55. Trong CSDL, hơn 82% kỳ Power có bóng dải 40-55. Giải pháp: Dãy Biến Số #5 (Đón Đầu Dải Cao 4x & 5x).'
-      },
-      {
-        icon: '🔄',
-        badge: 'Học Thích Ứng',
-        badgeClass: 'bg-success text-white',
-        title: 'Vòng Phản Hồi Học Thích Ứng & Mở Rộng 8 Dãy Lựa Chọn:',
-        description: 'Hệ thống đã nâng cấp từ 4 dãy lên 8 dãy lựa chọn chiến lược toàn diện, bổ sung Dãy Đón Dải Cao (44, 53), Dãy Bọc Lót Sai Số Sát Nút (±1, ±2), Dãy Cặp Hạt Nhân và Dãy Lô Gan Sâu.'
-      }
-    ],
-    highlightNumbers: {
-      aiAnchorNumbers: pureNumbers.slice(0, 4),
-      highZoneBoosters: category === 'POWER' ? [44, 48, 53] : [36, 40, 44],
-      nearMissHedgers: seq1Numbers.slice(0, 3)
-    }
-  };
+  const realityVsAiAnalysis = undefined;
 
   return {
     status: 'SUCCESS',
@@ -3792,7 +3436,7 @@ function analyzeAndPredict(
     algorithm,
     algorithmName: algName,
     algorithmDesc: algDesc,
-    modelVersion: activeHyp.model || 'XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)',
+    modelVersion: algorithm === 'temporal_learning' ? 'temporal-links-v1' : activeHyp.model,
     hyperparameterVersion: activeHyp.version || 'v1.1.0',
     activeAdjustments: adjustments,
     numbers: top10Numbers,
@@ -3801,8 +3445,10 @@ function analyzeAndPredict(
     pureAlgorithmTicket,
     primaryAlgorithmResult,
     secondaryAlgorithmResult,
+    combinedAlgorithmResult,
     neighborDriftAnalysis,
     commonPatternsAnalysis,
+    relationshipLearning: { ...learned.analysis, verifiedWinningTickets: verifiedWinningTickets(categoryRecords, customRecords == null ? userChecks : [], category) },
     realityVsAiAnalysis,
     transformedSequences,
     specialNumber: recommendedSpecialNumber,
@@ -3837,11 +3483,18 @@ function analyzeAndPredict(
 
 async function startServer() {
   loadInitialData();
+  const lotterySync = new LotterySync(syncConfig(), () => records, rows => {
+    writeResults(DATA_FILE, rows);
+    records = rows;
+    nextId = Math.max(0, ...records.map(row => row.id)) + 1;
+  });
 
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT || 3000);
+  if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw new Error('PORT must be an integer between 1 and 65535');
 
   app.use(express.json());
+  app.get('/api/lottery-sync/status', (_req, res) => res.json(lotterySync.status()));
 
   // CORS headers
   app.use((req, res, next) => {
@@ -4002,7 +3655,7 @@ async function startServer() {
 
   const handlePredict = (req: Request, res: Response) => {
     const rawCategory = (req.query.category || req.body?.category || 'MEGA') as string;
-    const rawAlgorithm = (req.query.algorithm || req.body?.algorithm || 'bayesian_graph') as string;
+    const rawAlgorithm = (req.query.algorithm || req.body?.algorithm || 'temporal_learning') as string;
     const rawAlgorithm2 = (req.query.algorithm2 || req.body?.algorithm2 || '') as string;
     const category = typeof rawCategory === 'string' ? rawCategory : 'MEGA';
     const algorithm = typeof rawAlgorithm === 'string' ? rawAlgorithm : 'bayesian_graph';
@@ -4019,112 +3672,25 @@ async function startServer() {
   app.post('/predict', handlePredict);
 
   // Danh sách các thuật toán dự đoán được sắp xếp từ khả năng cho kết quả đúng nhất (Top 1 đến Top 7)
-  const algorithmRankings = [
-    {
-      id: 'bayesian_graph',
-      rank: 1,
-      rankBadge: 'Top 1 - Tối ưu nhất',
-      accuracyScore: 28.5,
-      hitRate: '14.3%',
-      nearHitRate: '32.1%',
-      name: 'Mạng Đồ Thị Bayes AI (BEGN)',
-      icon: '🔮',
-      badge: '🏆 Top 1 - Tối ưu thực tế',
-      formula: 'Bayes Posterior + Graph Clique + Fourier Phase',
-      description: 'Mô hình mạng đồ thị kết hợp xác suất hậu nghiệm Bayes, cộng hưởng sóng hài Fourier và tương tác liên kết cặp số. Đạt tỷ lệ bao phủ bóng trúng 28.5% trên CSDL lịch sử (cao gấp 2.6 lần so với chọn ngẫu nhiên 10.9%).',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 28.5% CSDL thực tế; tỷ lệ dàn vé trúng ≥3 số đạt 14.3%.'
-    },
-    {
-      id: 'deep_stacking',
-      rank: 2,
-      rankBadge: 'Top 2 - Đột phá AI',
-      accuracyScore: 26.8,
-      hitRate: '12.5%',
-      nearHitRate: '28.6%',
-      name: 'Xếp Chồng AI & Copula (DSE-Copula)',
-      icon: '⚡',
-      badge: '⭐ Top 2 - Khai thác CSDL',
-      formula: 'Deep Stacking + Empirical Copula + Gap Z-Score',
-      description: 'Mô hình học máy xếp chồng đa tầng khai thác chuyên sâu CSDL: chuẩn hóa Z-Score độ trễ cá thể, tương quan Jaccard đa biến và giải thuật Pareto Wheeling bảo toàn tối đa độ phủ giải thưởng.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 26.8% CSDL thực tế; kiểm soát độ trễ cá thể theo từng bóng số.'
-    },
-    {
-      id: 'xgboost',
-      rank: 3,
-      rankBadge: 'Top 3 - Khuyên dùng',
-      accuracyScore: 22.4,
-      hitRate: '10.7%',
-      nearHitRate: '25.0%',
-      name: 'AI XGBoost + Wheeling',
-      icon: '🧠',
-      badge: '🎯 Top 3 - Học máy kết hợp',
-      formula: 'Tối ưu Z-Score + Gradient Boosting + Trộn vé',
-      description: 'Phân tích đa chiều Gradient Boosting: Quán tính chuỗi (Momentum), điểm rơi Lô Gan và ma trận tương tác cặp số để lọc 10 số ưu tú nhất.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 22.4%; học máy phân loại hồi quy gradient boosting lọc nhiễu tần suất.'
-    },
-    {
-      id: 'poisson_gap',
-      rank: 4,
-      rankBadge: 'Top 4 - Phục hồi gan',
-      accuracyScore: 21.9,
-      hitRate: '9.5%',
-      nearHitRate: '22.7%',
-      name: 'Poisson & Lô Gan Hồi Quy',
-      icon: '📊',
-      badge: '📈 Top 4 - Điểm rơi Poisson',
-      formula: 'Poisson Inter-Arrival + Mean Reversion + Pressure',
-      description: 'Phát hiện sự tích lũy độ trễ của các biến cố hiếm theo phân phối Poisson, định vị điểm rơi phục hồi xác suất (Mean Reversion) khi áp lực tới hạn.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 21.9%; bắt điểm rơi giải phóng áp suất Poisson khi độ trễ đạt ngưỡng.'
-    },
-    {
-      id: 'delta_wheeling',
-      rank: 5,
-      rankBadge: 'Top 5 - Bảo toàn phủ',
-      accuracyScore: 20.8,
-      hitRate: '8.8%',
-      nearHitRate: '25.0%',
-      name: 'Delta & Wheeling System',
-      icon: '🛡️',
-      badge: '📐 Top 5 - Dãn cách Delta',
-      formula: 'Delta Spacing + Wheeling Matrix 10-to-6',
-      description: 'Phân tích khoảng cách Delta giữa các số liền kề kết hợp ma trận xoay vòng Wheeling System 10-to-6 để tối đa hóa diện tích bao phủ giải thưởng.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 20.8%; duy trì khoảng cách dãn cách 4-8 đơn vị an toàn.'
-    },
-    {
-      id: 'montecarlo',
-      rank: 6,
-      rankBadge: 'Top 6 - Mô phỏng EV',
-      accuracyScore: 20.1,
-      hitRate: '8.2%',
-      nearHitRate: '22.7%',
-      name: 'Monte Carlo 100K Lồng Cầu',
-      icon: '🎲',
-      badge: '🎲 Top 6 - Mô phỏng ngẫu nhiên',
-      formula: '100.000 Random Walk Simulations + Expected Value',
-      description: 'Mô phỏng 100.000 lượt quay ngẫu nhiên có trọng số xác suất, đối chuẩn dữ liệu Powerball & Mega Millions tìm điểm hội tụ kỳ vọng (EV).',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 20.1%; mô phỏng ngẫu nhiên vật lý lồng cầu tìm các điểm hội tụ EV.'
-    },
-    {
-      id: 'markov',
-      rank: 7,
-      rankBadge: 'Top 7 - Bước nhảy chuỗi',
-      accuracyScore: 19.5,
-      hitRate: '7.5%',
-      nearHitRate: '18.2%',
-      name: 'Chuỗi Chuyển Dịch Markov',
-      icon: '🔗',
-      badge: '🔗 Top 7 - Chuyển trạng thái',
-      formula: 'P(State A -> State B) Conditional Transition',
-      description: 'Tính xác suất chuyển dịch có điều kiện giữa các kỳ quay liên tiếp, dự báo bước nhảy không gian trạng thái từ kết quả gần nhất.',
-      highlight: 'Tỷ lệ bao phủ Top 10 đạt 19.5%; phân tích ma trận bước nhảy bậc 1 và bậc 2 từ các số kỳ trước.'
-    }
-  ];
+  const algorithmRankings = algorithmCatalog;
 
   app.get('/api/analyze/algorithms', (req: Request, res: Response) => {
     res.json(algorithmRankings);
   });
   app.get('/analyze/algorithms', (req: Request, res: Response) => {
     res.json(algorithmRankings);
+  });
+
+  app.get('/api/analyze/relationship-learning', (req: Request, res: Response) => {
+    const category = String(req.query.category || 'POWER').toUpperCase() === 'POWER' ? 'POWER' : 'MEGA';
+    const date = typeof req.query.date === 'string' ? req.query.date : undefined;
+    const available = records.filter(r => r.category === category);
+    if (date && !available.some(r => r.drawDate === date)) return res.status(404).json({
+      status: 'DRAW_NOT_FOUND', requestedDate: date, availableAsOfDate: available.map(r => r.drawDate).sort().at(-1) ?? null, verifiedWinningTickets: [] });
+    const history = available.filter(r => !date || r.drawDate <= date);
+    const prediction = analyzeAndPredict(category, 'temporal_learning', history, 'SKIP_RECURSION');
+    return res.json({ ...prediction.relationshipLearning, status: history.length ? 'SUCCESS' : 'NO_HISTORY',
+      verifiedWinningTickets: verifiedWinningTickets(history, userChecks, category).filter(t => !date || t.drawDate === date) });
   });
 
   // Analyze Project matching endpoints
@@ -5226,7 +4792,7 @@ async function startServer() {
         );
         const aiPrediction = analyzeAndPredict(category, algorithm, priorRecords);
         const aiTop10Numbers = (aiPrediction.numbers || []).slice(0, 10);
-        const aiPredicted6Numbers = (aiPrediction.numbers || []).slice(0, 6).sort((a, b) => a - b);
+        const aiPredicted6Numbers = (aiPrediction.pureNumbers ?? []).slice(0, 6).sort((a, b) => a - b);
         const aiSpecialNumber = aiPrediction.specialNumber;
         
         // So khớp 6 số AI dự đoán trực tiếp với 6 số mở thưởng
@@ -5593,7 +5159,8 @@ async function startServer() {
 
   app.get('/api/analyze/recommendations', (req: Request, res: Response) => {
     const cat = req.query.category === 'POWER' ? 'POWER' : 'MEGA';
-    return res.json(generateRecommendations(cat));
+    const prediction = analyzeAndPredict(cat);
+    return res.json(prediction.recommendations ?? { status: prediction.status, message: prediction.analysisSummary });
   });
 
   app.get('/api/analyze/reconcile-5-draws', handleReconcile5Draws);
@@ -6237,6 +5804,7 @@ async function startServer() {
       res.sendFile(path.join(backendStatic, 'index.html'));
     });
   } else if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -6249,9 +5817,11 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const listener = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Analyze Project server running on http://0.0.0.0:${PORT}`);
   });
+  const stopSync = lotterySync.start();
+  listener.on('close', stopSync);
 }
 
-startServer();
+if (process.env.NODE_ENV !== 'test') startServer();

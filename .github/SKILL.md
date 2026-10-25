@@ -1,5 +1,9 @@
 # SKILL.md - Project Architecture & Technical Standards
 
+## Skill quy trình được tái sử dụng
+
+Khi phân tích dự án, thay hard-code, sửa prediction, cập nhật scoring / thuật toán hoặc backtest, sử dụng [analyze-project-workflow](skills/analyze-project-workflow/SKILL.md). Skill ghi lại flow đã thực hiện cùng các bất biến và cách kiểm chứng. Các ghi nhận về thuật toán dưới đây là định hướng lịch sử; xác minh implementation hiện tại và không coi tên mô hình là bằng chứng đã huấn luyện hoặc đạt độ chính xác cụ thể.
+
 ## 0. Vị trí File Cấu hình (Configuration Files Location)
 * **Quy tắc vị trí bắt buộc:** Cả 2 file **`SKILL.md`** và **`AGENT.md`** **PHẢI** luôn nằm trong thư mục **`.github/`**:
   * Đường dẫn: `.github/SKILL.md`
@@ -24,7 +28,7 @@
   * `share/`: Nơi lưu trữ các Shared Services, Pipes, và Components để tái sử dụng xuyên suốt dự án.
 
 ## 3. Quy trình Build & Kiểm thử (Build Standards)
-* **Quy tắc Build (Build Mandate):** Mỗi lần thay đổi code, bắt buộc phải build từng phần riêng lẻ thành công trước khi hoàn thành:
+* **Quy tắc Build (Build Mandate):** Mỗi lần thay đổi code ứng dụng, bắt buộc phải build từng phần riêng lẻ thành công trước khi hoàn thành. Thay đổi chỉ tài liệu / skill thì kiểm tra nội dung, liên kết và định dạng; không cần chạy lại build ứng dụng:
   * **Frontend:** Chạy lệnh build trong thư mục `frontend`:
     ```bash
     npm run build
