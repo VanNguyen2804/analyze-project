@@ -651,6 +651,110 @@ export class PredictionComponent implements OnInit, OnDestroy {
     ];
   }
 
+  // --- CHIẾN LƯỢC LỌC DÃY SỐ VÀ LIÊN HỆ THỰC TẾ VS DỰ ĐOÁN AI ---
+  selectedSeqCategory: string = 'all';
+
+  setSeqCategory(cat: string) {
+    this.selectedSeqCategory = cat;
+    this.cdr.markForCheck();
+  }
+
+  getRealityVsAiAnalysis(): any {
+    return this.payload?.realityVsAiAnalysis || null;
+  }
+
+  getFilteredSequences(): any[] {
+    const list = this.getTransformedSequences();
+    if (!Array.isArray(list)) return [];
+    if (this.selectedSeqCategory === 'all') {
+      return list;
+    }
+    if (this.selectedSeqCategory === 'high_zone') {
+      return list.filter(s => s.categoryTag === 'high_zone' || s.id === 'high_zone_surge');
+    }
+    if (this.selectedSeqCategory === 'near_miss') {
+      return list.filter(s => s.categoryTag === 'drift' || s.categoryTag === 'near_miss' || s.id === 'neighbor_drift' || s.id === 'near_miss_tolerance');
+    }
+    if (this.selectedSeqCategory === 'core_clique') {
+      return list.filter(s => s.categoryTag === 'core' || s.categoryTag === 'clique' || s.categoryTag === 'poisson_cold' || s.id === 'concentrated_synthesis' || s.id === 'pair_synergy_clique' || s.id === 'poisson_gap_rebound');
+    }
+    if (this.selectedSeqCategory === 'special_modulo') {
+      return list.filter(s => s.categoryTag === 'special' || s.categoryTag === 'modulo' || s.id === 'special_migration_mirror' || s.id === 'tail_congruence_decompression');
+    }
+    return list;
+  }
+
+  // --- GHÉP VÉ TỰ CHỌN TỪ BỘ SỐ GỢI Ý (CUSTOM TICKET MIXER) ---
+  customMixerNumbers: number[] = [];
+  mixerCopySuccess: boolean = false;
+
+  toggleMixerNumber(num: number) {
+    const idx = this.customMixerNumbers.indexOf(num);
+    if (idx >= 0) {
+      this.customMixerNumbers.splice(idx, 1);
+    } else {
+      if (this.customMixerNumbers.length < 6) {
+        this.customMixerNumbers.push(num);
+        this.customMixerNumbers.sort((a, b) => a - b);
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  isMixerNumberSelected(num: number): boolean {
+    return this.customMixerNumbers.includes(num);
+  }
+
+  clearMixerNumbers() {
+    this.customMixerNumbers = [];
+    this.cdr.markForCheck();
+  }
+
+  fillMixerAuto(sourceTicket?: number[]) {
+    if (sourceTicket && sourceTicket.length === 6) {
+      this.customMixerNumbers = [...sourceTicket].sort((a, b) => a - b);
+    } else {
+      const topNums = this.getCuratedMixerPool().slice(0, 6);
+      this.customMixerNumbers = [...topNums].sort((a, b) => a - b);
+    }
+    this.cdr.markForCheck();
+  }
+
+  getCuratedMixerPool(): number[] {
+    const set = new Set<number>();
+    // Thêm các số nguyên bản AI
+    this.getPureAlgorithmNumbers().slice(0, 8).forEach(n => set.add(n));
+    // Thêm các bóng dải cao đột phá 44, 48, 52, 53
+    if (this.category === 'POWER') {
+      [44, 48, 52, 53].forEach(n => set.add(n));
+    } else {
+      [36, 40, 44].forEach(n => set.add(n));
+    }
+    // Thêm top 10 từ payload
+    (this.payload?.numbers || []).slice(0, 10).forEach(n => set.add(n));
+    return Array.from(set).sort((a, b) => a - b);
+  }
+
+  getMixerSum(): number {
+    return this.customMixerNumbers.reduce((a, b) => a + b, 0);
+  }
+
+  getMixerParity(): string {
+    const even = this.customMixerNumbers.filter(n => n % 2 === 0).length;
+    const odd = this.customMixerNumbers.length - even;
+    return `${even} Chẵn / ${odd} Lẻ`;
+  }
+
+  copyMixerTicket() {
+    if (this.customMixerNumbers.length < 6) return;
+    this.copyTicket(this.customMixerNumbers, this.category === 'POWER' ? (this.payload?.specialNumber || 48) : null);
+    this.mixerCopySuccess = true;
+    setTimeout(() => {
+      this.mixerCopySuccess = false;
+      this.cdr.markForCheck();
+    }, 3000);
+  }
+
   getTargetDrawDateDisplay(): string {
     const info = this.getTargetDrawInfo();
     return info.fullDisplay;

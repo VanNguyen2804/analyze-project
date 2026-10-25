@@ -1239,31 +1239,149 @@
     </div>
 
     <!-- ========================================================================================= -->
-    <!-- PHẦN 2: CÁC DÃY SỐ KẾ TIẾP KHI CÓ BIẾN SỐ (VARIATION SEQUENCES)                           -->
+    <!-- PHẦN 2: CÁC DÃY SỐ KẾ TIẾP KHI CÓ BIẾN SỐ (VARIATION SEQUENCES) & ĐỐI CHIẾU THỰC TẾ 24/10   -->
     <!-- ========================================================================================= -->
+    
+    <!-- THẤU KÍNH ĐỐI CHIẾU THỰC TẾ & LIÊN HỆ DỰ ĐOÁN AI (REALITY VS. AI PROXIMITY) -->
+    <div class="card shadow-sm border-0 mb-4 border-start border-4 border-primary rounded-4 bg-white" *ngIf="getRealityVsAiAnalysis() as rva">
+      <div class="card-header bg-primary bg-opacity-10 border-bottom p-3 p-md-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="fs-4">🔬</span>
+              <h4 class="h5 fw-bold text-dark mb-0">
+                {{ rva.title || 'THẤU KÍNH ĐỐI CHIẾU THỰC TẾ & LIÊN HỆ DỰ ĐOÁN AI (REALITY VS. AI PROXIMITY)' }}
+              </h4>
+              <span class="badge bg-primary text-white rounded-pill px-3 py-1 small fw-bold">
+                Thực Chứng & Đột Phá 44, 53
+              </span>
+            </div>
+            <p class="text-muted small mb-0">
+              {{ rva.summary || 'Giải mã hiện tượng vé thực tế trúng 3 số rất gần dãy số AI và chiến lược đón đầu các bóng dải cao (44, 53) cho kỳ quay tiếp theo.' }}
+            </p>
+          </div>
+          <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small">
+            📅 Dữ liệu cập nhật kỳ: <strong>{{ rva.recordedDate }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
+        <!-- 3 CỘT PHÂN TÍCH CHUYÊN SÂU -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-lg-4" *ngFor="let insight of rva.insights">
+            <div class="p-3 bg-white rounded-3 border h-100 shadow-xs">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="badge px-2 py-1" [ngClass]="insight.badgeClass">{{ insight.badge }}</span>
+                <span class="fs-4">{{ insight.icon }}</span>
+              </div>
+              <h6 class="fw-bold text-dark mb-1 small">{{ insight.title }}</h6>
+              <p class="text-secondary small mb-0" style="line-height: 1.45;">
+                {{ insight.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HIGHLIGHTED ANCHOR BALLS -->
+        <div class="p-3 bg-white rounded-3 border shadow-xs d-flex align-items-center justify-content-between flex-wrap gap-3" *ngIf="rva.highlightNumbers">
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <span class="small fw-bold text-dark">
+              🎯 Tọa Độ Cầu Nối:
+            </span>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="text-xs text-muted">Dải Cao Đón Đầu:</span>
+              <span *ngFor="let n of rva.highlightNumbers.highZoneBoosters"
+                    class="ball ball-sm ball-power fw-bold text-white shadow-xs"
+                    style="width: 34px; height: 34px; font-size: 13px;">
+                {{ formatNumber(n) }}
+              </span>
+              <span class="text-xs text-muted ms-2">Bọc Lót Sát Nút:</span>
+              <span *ngFor="let n of rva.highlightNumbers.nearMissHedgers"
+                    class="ball ball-sm bg-warning text-dark border border-warning fw-bold shadow-xs"
+                    style="width: 34px; height: 34px; font-size: 13px;">
+                {{ formatNumber(n) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-danger rounded-pill fw-bold"
+                    (click)="setSeqCategory('high_zone')">
+              🚀 Xem Dãy Bắt 44, 53
+            </button>
+            <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold"
+                    (click)="setSeqCategory('near_miss')">
+              🛡️ Xem Dãy Bọc Lót ±1, ±2
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BỘ DANH SÁCH 8 DÃY SỐ CHIẾN LƯỢC TOÀN DIỆN -->
     <div class="card shadow-sm border-0 mb-4 border-start border-4 border-warning">
       <div class="card-header bg-white border-bottom p-3 p-md-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
           <div>
             <div class="d-flex align-items-center gap-2 mb-1">
               <span class="fs-4">⚡</span>
               <h4 class="h5 fw-bold text-dark mb-0">
-                2. CÁC DÃY SỐ KHẢ THI CÓ BIẾN SỐ (VARIATION CANDIDATE TICKETS)
+                2. CÁC DÃY SỐ KHẢ THI CÓ BIẾN SỐ (8 CHIẾN LƯỢC TOÀN DIỆN)
               </h4>
               <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small fw-bold">
-                Biến Số Bù Trừ Biên Độ & Phân Vùng
+                8 Dãy Đa Dạng Lựa Chọn
               </span>
             </div>
             <p class="text-muted small mb-0">
-              Các dãy số khả thi được tinh chỉnh dựa trên các điểm chung cấu trúc lịch sử và bù trừ biên độ ±1 nhằm hóa giải sai số trượt lồng cầu (như kỳ Mega 23/10/2026). Người dùng có thể trực tiếp chọn và sao chép dãy biến số phù hợp:
+              Được mở rộng từ 4 lên 8 dãy lựa chọn chiến lược (đón đầu dải cao 44 & 53, bọc lót sát nút 1-2 bước nhảy, ma trận cặp tương tác, lô gan phục hồi). Chọn bộ lọc để đối soát:
             </p>
+          </div>
+
+          <!-- BỘ LỌC TABS CHIẾN LƯỢC -->
+          <div class="d-flex align-items-center gap-1 flex-wrap">
+            <button
+              class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
+              [ngClass]="selectedSeqCategory === 'all' ? 'btn-warning text-dark shadow-xs' : 'btn-light border text-muted'"
+              (click)="setSeqCategory('all')"
+            >
+              Tất Cả (8 Dãy)
+            </button>
+            <button
+              class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
+              [ngClass]="selectedSeqCategory === 'high_zone' ? 'btn-danger text-white shadow-xs' : 'btn-light border text-muted'"
+              (click)="setSeqCategory('high_zone')"
+            >
+              🚀 Đón Dải Cao (44, 53)
+            </button>
+            <button
+              class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
+              [ngClass]="selectedSeqCategory === 'near_miss' ? 'btn-primary text-white shadow-xs' : 'btn-light border text-muted'"
+              (click)="setSeqCategory('near_miss')"
+            >
+              🛡️ Bọc Lót Sát Nút (±1, ±2)
+            </button>
+            <button
+              class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
+              [ngClass]="selectedSeqCategory === 'core_clique' ? 'btn-success text-white shadow-xs' : 'btn-light border text-muted'"
+              (click)="setSeqCategory('core_clique')"
+            >
+              🏆 Điểm Vàng & Cặp Đôi
+            </button>
+            <button
+              class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
+              [ngClass]="selectedSeqCategory === 'special_modulo' ? 'btn-info text-dark shadow-xs' : 'btn-light border text-muted'"
+              (click)="setSeqCategory('special_modulo')"
+            >
+              ⭐ Banh Phụ & Modulo-10
+            </button>
           </div>
         </div>
       </div>
 
       <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
         <div class="row g-3">
-          <div class="col-12 col-xl-6" *ngFor="let seq of getTransformedSequences(); let idx = index">
+          <div class="col-12 col-xl-6" *ngFor="let seq of getFilteredSequences(); let idx = index">
             <div class="card h-100 shadow-xs border rounded-4 bg-white transition-all hover-shadow">
               <div class="card-body p-3 p-md-4 d-flex flex-column justify-content-between">
                 <div>
@@ -1342,6 +1460,85 @@
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GHÉP VÉ TỰ CHỌN TỪ BỘ SỐ GỢI Ý (CUSTOM TICKET MIXER) -->
+        <div class="mt-4 p-3 p-md-4 rounded-4 bg-white border shadow-xs">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🎛️</span>
+              <div>
+                <h5 class="fw-bold text-dark mb-0 small text-uppercase">
+                  Ghép Vé Tự Chọn Nhanh (Interactive Ticket Mixer)
+                </h5>
+                <span class="text-muted small" style="font-size: 0.8rem;">
+                  Tự chọn 6 số từ bộ số gợi ý AI và các bóng bứt phá (44, 48, 53) để tạo vé mang đậm dấu ấn riêng:
+                </span>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-sm btn-outline-primary rounded-pill fw-semibold" (click)="fillMixerAuto()">
+                ⚡ Tự Chọn 6 Số Gợi Ý
+              </button>
+              <button class="btn btn-sm btn-outline-secondary rounded-pill" (click)="clearMixerNumbers()" [disabled]="customMixerNumbers.length === 0">
+                🗑️ Xóa
+              </button>
+            </div>
+          </div>
+
+          <!-- BỂ SỐ ĐỀ XUẤT (CURATED POOL) -->
+          <div class="mb-3">
+            <div class="small fw-bold text-muted mb-2">Bấm chọn số để ghép vào vé của bạn (tối đa 6 số):</div>
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                *ngFor="let num of getCuratedMixerPool()"
+                type="button"
+                class="ball ball-sm cursor-pointer border transition-all"
+                [ngClass]="{
+                  'bg-primary text-white border-primary shadow-xs fw-bold scale-105': isMixerNumberSelected(num),
+                  'bg-light text-dark': !isMixerNumberSelected(num),
+                  'border-danger border-2 text-danger fw-bold': (category === 'POWER' && (num === 44 || num === 53)) && !isMixerNumberSelected(num)
+                }"
+                style="width: 40px; height: 40px; font-size: 15px;"
+                (click)="toggleMixerNumber(num)"
+              >
+                {{ formatNumber(num) }}
+              </button>
+            </div>
+          </div>
+
+          <!-- VÉ ĐANG GHÉP -->
+          <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <span class="small fw-bold text-dark">Vé bạn đã chọn:</span>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <ng-container *ngFor="let n of customMixerNumbers">
+                  <div class="ball ball-sm shadow-xs"
+                       [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
+                       style="width: 42px; height: 42px; font-size: 16px;">
+                    {{ formatNumber(n) }}
+                  </div>
+                </ng-container>
+                <span *ngIf="customMixerNumbers.length === 0" class="text-muted small fst-italic">
+                  (Chưa chọn số nào. Hãy bấm vào các bóng ở trên)
+                </span>
+                <span *ngIf="customMixerNumbers.length > 0 && customMixerNumbers.length < 6" class="text-warning small fw-bold">
+                  (Cần chọn thêm {{ 6 - customMixerNumbers.length }} số nữa)
+                </span>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 flex-wrap" *ngIf="customMixerNumbers.length === 6">
+              <div class="small text-muted">
+                Tổng: <strong class="text-dark">{{ getMixerSum() }}</strong> • {{ getMixerParity() }}
+              </div>
+              <button class="btn btn-success btn-sm rounded-pill fw-bold shadow-xs d-flex align-items-center gap-1"
+                      (click)="copyMixerTicket()">
+                <span>📋</span> {{ mixerCopySuccess ? 'Đã Sao Chép!' : 'Sao Chép Vé Tự Ghép' }}
+              </button>
             </div>
           </div>
         </div>

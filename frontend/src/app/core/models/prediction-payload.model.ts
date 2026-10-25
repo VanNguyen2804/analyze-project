@@ -192,6 +192,7 @@ export interface PredictionPayload {
   deviationVariables?: DeviationVariable[];
   neighborDriftAnalysis?: NeighborDriftAnalysis;
   commonPatternsAnalysis?: CommonPatternsAnalysis;
+  realityVsAiAnalysis?: any;
 }
 
 export interface CommonPatternDetail {

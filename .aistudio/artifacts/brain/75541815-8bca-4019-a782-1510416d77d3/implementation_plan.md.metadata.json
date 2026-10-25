@@ -1,6 +1,0 @@
-{
-  "summary":  "Cập nhật hệ thống biểu đồ trang Dự Đoán: Thay thế Chord Graph và Pairs/Cliques bằng 2 biểu đồ trực tiếp phục vụ nhận định mô hình dự đoán: (1) Phân tích Áp Suất Chu Kỳ & Điểm Rơi Poisson (Poisson Gap Pressure & Mean Reversion), (2) Phổ Dãn Cách Delta & Đường Cong Tổng Gauss (Delta Spacing & Bell Distribution).",
-  "updatedAt":  "2026-10-24T07:46:18.907934482Z",
-  "requestFeedback":  true,
-  "userFacing":  true
-}
