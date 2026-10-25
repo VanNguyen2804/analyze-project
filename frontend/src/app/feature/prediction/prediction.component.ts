@@ -1348,8 +1348,14 @@ export class PredictionComponent implements OnInit, OnDestroy {
       { ratio: 'Lệch cao (5-1, 1-5, 6-0)', count: pSkewCount, percent: Math.round((pSkewCount / totalDrawsSafe) * 100), isDominant: false }
     ];
 
-    const optimalSumRange = cat === 'POWER' ? '156 - 185 điểm' : '126 - 150 điểm';
-    const recommendedDeltaSpacing = 'Giữ ít nhất 1 cặp liền kề (Δ=1) kết hợp dãn cách trung bình 5 - 8 nút';
+    const maxSumCount = Math.max(0,...sumDistributions.map(item=>item.count));
+    sumDistributions.forEach(item => { item.isPeak = item.count > 0 && item.count === maxSumCount; item.sumRange = item.sumRange.replace(/ \(.*\)/, ''); });
+    const maxParityCount = Math.max(0,...parityDistributions.map(item=>item.count));
+    parityDistributions.forEach(item => { item.isDominant = item.count > 0 && item.count === maxParityCount; });
+    const maxDeltaCount = Math.max(0,...deltaDistributions.map(item=>item.count));
+    deltaDistributions.forEach(item => { item.isOptimal = item.count > 0 && item.count === maxDeltaCount; });
+    const optimalSumRange = sumDistributions.filter(item=>item.isPeak).map(item=>item.sumRange).join(', ') || 'N/A';
+    const recommendedDeltaSpacing = deltaDistributions.filter(item=>item.isOptimal).map(item=>item.deltaRange).join(', ') || 'N/A';
 
     this.linkageChartData = {
       category: cat,
@@ -1373,6 +1379,11 @@ export class PredictionComponent implements OnInit, OnDestroy {
     };
 
     this.cdr.markForCheck();
+  }
+
+  get observedPeakSumPercent(): number | null {
+    const items = this.linkageChartData?.sumDistributions ?? [];
+    return items.length ? Math.max(...items.map(item=>item.percent)) : null;
   }
 
   onChartBallHover(drawDate: string | null, num: number | null) {

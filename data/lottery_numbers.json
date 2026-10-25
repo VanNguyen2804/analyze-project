@@ -13,7 +13,49 @@
     ],
     "specialNumber": 53,
     "createdAt": "2026-10-25T07:07:04.080Z",
-    "note": "Kết quả do người dùng cung cấp ngày 25/10/2026; chưa đối chiếu nguồn độc lập."
+    "note": "Kết quả do người dùng cung cấp ngày 25/10/2026; chưa đối chiếu nguồn độc lập.",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-24|6,7,18,41,44,50|53",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01415",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-24",
+            "numbers": [
+              6,
+              7,
+              18,
+              41,
+              44,
+              50
+            ],
+            "specialNumber": 53,
+            "note": "Kết quả do người dùng cung cấp ngày 25/10/2026; chưa đối chiếu nguồn độc lập."
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-24",
+            "numbers": [
+              6,
+              7,
+              18,
+              41,
+              44,
+              50
+            ],
+            "specialNumber": 53,
+            "note": "Kết quả do người dùng cung cấp ngày 25/10/2026; chưa đối chiếu nguồn độc lập."
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 55,
@@ -29,23 +71,108 @@
     ],
     "specialNumber": 48,
     "createdAt": "2026-10-17T18:30:00.000Z",
-    "note": "Kết quả mở thưởng chính thức Vietlott Power 6/55 Thứ Bảy 17/10/2026"
+    "note": "Kết quả mở thưởng chính thức Vietlott Power 6/55 Thứ Bảy 17/10/2026",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-17|1,10,11,12,16,37|48",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01412",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-17",
+            "numbers": [
+              1,
+              10,
+              11,
+              12,
+              16,
+              37
+            ],
+            "specialNumber": 48,
+            "note": "Kết quả mở thưởng chính thức Vietlott Power 6/55 Thứ Bảy 17/10/2026"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-17",
+            "numbers": [
+              1,
+              10,
+              11,
+              12,
+              16,
+              37
+            ],
+            "specialNumber": 48,
+            "note": "Kết quả mở thưởng chính thức Vietlott Power 6/55 Thứ Bảy 17/10/2026"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 53,
     "drawDate": "2026-10-15",
     "category": "POWER",
     "numbers": [
-      2,
-      15,
-      26,
-      38,
-      50,
-      53
+      7,
+      23,
+      25,
+      42,
+      45,
+      51
     ],
-    "specialNumber": 40,
+    "specialNumber": 4,
     "createdAt": "2026-10-15T18:30:00.000000",
-    "note": "Kỳ quay Power 6/55 #01411 ngày 15/10/2026: Nổ cặp 50-53, chuyển vị banh phụ 26 thành banh chính, bẫy lệch 38, banh phụ Jackpot 2 là 40"
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-15|7,23,25,42,45,51|4",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01411",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "REVIEWED_CORRECTION",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "evidenceUrl": "https://xskt.com.vn/xspower/ngay-15-10-2026",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-15",
+            "numbers": [
+              2,
+              15,
+              26,
+              38,
+              50,
+              53
+            ],
+            "specialNumber": 40,
+            "note": "Kỳ quay Power 6/55 #01411 ngày 15/10/2026: Nổ cặp 50-53, chuyển vị banh phụ 26 thành banh chính, bẫy lệch 38, banh phụ Jackpot 2 là 40"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-15",
+            "numbers": [
+              7,
+              23,
+              25,
+              42,
+              45,
+              51
+            ],
+            "specialNumber": 4,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 52,
@@ -61,23 +188,108 @@
     ],
     "specialNumber": 26,
     "createdAt": "2026-10-13T18:30:00.000000",
-    "note": "Kỳ quay Power 6/55 #01410 ngày 13/10/2026: Nổ cặp chuyển vị banh phụ 53, điểm rơi 14, nhịp lặp 27, bẫy lệch 40-50, banh phụ Jackpot 2 là 26"
+    "note": "Kỳ quay Power 6/55 #01410 ngày 13/10/2026: Nổ cặp chuyển vị banh phụ 53, điểm rơi 14, nhịp lặp 27, bẫy lệch 40-50, banh phụ Jackpot 2 là 26",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-13|2,14,27,40,50,53|26",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01410",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-13",
+            "numbers": [
+              2,
+              14,
+              27,
+              40,
+              50,
+              53
+            ],
+            "specialNumber": 26,
+            "note": "Kỳ quay Power 6/55 #01410 ngày 13/10/2026: Nổ cặp chuyển vị banh phụ 53, điểm rơi 14, nhịp lặp 27, bẫy lệch 40-50, banh phụ Jackpot 2 là 26"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-13",
+            "numbers": [
+              2,
+              14,
+              27,
+              40,
+              50,
+              53
+            ],
+            "specialNumber": 26,
+            "note": "Kỳ quay Power 6/55 #01410 ngày 13/10/2026: Nổ cặp chuyển vị banh phụ 53, điểm rơi 14, nhịp lặp 27, bẫy lệch 40-50, banh phụ Jackpot 2 là 26"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 51,
     "drawDate": "2026-10-10",
     "category": "POWER",
     "numbers": [
-      4,
-      5,
-      6,
-      29,
-      32,
-      44
+      14,
+      17,
+      21,
+      23,
+      24,
+      39
     ],
-    "specialNumber": 53,
+    "specialNumber": 30,
     "createdAt": "2026-10-10T18:30:00.000000",
-    "note": "Kỳ quay Power 6/55 #01409 ngày 10/10/2026: Nổ cụm tam giác liền kề 04-05-06, bóng di cư xuyên kỳ 32, và banh phụ cực biên 53"
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-10|14,17,21,23,24,39|30",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01409",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "REVIEWED_CORRECTION",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "evidenceUrl": "https://xskt.com.vn/xspower/ngay-10-10-2026",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-10",
+            "numbers": [
+              4,
+              5,
+              6,
+              29,
+              32,
+              44
+            ],
+            "specialNumber": 53,
+            "note": "Kỳ quay Power 6/55 #01409 ngày 10/10/2026: Nổ cụm tam giác liền kề 04-05-06, bóng di cư xuyên kỳ 32, và banh phụ cực biên 53"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-10",
+            "numbers": [
+              14,
+              17,
+              21,
+              23,
+              24,
+              39
+            ],
+            "specialNumber": 30,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 48,
@@ -93,7 +305,49 @@
     ],
     "specialNumber": 1,
     "createdAt": "2026-10-06T13:30:00.000000",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-06|6,7,18,20,24,27|1",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01407",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-06",
+            "numbers": [
+              6,
+              7,
+              18,
+              20,
+              24,
+              27
+            ],
+            "specialNumber": 1,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-06",
+            "numbers": [
+              6,
+              7,
+              18,
+              20,
+              24,
+              27
+            ],
+            "specialNumber": 1,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 46,
@@ -109,7 +363,49 @@
     ],
     "specialNumber": 41,
     "createdAt": "2026-10-03T13:36:53.196365",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-03|7,11,13,16,18,54|41",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01406",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-03",
+            "numbers": [
+              7,
+              11,
+              13,
+              16,
+              18,
+              54
+            ],
+            "specialNumber": 41,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-03",
+            "numbers": [
+              7,
+              11,
+              13,
+              16,
+              18,
+              54
+            ],
+            "specialNumber": 41,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 43,
@@ -125,7 +421,48 @@
     ],
     "specialNumber": 11,
     "createdAt": "2026-09-29T18:24:26.648366",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "QUARANTINED",
+      "fingerprint": "POWER|2026-09-28|2,4,13,17,35,36|11",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "SOURCE_NOT_FOUND",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-28",
+            "numbers": [
+              2,
+              4,
+              13,
+              17,
+              35,
+              36
+            ],
+            "specialNumber": 11,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-28",
+            "numbers": [
+              2,
+              4,
+              13,
+              17,
+              35,
+              36
+            ],
+            "specialNumber": 11,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 38,
@@ -141,7 +478,49 @@
     ],
     "specialNumber": 49,
     "createdAt": "2026-09-28T15:35:09.53752",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-26|14,18,21,38,48,52|49",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01403",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-26",
+            "numbers": [
+              14,
+              18,
+              21,
+              38,
+              48,
+              52
+            ],
+            "specialNumber": 49,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-26",
+            "numbers": [
+              14,
+              18,
+              21,
+              38,
+              48,
+              52
+            ],
+            "specialNumber": 49,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 39,
@@ -157,7 +536,49 @@
     ],
     "specialNumber": 27,
     "createdAt": "2026-09-28T15:36:18.838079",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-24|1,13,23,25,26,28|27",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01402",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-24",
+            "numbers": [
+              1,
+              13,
+              23,
+              25,
+              26,
+              28
+            ],
+            "specialNumber": 27,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-24",
+            "numbers": [
+              1,
+              13,
+              23,
+              25,
+              26,
+              28
+            ],
+            "specialNumber": 27,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 40,
@@ -173,7 +594,49 @@
     ],
     "specialNumber": 10,
     "createdAt": "2026-09-28T15:36:43.869295",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-22|1,3,9,11,41,46|10",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01401",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-22",
+            "numbers": [
+              1,
+              3,
+              9,
+              11,
+              41,
+              46
+            ],
+            "specialNumber": 10,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-22",
+            "numbers": [
+              1,
+              3,
+              9,
+              11,
+              41,
+              46
+            ],
+            "specialNumber": 10,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 41,
@@ -189,7 +652,49 @@
     ],
     "specialNumber": 50,
     "createdAt": "2026-09-28T15:37:10.294805",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-19|4,7,11,18,22,25|50",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01400",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-19",
+            "numbers": [
+              4,
+              7,
+              11,
+              18,
+              22,
+              25
+            ],
+            "specialNumber": 50,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-19",
+            "numbers": [
+              4,
+              7,
+              11,
+              18,
+              22,
+              25
+            ],
+            "specialNumber": 50,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 42,
@@ -205,7 +710,49 @@
     ],
     "specialNumber": 15,
     "createdAt": "2026-09-28T15:37:36.875651",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-17|6,11,25,27,37,45|15",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01399",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-17",
+            "numbers": [
+              6,
+              11,
+              25,
+              27,
+              37,
+              45
+            ],
+            "specialNumber": 15,
+            "note": null
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-17",
+            "numbers": [
+              6,
+              11,
+              25,
+              27,
+              37,
+              45
+            ],
+            "specialNumber": 15,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 1,
@@ -216,12 +763,55 @@
       27,
       32,
       36,
-      47,
-      52
+      38,
+      47
     ],
-    "specialNumber": null,
+    "specialNumber": 52,
     "createdAt": "2026-09-19T07:07:00.620807",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-15|24,27,32,36,38,47|52",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01398",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "REVIEWED_CORRECTION",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "evidenceUrl": "https://www.minhngoc.net.vn/ket-qua-xo-so/dien-toan-vietlott/power-6x55/15-09-2026.html",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-15",
+            "numbers": [
+              24,
+              27,
+              32,
+              36,
+              47,
+              52
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-15",
+            "numbers": [
+              24,
+              27,
+              32,
+              36,
+              38,
+              47
+            ],
+            "specialNumber": 52,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 2,
@@ -235,9 +825,51 @@
       47,
       54
     ],
-    "specialNumber": null,
+    "specialNumber": 22,
     "createdAt": "2026-09-19T07:07:50.476468",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-12|7,24,31,43,47,54|22",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01397",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-12",
+            "numbers": [
+              7,
+              24,
+              31,
+              43,
+              47,
+              54
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-12",
+            "numbers": [
+              7,
+              24,
+              31,
+              43,
+              47,
+              54
+            ],
+            "specialNumber": 22,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 3,
@@ -251,9 +883,51 @@
       51,
       53
     ],
-    "specialNumber": null,
+    "specialNumber": 50,
     "createdAt": "2026-09-19T07:09:42.429607",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-10|2,5,28,32,51,53|50",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01396",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-10",
+            "numbers": [
+              2,
+              5,
+              28,
+              32,
+              51,
+              53
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-10",
+            "numbers": [
+              2,
+              5,
+              28,
+              32,
+              51,
+              53
+            ],
+            "specialNumber": 50,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 4,
@@ -267,9 +941,51 @@
       25,
       54
     ],
-    "specialNumber": null,
+    "specialNumber": 17,
     "createdAt": "2026-09-19T07:10:07.057181",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-08|8,11,14,23,25,54|17",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01395",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-08",
+            "numbers": [
+              8,
+              11,
+              14,
+              23,
+              25,
+              54
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-08",
+            "numbers": [
+              8,
+              11,
+              14,
+              23,
+              25,
+              54
+            ],
+            "specialNumber": 17,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 5,
@@ -283,9 +999,51 @@
       33,
       47
     ],
-    "specialNumber": null,
+    "specialNumber": 21,
     "createdAt": "2026-09-19T07:10:40.595094",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-05|9,11,24,31,33,47|21",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01394",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-05",
+            "numbers": [
+              9,
+              11,
+              24,
+              31,
+              33,
+              47
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-05",
+            "numbers": [
+              9,
+              11,
+              24,
+              31,
+              33,
+              47
+            ],
+            "specialNumber": 21,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 6,
@@ -299,9 +1057,51 @@
       46,
       47
     ],
-    "specialNumber": null,
+    "specialNumber": 11,
     "createdAt": "2026-09-19T07:18:53.234856",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-03|8,9,16,42,46,47|11",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01393",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-03",
+            "numbers": [
+              8,
+              9,
+              16,
+              42,
+              46,
+              47
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-03",
+            "numbers": [
+              8,
+              9,
+              16,
+              42,
+              46,
+              47
+            ],
+            "specialNumber": 11,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 7,
@@ -315,9 +1115,51 @@
       49,
       55
     ],
-    "specialNumber": null,
+    "specialNumber": 45,
     "createdAt": "2026-09-19T07:19:11.1206",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-01|1,17,41,44,49,55|45",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01392",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-01",
+            "numbers": [
+              1,
+              17,
+              41,
+              44,
+              49,
+              55
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-01",
+            "numbers": [
+              1,
+              17,
+              41,
+              44,
+              49,
+              55
+            ],
+            "specialNumber": 45,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 8,
@@ -331,9 +1173,51 @@
       34,
       45
     ],
-    "specialNumber": null,
+    "specialNumber": 24,
     "createdAt": "2026-09-19T07:24:17.041063",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-29|5,10,15,29,34,45|24",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01391",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-29",
+            "numbers": [
+              5,
+              10,
+              15,
+              29,
+              34,
+              45
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-29",
+            "numbers": [
+              5,
+              10,
+              15,
+              29,
+              34,
+              45
+            ],
+            "specialNumber": 24,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 9,
@@ -347,9 +1231,51 @@
       26,
       44
     ],
-    "specialNumber": null,
+    "specialNumber": 10,
     "createdAt": "2026-09-19T07:24:43.964188",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-27|1,3,11,21,26,44|10",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01390",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-27",
+            "numbers": [
+              1,
+              3,
+              11,
+              21,
+              26,
+              44
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-27",
+            "numbers": [
+              1,
+              3,
+              11,
+              21,
+              26,
+              44
+            ],
+            "specialNumber": 10,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 10,
@@ -363,9 +1289,51 @@
       31,
       40
     ],
-    "specialNumber": null,
+    "specialNumber": 14,
     "createdAt": "2026-09-19T07:25:06.250521",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-25|5,7,13,18,31,40|14",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01389",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-25",
+            "numbers": [
+              5,
+              7,
+              13,
+              18,
+              31,
+              40
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-25",
+            "numbers": [
+              5,
+              7,
+              13,
+              18,
+              31,
+              40
+            ],
+            "specialNumber": 14,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 11,
@@ -379,9 +1347,51 @@
       25,
       36
     ],
-    "specialNumber": null,
+    "specialNumber": 8,
     "createdAt": "2026-09-19T07:28:02.06037",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-22|9,18,19,21,25,36|8",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01388",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-22",
+            "numbers": [
+              9,
+              18,
+              19,
+              21,
+              25,
+              36
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-22",
+            "numbers": [
+              9,
+              18,
+              19,
+              21,
+              25,
+              36
+            ],
+            "specialNumber": 8,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 12,
@@ -395,25 +1405,109 @@
       39,
       51
     ],
-    "specialNumber": null,
+    "specialNumber": 47,
     "createdAt": "2026-09-19T07:29:40.811714",
-    "note": ""
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-20|2,8,29,38,39,51|47",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01387",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "FILLED_MISSING_SPECIAL",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-20",
+            "numbers": [
+              2,
+              8,
+              29,
+              38,
+              39,
+              51
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-20",
+            "numbers": [
+              2,
+              8,
+              29,
+              38,
+              39,
+              51
+            ],
+            "specialNumber": 47,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 54,
     "drawDate": "2026-10-16",
     "category": "MEGA",
     "numbers": [
-      8,
-      14,
-      21,
-      31,
-      38,
-      43
+      9,
+      20,
+      26,
+      35,
+      36,
+      38
     ],
-    "specialNumber": null,
     "createdAt": "2026-10-16T18:30:00.000000",
-    "note": "Kỳ quay Mega 6/45 #01576 ngày 16/10/2026: Nổ cặp đảo vị 14, bẫy biên 31-38"
+    "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl; original values and note retained in quality.audit",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-16|9,20,26,35,36,38|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01576",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "REVIEWED_CORRECTION",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "evidenceUrl": "https://xskt.com.vn/kqxs-vietlott/ngay-16-10-2026",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-16",
+            "numbers": [
+              8,
+              14,
+              21,
+              31,
+              38,
+              43
+            ],
+            "specialNumber": null,
+            "note": "Kỳ quay Mega 6/45 #01576 ngày 16/10/2026: Nổ cặp đảo vị 14, bẫy biên 31-38"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-16",
+            "numbers": [
+              9,
+              20,
+              26,
+              35,
+              36,
+              38
+            ],
+            "specialNumber": null,
+            "note": "Reconciled against https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl; original values and note retained in quality.audit"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 50,
@@ -427,9 +1521,50 @@
       32,
       41
     ],
-    "specialNumber": null,
     "createdAt": "2026-10-09T18:30:00.000000",
-    "note": "Kỳ quay Mega 6/45 #01573 ngày 09/10/2026"
+    "note": "Kỳ quay Mega 6/45 #01573 ngày 09/10/2026",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-09|5,7,12,23,32,41|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01573",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-09",
+            "numbers": [
+              5,
+              7,
+              12,
+              23,
+              32,
+              41
+            ],
+            "specialNumber": null,
+            "note": "Kỳ quay Mega 6/45 #01573 ngày 09/10/2026"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-09",
+            "numbers": [
+              5,
+              7,
+              12,
+              23,
+              32,
+              41
+            ],
+            "specialNumber": null,
+            "note": "Kỳ quay Mega 6/45 #01573 ngày 09/10/2026"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 49,
@@ -443,9 +1578,50 @@
       41,
       43
     ],
-    "specialNumber": null,
     "createdAt": "2026-10-07T18:30:00.000000",
-    "note": "Kỳ quay Mega 6/45 ngày 07/10/2026"
+    "note": "Kỳ quay Mega 6/45 ngày 07/10/2026",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-07|10,14,36,37,41,43|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01572",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-07",
+            "numbers": [
+              10,
+              14,
+              36,
+              37,
+              41,
+              43
+            ],
+            "specialNumber": null,
+            "note": "Kỳ quay Mega 6/45 ngày 07/10/2026"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-07",
+            "numbers": [
+              10,
+              14,
+              36,
+              37,
+              41,
+              43
+            ],
+            "specialNumber": null,
+            "note": "Kỳ quay Mega 6/45 ngày 07/10/2026"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 47,
@@ -459,9 +1635,50 @@
       40,
       45
     ],
-    "specialNumber": null,
     "createdAt": "2026-10-04T13:33:58.549927",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-04|15,20,29,37,40,45|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01571",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-04",
+            "numbers": [
+              15,
+              20,
+              29,
+              37,
+              40,
+              45
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-04",
+            "numbers": [
+              15,
+              20,
+              29,
+              37,
+              40,
+              45
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 45,
@@ -475,9 +1692,50 @@
       31,
       41
     ],
-    "specialNumber": null,
     "createdAt": "2026-10-02T17:19:05.056116",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-02|1,6,20,27,31,41|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01570",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-02",
+            "numbers": [
+              1,
+              6,
+              20,
+              27,
+              31,
+              41
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-02",
+            "numbers": [
+              1,
+              6,
+              20,
+              27,
+              31,
+              41
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 44,
@@ -491,9 +1749,50 @@
       30,
       33
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-30T19:19:57.228398",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-30|2,9,24,27,30,33|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01569",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-30",
+            "numbers": [
+              2,
+              9,
+              24,
+              27,
+              30,
+              33
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-30",
+            "numbers": [
+              2,
+              9,
+              24,
+              27,
+              30,
+              33
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 37,
@@ -507,9 +1806,50 @@
       31,
       39
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-27T14:33:56.705247",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-27|2,4,13,25,31,39|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01568",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-27",
+            "numbers": [
+              2,
+              4,
+              13,
+              25,
+              31,
+              39
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-27",
+            "numbers": [
+              2,
+              4,
+              13,
+              25,
+              31,
+              39
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 35,
@@ -523,9 +1863,50 @@
       33,
       36
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-26T14:43:58.32075",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-25|3,15,18,28,33,36|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01567",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-25",
+            "numbers": [
+              3,
+              15,
+              18,
+              28,
+              33,
+              36
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-25",
+            "numbers": [
+              3,
+              15,
+              18,
+              28,
+              33,
+              36
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 36,
@@ -539,9 +1920,50 @@
       25,
       26
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-26T14:44:54.499154",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-23|2,6,12,15,25,26|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01566",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-23",
+            "numbers": [
+              2,
+              6,
+              12,
+              15,
+              25,
+              26
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-23",
+            "numbers": [
+              2,
+              6,
+              12,
+              15,
+              25,
+              26
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 34,
@@ -555,9 +1977,50 @@
       33,
       38
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-20T15:08:22.210674",
-    "note": null
+    "note": null,
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-20|10,15,16,27,33,38|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01565",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-20",
+            "numbers": [
+              10,
+              15,
+              16,
+              27,
+              33,
+              38
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-20",
+            "numbers": [
+              10,
+              15,
+              16,
+              27,
+              33,
+              38
+            ],
+            "specialNumber": null,
+            "note": null
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 13,
@@ -571,9 +2034,50 @@
       41,
       43
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:09:23.912542",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-18|7,12,26,27,41,43|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01564",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-18",
+            "numbers": [
+              7,
+              12,
+              26,
+              27,
+              41,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-18",
+            "numbers": [
+              7,
+              12,
+              26,
+              27,
+              41,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 14,
@@ -587,9 +2091,50 @@
       18,
       23
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:09:50.905548",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-16|1,3,10,11,18,23|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01563",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-16",
+            "numbers": [
+              1,
+              3,
+              10,
+              11,
+              18,
+              23
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-16",
+            "numbers": [
+              1,
+              3,
+              10,
+              11,
+              18,
+              23
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 15,
@@ -603,9 +2148,50 @@
       38,
       41
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:10:14.999169",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-13|4,12,31,34,38,41|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01562",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-13",
+            "numbers": [
+              4,
+              12,
+              31,
+              34,
+              38,
+              41
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-13",
+            "numbers": [
+              4,
+              12,
+              31,
+              34,
+              38,
+              41
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 16,
@@ -619,9 +2205,50 @@
       26,
       27
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:10:39.973907",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-11|14,18,20,21,26,27|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01561",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-11",
+            "numbers": [
+              14,
+              18,
+              20,
+              21,
+              26,
+              27
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-11",
+            "numbers": [
+              14,
+              18,
+              20,
+              21,
+              26,
+              27
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 17,
@@ -635,9 +2262,50 @@
       36,
       43
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:11:01.91855",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-09|12,17,20,21,36,43|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01560",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-09",
+            "numbers": [
+              12,
+              17,
+              20,
+              21,
+              36,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-09",
+            "numbers": [
+              12,
+              17,
+              20,
+              21,
+              36,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 18,
@@ -651,9 +2319,50 @@
       27,
       40
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:11:48.256396",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-06|9,14,22,26,27,40|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01559",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-06",
+            "numbers": [
+              9,
+              14,
+              22,
+              26,
+              27,
+              40
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-06",
+            "numbers": [
+              9,
+              14,
+              22,
+              26,
+              27,
+              40
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 19,
@@ -667,9 +2376,50 @@
       34,
       45
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:12:30.785423",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-04|16,21,23,29,34,45|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01558",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-04",
+            "numbers": [
+              16,
+              21,
+              23,
+              29,
+              34,
+              45
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-04",
+            "numbers": [
+              16,
+              21,
+              23,
+              29,
+              34,
+              45
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 21,
@@ -683,9 +2433,50 @@
       35,
       44
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:13:30.71752",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-09-02|6,9,27,29,35,44|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01557",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-09-02",
+            "numbers": [
+              6,
+              9,
+              27,
+              29,
+              35,
+              44
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-09-02",
+            "numbers": [
+              6,
+              9,
+              27,
+              29,
+              35,
+              44
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 22,
@@ -699,9 +2490,50 @@
       37,
       45
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:13:52.404848",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-30|1,3,12,15,37,45|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01556",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-30",
+            "numbers": [
+              1,
+              3,
+              12,
+              15,
+              37,
+              45
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-30",
+            "numbers": [
+              1,
+              3,
+              12,
+              15,
+              37,
+              45
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 23,
@@ -715,9 +2547,50 @@
       36,
       39
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:14:28.834466",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-28|3,13,15,22,36,39|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01555",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-28",
+            "numbers": [
+              3,
+              13,
+              15,
+              22,
+              36,
+              39
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-28",
+            "numbers": [
+              3,
+              13,
+              15,
+              22,
+              36,
+              39
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 24,
@@ -731,9 +2604,50 @@
       33,
       40
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:14:54.700788",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-26|3,10,11,16,33,40|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01554",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-26",
+            "numbers": [
+              3,
+              10,
+              11,
+              16,
+              33,
+              40
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-26",
+            "numbers": [
+              3,
+              10,
+              11,
+              16,
+              33,
+              40
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 25,
@@ -747,9 +2661,50 @@
       32,
       39
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:15:24.753532",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-23|4,16,17,22,32,39|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01553",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-23",
+            "numbers": [
+              4,
+              16,
+              17,
+              22,
+              32,
+              39
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-23",
+            "numbers": [
+              4,
+              16,
+              17,
+              22,
+              32,
+              39
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 26,
@@ -763,9 +2718,50 @@
       43,
       45
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:15:49.871033",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-21|7,26,31,38,43,45|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01552",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-21",
+            "numbers": [
+              7,
+              26,
+              31,
+              38,
+              43,
+              45
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-21",
+            "numbers": [
+              7,
+              26,
+              31,
+              38,
+              43,
+              45
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 27,
@@ -779,9 +2775,50 @@
       40,
       43
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:16:05.238111",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-19|6,15,18,33,40,43|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01551",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-19",
+            "numbers": [
+              6,
+              15,
+              18,
+              33,
+              40,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-19",
+            "numbers": [
+              6,
+              15,
+              18,
+              33,
+              40,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 28,
@@ -795,9 +2832,50 @@
       36,
       41
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:16:31.614383",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-16|6,7,15,19,36,41|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01550",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-16",
+            "numbers": [
+              6,
+              7,
+              15,
+              19,
+              36,
+              41
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-16",
+            "numbers": [
+              6,
+              7,
+              15,
+              19,
+              36,
+              41
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 29,
@@ -811,9 +2889,50 @@
       35,
       44
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:16:59.2512",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-14|7,9,13,31,35,44|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01549",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-14",
+            "numbers": [
+              7,
+              9,
+              13,
+              31,
+              35,
+              44
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-14",
+            "numbers": [
+              7,
+              9,
+              13,
+              31,
+              35,
+              44
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 30,
@@ -827,9 +2946,50 @@
       33,
       40
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:17:33.727678",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-12|15,17,22,29,33,40|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01548",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-12",
+            "numbers": [
+              15,
+              17,
+              22,
+              29,
+              33,
+              40
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-12",
+            "numbers": [
+              15,
+              17,
+              22,
+              29,
+              33,
+              40
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 31,
@@ -843,9 +3003,50 @@
       31,
       35
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:17:49.95099",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-09|3,17,20,27,31,35|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01547",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-09",
+            "numbers": [
+              3,
+              17,
+              20,
+              27,
+              31,
+              35
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-09",
+            "numbers": [
+              3,
+              17,
+              20,
+              27,
+              31,
+              35
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 32,
@@ -859,9 +3060,50 @@
       36,
       43
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:18:18.162244",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-07|2,8,19,30,36,43|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01546",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-07",
+            "numbers": [
+              2,
+              8,
+              19,
+              30,
+              36,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-07",
+            "numbers": [
+              2,
+              8,
+              19,
+              30,
+              36,
+              43
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "id": 33,
@@ -875,9 +3117,50 @@
       28,
       39
     ],
-    "specialNumber": null,
     "createdAt": "2026-09-19T16:18:43.235453",
-    "note": ""
+    "note": "",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-05|2,6,11,16,28,39|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01545",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-05",
+            "numbers": [
+              2,
+              6,
+              11,
+              16,
+              28,
+              39
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-05",
+            "numbers": [
+              2,
+              6,
+              11,
+              16,
+              28,
+              39
+            ],
+            "specialNumber": null,
+            "note": ""
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -893,7 +3176,49 @@
     ],
     "id": 57,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01542 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01542 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-07-29|2,6,21,31,36,45|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01542",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-07-29",
+            "numbers": [
+              2,
+              6,
+              21,
+              31,
+              36,
+              45
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01542 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-07-29",
+            "numbers": [
+              2,
+              6,
+              21,
+              31,
+              36,
+              45
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01542 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -909,7 +3234,49 @@
     ],
     "id": 58,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01543 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01543 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-07-31|6,16,24,25,38,43|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01543",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-07-31",
+            "numbers": [
+              6,
+              16,
+              24,
+              25,
+              38,
+              43
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01543 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-07-31",
+            "numbers": [
+              6,
+              16,
+              24,
+              25,
+              38,
+              43
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01543 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -925,7 +3292,49 @@
     ],
     "id": 59,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01544 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01544 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-08-02|3,12,20,25,27,37|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01544",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-08-02",
+            "numbers": [
+              3,
+              12,
+              20,
+              25,
+              27,
+              37
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01544 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-08-02",
+            "numbers": [
+              3,
+              12,
+              20,
+              25,
+              27,
+              37
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01544 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -941,7 +3350,49 @@
     ],
     "id": 60,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01574 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01574 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-11|3,9,16,29,30,44|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01574",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-11",
+            "numbers": [
+              3,
+              9,
+              16,
+              29,
+              30,
+              44
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01574 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-11",
+            "numbers": [
+              3,
+              9,
+              16,
+              29,
+              30,
+              44
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01574 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -957,7 +3408,49 @@
     ],
     "id": 61,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01575 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01575 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-14|6,16,19,21,34,43|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01575",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-14",
+            "numbers": [
+              6,
+              16,
+              19,
+              21,
+              34,
+              43
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01575 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-14",
+            "numbers": [
+              6,
+              16,
+              19,
+              21,
+              34,
+              43
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01575 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -973,7 +3466,49 @@
     ],
     "id": 62,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01577 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01577 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-18|10,11,31,38,40,44|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01577",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-18",
+            "numbers": [
+              10,
+              11,
+              31,
+              38,
+              40,
+              44
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01577 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-18",
+            "numbers": [
+              10,
+              11,
+              31,
+              38,
+              40,
+              44
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01577 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -989,7 +3524,49 @@
     ],
     "id": 63,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01578 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01578 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-21|4,10,14,22,25,44|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01578",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-21",
+            "numbers": [
+              4,
+              10,
+              14,
+              22,
+              25,
+              44
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01578 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-21",
+            "numbers": [
+              4,
+              10,
+              14,
+              22,
+              25,
+              44
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01578 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "MEGA",
@@ -1005,7 +3582,49 @@
     ],
     "id": 64,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01579 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01579 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-23|2,5,11,22,32,40|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01579",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-23",
+            "numbers": [
+              2,
+              5,
+              11,
+              22,
+              32,
+              40
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01579 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-23",
+            "numbers": [
+              2,
+              5,
+              11,
+              22,
+              32,
+              40
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01579 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1022,7 +3641,49 @@
     "specialNumber": 48,
     "id": 65,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01377 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01377 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-07-28|7,22,23,27,41,44|48",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01377",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-07-28",
+            "numbers": [
+              7,
+              22,
+              23,
+              27,
+              41,
+              44
+            ],
+            "specialNumber": 48,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01377 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-07-28",
+            "numbers": [
+              7,
+              22,
+              23,
+              27,
+              41,
+              44
+            ],
+            "specialNumber": 48,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01377 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1039,7 +3700,49 @@
     "specialNumber": 51,
     "id": 66,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01378 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01378 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-07-30|2,12,24,28,43,49|51",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01378",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-07-30",
+            "numbers": [
+              2,
+              12,
+              24,
+              28,
+              43,
+              49
+            ],
+            "specialNumber": 51,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01378 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-07-30",
+            "numbers": [
+              2,
+              12,
+              24,
+              28,
+              43,
+              49
+            ],
+            "specialNumber": 51,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01378 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1056,7 +3759,49 @@
     "specialNumber": 39,
     "id": 67,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01379 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01379 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-01|11,14,16,44,49,55|39",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01379",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-01",
+            "numbers": [
+              11,
+              14,
+              16,
+              44,
+              49,
+              55
+            ],
+            "specialNumber": 39,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01379 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-01",
+            "numbers": [
+              11,
+              14,
+              16,
+              44,
+              49,
+              55
+            ],
+            "specialNumber": 39,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01379 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1073,7 +3818,49 @@
     "specialNumber": 31,
     "id": 68,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01380 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01380 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-04|14,39,40,42,47,54|31",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01380",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-04",
+            "numbers": [
+              14,
+              39,
+              40,
+              42,
+              47,
+              54
+            ],
+            "specialNumber": 31,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01380 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-04",
+            "numbers": [
+              14,
+              39,
+              40,
+              42,
+              47,
+              54
+            ],
+            "specialNumber": 31,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01380 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1090,7 +3877,49 @@
     "specialNumber": 1,
     "id": 69,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01381 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01381 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-06|14,18,23,35,51,55|1",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01381",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-06",
+            "numbers": [
+              14,
+              18,
+              23,
+              35,
+              51,
+              55
+            ],
+            "specialNumber": 1,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01381 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-06",
+            "numbers": [
+              14,
+              18,
+              23,
+              35,
+              51,
+              55
+            ],
+            "specialNumber": 1,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01381 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1107,7 +3936,49 @@
     "specialNumber": 37,
     "id": 70,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01382 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01382 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-08|5,29,33,38,40,45|37",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01382",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-08",
+            "numbers": [
+              5,
+              29,
+              33,
+              38,
+              40,
+              45
+            ],
+            "specialNumber": 37,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01382 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-08",
+            "numbers": [
+              5,
+              29,
+              33,
+              38,
+              40,
+              45
+            ],
+            "specialNumber": 37,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01382 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1124,7 +3995,49 @@
     "specialNumber": 31,
     "id": 71,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01383 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01383 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-11|2,7,19,20,39,50|31",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01383",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-11",
+            "numbers": [
+              2,
+              7,
+              19,
+              20,
+              39,
+              50
+            ],
+            "specialNumber": 31,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01383 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-11",
+            "numbers": [
+              2,
+              7,
+              19,
+              20,
+              39,
+              50
+            ],
+            "specialNumber": 31,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01383 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1141,7 +4054,49 @@
     "specialNumber": 42,
     "id": 72,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01384 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01384 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-13|5,9,27,29,45,46|42",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01384",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-13",
+            "numbers": [
+              5,
+              9,
+              27,
+              29,
+              45,
+              46
+            ],
+            "specialNumber": 42,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01384 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-13",
+            "numbers": [
+              5,
+              9,
+              27,
+              29,
+              45,
+              46
+            ],
+            "specialNumber": 42,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01384 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1158,7 +4113,49 @@
     "specialNumber": 2,
     "id": 73,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01385 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01385 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-15|16,20,25,27,30,50|2",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01385",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-15",
+            "numbers": [
+              16,
+              20,
+              25,
+              27,
+              30,
+              50
+            ],
+            "specialNumber": 2,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01385 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-15",
+            "numbers": [
+              16,
+              20,
+              25,
+              27,
+              30,
+              50
+            ],
+            "specialNumber": 2,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01385 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1175,7 +4172,49 @@
     "specialNumber": 30,
     "id": 74,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01386 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01386 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-08-18|3,15,18,38,41,48|30",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01386",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-08-18",
+            "numbers": [
+              3,
+              15,
+              18,
+              38,
+              41,
+              48
+            ],
+            "specialNumber": 30,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01386 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-08-18",
+            "numbers": [
+              3,
+              15,
+              18,
+              38,
+              41,
+              48
+            ],
+            "specialNumber": 30,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01386 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1192,7 +4231,49 @@
     "specialNumber": 11,
     "id": 75,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01404 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01404 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-09-29|2,4,13,17,35,36|11",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01404",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-09-29",
+            "numbers": [
+              2,
+              4,
+              13,
+              17,
+              35,
+              36
+            ],
+            "specialNumber": 11,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01404 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-09-29",
+            "numbers": [
+              2,
+              4,
+              13,
+              17,
+              35,
+              36
+            ],
+            "specialNumber": 11,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01404 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1209,7 +4290,49 @@
     "specialNumber": 15,
     "id": 76,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01405 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01405 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-01|4,5,13,34,52,55|15",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01405",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-01",
+            "numbers": [
+              4,
+              5,
+              13,
+              34,
+              52,
+              55
+            ],
+            "specialNumber": 15,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01405 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-01",
+            "numbers": [
+              4,
+              5,
+              13,
+              34,
+              52,
+              55
+            ],
+            "specialNumber": 15,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01405 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1226,7 +4349,49 @@
     "specialNumber": 6,
     "id": 77,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01408 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01408 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-08|1,7,12,27,31,52|6",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01408",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-08",
+            "numbers": [
+              1,
+              7,
+              12,
+              27,
+              31,
+              52
+            ],
+            "specialNumber": 6,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01408 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-08",
+            "numbers": [
+              1,
+              7,
+              12,
+              27,
+              31,
+              52
+            ],
+            "specialNumber": 6,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01408 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1243,7 +4408,49 @@
     "specialNumber": 45,
     "id": 78,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01413 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01413 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-20|13,20,23,30,50,55|45",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01413",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-20",
+            "numbers": [
+              13,
+              20,
+              23,
+              30,
+              50,
+              55
+            ],
+            "specialNumber": 45,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01413 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-20",
+            "numbers": [
+              13,
+              20,
+              23,
+              30,
+              50,
+              55
+            ],
+            "specialNumber": 45,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01413 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   },
   {
     "category": "POWER",
@@ -1260,6 +4467,106 @@
     "specialNumber": 37,
     "id": 79,
     "createdAt": "2026-10-25T08:24:46.548Z",
-    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01414 | community mirror of vietlott.vn"
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01414 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "POWER|2026-10-22|14,19,24,31,34,42|37",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+      "sourceDrawId": "01414",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+          "before": {
+            "category": "POWER",
+            "drawDate": "2026-10-22",
+            "numbers": [
+              14,
+              19,
+              24,
+              31,
+              34,
+              42
+            ],
+            "specialNumber": 37,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01414 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "POWER",
+            "drawDate": "2026-10-22",
+            "numbers": [
+              14,
+              19,
+              24,
+              31,
+              34,
+              42
+            ],
+            "specialNumber": 37,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl | draw #01414 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
+  },
+  {
+    "category": "MEGA",
+    "drawDate": "2026-10-25",
+    "sourceDrawId": "01580",
+    "numbers": [
+      4,
+      13,
+      22,
+      25,
+      40,
+      41
+    ],
+    "id": 80,
+    "createdAt": "2026-10-25T12:58:41.198Z",
+    "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01580 | community mirror of vietlott.vn",
+    "quality": {
+      "status": "SOURCE_MATCHED",
+      "fingerprint": "MEGA|2026-10-25|4,13,22,25,40,41|",
+      "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+      "sourceDrawId": "01580",
+      "audit": [
+        {
+          "at": "2026-10-25T12:58:41.198Z",
+          "reason": "MATCHED_SOURCE",
+          "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+          "before": {
+            "category": "MEGA",
+            "drawDate": "2026-10-25",
+            "numbers": [
+              4,
+              13,
+              22,
+              25,
+              40,
+              41
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01580 | community mirror of vietlott.vn"
+          },
+          "after": {
+            "category": "MEGA",
+            "drawDate": "2026-10-25",
+            "numbers": [
+              4,
+              13,
+              22,
+              25,
+              40,
+              41
+            ],
+            "specialNumber": null,
+            "note": "Imported from https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl | draw #01580 | community mirror of vietlott.vn"
+          },
+          "previousStatus": "UNVERIFIED"
+        }
+      ]
+    }
   }
 ]

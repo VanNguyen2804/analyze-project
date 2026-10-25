@@ -18,6 +18,7 @@ class TemporalRelationshipModelTest {
             draws.add(new LotteryNumber(date, "POWER", i % 2 == 0 ? List.of(1,2,3,4,5,6) : List.of(20,21,22,23,24,25), 55, null));
             date = TemporalRelationshipModel.scheduledAfter(date, "POWER");
         }
+        draws.forEach(TestDraws::verified);
         return draws;
     }
 
@@ -66,6 +67,7 @@ class TemporalRelationshipModelTest {
         List<LotteryNumber> history = alternating(12);
         history.add(new LotteryNumber(LocalDate.of(2026,10,24), "POWER", List.of(6,7,18,41,44,50), 53, "User-supplied"));
         history.add(new LotteryNumber(LocalDate.of(2026,10,27), "POWER", List.of(1,2,3,4,5,6), 55, "Future test fixture"));
+        history.forEach(TestDraws::verified);
         List<UserTicket> saved = new ArrayList<>();
         for (List<Integer> numbers : List.of(List.of(7,13,22,24,45,52), List.of(8,10,14,17,25,48), List.of(6,7,11,13,18,25))) {
             UserTicket ticket = new UserTicket(); ticket.setCategory("POWER"); ticket.setDrawDate("2026-10-24");

@@ -24,6 +24,7 @@ class AnalyzeServiceTest {
             for (int j = 0; j < 6; j++) numbers.add((i * 3 + j * 7 + offset) % max + 1);
             result.add(new LotteryNumber(LocalDate.of(2026, 9, i + 1), category, numbers, null, null));
         }
+        result.forEach(TestDraws::verified);
         return result;
     }
 
@@ -96,6 +97,8 @@ class AnalyzeServiceTest {
         List<LotteryNumber> draws = history("MEGA", 0);
         when(repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("MEGA")).thenReturn(draws);
         Map<String, Object> result = service.reconcileDraws("MEGA", "bayesian_graph", 1, "2026-09-01");
+        assertNull(((Map<?,?>)result.get("overallSummary")).get("ticketHitRatePercent"));
+        assertNotNull(result.get("backtestComparison"));
         List<?> evaluated = (List<?>) result.get("draws");
         assertFalse(evaluated.isEmpty());
         Map<?, ?> firstDraw = (Map<?, ?>) evaluated.get(0);

@@ -60,11 +60,12 @@ class LotterySyncTest {
         var existing = new LotteryNumber(draws.get(0).date(), "POWER", new ArrayList<>(draws.get(0).numbers()), 53, "manual");
         when(repository.findByDrawDateAndCategoryOrderByCreatedAtDesc(any(), any())).thenReturn(List.of(existing));
         assertEquals(1, importer.importDraws(draws, "https://example.com/power").unchanged());
+        existing.setId(1L);
         existing.setSpecialNumber(54);
         var conflict = importer.importDraws(draws, "https://example.com/power");
         assertEquals(1, conflict.conflicts().size());
         assertEquals(54, existing.getSpecialNumber());
-        verify(repository, times(1)).save(any());
+        verify(repository, times(3)).save(any());
     }
 
     @Test void schedulerIsolatesFailuresRetriesAndReportsStaleSources() throws Exception {
@@ -75,7 +76,7 @@ class LotterySyncTest {
         var megaDraws = client.parse(MEGA, "MEGA", FROM, NOW);
         when(remote.fetch(eq("MEGA"), any(), any())).thenThrow(new IOException("HTTP 503")).thenReturn(megaDraws);
         when(remote.fetch(eq("POWER"), any(), any())).thenReturn(powerDraws);
-        when(importer.importDraws(any(), any())).thenReturn(new LotteryResultImporter.ImportResult(1, 0, List.of()));
+        when(importer.importDraws(any(), any())).thenReturn(new LotteryResultImporter.ImportResult(1, 0, List.of(), 0, 0, List.of()));
         scheduler.runAt(NOW);
         assertEquals("ERROR", categoryStatus(scheduler, "MEGA").get("status"));
         assertEquals("SUCCESS", categoryStatus(scheduler, "POWER").get("status"));

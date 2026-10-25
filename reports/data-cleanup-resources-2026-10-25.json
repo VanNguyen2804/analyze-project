@@ -1,0 +1,44 @@
+{
+  "enabled": true,
+  "intervalSeconds": 900,
+  "timezone": "Asia/Ho_Chi_Minh",
+  "lookbackDays": 90,
+  "lastRun": {
+    "checkedAt": "2026-10-25T12:58:43.984Z",
+    "fromDate": "2026-07-27",
+    "categories": {
+      "MEGA": {
+        "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl",
+        "status": "SUCCESS",
+        "latestSourceDate": "2026-10-25",
+        "expectedLatestDate": "2026-10-25",
+        "sourceStale": false,
+        "inserted": 1,
+        "unchanged": 38,
+        "updated": 38,
+        "corrected": 1,
+        "quarantined": [],
+        "conflicts": []
+      },
+      "POWER": {
+        "sourceUrl": "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl",
+        "status": "CONFLICT",
+        "latestSourceDate": "2026-10-24",
+        "expectedLatestDate": "2026-10-24",
+        "sourceStale": false,
+        "inserted": 0,
+        "unchanged": 39,
+        "updated": 40,
+        "corrected": 14,
+        "quarantined": [
+          {
+            "id": 43,
+            "date": "2026-09-28",
+            "reason": "SOURCE_NOT_FOUND"
+          }
+        ],
+        "conflicts": []
+      }
+    }
+  }
+}

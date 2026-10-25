@@ -1,0 +1,233 @@
+{
+  "backtestComparison": {
+    "algorithm": "temporal_learning",
+    "category": "MEGA",
+    "totalHistoricalDraws": 39,
+    "requestedDrawsCount": 5,
+    "evaluatedDrawsCount": 5,
+    "unevaluatedDrawsCount": 0,
+    "fromDate": "2026-10-16",
+    "toDate": "2026-10-25",
+    "mainNumberHits": 0,
+    "averageMatched": 0,
+    "hit3Draws": 0,
+    "hit3RatePercent": 0,
+    "scope": "5/5 kỳ được chọn đủ lịch sử; 39 kỳ hợp lệ trong kho dữ liệu.",
+    "conclusion": "Kiểm thử vé sáu số trên 5 kỳ: khớp tổng 0 số, 0 kỳ đạt ít nhất ba số. Dùng cấu hình hiện tại; chưa có so sánh phiên bản dự đoán lưu trước giờ quay.",
+    "dominantFlaws": [
+      "Có 5/5 vé sáu số khớp dưới ba số."
+    ],
+    "coreRemedies": [
+      "Đánh giá cùng số vé và cùng cửa sổ thời gian khi thử cấu hình khác."
+    ]
+  },
+  "noTicketsRate": null,
+  "noFabricatedTickets": true,
+  "noFabricatedConfigurations": true,
+  "transformedSequences": [
+    {
+      "id": "neighbor_drift",
+      "name": "Dãy Biến Số #1: Lệch Biên Độ ±1 (Bọc Lót Biên Độ 1 Nút)",
+      "badge": "Lệch Biên Độ ±1",
+      "badgeClass": "bg-warning text-dark",
+      "categoryTag": "drift",
+      "icon": "↔️",
+      "numbers": [
+        7,
+        12,
+        14,
+        19,
+        23,
+        27
+      ],
+      "specialNumber": 1,
+      "composition": "2 Chẵn / 4 Lẻ • Tổng = 102",
+      "deltaFormula": "N_mới = N_gốc ± 1",
+      "transformationRule": "Áp dụng bước nhảy biên độ sát nút Δ = ±1 lên các vị trí trong dãy số nguyên thủy, hóa giải hiện tượng lệch biên độ 1 nút trong chu kỳ mở thưởng.",
+      "keyShifts": [
+        "12 (từ 11+1)",
+        "19 (từ 18+1)"
+      ]
+    },
+    {
+      "id": "special_migration_mirror",
+      "name": "Dãy Biến Số #2: Chuyển Vị Banh Phụ & Đảo Vị Đối Xứng",
+      "badge": "Chuyển Vị & Đảo Vị",
+      "badgeClass": "bg-success text-white",
+      "categoryTag": "special",
+      "icon": "⭐",
+      "numbers": [
+        1,
+        11,
+        14,
+        18,
+        23,
+        27
+      ],
+      "specialNumber": 7,
+      "composition": "2 Chẵn / 4 Lẻ • Tổng = 94",
+      "deltaFormula": "N_mới ← Banh Phụ / Gương Chiếu",
+      "transformationRule": "Biến thể sử dụng số phụ được xếp hạng 1, kết hợp số đảo vị hợp lệ trong miền 55 số.",
+      "keyShifts": [
+        "01"
+      ]
+    },
+    {
+      "id": "tail_congruence_decompression",
+      "name": "Dãy Biến Số #3: Đồng Dư Modulo-10 & Hóa Giải Cụm Nén",
+      "badge": "Đồng Dư Đuôi & Giải Nén",
+      "badgeClass": "bg-info text-dark",
+      "categoryTag": "modulo",
+      "icon": "🔗",
+      "numbers": [
+        7,
+        11,
+        18,
+        23,
+        24,
+        27
+      ],
+      "specialNumber": 1,
+      "composition": "2 Chẵn / 4 Lẻ • Tổng = 110",
+      "deltaFormula": "N_mới ≡ N_gốc (mod 10) + Dãn cách cụm",
+      "transformationRule": "Ghép cặp số có cùng chữ số hàng đơn vị (quy luật đồng dư mod 10) và giải nén năng lượng cụm dồn từ kỳ trước sang các dải phân vùng dãn cách.",
+      "keyShifts": [
+        "24"
+      ]
+    },
+    {
+      "id": "concentrated_synthesis",
+      "name": "Dãy Biến Số #4: Hạt Nhân Hội Tụ Tổng Lực (Vé Điểm Vàng)",
+      "badge": "Hạt Nhân Tổng Lực",
+      "badgeClass": "bg-primary text-white",
+      "categoryTag": "core",
+      "icon": "🏆",
+      "numbers": [
+        1,
+        2,
+        7,
+        11,
+        24,
+        27
+      ],
+      "specialNumber": 18,
+      "composition": "2 Chẵn / 4 Lẻ • Tổng = 72",
+      "deltaFormula": "Tổng hợp tối ưu Pareto Wheeling",
+      "transformationRule": "Tổ hợp số tinh hoa nhất hội tụ đồng thời Quán tính lặp, Bước nhảy lân cận ±1 và Cầu nối chuyển vị banh phụ, tối ưu hóa điểm số bao phủ giải thưởng.",
+      "keyShifts": [
+        "01",
+        "02",
+        "07",
+        "11",
+        "24",
+        "27"
+      ]
+    },
+    {
+      "id": "high_zone_surge",
+      "name": "Dãy biến thể theo xếp hạng dải cao",
+      "badge": "Dải 40-55",
+      "badgeClass": "bg-danger text-white",
+      "categoryTag": "high_zone",
+      "icon": "🚀",
+      "numbers": [
+        7,
+        11,
+        14,
+        45,
+        47,
+        55
+      ],
+      "specialNumber": 1,
+      "composition": "1 Chẵn / 5 Lẻ • Tổng = 179",
+      "deltaFormula": "Số thuộc dải 40-55 được chọn theo xếp hạng",
+      "transformationRule": "Có 32/39 kỳ lịch sử chứa số thuộc dải 40-55. Dãy này lấy các số dải cao có điểm xếp hạng tốt nhất còn phù hợp.",
+      "keyShifts": [
+        "45",
+        "47",
+        "55"
+      ]
+    },
+    {
+      "id": "near_miss_tolerance",
+      "name": "Dãy Biến Số #6: Bọc Lót Sai Số Sát Nút ±1 / ±2 (Near-Miss 2 Nấc)",
+      "badge": "Bao Phủ Sát Nút ±1, ±2",
+      "badgeClass": "bg-secondary text-white",
+      "categoryTag": "near_miss",
+      "icon": "🛡️",
+      "numbers": [
+        8,
+        11,
+        14,
+        18,
+        25,
+        27
+      ],
+      "specialNumber": 1,
+      "composition": "3 Chẵn / 3 Lẻ • Tổng = 103",
+      "deltaFormula": "N_mới = N_gốc ± 1 hoặc ± 2",
+      "transformationRule": "Mở rộng biên độ bọc lót sai số 1 và 2 bước nhảy lân cận xung quanh các tọa độ hạt nhân của AI, chuyển hóa các vé trúng sát nút thành vé trúng trọn vẹn.",
+      "keyShifts": [
+        "08",
+        "25"
+      ]
+    },
+    {
+      "id": "pair_synergy_clique",
+      "name": "Dãy Biến Số #7: Dàn Cặp Tương Tác Đồng Xuất Hiện (Golden Clique)",
+      "badge": "Cụm Lực Hút Cặp Đôi",
+      "badgeClass": "bg-purple text-white",
+      "categoryTag": "clique",
+      "icon": "🔗",
+      "numbers": [
+        7,
+        11,
+        14,
+        16,
+        23,
+        25
+      ],
+      "specialNumber": 1,
+      "composition": "2 Chẵn / 4 Lẻ • Tổng = 96",
+      "deltaFormula": "Gom cụm Lift Co-occurrence cao nhất CSDL",
+      "transformationRule": "Neo giữ cố định các cặp số có lực hút tương quan đồng xuất hiện cao nhất trong CSDL (Anti-Scattering), ngăn chặn hiện tượng các số trúng bị tản mạn sang nhiều vé khác nhau.",
+      "keyShifts": [
+        "07",
+        "11",
+        "14",
+        "16",
+        "23",
+        "25"
+      ]
+    },
+    {
+      "id": "deep_gan_rebound",
+      "name": "Dãy Biến Số #8: Lô Gan Sâu Hồi Quy & Điểm Rơi Chu Kỳ Poisson",
+      "badge": "Hồi Quy Gan Tới Hạn",
+      "badgeClass": "bg-dark text-white",
+      "categoryTag": "cold_rebound",
+      "icon": "📈",
+      "numbers": [
+        11,
+        15,
+        25,
+        27,
+        29,
+        49
+      ],
+      "specialNumber": 1,
+      "composition": "0 Chẵn / 6 Lẻ • Tổng = 156",
+      "deltaFormula": "Giải phóng áp lực Poisson Gap tới hạn",
+      "transformationRule": "Đón đầu sự phục hồi xác suất của các bóng vắng bóng vượt ngưỡng kỳ vọng lý thuyết kết hợp nhịp rơi chu kỳ vàng Poisson 3-6 kỳ.",
+      "keyShifts": [
+        "11",
+        "15",
+        "25",
+        "27",
+        "29",
+        "49"
+      ]
+    }
+  ],
+  "crossGameDrawCount": 78
+}

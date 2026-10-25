@@ -42,7 +42,7 @@ final class TemporalRelationshipModel {
     static Result fit(List<LotteryNumber> history, String category, double prior, double rate, int minHistory) {
         TemporalRelationshipModel model = new TemporalRelationshipModel(category, prior, rate, minHistory);
         Set<LocalDate> seenDates = new HashSet<>();
-        List<LotteryNumber> draws = history.stream().filter(Objects::nonNull)
+        List<LotteryNumber> draws = DrawQuality.history(history).stream()
                 .filter(r -> category.equals(r.getCategory()) && r.getDrawDate() != null && r.getNumbers() != null
                         && r.getNumbers().size() == 6 && new HashSet<>(r.getNumbers()).size() == 6
                         && r.getNumbers().stream().allMatch(n -> n != null && n >= 1 && n <= model.max))

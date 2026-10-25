@@ -75,7 +75,7 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
 
   currentCategory: 'MEGA' | 'POWER' = 'MEGA';
   latestDrawBadge: string = 'Kỳ mới nhất';
-  algorithmVersion: string = 'v2.1.0';
+  algorithmVersion: string = '';
   private catSub?: Subscription;
 
   constructor(
@@ -99,28 +99,30 @@ export class LeftMenuComponent implements OnInit, OnDestroy {
   }
 
   loadDynamicMenuData(): void {
-    this.analyzeService.getLatestHyperparameters().subscribe({
+    const category = this.currentCategory;
+    this.analyzeService.getLatestHyperparameters(category).subscribe({
       next: (hyp) => {
-        if (hyp?.version) {
-          this.algorithmVersion = hyp.version;
+        if (this.currentCategory === category) {
+          this.algorithmVersion = hyp?.version ?? '';
           this.cdr.markForCheck();
         }
       },
-      error: () => {}
+      error: () => { if (this.currentCategory === category) { this.algorithmVersion = ''; this.cdr.markForCheck(); } }
     });
 
     this.analyzeService.get5DrawsReconciliation(this.currentCategory, 'deep_stacking', 1).subscribe({
       next: (res) => {
         const latest = res?.draws?.[0];
-        if (latest && Array.isArray(latest.winningNumbers)) {
-          const nums = latest.winningNumbers;
-          if (latest.specialNumber) {
-            this.latestDrawBadge = `${nums.length} số [${nums[0]}..${nums[nums.length - 1]}] + Phụ ${latest.specialNumber}`;
+        if (this.currentCategory !== category) return;
+        if (latest && Array.isArray(latest.officialNumbers)) {
+          const nums = latest.officialNumbers;
+          if (latest.officialSpecial) {
+            this.latestDrawBadge = `${nums.length} số [${nums[0]}..${nums[nums.length - 1]}] + Phụ ${latest.officialSpecial}`;
           } else {
             this.latestDrawBadge = `${nums.length} số [${nums[0]}..${nums[nums.length - 1]}]`;
           }
           this.cdr.markForCheck();
-        }
+        } else { this.latestDrawBadge = 'Chưa có kết quả'; this.cdr.markForCheck(); }
       },
       error: () => {}
     });

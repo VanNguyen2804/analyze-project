@@ -24,14 +24,14 @@ export interface EvaluatedUserTicket extends TicketItem {
 
 export interface MissedNumberReason {
   number: number;
-  rank: number;
-  probabilityPercent: number;
-  frequency: number;
-  drawGap: number;
-  momentum: number;
-  markov: number;
-  poisson: number;
-  companion: number;
+  rank: number | null;
+  probabilityPercent: number | null;
+  frequency: number | null;
+  drawGap: number | null;
+  momentum: number | null;
+  markov: number | null;
+  poisson: number | null;
+  companion: number | null;
   tag: string;
   title: string;
   reason: string;
@@ -48,7 +48,7 @@ export interface TuningReport {
   officialWinningCount: number;
   hitRatePercent: number; // Tỉ lệ bao phủ số trúng chính thức: (uniqueMatchedCount / officialWinningCount) * 100
   selectionHitRatePercent: number; // Tỉ lệ trúng trên tập số chọn: (uniqueMatchedCount / uniqueUserNumbersCount) * 100
-  averageRank: number;
+  averageRank: number | null;
   dominantMissFactor: string;
   keyDiagnoses: string[];
   tuningRecommendations: string[];
@@ -66,15 +66,10 @@ export interface TuningReport {
 export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   category: string = 'MEGA';
   selectedDate: string = '';
-  algorithm: string = 'deep_stacking';
+  algorithm: string = 'temporal_learning';
   
-  availableAlgorithms = [
-    { id: 'deep_stacking', name: '⚡ Xếp Chồng AI & Copula (DSE-Copula)' },
-    { id: 'bayesian_graph', name: '🔮 Mạng Đồ Thị Bayes AI (BEGN)' },
-    { id: 'XGBoost', name: '🧠 AI XGBoost + Poisson' },
-    { id: 'Markov', name: '🔗 Mô hình chuỗi Markov' },
-    { id: 'Frequency', name: '📊 Thống kê tần suất' }
-  ];
+  availableAlgorithms: {id:string; name:string}[] = [];
+  currentParameters: Record<string,unknown> | null = null;
 
   analysisData: any = null;
   isLoading: boolean = false;
@@ -97,7 +92,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   get userTicketsSummary() {
     if (!this.userTickets || this.userTickets.length === 0) return null;
     const officialNumbers = (this.analysisData?.numbers || []).map(Number);
-    const officialWinningCount = officialNumbers.length || 6;
+    const officialWinningCount = officialNumbers.length;
 
     const uniqueMatchedSet = new Set<number>();
     let rawTotalMatchedOccurrences = 0;
@@ -174,21 +169,19 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   selected5DrawIndex: number = 0;
   activeReconciliationTab: 'aiPredictionJudgment' | 'comparison' | 'winningBalls' | 'algorithmFlaws' | 'tuningPlan' | 'affinityNetwork' = 'aiPredictionJudgment';
   reconcileLimit: number = 5;
-  reconcileAlgorithm: string = 'deep_stacking';
+  reconcileAlgorithm: string = 'temporal_learning';
   selectedReconcileDate: string = '';
-  availableLimits: number[] = [5, 10, 15, 20, 21, 25, 29, 30, 50];
+  availableLimits: number[] = [];
   showAllBacktestTable: boolean = false;
   isApplyingV150: boolean = false;
 
   getLimitLabel(lim: number): string {
-    if (lim === 29 && this.category === 'MEGA') return '🔥 Toàn bộ 29 Kỳ';
-    if (lim === 21 && this.category === 'POWER') return '⚡ Toàn bộ 21 Kỳ';
-    return `${lim} Kỳ`;
+    return lim === this.reconciliationData?.totalDrawsInDb ? `All (${lim})` : String(lim);
   }
 
   // Recommendations & Hyperparameters State
   recommendationsData: any = null;
-  currentHyperparameterVersion: string = 'v2.1.0';
+  currentHyperparameterVersion: string = '';
 
   private categorySub: Subscription | undefined;
 
@@ -198,6 +191,10 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.analyzeService.getAlgorithms().subscribe({
+      next: catalog => { this.availableAlgorithms = catalog.map(item => ({id:item.id,name:item.name})); this.cdr.markForCheck(); },
+      error: () => { this.errorMessage = 'Cannot load algorithm catalog'; this.cdr.markForCheck(); }
+    });
     this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
       if (newCategory) {
         this.category = newCategory;
@@ -210,7 +207,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
   }
 
   loadRecommendations(): void {
-    this.analyzeService.getPrediction(this.category, 'deep_stacking').subscribe({
+    this.analyzeService.getPrediction(this.category, this.algorithm).subscribe({
       next: (res) => {
         if (res?.recommendations || res?.aiRecommendation) {
           this.recommendationsData = res.recommendations || res.aiRecommendation;
@@ -503,54 +500,16 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     const missedList = Array.from(uniqueMissed).sort((a, b) => a - b);
     const missedReasons: MissedNumberReason[] = [];
 
-    let totalRankSum = 0;
-    let coldGapCount = 0;
-    let repeatExhaustCount = 0;
-    let lowFreqCount = 0;
-    let coOccurMismatchCount = 0;
-
+    const measured = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) ? value : null;
     for (const num of missedList) {
       const detail = allDetails[num];
-      if (detail) {
-        missedReasons.push({
-          number: num,
-          rank: detail.rank || 25,
-          probabilityPercent: detail.probabilityPercent || 45,
-          frequency: detail.frequency || 0,
-          drawGap: detail.drawGap || 10,
-          momentum: detail.momentum || 0.3,
-          markov: detail.markov || 70,
-          poisson: detail.poisson || 75,
-          companion: detail.companion || 65,
-          tag: detail.tag || 'LỆCH PHÂN BỔ',
-          title: detail.title || 'Phân Tích Loại Trừ Thuật Toán',
-          reason: detail.reasonNotDrawn || detail.reason || `Số ${num} không thỏa mãn hàm mục tiêu phân phối của kỳ quay này.`
-        });
-
-        totalRankSum += (detail.rank || 25);
-        if (detail.drawGap > 16) coldGapCount++;
-        if (detail.drawGap === 0) repeatExhaustCount++;
-        if (detail.frequency <= 2) lowFreqCount++;
-        if (detail.tag === 'NGHỊCH PHA CẶP') coOccurMismatchCount++;
-      } else {
-        // Fallback calculation if allNumberDetails not populated
-        const isCold = num > 30;
-        missedReasons.push({
-          number: num,
-          rank: 20 + (num % 20),
-          probabilityPercent: 42.5 + ((num * 3) % 15),
-          frequency: 2 + (num % 5),
-          drawGap: 4 + (num % 18),
-          momentum: 0.32,
-          markov: 72,
-          poisson: 75,
-          companion: 68,
-          tag: isCold ? 'LÔ GAN CHƯA CHÍN' : 'LỆCH CẤU TRÚC PHỔ',
-          title: 'Điểm Gan Chưa Chạm Ngưỡng Hồi Quy Poisson',
-          reason: `Số ${num} nằm ngoài vùng hội tụ tối ưu của phân phối Poisson kỳ này và không đồng pha với cụm số trúng ${winningNumbers.slice(0, 3).join(', ')}.`
-        });
-        totalRankSum += 25;
-      }
+      missedReasons.push({
+        number: num, rank: measured(detail?.rank), probabilityPercent: measured(detail?.probabilityPercent),
+        frequency: measured(detail?.frequency), drawGap: measured(detail?.drawGap), momentum: measured(detail?.momentum),
+        markov: measured(detail?.markov), poisson: measured(detail?.poisson), companion: measured(detail?.companion),
+        tag: detail?.tag ?? 'CHƯA CÓ SỐ LIỆU', title: detail?.title ?? 'Đối chiếu kết quả',
+        reason: detail?.reasonNotDrawn ?? detail?.reason ?? `Số ${num} không nằm trong kết quả kỳ ${this.selectedDate}; chưa có thống kê để giải thích thêm.`
+      });
     }
 
     this.missedNumberReasons = missedReasons;
@@ -595,7 +554,7 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
     const totalNumbersChecked = totalTickets * 6;
 
     // 4. SỐ BÓNG MỞ THƯỞNG CHÍNH THỨC CỦA KỲ QUAY (thường là 6)
-    const officialWinningCount = winningNumbers.length || 6;
+    const officialWinningCount = winningNumbers.length;
 
     // Tỉ lệ bao phủ số trúng chính thức: (Số bóng trúng duy nhất / Tổng 6 bóng mở thưởng) * 100
     // Ví dụ: 2 vé có 3 lượt trúng nhưng trùng nhau 1 số -> có 2 số trúng duy nhất -> 2 / 6 = 33.3%
@@ -608,64 +567,23 @@ export class LatestDrawAnalysisComponent implements OnInit, OnDestroy {
       ? Math.round((uniqueMatchedCount / uniqueUserNumbersCount) * 1000) / 10
       : 0;
 
-    const avgRank = missedList.length > 0 ? Math.round((totalRankSum / missedList.length) * 10) / 10 : 25;
-
-    // Identify dominant factor
-    let dominantFactor = 'Lệch pha chu kỳ Gan (Chọn số gan non hoặc gan vượt ngưỡng Poisson)';
-    if (repeatExhaustCount > coldGapCount && repeatExhaustCount > coOccurMismatchCount) {
-      dominantFactor = 'Bão hòa quán tính lặp (Chọn các số vừa nổ ở kỳ liền kề trước đó)';
-    } else if (coOccurMismatchCount > coldGapCount) {
-      dominantFactor = 'Nghịch pha ma trận tương tác cặp số (Thiếu liên kết đồng xuất hiện với hạt nhân kỳ quay)';
-    } else if (lowFreqCount > 2) {
-      dominantFactor = 'Thiếu hụt dữ liệu tần suất lịch sử (Số có xác suất nền tảng quá thấp)';
-    }
-
-    const duplicateNotice = (rawTotalMatchedOccurrences > uniqueMatchedCount)
-      ? ` (Đã lọc trùng lặp: Tổng cộng ${rawTotalMatchedOccurrences} lượt trúng trên các vé, giữ ${uniqueMatchedCount} số trúng duy nhất: [ ${uniqueMatchedNumbers.join(', ')} ])`
-      : ` (Khớp: [ ${uniqueMatchedNumbers.join(', ') || 'Không có'} ])`;
-
-    const keyDiagnoses: string[] = [
-      `Hiệu suất khớp vé: Trúng ${uniqueMatchedCount}/${officialWinningCount} bóng chính thức (${hitRatePercent}%)${duplicateNotice}. Tổng số bóng độc nhất đã chọn: ${uniqueUserNumbersCount} số (${totalMissed} bóng trượt).`,
-      `Xếp hạng xác suất trung bình của các số trượt: Hạng #${avgRank}/${maxLimit}. Các số này bị mô hình AI xếp ở nhóm dưới do thiếu động lượng nổ.`,
-      `Nguyên nhân chủ đạo: ${dominantFactor}.`,
-      `Đặc tính kỳ quay thực tế: Dãy trúng (${winningNumbers.join(', ')}) có cấu trúc phân bổ ${this.analysisData.oddEvenRatio || 'Cân bằng'}, tổng điểm = ${this.analysisData.sum || 'N/A'}. Các vé của user bị lệch ngoài dải tối ưu này.`
+    const measuredRanks = missedReasons.map(item => item.rank).filter((rank): rank is number => rank != null);
+    const avgRank = measuredRanks.length ? Math.round(measuredRanks.reduce((sum,rank)=>sum+rank,0)/measuredRanks.length*10)/10 : null;
+    const dominantFactor = `${uniqueMatchedCount}/${officialWinningCount} số kết quả được phủ bởi ${totalTickets} vé; ${totalMissed} số đã chọn không khớp.`;
+    const keyDiagnoses = [
+      dominantFactor,
+      `Có ${rawTotalMatchedOccurrences} lượt khớp, tương ứng ${uniqueMatchedCount} số kết quả khác nhau.`,
+      `Có xếp hạng từ API cho ${measuredRanks.length}/${missedList.length} số không khớp.`
     ];
-
-    const tuningRecommendations: string[] = [
-      `Tăng trọng số ma trận cặp số (Co-occurrence Matrix Weight): Nâng từ 0.65 lên 0.85 để ép các bộ số phải có tương quan đi kèm chặt chẽ với nhau.`,
-      `Điều chỉnh ngưỡng điểm rơi Poisson (Poisson Gap Threshold): Siết chặt vùng gan kích hoạt từ [0.6 - 2.6 chu kỳ] về [0.8 - 2.2 chu kỳ], hạn chế đánh lô gan non.`,
-      `Hệ số suy giảm quán tính chuỗi (Momentum Decay Rate λ): Tăng từ 0.12 lên 0.16 nhằm loại trừ triệt để các số vừa ra ở kỳ trước (tránh lỗi kiệt sức lặp).`,
-      `Áp dụng bộ lọc cân bằng Chẵn/Lẻ (Parity Constraint): Ràng buộc tối thiểu 2-4 số chẵn trong mỗi vé 6 số để tránh lệch phân cực (ví dụ 5 chẵn hoặc 5 lẻ).`
+    const tuningRecommendations = [
+      'Đánh giá nhiều kỳ với cùng số vé trước khi chọn tham số mới.',
+      `Cấu hình đang lưu: ${this.currentHyperparameterVersion || 'chưa có phiên bản'}.`
     ];
-
     const hyperParams = {
-      model: `${this.algorithm} Multi-Factor Optimization`,
-      targetCategory: this.category,
-      drawDate: this.selectedDate,
-      evaluationSummary: {
-        totalTickets,
-        hitRatePercent,
-        matchedCount: uniqueMatchedCount,
-        uniqueMatchedNumbers,
-        duplicateMatchedCount: rawTotalMatchedOccurrences,
-        uniqueUserNumbersCount,
-        missedCount: totalMissed,
-        averageMissedRank: avgRank
-      },
-      recommendedAdjustments: {
-        momentumDecayRate: 0.16,
-        poissonGapMinRatio: 0.8,
-        poissonGapMaxRatio: 2.2,
-        coOccurrenceWeight: 0.85,
-        repeatExhaustionPenalty: -0.45,
-        parityDistributionFilter: ['2:4', '3:3', '4:2'],
-        sumRangeFilter: [
-          Math.max(60, (this.analysisData.sum || 135) - 30),
-          Math.min(maxLimit * 6, (this.analysisData.sum || 135) + 30)
-        ],
-        maxConsecutivePairsAllowed: 2
-      },
-      actionableAdvice: `Cập nhật lại trọng số thuật toán ${this.algorithm} cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện.`
+      ...(this.currentParameters ?? {}),
+      evaluationSummary: { category: this.category, drawDate: this.selectedDate, totalTickets, hitRatePercent,
+        matchedCount: uniqueMatchedCount, uniqueMatchedNumbers, duplicateMatchedCount: rawTotalMatchedOccurrences,
+        uniqueUserNumbersCount, missedCount: totalMissed, averageMissedRank: avgRank }
     };
 
     const hyperJson = JSON.stringify(hyperParams, null, 2);
@@ -759,6 +677,16 @@ ${hyperJson}
   // QUẢN LÝ BẢNG SIÊU THAM SỐ THUẬT TOÁN (ALGORITHM HYPERPARAMETERS TABLE)
   // =========================================================================================
   loadHyperparameters(): void {
+    this.analyzeService.getLatestHyperparameters(this.category).subscribe({
+      next: item => {
+        this.currentHyperparameterVersion = item?.version ?? '';
+        try { this.currentParameters = item ? JSON.parse(item.hyperparametersJson ?? '{}') : null; }
+        catch { this.currentParameters = null; }
+        if (this.analysisData) this.buildMissedAnalysisAndReport();
+        this.cdr.markForCheck();
+      },
+      error: () => { this.currentParameters = null; this.currentHyperparameterVersion = ''; this.cdr.markForCheck(); }
+    });
     this.isLoadingHyperparameters = true;
     this.cdr.markForCheck();
     this.analyzeService.getHyperparameters(this.category).subscribe({
@@ -776,7 +704,7 @@ ${hyperJson}
   }
 
   updateAlgorithmAndSaveTable(): void {
-    if (!this.tuningReport?.hyperparametersJson) return;
+    if (!this.tuningReport?.hyperparametersJson || !this.currentParameters) return;
     this.isUpdatingAlgorithm = true;
     this.algorithmUpdateMessage = null;
     this.cdr.markForCheck();
@@ -786,7 +714,7 @@ ${hyperJson}
       category: this.category,
       drawDate: this.selectedDate,
       readmeContent: this.tuningReport.fullReportText,
-      note: `Cập nhật trọng số thuật toán XGBoost đối chuẩn Powerball/Mega Millions theo đối soát vé kỳ quay ${this.selectedDate} (${this.category})`
+      note: `Lưu cấu hình ${this.algorithm} kèm đối soát kỳ ${this.selectedDate} (${this.category})`
     };
 
     this.analyzeService.updateAlgorithm(payload).subscribe({
@@ -855,6 +783,8 @@ ${hyperJson}
     ).subscribe({
       next: (data) => {
         this.reconciliationData = data;
+        const count = Math.min(data?.totalDrawsInDb ?? 0,100);
+        this.availableLimits = [...new Set([5,10,20,50,count].filter(n=>n>0 && n<=count))];
         if (data?.recommendations) {
           this.recommendationsData = data.recommendations;
         }
@@ -939,9 +869,9 @@ ${hyperJson}
   }
 
   applyV150Tuning(): void {
-    if (!this.reconciliationData?.recommendedHyperparameters) return;
+    if (!this.reconciliationData?.recommendedHyperparameters?.adjustments) return;
     const hyp = this.reconciliationData.recommendedHyperparameters;
-    const targetVer = hyp.version || this.currentHyperparameterVersion || 'v2.1.0';
+    const targetVer = hyp.version || this.currentHyperparameterVersion;
     const testedDates = (this.reconciliationData?.draws || []).map((d: any) => d.drawDate).join(', ');
     this.isApplyingV150 = true;
     this.algorithmUpdateMessage = null;
@@ -988,6 +918,10 @@ ${JSON.stringify(hyp.adjustments, null, 2)}`;
         this.cdr.markForCheck();
       }
     });
+  }
+
+  formatMetric(value: number | null | undefined, suffix = ''): string {
+    return value == null ? 'N/A' : `${value}${suffix}`;
   }
 
   formatNumber(num: number | null | undefined): string {

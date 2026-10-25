@@ -35,6 +35,13 @@ public class LotteryNumber {
     @Column(name = "note")
     private String note;
 
+    @Convert(converter = DrawQualityConverter.class)
+    @Column(name = "quality_json", columnDefinition = "TEXT")
+    private java.util.Map<String,Object> quality;
+
+    public java.util.Map<String,Object> getQuality() { return quality; }
+    public void setQuality(java.util.Map<String,Object> quality) { this.quality = quality; }
+
     public LotteryNumber() {
         this.createdAt = LocalDateTime.now();
         this.drawDate = LocalDate.now();

@@ -233,178 +233,25 @@
     <!-- ========================================================================================= -->
     <!-- KHUNG 2: BÁO CÁO ĐỐI CHIẾU HIỆU NĂNG MEGA -->
     <!-- ========================================================================================= -->
-    <div *ngIf="category === 'MEGA' && reconciliationData?.backtestComparison" class="card border rounded-4 mb-4 shadow-xs bg-light">
+    <div *ngIf="reconciliationData?.backtestComparison as report" class="card border rounded-4 mb-4 shadow-xs bg-light">
       <div class="card-body p-3 p-md-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom">
-          <div class="d-flex align-items-center gap-2">
-            <span class="fs-4">📊</span>
-            <div>
-              <h5 class="fw-bolder mb-0 text-dark">
-                Báo Cáo Đối Chiếu Hiệu Năng Toàn Bộ {{ reconciliationData?.backtestComparison?.totalHistoricalDraws || reconciliationData?.draws?.length || 29 }} Kỳ Mega 6/45 ({{ reconciliationData?.backtestComparison?.v180?.version || 'v1.8.0' }} vs {{ reconciliationData?.backtestComparison?.v170?.version || 'v1.7.0' }})
-              </h5>
-              <div class="small text-muted">
-                {{ reconciliationData?.backtestComparison?.scope || 'Kết quả kiểm thử hồi quy Walk-Forward Backtesting trên toàn bộ các kỳ quay có trong hệ thống' }}
-              </div>
-            </div>
-          </div>
-          <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold">
-            ✅ Thuật Toán Mới Cho Kết Quả Tốt Hơn Rõ Rệt
-          </span>
-        </div>
-
-        <!-- COMPARISON METRICS GRID -->
+        <h5 class="fw-bolder text-dark">Đối soát vé sáu số — {{ category }}</h5>
+        <p class="small text-muted">{{ report.scope }}</p>
         <div class="row g-3 mb-3">
-          <!-- METRIC 1 -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100">
-              <div class="small text-muted fw-semibold">PHẠM VI ĐỐI CHIẾU</div>
-              <div class="fs-4 fw-bolder text-dark my-1">{{ reconciliationData?.backtestComparison?.totalHistoricalDraws || 29 }} Kỳ Mega</div>
-              <div class="small text-secondary" style="font-size: 0.75rem;">({{ reconciliationData?.backtestComparison?.evaluatedDrawsCount || 24 }} kỳ kiểm thử walk-forward)</div>
-            </div>
-          </div>
-
-          <!-- METRIC 2 -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100">
-              <div class="small text-muted fw-semibold">TOP 6 TRÚNG THỰC TẾ</div>
-              <div class="fs-4 fw-bolder text-primary my-1">
-                {{ reconciliationData?.backtestComparison?.v180?.top6HitTotal }} vs {{ reconciliationData?.backtestComparison?.v170?.top6HitTotal }} kỳ
-              </div>
-              <div class="small text-success fw-bold" style="font-size: 0.75rem;">
-                +{{ reconciliationData?.backtestComparison?.v180?.improvementPercent || 12.5 }}% tỷ lệ bắt trúng số
-              </div>
-            </div>
-          </div>
-
-          <!-- METRIC 3 -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100">
-              <div class="small text-muted fw-semibold">KỲ GẦN NHẤT ({{ (reconciliationData?.draws?.[0]?.drawDate | date:'dd/MM') || '09/10' }})</div>
-              <div class="fs-4 fw-bolder text-success my-1">
-                {{ reconciliationData?.backtestComparison?.v180?.latestDrawHits }} BÓNG TRÚNG
-              </div>
-              <div class="small text-muted" style="font-size: 0.75rem;">
-                {{ reconciliationData?.backtestComparison?.v180?.version }} trúng [{{ formatNumbers(reconciliationData?.backtestComparison?.v180?.latestDrawHitNumbers) }}] ({{ reconciliationData?.backtestComparison?.v170?.version }} trúng {{ reconciliationData?.backtestComparison?.v170?.latestDrawHits }} [{{ formatNumbers(reconciliationData?.backtestComparison?.v170?.latestDrawHitNumbers) }}])
-              </div>
-            </div>
-          </div>
-
-          <!-- METRIC 4 -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100">
-              <div class="small text-muted fw-semibold">BIẾN SỐ KHẮC PHỤC</div>
-              <div class="fs-4 fw-bolder text-warning my-1">
-                ±1 Bẫy Biên
-              </div>
-              <div class="small text-secondary" style="font-size: 0.75rem;">
-                Cặp gương 23-32 & Cross-Carrier
-              </div>
-            </div>
-          </div>
+          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
+            <div class="small text-muted">Kỳ đủ lịch sử</div><div class="fs-4 fw-bold">{{ report.evaluatedDrawsCount }}/{{ report.requestedDrawsCount }}</div>
+          </div></div>
+          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
+            <div class="small text-muted">Số khớp trung bình/vé</div><div class="fs-4 fw-bold">{{ report.averageMatched == null ? 'N/A' : (report.averageMatched | number:'1.2-2') }}</div>
+          </div></div>
+          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
+            <div class="small text-muted">Kỳ khớp ít nhất ba số</div><div class="fs-4 fw-bold">{{ report.hit3Draws }}/{{ report.evaluatedDrawsCount }}</div>
+          </div></div>
+          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
+            <div class="small text-muted">Tỷ lệ đạt ba số</div><div class="fs-4 fw-bold">{{ report.hit3RatePercent == null ? 'N/A' : ((report.hit3RatePercent | number:'1.1-1') + '%') }}</div>
+          </div></div>
         </div>
-
-        <!-- SUMMARY CONCLUSION -->
-        <div class="p-3 bg-white border border-success-subtle rounded-3 text-dark small lh-base">
-          <strong class="text-success">📌 Kết luận đối chiếu:</strong> {{ reconciliationData.backtestComparison.conclusion }}
-          <div class="mt-1 text-secondary" *ngIf="reconciliationData?.backtestComparison?.v180?.advantages">
-            {{ reconciliationData.backtestComparison.v180.advantages }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================================= -->
-    <!-- KHUNG 2B: BÁO CÁO ĐỐI CHIẾU HIỆU NĂNG POWER -->
-    <!-- ========================================================================================= -->
-    <div *ngIf="category === 'POWER' && reconciliationData?.backtestComparison" class="card border rounded-4 mb-4 shadow-xs bg-light">
-      <div class="card-body p-3 p-md-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom">
-          <div class="d-flex align-items-center gap-2">
-            <span class="fs-4">⚡</span>
-            <div>
-              <h5 class="fw-bolder mb-0 text-dark">
-                Báo Cáo Đối Chiếu Hiệu Năng Thuật Toán Kỳ {{ (reconciliationData?.backtestComparison?.draw0610Performance?.drawDate | date:'dd/MM/yyyy') || '06/10/2026' }} Trên Toàn Bộ {{ reconciliationData?.backtestComparison?.totalHistoricalDraws || reconciliationData?.draws?.length || 22 }} Kỳ Power 6/55
-              </h5>
-              <div class="small text-muted">
-                Kiểm chứng câu hỏi: Dùng thuật toán kỳ {{ (reconciliationData?.backtestComparison?.draw0610Performance?.drawDate | date:'dd/MM/yyyy') || '06/10/2026' }} cho các kỳ khác thì kết quả có trúng cao hơn không?
-              </div>
-            </div>
-          </div>
-          <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold border">
-            🔍 Kết quả: Kỳ {{ (reconciliationData?.backtestComparison?.draw0610Performance?.drawDate | date:'dd/MM') || '06/10' }} trúng cực cao ({{ reconciliationData?.backtestComparison?.draw0610Performance?.ticketHitRatePercent || 80 }}% vé) - Các kỳ khác cần thích ứng {{ reconciliationData?.backtestComparison?.v190UpgradePlan?.version || 'v1.9.0' }}
-          </span>
-        </div>
-
-        <!-- COMPARISON METRICS GRID -->
-        <div class="row g-3 mb-3">
-          <!-- METRIC 1: Kỳ chuẩn -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100 border-success shadow-xs">
-              <div class="small text-muted fw-semibold">KỲ {{ (reconciliationData?.backtestComparison?.draw0610Performance?.drawDate | date:'dd/MM/yyyy') || '06/10/2026' }} (ĐỈNH CAO)</div>
-              <div class="fs-4 fw-bolder text-success my-1">
-                {{ reconciliationData?.backtestComparison?.draw0610Performance?.winningTicketsCount || 4 }} / {{ reconciliationData?.backtestComparison?.draw0610Performance?.winningTicketsTotal || 5 }} VÉ TRÚNG
-              </div>
-              <div class="small text-success fw-bold" style="font-size: 0.75rem;">
-                Tỷ lệ trúng {{ reconciliationData?.backtestComparison?.draw0610Performance?.ticketHitRatePercent || 80.0 }}% ({{ reconciliationData?.backtestComparison?.draw0610Performance?.prizes || '1 Nhì + 3 Ba' }})
-              </div>
-            </div>
-          </div>
-
-          <!-- METRIC 2: Các kỳ khác -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100 border-warning shadow-xs">
-              <div class="small text-muted fw-semibold">CÁC KỲ KHÁC ({{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.totalOtherDraws || 20 }} KỲ)</div>
-              <div class="fs-4 fw-bolder text-warning my-1">
-                {{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.drawsWithPrizes || 3 }} / {{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.totalOtherDraws || 20 }} KỲ CÓ GIẢI
-              </div>
-              <div class="small text-secondary" style="font-size: 0.75rem;">
-                Tỷ lệ vé trúng: {{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.ticketHitRatePercent || 7.0 }}% ({{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.winningTicketsCount || 7 }}/{{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.totalTicketsTested || 100 }} vé)
-              </div>
-            </div>
-          </div>
-
-          <!-- METRIC 3: Toàn bộ kỳ -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100 shadow-xs">
-              <div class="small text-muted fw-semibold">TOÀN BỘ {{ reconciliationData?.backtestComparison?.totalHistoricalDraws || 22 }} KỲ POWER</div>
-              <div class="fs-4 fw-bolder text-primary my-1">
-                {{ (reconciliationData?.backtestComparison?.draw0610Performance?.winningTicketsCount || 4) + (reconciliationData?.backtestComparison?.otherDrawsPerformance?.winningTicketsCount || 7) }} VÉ TRÚNG
-              </div>
-              <div class="small text-muted" style="font-size: 0.75rem;">
-                {{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.prizes }}
-              </div>
-            </div>
-          </div>
-
-          <!-- METRIC 4: Khắc phục upgrade plan -->
-          <div class="col-6 col-lg-3">
-            <div class="p-3 bg-white rounded-3 border text-center h-100 shadow-xs">
-              <div class="small text-muted fw-semibold">NÂNG CẤP {{ reconciliationData?.backtestComparison?.v190UpgradePlan?.version || 'V1.9.0' }}</div>
-              <div class="fs-4 fw-bolder text-danger my-1">
-                {{ reconciliationData?.backtestComparison?.v190UpgradePlan?.coreImprovements?.length || 5 }} ĐẶC TRƯNG MỚI
-              </div>
-              <div class="small text-secondary" style="font-size: 0.75rem;">
-                {{ reconciliationData?.backtestComparison?.v190UpgradePlan?.targetNextDraw }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SUMMARY CONCLUSION -->
-        <div class="p-3 bg-white border border-warning-subtle rounded-3 text-dark small lh-base">
-          <div class="mb-2">
-            <strong class="text-primary">📌 Phân tích hiện tượng: Tại sao kỳ {{ (reconciliationData?.backtestComparison?.draw0610Performance?.drawDate | date:'dd/MM/yyyy') || '06/10/2026' }} trúng rất cao nhưng áp dụng cho các kỳ khác lại không bằng?</strong>
-          </div>
-          <div class="text-secondary mb-2" *ngIf="reconciliationData?.backtestComparison?.draw0610Performance?.whyItSucceeded">
-            • <strong>Kỳ {{ (reconciliationData?.backtestComparison?.draw0610Performance?.drawDate | date:'dd/MM/yyyy') || '06/10/2026' }}</strong>: {{ reconciliationData?.backtestComparison?.draw0610Performance?.whyItSucceeded }}
-          </div>
-          <div class="text-secondary mb-2" *ngIf="reconciliationData?.backtestComparison?.otherDrawsPerformance?.whyOtherDrawsMissed">
-            • <strong>Khi dùng cho các kỳ khác</strong>: {{ reconciliationData?.backtestComparison?.otherDrawsPerformance?.whyOtherDrawsMissed }}
-          </div>
-          <div class="p-2 rounded bg-light border text-dark fw-semibold" *ngIf="reconciliationData?.backtestComparison?.v190UpgradePlan">
-            🚀 <strong>Giải pháp nâng cấp {{ reconciliationData?.backtestComparison?.v190UpgradePlan?.version }} cho {{ reconciliationData?.backtestComparison?.v190UpgradePlan?.targetNextDraw }}:</strong> {{ reconciliationData?.backtestComparison?.conclusion }}
-          </div>
-        </div>
+        <p class="small mb-0">{{ report.conclusion }}</p>
       </div>
     </div>
 
@@ -924,7 +771,7 @@
                 </div>
                 <div class="text-end text-muted small" style="font-size: 0.72rem;">
                   <div>Gap: <strong>{{ item.drawGap === 0 ? 'Lặp (0)' : item.drawGap + ' kỳ' }}</strong></div>
-                  <div>Tần suất: <strong>{{ item.frequency }} lần</strong></div>
+                  <div>Tần suất: <strong>{{ formatMetric(item.frequency) }} lần</strong></div>
                 </div>
               </div>
 
@@ -982,7 +829,7 @@
             <!-- NÚT KÍCH HOẠT THUẬT TOÁN MỚI -->
             <button class="btn btn-success fw-bold px-3 py-2 rounded-pill shadow-xs"
                     (click)="applyV150Tuning()"
-                    [disabled]="isApplyingV150">
+                    [disabled]="isApplyingV150 || !reconciliationData?.recommendedHyperparameters?.adjustments">
               <span *ngIf="isApplyingV150" class="spinner-border spinner-border-sm me-1"></span>
               ⚡ Kích Hoạt & Lưu Thuật Toán {{ reconciliationData?.recommendedHyperparameters?.version || currentHyperparameterVersion || 'Mới' }} Vào Bảng
             </button>
@@ -1008,7 +855,7 @@
               <div class="p-3 rounded-3 bg-white border h-100 border-success">
                 <div class="fw-bold text-success mb-2 small d-flex align-items-center gap-1">
                   <span>✓</span>
-                  <span>5 GIẢI PHÁP HIỆU CHỈNH TRONG THUẬT TOÁN {{ reconciliationData?.recommendedHyperparameters?.version || currentHyperparameterVersion || 'MỚI' }}:</span>
+                  <span>{{ reconciliationData?.overallSummary?.coreRemedies?.length ?? 0 }} ĐỀ XUẤT TỪ BÁO CÁO ĐỐI SOÁT:</span>
                 </div>
                 <ol class="small text-secondary ps-3 mb-0" style="line-height: 1.6;">
                   <li *ngFor="let remedy of reconciliationData?.overallSummary?.coreRemedies" class="mb-1">
@@ -1510,10 +1357,10 @@
             </div>
             <div class="text-end">
               <span class="badge bg-light text-dark border">
-                Hạng #{{ item.rank }}/{{ category === 'POWER' ? 55 : 45 }}
+                Hạng #{{ formatMetric(item.rank) }}/{{ category === 'POWER' ? 55 : 45 }}
               </span>
               <div class="small text-muted fw-bold mt-1" style="font-size: 0.75rem;">
-                Xác suất: {{ item.probabilityPercent }}%
+                Điểm xếp hạng: {{ formatMetric(item.probabilityPercent) }}
               </div>
             </div>
           </div>
@@ -1530,15 +1377,15 @@
           <div class="row text-center g-1 py-2 px-1 rounded-2 mb-2 bg-light border">
             <div class="col-4">
               <span class="text-muted d-block" style="font-size: 0.7rem;">Tần suất</span>
-              <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ item.frequency }} lần</span>
+              <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ formatMetric(item.frequency) }} lần</span>
             </div>
             <div class="col-4 border-start border-end">
               <span class="text-muted d-block" style="font-size: 0.7rem;">Chu kỳ Gan</span>
-              <span class="fw-bold text-danger" style="font-size: 0.85rem;">{{ item.drawGap }} kỳ</span>
+              <span class="fw-bold text-danger" style="font-size: 0.85rem;">{{ formatMetric(item.drawGap) }} kỳ</span>
             </div>
             <div class="col-4">
               <span class="text-muted d-block" style="font-size: 0.7rem;">Quán tính</span>
-              <span class="fw-bold text-primary" style="font-size: 0.85rem;">{{ item.momentum }}</span>
+              <span class="fw-bold text-primary" style="font-size: 0.85rem;">{{ formatMetric(item.momentum) }}</span>
             </div>
           </div>
 
@@ -1613,7 +1460,7 @@
         <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
           <div class="text-muted small fw-semibold">Xếp hạng TB số trượt</div>
           <div class="fs-3 fw-bold text-warning">
-            #{{ tuningReport.averageRank }}
+            #{{ formatMetric(tuningReport.averageRank) }}
           </div>
           <small class="text-secondary">Trên tổng {{ category === 'POWER' ? 55 : 45 }} số</small>
         </div>
@@ -1673,16 +1520,16 @@
     <!-- Khối Code JSON tham số thuật toán -->
     <div class="mb-3">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <span class="fw-bold text-dark small">⚙️ Bộ Siêu Tham Số Khuyến Nghị Cập Nhật (Model Hyperparameters JSON):</span>
+        <span class="fw-bold text-dark small">⚙️ Cấu hình đang lưu và kết quả đối soát:</span>
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <button class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill fw-bold" (click)="copyConclusion()">
             {{ copiedSuccess ? '✅ Đã Copy' : '📋 Copy JSON' }}
           </button>
           <button class="btn btn-sm btn-success py-1 px-3 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-1"
                   (click)="updateAlgorithmAndSaveTable()"
-                  [disabled]="isUpdatingAlgorithm">
+                  [disabled]="isUpdatingAlgorithm || !currentParameters">
             <span *ngIf="isUpdatingAlgorithm" class="spinner-border spinner-border-sm me-1" role="status"></span>
-            <span>{{ isUpdatingAlgorithm ? 'Đang lưu vào bảng...' : '🚀 Cập Nhật Thuật Toán & Lưu Vào Bảng' }}</span>
+            <span>{{ isUpdatingAlgorithm ? 'Đang lưu vào bảng...' : 'Lưu cấu hình kèm kết quả đối soát' }}</span>
           </button>
         </div>
       </div>
@@ -1911,8 +1758,8 @@
             </div>
           </div>
           <div class="text-end">
-            <div class="fs-3 fw-bold text-primary" style="line-height: 1;">{{ item.probabilityPercent }}%</div>
-            <div class="badge bg-light text-dark border mt-1">Hạng #{{ item.rank }}/{{ category === 'MEGA' ? 45 : 55 }}</div>
+            <div class="fs-3 fw-bold text-primary" style="line-height: 1;">{{ formatMetric(item.probabilityPercent, '%') }}</div>
+            <div class="badge bg-light text-dark border mt-1">Hạng #{{ formatMetric(item.rank) }}/{{ category === 'MEGA' ? 45 : 55 }}</div>
           </div>
         </div>
 
@@ -1926,23 +1773,23 @@
         <div class="row text-center mb-4 g-2">
           <div class="col-4">
             <div class="text-muted" style="font-size: 0.75rem;">Đã về</div>
-            <div class="fw-bold fs-5 text-dark">{{ item.frequency }} lần</div>
+            <div class="fw-bold fs-5 text-dark">{{ formatMetric(item.frequency) }} lần</div>
           </div>
           <div class="col-4 border-start border-end">
             <div class="text-muted" style="font-size: 0.75rem;">Chu kỳ Gan</div>
-            <div class="fw-bold fs-5 text-success">{{ item.drawGap }} kỳ</div>
+            <div class="fw-bold fs-5 text-success">{{ formatMetric(item.drawGap) }} kỳ</div>
           </div>
           <div class="col-4">
             <div class="text-muted" style="font-size: 0.75rem;">Quán tính</div>
-            <div class="fw-bold fs-5 text-primary">{{ item.momentum }}</div>
+            <div class="fw-bold fs-5 text-primary">{{ formatMetric(item.momentum) }}</div>
           </div>
         </div>
 
         <!-- Chỉ số Thuật toán (Markov, Poisson, Đồng hành) -->
         <div class="d-flex justify-content-between text-muted fw-bold mb-3 border-bottom pb-3" style="font-size: 0.75rem;">
-          <span>Markov: {{ item.markov }}%</span>
-          <span>Poisson: {{ item.poisson }}%</span>
-          <span>Đồng hành: {{ item.companion }}%</span>
+          <span>Markov: {{ formatMetric(item.markov, '%') }}</span>
+          <span>Poisson: {{ formatMetric(item.poisson, '%') }}</span>
+          <span>Đồng hành: {{ formatMetric(item.companion, '%') }}</span>
         </div>
 
         <!-- Nội dung lý do -->

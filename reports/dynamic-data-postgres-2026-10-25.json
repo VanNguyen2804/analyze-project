@@ -1,0 +1,4903 @@
+{
+  "validation": "Packaged Spring Boot and temporary PostgreSQL, live feeds, verified eligible history",
+  "backtestComparison": {
+    "algorithm": "temporal_learning",
+    "category": "MEGA",
+    "totalHistoricalDraws": 39,
+    "requestedDrawsCount": 5,
+    "evaluatedDrawsCount": 5,
+    "unevaluatedDrawsCount": 0,
+    "fromDate": "2026-10-16",
+    "toDate": "2026-10-25",
+    "mainNumberHits": 0,
+    "averageMatched": 0.0,
+    "hit3Draws": 0,
+    "hit3RatePercent": 0.0,
+    "scope": "5/5 kỳ được chọn đủ lịch sử; 39 kỳ hợp lệ trong kho dữ liệu.",
+    "conclusion": "Kiểm thử vé sáu số trên 5 kỳ: khớp tổng 0 số, 0 kỳ đạt ít nhất ba số. Dùng cấu hình hiện tại; chưa có so sánh phiên bản dự đoán lưu trước giờ quay.",
+    "dominantFlaws": [
+      "Có 5/5 vé sáu số khớp dưới ba số."
+    ],
+    "coreRemedies": [
+      "Đánh giá cùng số vé và cùng cửa sổ thời gian khi thử cấu hình khác."
+    ]
+  },
+  "currentHyperparameterVersion": "v1.2.0",
+  "ticketHitRatePercent": null,
+  "draws": [
+    {
+      "whyWinningBallsAppeared": [
+        {
+          "number": 4,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 4,
+          "drawGap": 1,
+          "explanation": "Trong 38 kỳ trước, số 4 xuất hiện 4 lần; cách lần gần nhất 1 kỳ đã lưu."
+        },
+        {
+          "number": 13,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 3,
+          "drawGap": 11,
+          "explanation": "Trong 38 kỳ trước, số 13 xuất hiện 3 lần; cách lần gần nhất 11 kỳ đã lưu."
+        },
+        {
+          "number": 22,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 6,
+          "drawGap": 0,
+          "explanation": "Trong 38 kỳ trước, số 22 xuất hiện 6 lần; cách lần gần nhất 0 kỳ đã lưu."
+        },
+        {
+          "number": 25,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 5,
+          "drawGap": 1,
+          "explanation": "Trong 38 kỳ trước, số 25 xuất hiện 5 lần; cách lần gần nhất 1 kỳ đã lưu."
+        },
+        {
+          "number": 40,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 7,
+          "drawGap": 0,
+          "explanation": "Trong 38 kỳ trước, số 40 xuất hiện 7 lần; cách lần gần nhất 0 kỳ đã lưu."
+        },
+        {
+          "number": 41,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 6,
+          "drawGap": 6,
+          "explanation": "Trong 38 kỳ trước, số 41 xuất hiện 6 lần; cách lần gần nhất 6 kỳ đã lưu."
+        }
+      ],
+      "whyAlgorithmMissed": {
+        "summary": "Vé sáu số khớp 0/6: []",
+        "primaryReason": "Đối chiếu dự đoán hồi cứu với kết quả đã lưu.",
+        "missedFactors": [
+          "Số 4 không nằm trong vé sáu số.",
+          "Số 13 không nằm trong vé sáu số.",
+          "Số 22 không nằm trong vé sáu số.",
+          "Số 25 không nằm trong vé sáu số.",
+          "Số 40 không nằm trong vé sáu số.",
+          "Số 41 không nằm trong vé sáu số."
+        ],
+        "correctiveAdjustment": "So sánh trên nhiều kỳ trước khi thay đổi tham số; số liệu này chưa xác định nguyên nhân vật lý của kết quả."
+      },
+      "drawAccuracyLabel": "0/6",
+      "sum": 145,
+      "uniqueUserCount": 0,
+      "uniqueMatchedCount": 0,
+      "aiPrediction": {
+        "top10Numbers": [
+          3,
+          6,
+          12,
+          15,
+          16,
+          20,
+          27,
+          31,
+          36,
+          43
+        ],
+        "predictedOddEven": "2 Chẵn / 4 Lẻ",
+        "sumDiff": 27,
+        "matchedSpecial": false,
+        "generatedTickets": [
+          {
+            "ticketIndex": 1,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              12,
+              15,
+              16,
+              20
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 2,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 3,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              12,
+              16,
+              27,
+              31,
+              36
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 4,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              6,
+              12,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 5,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              15,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          }
+        ],
+        "predictedSum": 118,
+        "matchedCount": 0,
+        "bestPrize": "KHÔNG TRÚNG",
+        "matchedNumbers": [],
+        "algorithmName": "Học liên kết giữa các kỳ",
+        "matchedIn6Count": 0,
+        "matchedIn6Percent": 0.0,
+        "matchedPercent": 0.0,
+        "judgment": {
+          "isClose": false,
+          "summary": "Vé sáu số khớp 0 số []; Top 10 phủ 0 số kết quả. Có 1 số lệch một đơn vị, không tính là số trúng.",
+          "badge": "Khớp 0/6 số chính",
+          "reason": "Kiểm thử hồi cứu từ 38 kỳ trước với cấu hình hiện tại.",
+          "rating": "DEVIATED",
+          "badgeClass": "secondary"
+        },
+        "specialNumber": null,
+        "predicted6Numbers": [
+          3,
+          6,
+          15,
+          27,
+          31,
+          36
+        ],
+        "parityMatch": false,
+        "nearMissList": [
+          {
+            "officialNear": 4,
+            "diff": -1,
+            "predicted": 3
+          }
+        ],
+        "numberRelationships": {
+          "summary": "Phân tích mối liên hệ tương quan đồng xuất hiện & gom cụm số trúng (Anti-Scattering)",
+          "antiScatteringGuarantee": "Đã kích hoạt thuật toán gom cụm liên kết: Tự động gom 3-4 số có lực hút tương quan đồng xuất hiện cao nhất vào cùng một dãy vé. Khắc phục triệt để hiện tượng 4 số trúng bị tản mạn sang nhiều vé khác nhau.",
+          "topAffinityPairs": [
+            {
+              "jaccard": 0.33,
+              "deltaDiff": 7,
+              "n1": 20,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.41)",
+              "affinityScore": 10.8,
+              "lift": 2.41,
+              "pairLabel": "20 - 27"
+            },
+            {
+              "jaccard": 0.3,
+              "deltaDiff": 29,
+              "n1": 12,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 41,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.71)",
+              "affinityScore": 9.9,
+              "lift": 2.71,
+              "pairLabel": "12 - 41"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 18,
+              "n1": 9,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.11)",
+              "affinityScore": 8.7,
+              "lift": 2.11,
+              "pairLabel": "09 - 27"
+            },
+            {
+              "jaccard": 0.23,
+              "deltaDiff": 4,
+              "n1": 2,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 6,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.81)",
+              "affinityScore": 8.1,
+              "lift": 1.81,
+              "pairLabel": "02 - 06"
+            },
+            {
+              "jaccard": 0.23,
+              "deltaDiff": 7,
+              "n1": 36,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.78)",
+              "affinityScore": 8.1,
+              "lift": 1.78,
+              "pairLabel": "36 - 43"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 12,
+              "n1": 3,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 15,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.58)",
+              "affinityScore": 7.7,
+              "lift": 1.58,
+              "pairLabel": "03 - 15"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 10,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 16,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.58)",
+              "affinityScore": 7.7,
+              "lift": 1.58,
+              "pairLabel": "06 - 16"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 37,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.58)",
+              "affinityScore": 7.7,
+              "lift": 1.58,
+              "pairLabel": "06 - 43"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 21,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 36,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.58)",
+              "affinityScore": 7.7,
+              "lift": 1.58,
+              "pairLabel": "15 - 36"
+            },
+            {
+              "jaccard": 0.2,
+              "deltaDiff": 9,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 15,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.41)",
+              "affinityScore": 7.3,
+              "lift": 1.41,
+              "pairLabel": "06 - 15"
+            }
+          ],
+          "ticketAffinityDetails": [
+            {
+              "ticketIndex": 1,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                15,
+                16,
+                20
+              ],
+              "explanation": "Vé #1 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 2,
+              "pairSynergyScore": 24,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #2 đạt 24 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 3,
+              "pairSynergyScore": 17,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                16,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #3 đạt 17 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 4,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #4 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 5,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #5 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 6,
+              "pairSynergyScore": 21,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #6 đạt 21 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 7,
+              "pairSynergyScore": 18,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                16,
+                27,
+                31,
+                43
+              ],
+              "explanation": "Vé #7 đạt 18 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 8,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                20,
+                27,
+                36,
+                43
+              ],
+              "explanation": "Vé #8 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 9,
+              "pairSynergyScore": 22,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                16,
+                31,
+                43
+              ],
+              "explanation": "Vé #9 đạt 22 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 10,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                36,
+                43
+              ],
+              "explanation": "Vé #10 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 11,
+              "pairSynergyScore": 31,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #11 đạt 31 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 12,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #12 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 13,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #13 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 14,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #14 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 15,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                12,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #15 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 16,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #16 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 17,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                15,
+                20,
+                27,
+                41
+              ],
+              "explanation": "Vé #17 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 18,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                15,
+                20,
+                27,
+                36
+              ],
+              "explanation": "Vé #18 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 19,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                20,
+                27,
+                41
+              ],
+              "explanation": "Vé #19 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 20,
+              "pairSynergyScore": 27,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                20,
+                27,
+                36,
+                41
+              ],
+              "explanation": "Vé #20 đạt 27 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 21,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                12,
+                15,
+                36,
+                43
+              ],
+              "explanation": "Vé #21 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 22,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #22 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 23,
+              "pairSynergyScore": 27,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                36,
+                41
+              ],
+              "explanation": "Vé #23 đạt 27 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 24,
+              "pairSynergyScore": 27,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                12,
+                15,
+                20,
+                27,
+                36,
+                41
+              ],
+              "explanation": "Vé #24 đạt 27 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 25,
+              "pairSynergyScore": 27,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                15,
+                20,
+                36,
+                41
+              ],
+              "explanation": "Vé #25 đạt 27 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            }
+          ],
+          "algorithmName": "Affinity-Clustered Combinatorial Wheeling (Gom Cụm Tương Quan)",
+          "topCliques": [
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                6,
+                15,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                2,
+                6,
+                15,
+                36
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                2,
+                6,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                12,
+                20,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                6,
+                36,
+                41,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                12,
+                20,
+                27,
+                41
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            }
+          ],
+          "deltaCorrelations": [
+            {
+              "delta": 7,
+              "description": "Bước nhảy Delta 7 xuất hiện 11 lần giữa các cặp số liên kết",
+              "frequency": 11
+            },
+            {
+              "delta": 21,
+              "description": "Bước nhảy Delta 21 xuất hiện 7 lần giữa các cặp số liên kết",
+              "frequency": 7
+            },
+            {
+              "delta": 10,
+              "description": "Bước nhảy Delta 10 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 4,
+              "description": "Bước nhảy Delta 4 xuất hiện 5 lần giữa các cặp số liên kết",
+              "frequency": 5
+            },
+            {
+              "delta": 5,
+              "description": "Bước nhảy Delta 5 xuất hiện 5 lần giữa các cặp số liên kết",
+              "frequency": 5
+            },
+            {
+              "delta": 9,
+              "description": "Bước nhảy Delta 9 xuất hiện 5 lần giữa các cặp số liên kết",
+              "frequency": 5
+            }
+          ]
+        },
+        "nearMissPredictedNumbers": [
+          3
+        ],
+        "winningTickets": [],
+        "bestPrizeAmount": "0 đ",
+        "matchedIn6Numbers": [],
+        "algorithm": "temporal_learning"
+      },
+      "oddEven": "3 Chẵn / 3 Lẻ",
+      "winningNumbersRelationship": {
+        "summary": "Phát hiện 8 cặp có liên kết lịch sử giữa 6 số trúng. Cặp có lực hút mạnh nhất: 22 - 40 (3 lần nổ chung). Cụm liên kết tam giác: 4 cụm.",
+        "cliqueWheelingAdvice": "Observed co-occurrence relationships in the supplied history; no winning-ticket guarantee.",
+        "cliques": [
+          [
+            4,
+            13,
+            22
+          ],
+          [
+            4,
+            13,
+            25
+          ],
+          [
+            4,
+            22,
+            25
+          ],
+          [
+            13,
+            22,
+            25
+          ]
+        ],
+        "totalPairScore": 12,
+        "pairs": [
+          {
+            "n1": 22,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (3 lần nổ chung, Lift 2.71)",
+            "n2": 40,
+            "count": 3,
+            "lift": 2.71,
+            "diff": 18,
+            "pairLabel": "22 - 40",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (2 lần nổ chung, Lift 3.17)",
+            "n2": 22,
+            "count": 2,
+            "lift": 3.17,
+            "diff": 18,
+            "pairLabel": "04 - 22",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (2 lần nổ chung, Lift 3.8)",
+            "n2": 25,
+            "count": 2,
+            "lift": 3.8,
+            "diff": 21,
+            "pairLabel": "04 - 25",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 13,
+            "count": 1,
+            "lift": 3.17,
+            "diff": 9,
+            "pairLabel": "04 - 13",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 41,
+            "count": 1,
+            "lift": 1.58,
+            "diff": 37,
+            "pairLabel": "04 - 41",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 13,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 22,
+            "count": 1,
+            "lift": 2.11,
+            "diff": 9,
+            "pairLabel": "13 - 22",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 13,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 25,
+            "count": 1,
+            "lift": 2.53,
+            "diff": 12,
+            "pairLabel": "13 - 25",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 22,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 3 đơn vị)",
+            "n2": 25,
+            "count": 1,
+            "lift": 1.27,
+            "diff": 3,
+            "pairLabel": "22 - 25",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 36,
+            "pairLabel": "04 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 13,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 27,
+            "pairLabel": "13 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 13,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 41,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 28,
+            "pairLabel": "13 - 41",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 22,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 41,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 19,
+            "pairLabel": "22 - 41",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 25,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 15,
+            "pairLabel": "25 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 25,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 41,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 16,
+            "pairLabel": "25 - 41",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 40,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 1 đơn vị)",
+            "n2": 41,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 1,
+            "pairLabel": "40 - 41",
+            "affinity": "⚪ TRUNG HÒA"
+          }
+        ],
+        "strongestPair": "22 - 40 (3 lần nổ chung)",
+        "maxCoOccur": 3
+      },
+      "officialNumbers": [
+        4,
+        13,
+        22,
+        25,
+        40,
+        41
+      ],
+      "uniqueUserNumbers": [],
+      "coveragePercent": 0.0,
+      "drawOrder": 1,
+      "userTickets": [],
+      "officialSpecial": null,
+      "drawDate": "2026-10-25",
+      "uniqueMatchedNumbers": []
+    },
+    {
+      "whyWinningBallsAppeared": [
+        {
+          "number": 2,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 6,
+          "drawGap": 9,
+          "explanation": "Trong 37 kỳ trước, số 2 xuất hiện 6 lần; cách lần gần nhất 9 kỳ đã lưu."
+        },
+        {
+          "number": 5,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 1,
+          "drawGap": 5,
+          "explanation": "Trong 37 kỳ trước, số 5 xuất hiện 1 lần; cách lần gần nhất 5 kỳ đã lưu."
+        },
+        {
+          "number": 11,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 4,
+          "drawGap": 1,
+          "explanation": "Trong 37 kỳ trước, số 11 xuất hiện 4 lần; cách lần gần nhất 1 kỳ đã lưu."
+        },
+        {
+          "number": 22,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 5,
+          "drawGap": 0,
+          "explanation": "Trong 37 kỳ trước, số 22 xuất hiện 5 lần; cách lần gần nhất 0 kỳ đã lưu."
+        },
+        {
+          "number": 32,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 2,
+          "drawGap": 5,
+          "explanation": "Trong 37 kỳ trước, số 32 xuất hiện 2 lần; cách lần gần nhất 5 kỳ đã lưu."
+        },
+        {
+          "number": 40,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 6,
+          "drawGap": 1,
+          "explanation": "Trong 37 kỳ trước, số 40 xuất hiện 6 lần; cách lần gần nhất 1 kỳ đã lưu."
+        }
+      ],
+      "whyAlgorithmMissed": {
+        "summary": "Vé sáu số khớp 0/6: []",
+        "primaryReason": "Đối chiếu dự đoán hồi cứu với kết quả đã lưu.",
+        "missedFactors": [
+          "Số 2 không nằm trong vé sáu số.",
+          "Số 5 không nằm trong vé sáu số.",
+          "Số 11 không nằm trong vé sáu số.",
+          "Số 22 không nằm trong vé sáu số.",
+          "Số 32 không nằm trong vé sáu số.",
+          "Số 40 không nằm trong vé sáu số."
+        ],
+        "correctiveAdjustment": "So sánh trên nhiều kỳ trước khi thay đổi tham số; số liệu này chưa xác định nguyên nhân vật lý của kết quả."
+      },
+      "drawAccuracyLabel": "0/6",
+      "sum": 112,
+      "uniqueUserCount": 0,
+      "uniqueMatchedCount": 0,
+      "aiPrediction": {
+        "top10Numbers": [
+          3,
+          6,
+          12,
+          15,
+          16,
+          20,
+          27,
+          31,
+          36,
+          43
+        ],
+        "predictedOddEven": "2 Chẵn / 4 Lẻ",
+        "sumDiff": 2,
+        "matchedSpecial": false,
+        "generatedTickets": [
+          {
+            "ticketIndex": 1,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              12,
+              15,
+              16,
+              20
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 2,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 3,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              12,
+              16,
+              27,
+              31,
+              36
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 4,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              6,
+              12,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 5,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              15,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          }
+        ],
+        "predictedSum": 110,
+        "matchedCount": 0,
+        "bestPrize": "KHÔNG TRÚNG",
+        "matchedNumbers": [],
+        "algorithmName": "Học liên kết giữa các kỳ",
+        "matchedIn6Count": 0,
+        "matchedIn6Percent": 0.0,
+        "matchedPercent": 0.0,
+        "judgment": {
+          "isClose": false,
+          "summary": "Vé sáu số khớp 0 số []; Top 10 phủ 0 số kết quả. Có 2 số lệch một đơn vị, không tính là số trúng.",
+          "badge": "Khớp 0/6 số chính",
+          "reason": "Kiểm thử hồi cứu từ 37 kỳ trước với cấu hình hiện tại.",
+          "rating": "DEVIATED",
+          "badgeClass": "secondary"
+        },
+        "specialNumber": null,
+        "predicted6Numbers": [
+          3,
+          6,
+          15,
+          16,
+          27,
+          43
+        ],
+        "parityMatch": false,
+        "nearMissList": [
+          {
+            "officialNear": 2,
+            "diff": 1,
+            "predicted": 3
+          },
+          {
+            "officialNear": 5,
+            "diff": 1,
+            "predicted": 6
+          }
+        ],
+        "numberRelationships": {
+          "summary": "Phân tích mối liên hệ tương quan đồng xuất hiện & gom cụm số trúng (Anti-Scattering)",
+          "antiScatteringGuarantee": "Đã kích hoạt thuật toán gom cụm liên kết: Tự động gom 3-4 số có lực hút tương quan đồng xuất hiện cao nhất vào cùng một dãy vé. Khắc phục triệt để hiện tượng 4 số trúng bị tản mạn sang nhiều vé khác nhau.",
+          "topAffinityPairs": [
+            {
+              "jaccard": 0.36,
+              "deltaDiff": 18,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 33,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.74)",
+              "affinityScore": 11.5,
+              "lift": 2.74,
+              "pairLabel": "15 - 33"
+            },
+            {
+              "jaccard": 0.33,
+              "deltaDiff": 7,
+              "n1": 20,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.35)",
+              "affinityScore": 10.7,
+              "lift": 2.35,
+              "pairLabel": "20 - 27"
+            },
+            {
+              "jaccard": 0.33,
+              "deltaDiff": 7,
+              "n1": 33,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 40,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 3.08)",
+              "affinityScore": 10.7,
+              "lift": 3.08,
+              "pairLabel": "33 - 40"
+            },
+            {
+              "jaccard": 0.3,
+              "deltaDiff": 29,
+              "n1": 12,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 41,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.64)",
+              "affinityScore": 9.8,
+              "lift": 2.64,
+              "pairLabel": "12 - 41"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 25,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 40,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.06)",
+              "affinityScore": 8.6,
+              "lift": 2.06,
+              "pairLabel": "15 - 40"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 1,
+              "n1": 26,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.06)",
+              "affinityScore": 8.6,
+              "lift": 2.06,
+              "pairLabel": "26 - 27"
+            },
+            {
+              "jaccard": 0.23,
+              "deltaDiff": 7,
+              "n1": 36,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.73)",
+              "affinityScore": 8.0,
+              "lift": 1.73,
+              "pairLabel": "36 - 43"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 12,
+              "n1": 3,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 15,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.54)",
+              "affinityScore": 7.6,
+              "lift": 1.54,
+              "pairLabel": "03 - 15"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 10,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 16,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.54)",
+              "affinityScore": 7.6,
+              "lift": 1.54,
+              "pairLabel": "06 - 16"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 37,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.54)",
+              "affinityScore": 7.6,
+              "lift": 1.54,
+              "pairLabel": "06 - 43"
+            }
+          ],
+          "ticketAffinityDetails": [
+            {
+              "ticketIndex": 1,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                15,
+                16,
+                20
+              ],
+              "explanation": "Vé #1 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 2,
+              "pairSynergyScore": 24,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #2 đạt 24 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 3,
+              "pairSynergyScore": 17,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                16,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #3 đạt 17 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 4,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #4 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 5,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #5 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 6,
+              "pairSynergyScore": 21,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #6 đạt 21 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 7,
+              "pairSynergyScore": 18,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                16,
+                27,
+                31,
+                43
+              ],
+              "explanation": "Vé #7 đạt 18 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 8,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                20,
+                27,
+                36,
+                43
+              ],
+              "explanation": "Vé #8 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 9,
+              "pairSynergyScore": 22,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                16,
+                31,
+                43
+              ],
+              "explanation": "Vé #9 đạt 22 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 10,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                36,
+                43
+              ],
+              "explanation": "Vé #10 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 11,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                20,
+                27,
+                33,
+                40
+              ],
+              "explanation": "Vé #11 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 12,
+              "pairSynergyScore": 31,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #12 đạt 31 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 13,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                16,
+                33,
+                40
+              ],
+              "explanation": "Vé #13 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 14,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                26,
+                27,
+                41
+              ],
+              "explanation": "Vé #14 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 15,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                15,
+                16,
+                33,
+                40,
+                43
+              ],
+              "explanation": "Vé #15 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 16,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                16,
+                27,
+                33,
+                40
+              ],
+              "explanation": "Vé #16 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 17,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                20,
+                26,
+                27,
+                41
+              ],
+              "explanation": "Vé #17 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 18,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                12,
+                15,
+                20,
+                26,
+                27,
+                41
+              ],
+              "explanation": "Vé #18 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 19,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                33,
+                36,
+                40
+              ],
+              "explanation": "Vé #19 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 20,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #20 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 21,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                26,
+                27,
+                43
+              ],
+              "explanation": "Vé #21 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 22,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #22 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 23,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                27,
+                33,
+                40
+              ],
+              "explanation": "Vé #23 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 24,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                15,
+                16,
+                27,
+                33,
+                40
+              ],
+              "explanation": "Vé #24 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 25,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                15,
+                20,
+                26,
+                27
+              ],
+              "explanation": "Vé #25 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            }
+          ],
+          "algorithmName": "Affinity-Clustered Combinatorial Wheeling (Gom Cụm Tương Quan)",
+          "topCliques": [
+            {
+              "size": 4,
+              "affinityScore": 24.0,
+              "numbers": [
+                3,
+                15,
+                33,
+                40
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                3,
+                15,
+                33,
+                36
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                6,
+                15,
+                33,
+                40
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                6,
+                15,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                12,
+                20,
+                26,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                12,
+                20,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            }
+          ],
+          "deltaCorrelations": [
+            {
+              "delta": 7,
+              "description": "Bước nhảy Delta 7 xuất hiện 10 lần giữa các cặp số liên kết",
+              "frequency": 10
+            },
+            {
+              "delta": 10,
+              "description": "Bước nhảy Delta 10 xuất hiện 7 lần giữa các cặp số liên kết",
+              "frequency": 7
+            },
+            {
+              "delta": 9,
+              "description": "Bước nhảy Delta 9 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 14,
+              "description": "Bước nhảy Delta 14 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 17,
+              "description": "Bước nhảy Delta 17 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 21,
+              "description": "Bước nhảy Delta 21 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            }
+          ]
+        },
+        "nearMissPredictedNumbers": [
+          3,
+          6
+        ],
+        "winningTickets": [],
+        "bestPrizeAmount": "0 đ",
+        "matchedIn6Numbers": [],
+        "algorithm": "temporal_learning"
+      },
+      "oddEven": "4 Chẵn / 2 Lẻ",
+      "winningNumbersRelationship": {
+        "summary": "Phát hiện 5 cặp có liên kết lịch sử giữa 6 số trúng. Cặp có lực hút mạnh nhất: 11 - 40 (2 lần nổ chung). Cụm liên kết tam giác: 0 cụm.",
+        "cliqueWheelingAdvice": "Observed co-occurrence relationships in the supplied history; no winning-ticket guarantee.",
+        "cliques": [],
+        "totalPairScore": 7,
+        "pairs": [
+          {
+            "n1": 11,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (2 lần nổ chung, Lift 3.08)",
+            "n2": 40,
+            "count": 2,
+            "lift": 3.08,
+            "diff": 29,
+            "pairLabel": "11 - 40",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 22,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (2 lần nổ chung, Lift 2.47)",
+            "n2": 40,
+            "count": 2,
+            "lift": 2.47,
+            "diff": 18,
+            "pairLabel": "22 - 40",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 2,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 11,
+            "count": 1,
+            "lift": 1.54,
+            "diff": 9,
+            "pairLabel": "02 - 11",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 5,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 32,
+            "count": 1,
+            "lift": 18.5,
+            "diff": 27,
+            "pairLabel": "05 - 32",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 22,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 32,
+            "count": 1,
+            "lift": 3.7,
+            "diff": 10,
+            "pairLabel": "22 - 32",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 2,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 3 đơn vị)",
+            "n2": 5,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 3,
+            "pairLabel": "02 - 05",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 2,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 22,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 20,
+            "pairLabel": "02 - 22",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 2,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 32,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 30,
+            "pairLabel": "02 - 32",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 2,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 38,
+            "pairLabel": "02 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 5,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 11,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 6,
+            "pairLabel": "05 - 11",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 5,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 22,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 17,
+            "pairLabel": "05 - 22",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 5,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 35,
+            "pairLabel": "05 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 11,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 22,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 11,
+            "pairLabel": "11 - 22",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 11,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 32,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 21,
+            "pairLabel": "11 - 32",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 32,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 8,
+            "pairLabel": "32 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          }
+        ],
+        "strongestPair": "11 - 40 (2 lần nổ chung)",
+        "maxCoOccur": 2
+      },
+      "officialNumbers": [
+        2,
+        5,
+        11,
+        22,
+        32,
+        40
+      ],
+      "uniqueUserNumbers": [],
+      "coveragePercent": 0.0,
+      "drawOrder": 2,
+      "userTickets": [],
+      "officialSpecial": null,
+      "drawDate": "2026-10-23",
+      "uniqueMatchedNumbers": []
+    },
+    {
+      "whyWinningBallsAppeared": [
+        {
+          "number": 4,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 3,
+          "drawGap": 9,
+          "explanation": "Trong 36 kỳ trước, số 4 xuất hiện 3 lần; cách lần gần nhất 9 kỳ đã lưu."
+        },
+        {
+          "number": 10,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 5,
+          "drawGap": 0,
+          "explanation": "Trong 36 kỳ trước, số 10 xuất hiện 5 lần; cách lần gần nhất 0 kỳ đã lưu."
+        },
+        {
+          "number": 14,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 3,
+          "drawGap": 5,
+          "explanation": "Trong 36 kỳ trước, số 14 xuất hiện 3 lần; cách lần gần nhất 5 kỳ đã lưu."
+        },
+        {
+          "number": 22,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 4,
+          "drawGap": 18,
+          "explanation": "Trong 36 kỳ trước, số 22 xuất hiện 4 lần; cách lần gần nhất 18 kỳ đã lưu."
+        },
+        {
+          "number": 25,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 4,
+          "drawGap": 9,
+          "explanation": "Trong 36 kỳ trước, số 25 xuất hiện 4 lần; cách lần gần nhất 9 kỳ đã lưu."
+        },
+        {
+          "number": 44,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 4,
+          "drawGap": 0,
+          "explanation": "Trong 36 kỳ trước, số 44 xuất hiện 4 lần; cách lần gần nhất 0 kỳ đã lưu."
+        }
+      ],
+      "whyAlgorithmMissed": {
+        "summary": "Vé sáu số khớp 0/6: []",
+        "primaryReason": "Đối chiếu dự đoán hồi cứu với kết quả đã lưu.",
+        "missedFactors": [
+          "Số 4 không nằm trong vé sáu số.",
+          "Số 10 không nằm trong vé sáu số.",
+          "Số 14 không nằm trong vé sáu số.",
+          "Số 22 không nằm trong vé sáu số.",
+          "Số 25 không nằm trong vé sáu số.",
+          "Số 44 không nằm trong vé sáu số."
+        ],
+        "correctiveAdjustment": "So sánh trên nhiều kỳ trước khi thay đổi tham số; số liệu này chưa xác định nguyên nhân vật lý của kết quả."
+      },
+      "drawAccuracyLabel": "0/6",
+      "sum": 119,
+      "uniqueUserCount": 0,
+      "uniqueMatchedCount": 0,
+      "aiPrediction": {
+        "top10Numbers": [
+          3,
+          6,
+          12,
+          15,
+          16,
+          20,
+          27,
+          31,
+          36,
+          43
+        ],
+        "predictedOddEven": "2 Chẵn / 4 Lẻ",
+        "sumDiff": 11,
+        "matchedSpecial": false,
+        "generatedTickets": [
+          {
+            "ticketIndex": 1,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              12,
+              15,
+              16,
+              20
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 2,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 3,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              12,
+              16,
+              27,
+              31,
+              36
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 4,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              6,
+              12,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 5,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              15,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          }
+        ],
+        "predictedSum": 130,
+        "matchedCount": 0,
+        "bestPrize": "KHÔNG TRÚNG",
+        "matchedNumbers": [],
+        "algorithmName": "Học liên kết giữa các kỳ",
+        "matchedIn6Count": 0,
+        "matchedIn6Percent": 0.0,
+        "matchedPercent": 0.0,
+        "judgment": {
+          "isClose": false,
+          "summary": "Vé sáu số khớp 0 số []; Top 10 phủ 0 số kết quả. Có 3 số lệch một đơn vị, không tính là số trúng.",
+          "badge": "Khớp 0/6 số chính",
+          "reason": "Kiểm thử hồi cứu từ 36 kỳ trước với cấu hình hiện tại.",
+          "rating": "DEVIATED",
+          "badgeClass": "secondary"
+        },
+        "specialNumber": null,
+        "predicted6Numbers": [
+          3,
+          6,
+          15,
+          27,
+          36,
+          43
+        ],
+        "parityMatch": false,
+        "nearMissList": [
+          {
+            "officialNear": 4,
+            "diff": -1,
+            "predicted": 3
+          },
+          {
+            "officialNear": 14,
+            "diff": 1,
+            "predicted": 15
+          },
+          {
+            "officialNear": 44,
+            "diff": -1,
+            "predicted": 43
+          }
+        ],
+        "numberRelationships": {
+          "summary": "Phân tích mối liên hệ tương quan đồng xuất hiện & gom cụm số trúng (Anti-Scattering)",
+          "antiScatteringGuarantee": "Đã kích hoạt thuật toán gom cụm liên kết: Tự động gom 3-4 số có lực hút tương quan đồng xuất hiện cao nhất vào cùng một dãy vé. Khắc phục triệt để hiện tượng 4 số trúng bị tản mạn sang nhiều vé khác nhau.",
+          "topAffinityPairs": [
+            {
+              "jaccard": 0.36,
+              "deltaDiff": 18,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 33,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.67)",
+              "affinityScore": 11.3,
+              "lift": 2.67,
+              "pairLabel": "15 - 33"
+            },
+            {
+              "jaccard": 0.33,
+              "deltaDiff": 7,
+              "n1": 20,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.29)",
+              "affinityScore": 10.6,
+              "lift": 2.29,
+              "pairLabel": "20 - 27"
+            },
+            {
+              "jaccard": 0.3,
+              "deltaDiff": 29,
+              "n1": 12,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 41,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.57)",
+              "affinityScore": 9.6,
+              "lift": 2.57,
+              "pairLabel": "12 - 41"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 18,
+              "n1": 9,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.0)",
+              "affinityScore": 8.5,
+              "lift": 2.0,
+              "pairLabel": "09 - 27"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 1,
+              "n1": 26,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.0)",
+              "affinityScore": 8.5,
+              "lift": 2.0,
+              "pairLabel": "26 - 27"
+            },
+            {
+              "jaccard": 0.23,
+              "deltaDiff": 7,
+              "n1": 36,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.69)",
+              "affinityScore": 7.9,
+              "lift": 1.69,
+              "pairLabel": "36 - 43"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 12,
+              "n1": 3,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 15,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.5)",
+              "affinityScore": 7.5,
+              "lift": 1.5,
+              "pairLabel": "03 - 15"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 10,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 16,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.5)",
+              "affinityScore": 7.5,
+              "lift": 1.5,
+              "pairLabel": "06 - 16"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 37,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.5)",
+              "affinityScore": 7.5,
+              "lift": 1.5,
+              "pairLabel": "06 - 43"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 21,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 36,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.5)",
+              "affinityScore": 7.5,
+              "lift": 1.5,
+              "pairLabel": "15 - 36"
+            }
+          ],
+          "ticketAffinityDetails": [
+            {
+              "ticketIndex": 1,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                15,
+                16,
+                20
+              ],
+              "explanation": "Vé #1 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 2,
+              "pairSynergyScore": 24,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #2 đạt 24 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 3,
+              "pairSynergyScore": 17,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                16,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #3 đạt 17 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 4,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #4 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 5,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #5 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 6,
+              "pairSynergyScore": 21,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #6 đạt 21 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 7,
+              "pairSynergyScore": 18,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                16,
+                27,
+                31,
+                43
+              ],
+              "explanation": "Vé #7 đạt 18 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 8,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                20,
+                27,
+                36,
+                43
+              ],
+              "explanation": "Vé #8 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 9,
+              "pairSynergyScore": 22,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                16,
+                31,
+                43
+              ],
+              "explanation": "Vé #9 đạt 22 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 10,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                36,
+                43
+              ],
+              "explanation": "Vé #10 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 11,
+              "pairSynergyScore": 31,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #11 đạt 31 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 12,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                26,
+                27,
+                41
+              ],
+              "explanation": "Vé #12 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 13,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                9,
+                12,
+                20,
+                26,
+                27,
+                41
+              ],
+              "explanation": "Vé #13 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 14,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                20,
+                26,
+                27,
+                41
+              ],
+              "explanation": "Vé #14 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 15,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                9,
+                12,
+                20,
+                26,
+                27,
+                31
+              ],
+              "explanation": "Vé #15 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 16,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                12,
+                15,
+                20,
+                26,
+                27,
+                41
+              ],
+              "explanation": "Vé #16 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 17,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                9,
+                12,
+                20,
+                26,
+                27
+              ],
+              "explanation": "Vé #17 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 18,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #18 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 19,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                26,
+                27,
+                43
+              ],
+              "explanation": "Vé #19 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 20,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #20 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 21,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                15,
+                20,
+                26,
+                27
+              ],
+              "explanation": "Vé #21 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 22,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                15,
+                16,
+                33,
+                36,
+                43
+              ],
+              "explanation": "Vé #22 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 23,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                15,
+                20,
+                27,
+                33
+              ],
+              "explanation": "Vé #23 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 24,
+              "pairSynergyScore": 27,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                9,
+                20,
+                26,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #24 đạt 27 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 25,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                9,
+                20,
+                26,
+                27,
+                31
+              ],
+              "explanation": "Vé #25 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            }
+          ],
+          "algorithmName": "Affinity-Clustered Combinatorial Wheeling (Gom Cụm Tương Quan)",
+          "topCliques": [
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                3,
+                15,
+                33,
+                36
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                6,
+                15,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                9,
+                20,
+                26,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                12,
+                20,
+                26,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                12,
+                20,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                15,
+                16,
+                33
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            }
+          ],
+          "deltaCorrelations": [
+            {
+              "delta": 7,
+              "description": "Bước nhảy Delta 7 xuất hiện 8 lần giữa các cặp số liên kết",
+              "frequency": 8
+            },
+            {
+              "delta": 17,
+              "description": "Bước nhảy Delta 17 xuất hiện 8 lần giữa các cặp số liên kết",
+              "frequency": 8
+            },
+            {
+              "delta": 10,
+              "description": "Bước nhảy Delta 10 xuất hiện 7 lần giữa các cặp số liên kết",
+              "frequency": 7
+            },
+            {
+              "delta": 18,
+              "description": "Bước nhảy Delta 18 xuất hiện 7 lần giữa các cặp số liên kết",
+              "frequency": 7
+            },
+            {
+              "delta": 6,
+              "description": "Bước nhảy Delta 6 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 21,
+              "description": "Bước nhảy Delta 21 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            }
+          ]
+        },
+        "nearMissPredictedNumbers": [
+          3,
+          15,
+          43
+        ],
+        "winningTickets": [],
+        "bestPrizeAmount": "0 đ",
+        "matchedIn6Numbers": [],
+        "algorithm": "temporal_learning"
+      },
+      "oddEven": "5 Chẵn / 1 Lẻ",
+      "winningNumbersRelationship": {
+        "summary": "Phát hiện 5 cặp có liên kết lịch sử giữa 6 số trúng. Cặp có lực hút mạnh nhất: 04 - 22 (1 lần nổ chung). Cụm liên kết tam giác: 0 cụm.",
+        "cliqueWheelingAdvice": "Observed co-occurrence relationships in the supplied history; no winning-ticket guarantee.",
+        "cliques": [],
+        "totalPairScore": 5,
+        "pairs": [
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 22,
+            "count": 1,
+            "lift": 3.0,
+            "diff": 18,
+            "pairLabel": "04 - 22",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 25,
+            "count": 1,
+            "lift": 3.0,
+            "diff": 21,
+            "pairLabel": "04 - 25",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 4 đơn vị)",
+            "n2": 14,
+            "count": 1,
+            "lift": 2.4,
+            "diff": 4,
+            "pairLabel": "10 - 14",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 1,
+            "lift": 1.8,
+            "diff": 34,
+            "pairLabel": "10 - 44",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 14,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 22,
+            "count": 1,
+            "lift": 3.0,
+            "diff": 8,
+            "pairLabel": "14 - 22",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 10,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 6,
+            "pairLabel": "04 - 10",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 14,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 10,
+            "pairLabel": "04 - 14",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 4,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 40,
+            "pairLabel": "04 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 22,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 12,
+            "pairLabel": "10 - 22",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 25,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 15,
+            "pairLabel": "10 - 25",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 14,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 25,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 11,
+            "pairLabel": "14 - 25",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 14,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 30,
+            "pairLabel": "14 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 22,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 3 đơn vị)",
+            "n2": 25,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 3,
+            "pairLabel": "22 - 25",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 22,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 22,
+            "pairLabel": "22 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 25,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 19,
+            "pairLabel": "25 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          }
+        ],
+        "strongestPair": "04 - 22 (1 lần nổ chung)",
+        "maxCoOccur": 1
+      },
+      "officialNumbers": [
+        4,
+        10,
+        14,
+        22,
+        25,
+        44
+      ],
+      "uniqueUserNumbers": [],
+      "coveragePercent": 0.0,
+      "drawOrder": 3,
+      "userTickets": [],
+      "officialSpecial": null,
+      "drawDate": "2026-10-21",
+      "uniqueMatchedNumbers": []
+    },
+    {
+      "whyWinningBallsAppeared": [
+        {
+          "number": 10,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 4,
+          "drawGap": 4,
+          "explanation": "Trong 35 kỳ trước, số 10 xuất hiện 4 lần; cách lần gần nhất 4 kỳ đã lưu."
+        },
+        {
+          "number": 11,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 3,
+          "drawGap": 13,
+          "explanation": "Trong 35 kỳ trước, số 11 xuất hiện 3 lần; cách lần gần nhất 13 kỳ đã lưu."
+        },
+        {
+          "number": 31,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 7,
+          "drawGap": 6,
+          "explanation": "Trong 35 kỳ trước, số 31 xuất hiện 7 lần; cách lần gần nhất 6 kỳ đã lưu."
+        },
+        {
+          "number": 38,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 5,
+          "drawGap": 0,
+          "explanation": "Trong 35 kỳ trước, số 38 xuất hiện 5 lần; cách lần gần nhất 0 kỳ đã lưu."
+        },
+        {
+          "number": 40,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 5,
+          "drawGap": 5,
+          "explanation": "Trong 35 kỳ trước, số 40 xuất hiện 5 lần; cách lần gần nhất 5 kỳ đã lưu."
+        },
+        {
+          "number": 44,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 3,
+          "drawGap": 2,
+          "explanation": "Trong 35 kỳ trước, số 44 xuất hiện 3 lần; cách lần gần nhất 2 kỳ đã lưu."
+        }
+      ],
+      "whyAlgorithmMissed": {
+        "summary": "Vé sáu số khớp 0/6: []",
+        "primaryReason": "Đối chiếu dự đoán hồi cứu với kết quả đã lưu.",
+        "missedFactors": [
+          "Số 10 không nằm trong vé sáu số.",
+          "Số 11 không nằm trong vé sáu số.",
+          "Số 31 không nằm trong vé sáu số.",
+          "Số 38 không nằm trong vé sáu số.",
+          "Số 40 không nằm trong vé sáu số.",
+          "Số 44 không nằm trong vé sáu số."
+        ],
+        "correctiveAdjustment": "So sánh trên nhiều kỳ trước khi thay đổi tham số; số liệu này chưa xác định nguyên nhân vật lý của kết quả."
+      },
+      "drawAccuracyLabel": "0/6",
+      "sum": 174,
+      "uniqueUserCount": 0,
+      "uniqueMatchedCount": 0,
+      "aiPrediction": {
+        "top10Numbers": [
+          3,
+          6,
+          12,
+          15,
+          16,
+          20,
+          27,
+          31,
+          36,
+          43
+        ],
+        "predictedOddEven": "2 Chẵn / 4 Lẻ",
+        "sumDiff": 64,
+        "matchedSpecial": false,
+        "generatedTickets": [
+          {
+            "ticketIndex": 1,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              12,
+              15,
+              16,
+              20
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 2,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 1,
+            "matchedNumbers": [
+              31
+            ],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 3,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              12,
+              16,
+              27,
+              31,
+              36
+            ],
+            "matchedCount": 1,
+            "matchedNumbers": [
+              31
+            ],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 4,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              6,
+              12,
+              16,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 1,
+            "matchedNumbers": [
+              31
+            ],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 5,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              15,
+              20,
+              27,
+              31
+            ],
+            "matchedCount": 1,
+            "matchedNumbers": [
+              31
+            ],
+            "prize": "KHÔNG TRÚNG"
+          }
+        ],
+        "predictedSum": 110,
+        "matchedCount": 1,
+        "bestPrize": "KHÔNG TRÚNG",
+        "matchedNumbers": [
+          31
+        ],
+        "algorithmName": "Học liên kết giữa các kỳ",
+        "matchedIn6Count": 0,
+        "matchedIn6Percent": 0.0,
+        "matchedPercent": 16.7,
+        "judgment": {
+          "isClose": false,
+          "summary": "Vé sáu số khớp 0 số []; Top 10 phủ 1 số kết quả. Có 1 số lệch một đơn vị, không tính là số trúng.",
+          "badge": "Khớp 0/6 số chính",
+          "reason": "Kiểm thử hồi cứu từ 35 kỳ trước với cấu hình hiện tại.",
+          "rating": "DEVIATED",
+          "badgeClass": "secondary"
+        },
+        "specialNumber": null,
+        "predicted6Numbers": [
+          3,
+          6,
+          15,
+          16,
+          27,
+          43
+        ],
+        "parityMatch": false,
+        "nearMissList": [
+          {
+            "officialNear": 44,
+            "diff": -1,
+            "predicted": 43
+          }
+        ],
+        "numberRelationships": {
+          "summary": "Phân tích mối liên hệ tương quan đồng xuất hiện & gom cụm số trúng (Anti-Scattering)",
+          "antiScatteringGuarantee": "Đã kích hoạt thuật toán gom cụm liên kết: Tự động gom 3-4 số có lực hút tương quan đồng xuất hiện cao nhất vào cùng một dãy vé. Khắc phục triệt để hiện tượng 4 số trúng bị tản mạn sang nhiều vé khác nhau.",
+          "topAffinityPairs": [
+            {
+              "jaccard": 0.36,
+              "deltaDiff": 18,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 33,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.59)",
+              "affinityScore": 11.2,
+              "lift": 2.59,
+              "pairLabel": "15 - 33"
+            },
+            {
+              "jaccard": 0.33,
+              "deltaDiff": 7,
+              "n1": 20,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.22)",
+              "affinityScore": 10.4,
+              "lift": 2.22,
+              "pairLabel": "20 - 27"
+            },
+            {
+              "jaccard": 0.3,
+              "deltaDiff": 29,
+              "n1": 12,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 41,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.5)",
+              "affinityScore": 9.5,
+              "lift": 2.5,
+              "pairLabel": "12 - 41"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 4,
+              "n1": 2,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 6,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.94)",
+              "affinityScore": 8.4,
+              "lift": 1.94,
+              "pairLabel": "02 - 06"
+            },
+            {
+              "jaccard": 0.23,
+              "deltaDiff": 7,
+              "n1": 36,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.64)",
+              "affinityScore": 7.8,
+              "lift": 1.64,
+              "pairLabel": "36 - 43"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 12,
+              "n1": 3,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 15,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.46)",
+              "affinityScore": 7.4,
+              "lift": 1.46,
+              "pairLabel": "03 - 15"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 10,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 16,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.46)",
+              "affinityScore": 7.4,
+              "lift": 1.46,
+              "pairLabel": "06 - 16"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 37,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.46)",
+              "affinityScore": 7.4,
+              "lift": 1.46,
+              "pairLabel": "06 - 43"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 21,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 36,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.46)",
+              "affinityScore": 7.4,
+              "lift": 1.46,
+              "pairLabel": "15 - 36"
+            },
+            {
+              "jaccard": 0.2,
+              "deltaDiff": 9,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 15,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.3)",
+              "affinityScore": 7.1,
+              "lift": 1.3,
+              "pairLabel": "06 - 15"
+            }
+          ],
+          "ticketAffinityDetails": [
+            {
+              "ticketIndex": 1,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                15,
+                16,
+                20
+              ],
+              "explanation": "Vé #1 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 2,
+              "pairSynergyScore": 24,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #2 đạt 24 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 3,
+              "pairSynergyScore": 17,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                16,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #3 đạt 17 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 4,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #4 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 5,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                20,
+                27,
+                31
+              ],
+              "explanation": "Vé #5 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 6,
+              "pairSynergyScore": 21,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #6 đạt 21 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 7,
+              "pairSynergyScore": 18,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                16,
+                27,
+                31,
+                43
+              ],
+              "explanation": "Vé #7 đạt 18 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 8,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                15,
+                20,
+                27,
+                36,
+                43
+              ],
+              "explanation": "Vé #8 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 9,
+              "pairSynergyScore": 22,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                16,
+                31,
+                43
+              ],
+              "explanation": "Vé #9 đạt 22 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 10,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                16,
+                20,
+                36,
+                43
+              ],
+              "explanation": "Vé #10 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 11,
+              "pairSynergyScore": 31,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #11 đạt 31 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 12,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                16,
+                21,
+                36,
+                43
+              ],
+              "explanation": "Vé #12 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 13,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #13 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 14,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                15,
+                33,
+                36,
+                43
+              ],
+              "explanation": "Vé #14 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 15,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                21,
+                31,
+                36,
+                43
+              ],
+              "explanation": "Vé #15 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 16,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                15,
+                21,
+                36,
+                43
+              ],
+              "explanation": "Vé #16 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 17,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #17 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 18,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #18 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 19,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                15,
+                16,
+                33,
+                36,
+                43
+              ],
+              "explanation": "Vé #19 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 20,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                12,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #20 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 21,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                15,
+                16,
+                21,
+                36,
+                43
+              ],
+              "explanation": "Vé #21 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 22,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                12,
+                15,
+                20,
+                27,
+                33
+              ],
+              "explanation": "Vé #22 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 23,
+              "pairSynergyScore": 27,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                20,
+                21,
+                36,
+                43
+              ],
+              "explanation": "Vé #23 đạt 27 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 24,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                20,
+                21,
+                27,
+                36,
+                43
+              ],
+              "explanation": "Vé #24 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 25,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #25 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            }
+          ],
+          "algorithmName": "Affinity-Clustered Combinatorial Wheeling (Gom Cụm Tương Quan)",
+          "topCliques": [
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                3,
+                15,
+                33,
+                36
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                6,
+                15,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                2,
+                6,
+                15,
+                36
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                2,
+                6,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                12,
+                20,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                15,
+                16,
+                33
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            }
+          ],
+          "deltaCorrelations": [
+            {
+              "delta": 10,
+              "description": "Bước nhảy Delta 10 xuất hiện 8 lần giữa các cặp số liên kết",
+              "frequency": 8
+            },
+            {
+              "delta": 7,
+              "description": "Bước nhảy Delta 7 xuất hiện 7 lần giữa các cặp số liên kết",
+              "frequency": 7
+            },
+            {
+              "delta": 5,
+              "description": "Bước nhảy Delta 5 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 9,
+              "description": "Bước nhảy Delta 9 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 15,
+              "description": "Bước nhảy Delta 15 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 21,
+              "description": "Bước nhảy Delta 21 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            }
+          ]
+        },
+        "nearMissPredictedNumbers": [
+          43
+        ],
+        "winningTickets": [],
+        "bestPrizeAmount": "0 đ",
+        "matchedIn6Numbers": [],
+        "algorithm": "temporal_learning"
+      },
+      "oddEven": "4 Chẵn / 2 Lẻ",
+      "winningNumbersRelationship": {
+        "summary": "Phát hiện 6 cặp có liên kết lịch sử giữa 6 số trúng. Cặp có lực hút mạnh nhất: 10 - 11 (2 lần nổ chung). Cụm liên kết tam giác: 1 cụm.",
+        "cliqueWheelingAdvice": "Observed co-occurrence relationships in the supplied history; no winning-ticket guarantee.",
+        "cliques": [
+          [
+            10,
+            11,
+            40
+          ]
+        ],
+        "totalPairScore": 8,
+        "pairs": [
+          {
+            "n1": 10,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (2 lần nổ chung, Lift 5.83)",
+            "n2": 11,
+            "count": 2,
+            "lift": 5.83,
+            "diff": 1,
+            "pairLabel": "10 - 11",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 31,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (2 lần nổ chung, Lift 2.0)",
+            "n2": 38,
+            "count": 2,
+            "lift": 2.0,
+            "diff": 7,
+            "pairLabel": "31 - 38",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 38,
+            "count": 1,
+            "lift": 1.75,
+            "diff": 28,
+            "pairLabel": "10 - 38",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 1,
+            "lift": 1.75,
+            "diff": 30,
+            "pairLabel": "10 - 40",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 11,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 1,
+            "lift": 2.33,
+            "diff": 29,
+            "pairLabel": "11 - 40",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 31,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 1,
+            "lift": 1.67,
+            "diff": 13,
+            "pairLabel": "31 - 44",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 31,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 21,
+            "pairLabel": "10 - 31",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 10,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 34,
+            "pairLabel": "10 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 11,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 31,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 20,
+            "pairLabel": "11 - 31",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 11,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 38,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 27,
+            "pairLabel": "11 - 38",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 11,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 33,
+            "pairLabel": "11 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 31,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 9,
+            "pairLabel": "31 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 38,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 2 đơn vị)",
+            "n2": 40,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 2,
+            "pairLabel": "38 - 40",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 38,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 6,
+            "pairLabel": "38 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 40,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 4 đơn vị)",
+            "n2": 44,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 4,
+            "pairLabel": "40 - 44",
+            "affinity": "⚪ TRUNG HÒA"
+          }
+        ],
+        "strongestPair": "10 - 11 (2 lần nổ chung)",
+        "maxCoOccur": 2
+      },
+      "officialNumbers": [
+        10,
+        11,
+        31,
+        38,
+        40,
+        44
+      ],
+      "uniqueUserNumbers": [],
+      "coveragePercent": 0.0,
+      "drawOrder": 4,
+      "userTickets": [],
+      "officialSpecial": null,
+      "drawDate": "2026-10-18",
+      "uniqueMatchedNumbers": []
+    },
+    {
+      "whyWinningBallsAppeared": [
+        {
+          "number": 9,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 5,
+          "drawGap": 1,
+          "explanation": "Trong 34 kỳ trước, số 9 xuất hiện 5 lần; cách lần gần nhất 1 kỳ đã lưu."
+        },
+        {
+          "number": 20,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 6,
+          "drawGap": 4,
+          "explanation": "Trong 34 kỳ trước, số 20 xuất hiện 6 lần; cách lần gần nhất 4 kỳ đã lưu."
+        },
+        {
+          "number": 26,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 5,
+          "drawGap": 9,
+          "explanation": "Trong 34 kỳ trước, số 26 xuất hiện 5 lần; cách lần gần nhất 9 kỳ đã lưu."
+        },
+        {
+          "number": 35,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 3,
+          "drawGap": 18,
+          "explanation": "Trong 34 kỳ trước, số 35 xuất hiện 3 lần; cách lần gần nhất 18 kỳ đã lưu."
+        },
+        {
+          "number": 36,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 7,
+          "drawGap": 3,
+          "explanation": "Trong 34 kỳ trước, số 36 xuất hiện 7 lần; cách lần gần nhất 3 kỳ đã lưu."
+        },
+        {
+          "number": 38,
+          "isSpecial": false,
+          "role": "Thống kê lịch sử trước kỳ quay",
+          "frequency": 4,
+          "drawGap": 10,
+          "explanation": "Trong 34 kỳ trước, số 38 xuất hiện 4 lần; cách lần gần nhất 10 kỳ đã lưu."
+        }
+      ],
+      "whyAlgorithmMissed": {
+        "summary": "Vé sáu số khớp 0/6: []",
+        "primaryReason": "Đối chiếu dự đoán hồi cứu với kết quả đã lưu.",
+        "missedFactors": [
+          "Số 9 không nằm trong vé sáu số.",
+          "Số 20 không nằm trong vé sáu số.",
+          "Số 26 không nằm trong vé sáu số.",
+          "Số 35 không nằm trong vé sáu số.",
+          "Số 36 không nằm trong vé sáu số.",
+          "Số 38 không nằm trong vé sáu số."
+        ],
+        "correctiveAdjustment": "So sánh trên nhiều kỳ trước khi thay đổi tham số; số liệu này chưa xác định nguyên nhân vật lý của kết quả."
+      },
+      "drawAccuracyLabel": "0/6",
+      "sum": 164,
+      "uniqueUserCount": 0,
+      "uniqueMatchedCount": 0,
+      "aiPrediction": {
+        "top10Numbers": [
+          2,
+          3,
+          6,
+          12,
+          15,
+          16,
+          27,
+          31,
+          36,
+          43
+        ],
+        "predictedOddEven": "2 Chẵn / 4 Lẻ",
+        "sumDiff": 54,
+        "matchedSpecial": false,
+        "generatedTickets": [
+          {
+            "ticketIndex": 1,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              2,
+              3,
+              6,
+              12,
+              15,
+              16
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 2,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              2,
+              3,
+              15,
+              16,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 3,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              2,
+              6,
+              15,
+              27,
+              31,
+              36
+            ],
+            "matchedCount": 1,
+            "matchedNumbers": [
+              36
+            ],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 4,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              3,
+              6,
+              15,
+              16,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          },
+          {
+            "ticketIndex": 5,
+            "prizeAmount": "0 đ",
+            "matchedSpecial": false,
+            "numbers": [
+              2,
+              3,
+              12,
+              16,
+              27,
+              31
+            ],
+            "matchedCount": 0,
+            "matchedNumbers": [],
+            "prize": "KHÔNG TRÚNG"
+          }
+        ],
+        "predictedSum": 110,
+        "matchedCount": 1,
+        "bestPrize": "KHÔNG TRÚNG",
+        "matchedNumbers": [
+          36
+        ],
+        "algorithmName": "Học liên kết giữa các kỳ",
+        "matchedIn6Count": 0,
+        "matchedIn6Percent": 0.0,
+        "matchedPercent": 16.7,
+        "judgment": {
+          "isClose": false,
+          "summary": "Vé sáu số khớp 0 số []; Top 10 phủ 1 số kết quả. Có 1 số lệch một đơn vị, không tính là số trúng.",
+          "badge": "Khớp 0/6 số chính",
+          "reason": "Kiểm thử hồi cứu từ 34 kỳ trước với cấu hình hiện tại.",
+          "rating": "DEVIATED",
+          "badgeClass": "secondary"
+        },
+        "specialNumber": null,
+        "predicted6Numbers": [
+          3,
+          6,
+          15,
+          16,
+          27,
+          43
+        ],
+        "parityMatch": false,
+        "nearMissList": [
+          {
+            "officialNear": 26,
+            "diff": 1,
+            "predicted": 27
+          }
+        ],
+        "numberRelationships": {
+          "summary": "Phân tích mối liên hệ tương quan đồng xuất hiện & gom cụm số trúng (Anti-Scattering)",
+          "antiScatteringGuarantee": "Đã kích hoạt thuật toán gom cụm liên kết: Tự động gom 3-4 số có lực hút tương quan đồng xuất hiện cao nhất vào cùng một dãy vé. Khắc phục triệt để hiện tượng 4 số trúng bị tản mạn sang nhiều vé khác nhau.",
+          "topAffinityPairs": [
+            {
+              "jaccard": 0.38,
+              "deltaDiff": 34,
+              "n1": 7,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 41,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 3.4)",
+              "affinityScore": 11.3,
+              "lift": 3.4,
+              "pairLabel": "07 - 41"
+            },
+            {
+              "jaccard": 0.36,
+              "deltaDiff": 18,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 33,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.52)",
+              "affinityScore": 11.0,
+              "lift": 2.52,
+              "pairLabel": "15 - 33"
+            },
+            {
+              "jaccard": 0.36,
+              "deltaDiff": 7,
+              "n1": 20,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 27,
+              "coOccurrence": 4,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.52)",
+              "affinityScore": 11.0,
+              "lift": 2.52,
+              "pairLabel": "20 - 27"
+            },
+            {
+              "jaccard": 0.3,
+              "deltaDiff": 29,
+              "n1": 12,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 41,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 2.43)",
+              "affinityScore": 9.4,
+              "lift": 2.43,
+              "pairLabel": "12 - 41"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 4,
+              "n1": 2,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 6,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.89)",
+              "affinityScore": 8.3,
+              "lift": 1.89,
+              "pairLabel": "02 - 06"
+            },
+            {
+              "jaccard": 0.25,
+              "deltaDiff": 7,
+              "n1": 36,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.82)",
+              "affinityScore": 8.1,
+              "lift": 1.82,
+              "pairLabel": "36 - 43"
+            },
+            {
+              "jaccard": 0.23,
+              "deltaDiff": 21,
+              "n1": 15,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 36,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.62)",
+              "affinityScore": 7.7,
+              "lift": 1.62,
+              "pairLabel": "15 - 36"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 12,
+              "n1": 3,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 15,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.42)",
+              "affinityScore": 7.3,
+              "lift": 1.42,
+              "pairLabel": "03 - 15"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 10,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 16,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.42)",
+              "affinityScore": 7.3,
+              "lift": 1.42,
+              "pairLabel": "06 - 16"
+            },
+            {
+              "jaccard": 0.21,
+              "deltaDiff": 37,
+              "n1": 6,
+              "role": "Cặp hạt nhân đồng xuất hiện cao, ưu tiên gom cùng dãy vé",
+              "n2": 43,
+              "coOccurrence": 3,
+              "affinityLabel": "🔥 LỰC HÚT CỰC MẠNH (Lift: 1.42)",
+              "affinityScore": 7.3,
+              "lift": 1.42,
+              "pairLabel": "06 - 43"
+            }
+          ],
+          "ticketAffinityDetails": [
+            {
+              "ticketIndex": 1,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                3,
+                6,
+                12,
+                15,
+                16
+              ],
+              "explanation": "Vé #1 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 2,
+              "pairSynergyScore": 18,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                3,
+                15,
+                16,
+                27,
+                31
+              ],
+              "explanation": "Vé #2 đạt 18 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 3,
+              "pairSynergyScore": 25,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                15,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #3 đạt 25 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 4,
+              "pairSynergyScore": 23,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                16,
+                27,
+                31
+              ],
+              "explanation": "Vé #4 đạt 23 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 5,
+              "pairSynergyScore": 18,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                3,
+                12,
+                16,
+                27,
+                31
+              ],
+              "explanation": "Vé #5 đạt 18 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 6,
+              "pairSynergyScore": 22,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                3,
+                6,
+                27,
+                31,
+                36
+              ],
+              "explanation": "Vé #6 đạt 22 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 7,
+              "pairSynergyScore": 19,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                12,
+                15,
+                27,
+                31,
+                43
+              ],
+              "explanation": "Vé #7 đạt 19 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 8,
+              "pairSynergyScore": 18,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                12,
+                16,
+                27,
+                36,
+                43
+              ],
+              "explanation": "Vé #8 đạt 18 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 9,
+              "pairSynergyScore": 22,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                12,
+                15,
+                31,
+                43
+              ],
+              "explanation": "Vé #9 đạt 22 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 10,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                3,
+                6,
+                15,
+                16,
+                36,
+                43
+              ],
+              "explanation": "Vé #10 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 11,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                7,
+                12,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #11 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 12,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                7,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #12 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 13,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                7,
+                12,
+                31,
+                41,
+                43
+              ],
+              "explanation": "Vé #13 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 14,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                7,
+                12,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #14 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 15,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                7,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #15 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 16,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                7,
+                12,
+                20,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #16 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 17,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                7,
+                12,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #17 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 18,
+              "pairSynergyScore": 31,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                15,
+                36,
+                41,
+                43
+              ],
+              "explanation": "Vé #18 đạt 31 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 19,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                7,
+                12,
+                15,
+                41,
+                43
+              ],
+              "explanation": "Vé #19 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 20,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                7,
+                12,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #20 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 21,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                31,
+                41
+              ],
+              "explanation": "Vé #21 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 22,
+              "pairSynergyScore": 26,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                7,
+                12,
+                20,
+                31,
+                41,
+                43
+              ],
+              "explanation": "Vé #22 đạt 26 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 23,
+              "pairSynergyScore": 28,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                7,
+                12,
+                15,
+                36,
+                41
+              ],
+              "explanation": "Vé #23 đạt 28 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 24,
+              "pairSynergyScore": 30,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                2,
+                6,
+                15,
+                33,
+                36,
+                43
+              ],
+              "explanation": "Vé #24 đạt 30 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            },
+            {
+              "ticketIndex": 25,
+              "pairSynergyScore": 29,
+              "cohesionLevel": "🔥 CỰC CAO (Anti-Scattering)",
+              "numbers": [
+                6,
+                12,
+                20,
+                27,
+                41,
+                43
+              ],
+              "explanation": "Vé #25 đạt 29 điểm tương quan cặp số đồng xuất hiện. Các số có lực hút tương hỗ được gom vào cùng một dãy."
+            }
+          ],
+          "algorithmName": "Affinity-Clustered Combinatorial Wheeling (Gom Cụm Tương Quan)",
+          "topCliques": [
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                3,
+                15,
+                33,
+                36
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 22.5,
+              "numbers": [
+                6,
+                15,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                2,
+                6,
+                15,
+                36
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                2,
+                6,
+                36,
+                43
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                12,
+                20,
+                27
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            },
+            {
+              "size": 4,
+              "affinityScore": 21.0,
+              "numbers": [
+                3,
+                15,
+                16,
+                33
+              ],
+              "description": "Cụm 4 số liên kết mạnh nhất - Được gom trọn vẹn vào Dãy vé hạt nhân (không bị phân tán)"
+            }
+          ],
+          "deltaCorrelations": [
+            {
+              "delta": 7,
+              "description": "Bước nhảy Delta 7 xuất hiện 7 lần giữa các cặp số liên kết",
+              "frequency": 7
+            },
+            {
+              "delta": 10,
+              "description": "Bước nhảy Delta 10 xuất hiện 7 lần giữa các cặp số liên kết",
+              "frequency": 7
+            },
+            {
+              "delta": 5,
+              "description": "Bước nhảy Delta 5 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 21,
+              "description": "Bước nhảy Delta 21 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 29,
+              "description": "Bước nhảy Delta 29 xuất hiện 6 lần giữa các cặp số liên kết",
+              "frequency": 6
+            },
+            {
+              "delta": 4,
+              "description": "Bước nhảy Delta 4 xuất hiện 5 lần giữa các cặp số liên kết",
+              "frequency": 5
+            }
+          ]
+        },
+        "nearMissPredictedNumbers": [
+          27
+        ],
+        "winningTickets": [],
+        "bestPrizeAmount": "0 đ",
+        "matchedIn6Numbers": [],
+        "algorithm": "temporal_learning"
+      },
+      "oddEven": "4 Chẵn / 2 Lẻ",
+      "winningNumbersRelationship": {
+        "summary": "Phát hiện 6 cặp có liên kết lịch sử giữa 6 số trúng. Cặp có lực hút mạnh nhất: 09 - 35 (2 lần nổ chung). Cụm liên kết tam giác: 0 cụm.",
+        "cliqueWheelingAdvice": "Observed co-occurrence relationships in the supplied history; no winning-ticket guarantee.",
+        "cliques": [],
+        "totalPairScore": 7,
+        "pairs": [
+          {
+            "n1": 9,
+            "role": "Cặp có lực hút đồng xuất hiện cao trong lịch sử (2 lần nổ chung, Lift 4.53)",
+            "n2": 35,
+            "count": 2,
+            "lift": 4.53,
+            "diff": 26,
+            "pairLabel": "09 - 35",
+            "affinity": "🔥 CỰC MẠNH (Hot Pair)"
+          },
+          {
+            "n1": 9,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 26,
+            "count": 1,
+            "lift": 1.36,
+            "diff": 17,
+            "pairLabel": "09 - 26",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 20,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 26,
+            "count": 1,
+            "lift": 1.13,
+            "diff": 6,
+            "pairLabel": "20 - 26",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 20,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 35,
+            "count": 1,
+            "lift": 1.89,
+            "diff": 15,
+            "pairLabel": "20 - 35",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 20,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 36,
+            "count": 1,
+            "lift": 0.81,
+            "diff": 16,
+            "pairLabel": "20 - 36",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 26,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 38,
+            "count": 1,
+            "lift": 1.7,
+            "diff": 12,
+            "pairLabel": "26 - 38",
+            "affinity": "⚡ TƯƠNG HỖ (Synergy)"
+          },
+          {
+            "n1": 9,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 20,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 11,
+            "pairLabel": "09 - 20",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 9,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 36,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 27,
+            "pairLabel": "09 - 36",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 9,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 38,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 29,
+            "pairLabel": "09 - 38",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 20,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 38,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 18,
+            "pairLabel": "20 - 38",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 26,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 35,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 9,
+            "pairLabel": "26 - 35",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 26,
+            "role": "Cặp cân bằng phân phối chuẩn",
+            "n2": 36,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 10,
+            "pairLabel": "26 - 36",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 35,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 1 đơn vị)",
+            "n2": 36,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 1,
+            "pairLabel": "35 - 36",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 35,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 3 đơn vị)",
+            "n2": 38,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 3,
+            "pairLabel": "35 - 38",
+            "affinity": "⚪ TRUNG HÒA"
+          },
+          {
+            "n1": 36,
+            "role": "Cặp kề cận dải hẹp (chênh lệch 2 đơn vị)",
+            "n2": 38,
+            "count": 0,
+            "lift": 0.0,
+            "diff": 2,
+            "pairLabel": "36 - 38",
+            "affinity": "⚪ TRUNG HÒA"
+          }
+        ],
+        "strongestPair": "09 - 35 (2 lần nổ chung)",
+        "maxCoOccur": 2
+      },
+      "officialNumbers": [
+        9,
+        20,
+        26,
+        35,
+        36,
+        38
+      ],
+      "uniqueUserNumbers": [],
+      "coveragePercent": 0.0,
+      "drawOrder": 5,
+      "userTickets": [],
+      "officialSpecial": null,
+      "drawDate": "2026-10-16",
+      "uniqueMatchedNumbers": []
+    }
+  ]
+}

@@ -13,7 +13,6 @@ import com.example.analyzeproject.repository.FrenchAttemptRepository;
 import com.example.analyzeproject.repository.FrenchExerciseRepository;
 import com.example.analyzeproject.repository.AlgorithmHyperparameterRepository;
 import com.example.analyzeproject.repository.LotteryDeviationVariableRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,105 +49,11 @@ public class AnalyzeService {
         this.devVarRepo = devVarRepo;
     }
 
-    @PostConstruct
-    public void initHyperparameters() {
-        if (hyperparameterRepo.count() == 0) {
-            String readmeV100 = "# Thuật toán Dự đoán Xổ số XGBoost AI (v1.0.0 Baseline)\n\n" +
-                    "## 1. Kiến trúc mô hình\n" +
-                    "- Kết hợp Frequency Counting và Gradient Boosting XGBoost.\n" +
-                    "- Đối chuẩn xác suất toàn cầu từ dữ liệu US Powerball & Mega Millions.\n\n" +
-                    "## 2. Các tham số chính\n" +
-                    "- Momentum Decay Rate λ: 0.12\n" +
-                    "- Poisson Gap Window: [0.6, 2.6]\n" +
-                    "- Ma trận liên kết cặp số: 0.70\n" +
-                    "- Bộ lọc Chẵn/Lẻ: 2:4, 3:3, 4:2";
-
-            String v100Json = "{\n" +
-                    "  \"model\": \"XGBoost Multi-Factor Optimization\",\n" +
-                    "  \"targetCategory\": \"ALL\",\n" +
-                    "  \"drawDate\": \"2026-09-20\",\n" +
-                    "  \"evaluationSummary\": {\n" +
-                    "    \"totalTickets\": 10,\n" +
-                    "    \"hitRatePercent\": 20.0,\n" +
-                    "    \"matchedCount\": 4,\n" +
-                    "    \"missedCount\": 56,\n" +
-                    "    \"averageMissedRank\": 28\n" +
-                    "  },\n" +
-                    "  \"recommendedAdjustments\": {\n" +
-                    "    \"momentumDecayRate\": 0.12,\n" +
-                    "    \"poissonGapMinRatio\": 0.6,\n" +
-                    "    \"poissonGapMaxRatio\": 2.6,\n" +
-                    "    \"coOccurrenceWeight\": 0.70,\n" +
-                    "    \"repeatExhaustionPenalty\": -0.20,\n" +
-                    "    \"parityDistributionFilter\": [\"2:4\", \"3:3\", \"4:2\"],\n" +
-                    "    \"sumRangeFilter\": [84, 144],\n" +
-                    "    \"maxConsecutivePairsAllowed\": 2\n" +
-                    "  },\n" +
-                    "  \"actionableAdvice\": \"Baseline XGBoost configuration.\"\n" +
-                    "}";
-            hyperparameterRepo.save(new AlgorithmHyperparameter("v1.0.0", "2026-09-20", "ALL", "XGBoost Multi-Factor Optimization", v100Json, readmeV100, "Baseline model parameters"));
-
-            String readmeV110 = "# Báo cáo Cập nhật Thuật toán & Đối chuẩn Toàn cầu (v1.1.0)\n\n" +
-                    "## 1. Bối cảnh hiệu chỉnh kỳ 2026-09-28\n" +
-                    "- Đối chiếu kết quả kỳ quay Power 6/55 ngày 2026-09-28.\n" +
-                    "- Cải tiến: Nâng trọng số liên kết cặp đồng xuất hiện lên 0.85, phạt số lặp kiệt sức -0.45.\n" +
-                    "- Tích hợp dữ liệu dị biệt ngẫu nhiên từ giải Powerball Mỹ để kích hoạt điểm rơi hồi quy.";
-
-            String v110Json = "{\n" +
-                    "  \"model\": \"XGBoost Multi-Factor Optimization\",\n" +
-                    "  \"targetCategory\": \"POWER\",\n" +
-                    "  \"drawDate\": \"2026-09-28\",\n" +
-                    "  \"evaluationSummary\": {\n" +
-                    "    \"totalTickets\": 2,\n" +
-                    "    \"hitRatePercent\": 0,\n" +
-                    "    \"matchedCount\": 0,\n" +
-                    "    \"missedCount\": 12,\n" +
-                    "    \"averageMissedRank\": 25\n" +
-                    "  },\n" +
-                    "  \"recommendedAdjustments\": {\n" +
-                    "    \"momentumDecayRate\": 0.16,\n" +
-                    "    \"poissonGapMinRatio\": 0.8,\n" +
-                    "    \"poissonGapMaxRatio\": 2.2,\n" +
-                    "    \"coOccurrenceWeight\": 0.85,\n" +
-                    "    \"repeatExhaustionPenalty\": -0.45,\n" +
-                    "    \"parityDistributionFilter\": [\"2:4\", \"3:3\", \"4:2\"],\n" +
-                    "    \"sumRangeFilter\": [77, 137],\n" +
-                    "    \"maxConsecutivePairsAllowed\": 2\n" +
-                    "  },\n" +
-                    "  \"actionableAdvice\": \"Cập nhật lại trọng số thuật toán XGBoost cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện.\"\n" +
-                    "}";
-            hyperparameterRepo.save(new AlgorithmHyperparameter("v1.1.0", "2026-09-28", "POWER", "XGBoost Multi-Factor Optimization", v110Json, readmeV110, "Cập nhật trọng số theo báo cáo đối chiếu vé kỳ 2026-09-28"));
-        }
-
-        if (devVarRepo != null && devVarRepo.count() == 0) {
-            List<LotteryDeviationVariable> seeds = List.of(
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 8, 7, -1, "NEIGHBOR_DRIFT", "Biến số Bẫy Ép Biên Trái (Δ = -1)", 0.94, "AI [08] - 1 => 07: Lồng cầu lệch 1 nhịp sang trái ở dải Zone 1", "Thực nghiệm kỳ Mega 09/10: AI đề xuất 08 nhưng bóng rơi 07"),
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 11, 12, 1, "NEIGHBOR_DRIFT", "Biến số Bẫy Ép Biên Phải (Δ = +1)", 0.93, "AI [11] + 1 => 12: Dịch chuyển lồng cầu liền kề phải", "Thực nghiệm kỳ Mega 09/10: Cả 11 và 13 đều bị hút vào số tâm 12"),
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 21, 23, 2, "PARITY_DRIFT", "Biến số Bước Nhảy Parity Lẻ (Δ = +2)", 0.88, "AI [21] + 2 => 23 (hoặc 25 - 2 = 23): Bước nhảy bậc 2 bảo toàn tính lẻ", "Thực nghiệm kỳ Mega 09/10: AI chọn 21 và 25 nhưng kết quả rơi trung vị 23"),
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 31, 32, 1, "NEIGHBOR_DRIFT", "Biến số Bẫy Ép Biên Phải (Δ = +1)", 0.91, "AI [31] + 1 => 32: Dịch chuyển lồng cầu liền kề phải dải 30s", "Thực nghiệm kỳ Mega 09/10: AI chọn 31 nhưng kết quả ra 32"),
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 42, 41, -1, "NEIGHBOR_DRIFT", "Biến số Bẫy Ép Biên Trái (Δ = -1)", 0.95, "AI [42] - 1 => 41: Lồng cầu lệch 1 nhịp sang trái dải biên 40s", "Thực nghiệm kỳ Mega 09/10: Cả 3 vé đều có số 42 nhưng kết quả rơi 41"),
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 23, 32, 9, "MIRROR_PAIR", "Biến số Đảo Vị Gương Chiếu (Mirror Digits 23 <-> 32)", 0.86, "Cặp số đảo vị 23 và 32 cùng nổ đồng thời trong 1 kỳ quay", "Hiện tượng đối xứng gương 23 - 32 xuất hiện đồng thời trong 6 số mở thưởng"),
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 41, 41, 0, "REPEAT_INERTIA", "Biến số Quán Tính Lặp Nguyên Vị (Delta = 0)", 0.96, "Kỳ 07/10 ra 41 => Kỳ 09/10 tiếp tục ra 41 (Gap 0 nổ kép 2 kỳ liên tiếp)", "Số 41 duy trì trạng thái quán tính Markov 2 kỳ liên tiếp"),
-                new LotteryDeviationVariable("MEGA", "2026-10-07", "2026-10-09", 12, 5, -7, "RESONANCE_LEAP", "Biến số Sóng Hài Fourier Lùi (Delta = -7)", 0.79, "12 - 7 => 05: Bước nhảy sóng hài điều hòa lùi 7 đơn vị", "Quả 05 sinh ra từ nhịp sóng hài điều hòa 7 đơn vị từ số 12"),
-                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 15, 14, -1, "NEIGHBOR_DRIFT", "Biến số Lệch Biên Sát Nút (±1)", 0.88, "AI [15] - 1 => 14: Biến số dịch chuyển lồng cầu liền kề trái", "Thực nghiệm kỳ Mega 07/10: AI đưa ra 15 nhưng lồng cầu rơi 14 (lệch -1)"),
-                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 40, 41, 1, "NEIGHBOR_DRIFT", "Biến số Lệch Biên Sát Nút (±1)", 0.91, "AI [40] + 1 => 41: Biến số dịch chuyển lồng cầu liền kề phải", "Thực nghiệm kỳ Mega 07/10: AI đưa ra 40 nhưng lồng cầu rơi 41 (lệch +1)"),
-                new LotteryDeviationVariable("MEGA", "2026-10-04", "2026-10-07", 29, 36, 7, "RESONANCE_LEAP", "Biến số Bước Nhảy Sóng Hài (Delta = +7)", 0.76, "AI [29] + 7 => 36: Bước nhảy dao động Fourier điều hòa dải trung", "Thực nghiệm kỳ Mega 07/10: Bước nhảy cộng hưởng chu kỳ 7"),
-                new LotteryDeviationVariable("POWER", "2026-10-03", "2026-10-06", 7, 6, -1, "NEIGHBOR_DRIFT", "Biến số Lệch Biên Sát Nút (±1)", 0.89, "AI [07] - 1 => 06: Dịch chuyển lồng cầu liền kề trái", "Thực nghiệm kỳ Power 06/10: Số 07 sinh biến số sang 06"),
-                new LotteryDeviationVariable("POWER", "2026-10-03", "2026-10-06", 16, 18, 2, "PARITY_DRIFT", "Biến số Lệch Bậc 2 Chẵn (Delta = +2)", 0.85, "AI [16] + 2 => 18: Dịch chuyển bậc 2 bảo toàn tính chẵn", "Thực nghiệm kỳ Power 06/10: Số 16 sinh biến số sang 18"),
-                new LotteryDeviationVariable("POWER", "2026-10-03", "2026-10-06", 41, 1, -40, "SPECIAL_MIGRATION", "Biến số Chuyển Vị Banh Phụ (Special Migration)", 0.92, "Banh phụ kỳ trước nhảy lồng cầu sang làm Banh chính kỳ sau", "Thực nghiệm kỳ Power 06/10: Banh phụ 01 và 41 chuyển vị")
-            );
-            devVarRepo.saveAll(seeds);
-        }
-    }
-
-    // =========================================================================================
-    // 1. CHỨC NĂNG LATEST DRAW ANALYSIS (PHÂN TÍCH 6 SỐ TRÚNG THƯỞNG)
-    // =========================================================================================
     public Map<String, Object> analyzeOfficialDraw(String categoryInput, String date, String algorithm) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
         int maxLimit = "POWER".equals(category) ? 55 : 45;
 
-        List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        List<LotteryNumber> records = eligibleHistory(category);
         if (records.isEmpty()) {
             throw new RuntimeException("Chưa có dữ liệu xổ số trong Database.");
         }
@@ -298,7 +203,7 @@ public class AnalyzeService {
 
     public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithm, String algorithm2) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
-        List<LotteryNumber> history = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        List<LotteryNumber> history = eligibleHistory(category);
         PredictionResponseDto result = analyzeAndPredict(category, algorithm, algorithm2, history);
         if (result.getRelationshipLearning() != null) result.getRelationshipLearning().put("verifiedWinningTickets", verifiedWinningTickets(history, category));
         return result;
@@ -336,8 +241,8 @@ public class AnalyzeService {
             adaptiveRepeatWeight = parseDoubleFromJson(json, "adaptiveRepeatWeight", adaptiveRepeatWeight);
         }
 
-        List<LotteryNumber> source = customRecords != null ? customRecords : repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
-        List<LotteryNumber> records = source.stream()
+        List<LotteryNumber> source = customRecords != null ? customRecords : eligibleHistory(category);
+        List<LotteryNumber> records = DrawQuality.history(source).stream()
                 .filter(r -> r != null && category.equalsIgnoreCase(r.getCategory()) && r.getDrawDate() != null)
                 .filter(r -> r.getNumbers() != null && r.getNumbers().size() == 6
                         && new HashSet<>(r.getNumbers()).size() == 6
@@ -1158,11 +1063,11 @@ public class AnalyzeService {
         // TÍNH TOÁN PHÂN TÍCH BẪY LỆCH 1 NÚT (NEIGHBOR DRIFT ANALYSIS)
         List<LotteryNumber> powerRecordsAll = new ArrayList<>(customRecords != null
                 ? records.stream().filter(r -> "POWER".equals(r.getCategory())).collect(Collectors.toList())
-                : repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("POWER"));
+                : eligibleHistory("POWER"));
         Collections.reverse(powerRecordsAll);
         List<LotteryNumber> megaRecordsAll = new ArrayList<>(customRecords != null
                 ? records.stream().filter(r -> "MEGA".equals(r.getCategory())).collect(Collectors.toList())
-                : repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("MEGA"));
+                : eligibleHistory("MEGA"));
         Collections.reverse(megaRecordsAll);
 
         int totalDriftCount = 0;
@@ -1342,9 +1247,13 @@ public class AnalyzeService {
     // =========================================================================================
     // 3. CÁC TÍNH NĂNG CƠ BẢN KHÁC (LỊCH SỬ, DÒ VÉ, NẠP KẾT QUẢ)
     // =========================================================================================
+    private List<LotteryNumber> eligibleHistory(String category) {
+        return DrawQuality.history(repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category));
+    }
+
     public DrawRecordDto getLatestDraw(String categoryInput, String drawDate) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
-        List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        List<LotteryNumber> records = eligibleHistory(category);
         
         if (drawDate != null && !drawDate.trim().isEmpty()) {
             Optional<LotteryNumber> match = records.stream()
@@ -1363,7 +1272,7 @@ public class AnalyzeService {
     }
 
     public List<DrawRecordDto> getRecentDraws(String category) {
-        return repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category).stream()
+        return eligibleHistory(category).stream()
                 .limit(10)
                 .map(r -> new DrawRecordDto(r.getId(), r.getDrawDate() != null ? r.getDrawDate().toString() : "", r.getNumbers(), r.getSpecialNumber(), r.getNote()))
                 .collect(Collectors.toList());
@@ -1372,7 +1281,7 @@ public class AnalyzeService {
     public TicketCheckResponseDto checkMyTickets(TicketCheckRequestDto request) {
         TicketCheckResponseDto response = new TicketCheckResponseDto();
         
-        Optional<LotteryNumber> officialDrawOpt = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(request.getCategory())
+        Optional<LotteryNumber> officialDrawOpt = eligibleHistory(request.getCategory())
                 .stream()
                 .filter(d -> d.getDrawDate() != null && d.getDrawDate().toString().equals(request.getDrawDate()))
                 .findFirst();
@@ -1431,6 +1340,7 @@ public class AnalyzeService {
     }
 
     public void addNewDrawResult(LotteryNumber newDraw) {
+        newDraw.setQuality(null);
         repository.save(newDraw);
     }
     
@@ -1524,7 +1434,7 @@ public class AnalyzeService {
         String effectiveDate = (drawDate != null && !drawDate.trim().isEmpty()) ? drawDate : java.time.LocalDate.now().toString();
         String effectiveCat = (category != null && !category.trim().isEmpty()) ? category.toUpperCase() : "POWER";
         String effectiveNote = (note != null && !note.trim().isEmpty()) ? note : "Cập nhật thuật toán XGBoost tối ưu đa nhân tố đối chuẩn US Powerball & Mega Millions";
-        String modelName = "XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)";
+        String modelName = "Configured prediction parameters";
 
         AlgorithmHyperparameter newParam = new AlgorithmHyperparameter(
             newVersion,
@@ -1623,7 +1533,7 @@ public class AnalyzeService {
 
         List<LotteryNumber> catRecords;
         try {
-            catRecords = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+            catRecords = eligibleHistory(category);
         } catch (Exception e) {
             catRecords = Collections.emptyList();
         }
@@ -1799,116 +1709,21 @@ public class AnalyzeService {
             }
 
             // Đánh giá nhận định AI: Có đưa ra nhận định gần đúng không?
-            String aiClosenessRating = "DEVIATED";
-            String aiClosenessBadge = "⚠️ LỆCH PHA BIẾN ĐỘNG";
-            String aiClosenessBadgeClass = "danger";
-            boolean isAiClose = false;
-            String aiJudgmentSummary;
-            String aiJudgmentReason;
-
-            String algDisplayName = (aiPred != null && aiPred.getAlgorithmName() != null) ? aiPred.getAlgorithmName() : algorithm;
-            if (matchedIn6Count >= 3 || matchedTop10Count >= 4 || (!"KHÔNG TRÚNG".equals(bestAiPrize) && (bestAiPrize.contains("JACKPOT") || bestAiPrize.contains("NHẤT") || bestAiPrize.contains("NHÌ")))) {
-                aiClosenessRating = "EXCELLENT";
-                aiClosenessBadge = "🎯 RẤT CHÍNH XÁC / TIỆM CẬN CAO";
-                aiClosenessBadgeClass = "success";
-                isAiClose = true;
-                aiJudgmentSummary = "Dự đoán AI đưa ra nhận định tiệm cận rất cao! 6 số dự đoán khớp " + matchedIn6Count + "/6 số trúng " + matchedIn6 + (nearMissList.size() > 0 ? " và có " + nearMissList.size() + " số sát nút ±1." : ".") + " Top 10 bắt trúng " + matchedTop10Count + "/6 bóng và vé AI trúng " + bestAiPrize + " (" + bestAiPrizeAmount + ")!";
-                aiJudgmentReason = "Mô hình " + algDisplayName + " dựa trên các kỳ trước đã giải mã chính xác chu kỳ điểm rơi Poisson và cặp số đồng xuất hiện. Tổng điểm lệch chỉ " + sumDiff + " điểm, " + (parityMatch ? "trùng khớp hoàn hảo tỷ lệ chẵn/lẻ " + predOddEven : "tiệm cận phân phối") + ".";
-            } else if (matchedIn6Count == 2 || (matchedIn6Count == 1 && nearMissList.size() >= 2) || nearMissList.size() >= 3 || matchedTop10Count == 3 || !aiWinningTickets.isEmpty()) {
-                aiClosenessRating = "GOOD";
-                aiClosenessBadge = "✅ GẦN ĐÚNG / ĐẠT KỲ VỌNG";
-                aiClosenessBadgeClass = "primary";
-                isAiClose = true;
-                aiJudgmentSummary = "Dự đoán AI đưa ra nhận định gần đúng (sát thực tế): Khớp " + matchedIn6Count + "/6 số trúng " + matchedIn6 + ", có " + nearMissList.size() + " số lệch sát nút đúng 1 đơn vị, " + (!"KHÔNG TRÚNG".equals(bestAiPrize) ? "và vé AI đạt " + bestAiPrize : "tổng lệch " + sumDiff + " điểm") + ".";
-                aiJudgmentReason = "Mô hình đón đầu được quỹ đạo chính của lồng cầu từ dữ liệu các kỳ trước; một số bóng trượt chỉ vì bước nhảy dao động biên cực nhỏ (±1 đơn vị) hoặc lồng cầu đột ngột dịch chuyển phân vùng.";
-            } else {
-                aiJudgmentSummary = "Dự đoán bị lệch pha so với kết quả mở thưởng: Bắt được " + matchedIn6Count + "/6 số " + matchedIn6 + " trong 6 số chính và " + matchedTop10Count + "/6 trong Top 10.";
-                aiJudgmentReason = "Kỳ quay ghi nhận hiện tượng đột biến (lô gan sâu hoặc bão hòa lặp dồn cụm dải số), vượt ra khỏi kỳ vọng thông thường của phân phối xác suất. Dữ liệu các kỳ trước chưa đủ để bao phủ hết bước nhảy dị biệt này.";
-            }
+            boolean isAiClose = matchedIn6Count >= 3;
+            String aiClosenessRating = isAiClose ? "EXCELLENT" : matchedIn6Count > 0 ? "GOOD" : "DEVIATED";
+            String aiClosenessBadge = "Khớp " + matchedIn6Count + "/" + officialNumbers.size() + " số chính";
+            String aiClosenessBadgeClass = isAiClose ? "success" : "secondary";
+            String aiJudgmentSummary = "Vé sáu số khớp " + matchedIn6Count + " số " + matchedIn6 + "; Top 10 phủ " + matchedTop10Count + " số kết quả. Có " + nearMissList.size() + " số lệch một đơn vị, không tính là số trúng.";
+            String aiJudgmentReason = "Kiểm thử hồi cứu từ " + priorRecords.size() + " kỳ trước với cấu hình hiện tại.";
 
             if (isAiClose) closeCount++;
             totalAiWins += aiWinningTickets.size();
             totalAiMatched += matchedTop10Count;
 
             // TÍNH TOÁN ĐỘNG LÝ DO RA BANH TỪ DỮ LIỆU CÁC KỲ TRƯỚC (HOÀN TOÀN TỰ ĐỘNG - KHÔNG HARDCODE)
-            List<Map<String, Object>> whyWinningAppeared = new ArrayList<>();
-            for (int wNum : officialNumbers) {
-                int freq = 0;
-                int gap = priorRecords.size() + 1;
-                for (int pIdx = 0; pIdx < priorRecords.size(); pIdx++) {
-                    LotteryNumber pr = priorRecords.get(pIdx);
-                    if (pr != null && pr.getNumbers() != null && pr.getNumbers().contains(wNum)) {
-                        freq++;
-                        if (gap > pIdx) {
-                            gap = pIdx;
-                        }
-                    }
-                }
-                boolean wasSpecialPrev = !priorRecords.isEmpty() && priorRecords.get(0).getSpecialNumber() != null && priorRecords.get(0).getSpecialNumber() == wNum;
-
-                String role;
-                String explanation;
-                if (wasSpecialPrev) {
-                    role = "Chuyển Vị Banh Phụ Sang Banh Chính";
-                    explanation = "Quả banh " + wNum + " từng xuất hiện ở lồng cầu phụ kỳ liền trước, giải phóng động năng tích lũy để chuyển vị thành công sang nhóm 6 bóng chính.";
-                } else if (gap == 0) {
-                    role = "Số Lặp Quán Tính Chuỗi Markov";
-                    explanation = "Quả banh " + wNum + " nổ liên tiếp từ kỳ trước đó, lực quán tính chuỗi bảo toàn bước nhảy trạng thái ổn định.";
-                } else if (gap >= 10) {
-                    role = "Lô Gan Hồi Quy Sâu (Điểm Bật Lò Xo)";
-                    explanation = "Quả banh " + wNum + " vắng bóng " + gap + " kỳ liên tiếp, tích lũy năng lượng tiệm cận giới hạn đàn hồi Poisson kích hoạt điểm nổ bật lò xo.";
-                } else if (gap <= 2 && freq >= 3) {
-                    role = "Hạt Nhân Tần Suất Chu Kỳ Ngắn";
-                    explanation = "Quả banh " + wNum + " có tần suất nổ cao (" + freq + " lần) với nhịp dao động ngắn sau " + gap + " kỳ nghỉ.";
-                } else if (gap >= 3 && gap <= 6) {
-                    role = "Nhịp Dao Động Điều Hòa";
-                    explanation = "Quả banh " + wNum + " hồi phục sau " + gap + " kỳ vắng bóng, nhịp dao động tuần hoàn cân bằng lồng cầu.";
-                } else {
-                    role = "Cân Bằng Phân Vùng Lồng Cầu";
-                    explanation = "Quả banh " + wNum + " xuất hiện để bù lấp khoảng trống phân vùng dải hàng chục theo quy luật phân phối chuẩn.";
-                }
-
-                Map<String, Object> bItem = new HashMap<>();
-                bItem.put("number", wNum);
-                bItem.put("isSpecial", false);
-                bItem.put("role", role);
-                bItem.put("drawGap", gap);
-                bItem.put("frequency", freq);
-                bItem.put("explanation", explanation);
-                whyWinningAppeared.add(bItem);
-            }
-
-            // TÍNH TOÁN ĐỘNG NGUYÊN NHÂN SAI LỆCH CỦA THUẬT TOÁN (KHÔNG HARDCODE)
-            List<Integer> missedBalls = officialNumbers.stream().filter(n -> !top10.contains(n)).collect(Collectors.toList());
-            List<String> missedFactors = new ArrayList<>();
-            for (int m : missedBalls) {
-                int mGap = priorRecords.size() + 1;
-                for (int pIdx = 0; pIdx < priorRecords.size(); pIdx++) {
-                    LotteryNumber pr = priorRecords.get(pIdx);
-                    if (pr != null && pr.getNumbers() != null && pr.getNumbers().contains(m)) {
-                        mGap = pIdx;
-                        break;
-                    }
-                }
-                if (mGap >= 10) {
-                    missedFactors.add("Bỏ sót số gan sâu " + m + " (vắng " + mGap + " kỳ) do cửa sổ Poisson thông thường lọc bỏ quán tính thấp.");
-                } else if (mGap == 0) {
-                    missedFactors.add("Số " + m + " nổ lặp liên tiếp, cơ chế phạt kiệt sức lặp đánh giá quá thận trọng.");
-                }
-            }
-            if (sum < 80 || sum > 175) {
-                missedFactors.add("Tổng điểm kỳ này (" + sum + ") đột biến nằm ngoài dải tổng trung bình.");
-            }
-            if (missedFactors.isEmpty()) {
-                missedFactors.add("Lồng cầu dao động ngẫu nhiên vượt ra ngoài biên độ ma trận tương tác cặp.");
-                missedFactors.add("Độ lệch phân vùng hàng chục tạo bước nhảy cục bộ.");
-            }
-
-            Map<String, Object> whyAlgMissed = new HashMap<>();
-            whyAlgMissed.put("summary", "Dự đoán bắt được " + matchedIn6Count + "/6 số trong 6 số chính và " + matchedTop10Count + "/6 trong Top 10. Trượt các số " + missedBalls + ".");
-            whyAlgMissed.put("primaryReason", missedBalls.size() >= 4 ? "Lồng cầu xuất hiện biến động đột biến phân vùng và lô gan sâu." : "Lệch pha biên độ dao động chu kỳ ngắn.");
-            whyAlgMissed.put("missedFactors", missedFactors);
-            whyAlgMissed.put("correctiveAdjustment", "Nới rộng cửa sổ Poisson [0.70 - 2.80], kích hoạt Điểm Bật Lò Xo (+0.85) và mở rộng bộ lọc tổng [75 - 195].");
+            var explanation = AnalysisReportSupport.explain(draw, priorRecords, predicted6);
+            var whyWinningAppeared = explanation.get("whyWinningBallsAppeared");
+            var whyAlgMissed = explanation.get("whyAlgorithmMissed");
 
             // Vé người dùng đã mua trùng ngày
             String dateStr = drawDate.toString();
@@ -1963,6 +1778,7 @@ public class AnalyzeService {
             drawObj.put("drawAccuracyLabel", uniqueUserMatched.size() + "/" + Math.max(1, officialNumbers.size()));
 
             Map<String, Object> aiPredMap = new HashMap<>();
+            String algDisplayName = aiPred == null ? algorithm : aiPred.getAlgorithmName();
             aiPredMap.put("algorithm", algorithm);
             aiPredMap.put("algorithmName", algDisplayName);
             aiPredMap.put("predicted6Numbers", predicted6);
@@ -2015,7 +1831,7 @@ public class AnalyzeService {
         overall.put("totalTickets", totalUserTickets);
         overall.put("winningTickets", winningUserTickets);
         overall.put("missedTickets", totalUserTickets - winningUserTickets);
-        overall.put("ticketHitRatePercent", totalUserTickets > 0 ? Math.round((winningUserTickets / (double) totalUserTickets) * 1000.0) / 10.0 : 20.0);
+        overall.put("ticketHitRatePercent", totalUserTickets > 0 ? Math.round((winningUserTickets / (double) totalUserTickets) * 1000.0) / 10.0 : null);
         overall.put("totalDistinctMatchedBalls", grandUserMatchedBalls);
         overall.put("totalOfficialBalls", grandOfficialBalls);
         overall.put("ballHitRatePercent", ballHitRatePercent);
@@ -2026,35 +1842,9 @@ public class AnalyzeService {
         overall.put("totalAiMatchedBalls", totalAiMatched);
         overall.put("aiBallHitRatePercent", aiBallHitRate);
 
-        List<String> dominantFlaws = List.of(
-            "Bẫy Phạt Số Lặp Kiệt Sức (Repeat Exhaustion Penalty): Thuật toán phạt nặng các số nổ ở kỳ trước (gap = 0), khiến cả 2 số trúng 07 & 18 bị loại khỏi Top 10.",
-            "Bẫy Lọc Khoảng Cách Hẹp: Cửa sổ Poisson cũ gapRatio >= 0.8 loại bỏ các số có chu kỳ nổ ngắn 6-7 kỳ như 06, 24, 27.",
-            "Bẫy phân tán số trúng rải rác: Các số trúng bị xé nhỏ ra các vé khác nhau do không gom cụm liên kết đồng xuất hiện.",
-            "Bỏ lỡ hiện tượng chuyển vị bóng phụ sang bóng chính (Special-to-Main Migration): Banh phụ kỳ trước liên tục nhảy sang làm banh chính kỳ sau.",
-            "Loại trừ nhầm Lô Gan sâu (Gap > 10): Cửa sổ Poisson cũ loại bỏ các số gan hồi quy đột biến."
-        );
-        List<String> coreRemedies = List.of(
-            "Kích hoạt Cửa Sổ Lô Gan Poisson 2 Tầng [0.35 - 2.80]: Khắc phục triệt để việc loại bỏ các số có chu kỳ nổ ngắn 6-7 kỳ.",
-            "Thưởng Điểm Quán Tính Lặp Markov (+0.45): Bảo toàn các số nổ liên tiếp (gap 0) như cặp bài trùng 07 & 18.",
-            "Kích hoạt Ma Trận Co-occurrence Clique Optimization: Tự động gom các cụm số có liên kết đồng xuất hiện cao nhất vào cùng 1 dãy vé.",
-            "Áp dụng Hệ Số Chuyển Vị Bóng Phụ (+0.88): Tự động ưu tiên cao các bóng phụ kỳ liền trước nhảy sang làm bóng chính.",
-            "Kích hoạt bộ siêu tham số v1.7.0 DSE-Copula tối ưu toàn diện sau kỳ quay 2026-10-06."
-        );
-        overall.put("dominantFlaws", dominantFlaws);
-        overall.put("coreRemedies", coreRemedies);
-
-        Map<String, Object> recommendedHyp = new HashMap<>();
-        recommendedHyp.put("version", "v1.7.0");
-        recommendedHyp.put("model", "Deep Stacking Ensemble (DSE-Copula) + Markov-2 Transition + Multi-Clique Wheeling");
-        recommendedHyp.put("drawDate", "2026-10-06");
-        Map<String, Object> backtestComp = new HashMap<>();
-        if ("MEGA".equals(category)) {
-            backtestComp.put("scope", "Toàn bộ 29 kỳ Mega 6/45 trong hệ thống");
-            backtestComp.put("conclusion", "Thuật toán mới v1.8.0 cho kết quả đối chiếu tốt hơn và ổn định hơn trên toàn bộ 29 kỳ Mega lịch sử. Đặc biệt ở kỳ gần nhất 09/10, v1.8.0 bắt trúng 2 bóng [07, 12] so với chỉ 1 bóng [12] của v1.7.0.");
-        } else {
-            backtestComp.put("scope", "Toàn bộ 21 kỳ Power 6/55 trong hệ thống (từ 20/08/2026 đến 10/10/2026)");
-            backtestComp.put("conclusion", "Thuật toán kỳ 06/10/2026 cực kỳ thành công ở kỳ đó (4/5 vé trúng giải, tỷ lệ 80%), nhưng khi áp dụng nguyên xi cho các kỳ khác thì tỷ lệ trúng không cao hơn (chỉ đạt 7-10% số vé và 15-19% số kỳ có giải). Do đó, cần áp dụng bộ tham số cải tiến v1.9.0 để nâng tỷ lệ trúng của các kỳ khác lên cao hơn.");
-        }
+        Map<String,Object> backtestComp = AnalysisReportSupport.summarize(drawsList, catRecords.size(), algorithm, category);
+        overall.put("dominantFlaws",backtestComp.get("dominantFlaws"));
+        overall.put("coreRemedies",backtestComp.get("coreRemedies"));
 
         Map<String, Object> res = new HashMap<>();
         res.put("status", "SUCCESS");
@@ -2065,7 +1855,10 @@ public class AnalyzeService {
         res.put("draws", drawsList);
         res.put("allAvailableDates", catRecords.stream().map(r -> r.getDrawDate().toString()).collect(Collectors.toList()));
         res.put("totalDrawsInDb", catRecords.size());
-        res.put("recommendedHyperparameters", recommendedHyp);
+        res.put("recommendedHyperparameters", null);
+        var active = getLatestHyperparameter(category);
+        res.put("activeHyperparameters", active);
+        res.put("currentHyperparameterVersion", active == null ? null : active.getVersion());
         res.put("backtestComparison", backtestComp);
 
         return res;
@@ -2405,7 +2198,7 @@ public class AnalyzeService {
         res.put("pairs", pairs);
         res.put("cliques", cliques);
         res.put("summary", "Phát hiện " + pairs.stream().filter(p -> (Integer) p.get("count") > 0).count() + " cặp có liên kết lịch sử giữa 6 số trúng. Cặp có lực hút mạnh nhất: " + strongestPair + ". Cụm liên kết tam giác: " + cliques.size() + " cụm.");
-        res.put("cliqueWheelingAdvice", "Thuật toán v1.6.0 đã tích hợp Ma trận Co-occurrence Clique Optimization: Tự động gom các cụm số có liên kết đồng xuất hiện cao nhất vào cùng 1 dãy vé, ngăn chặn tình trạng số trúng bị xé nhỏ sang nhiều vé khác nhau.");
+        res.put("cliqueWheelingAdvice", "Observed co-occurrence relationships in the supplied history; no winning-ticket guarantee.");
         return res;
     }
 
@@ -2439,7 +2232,7 @@ public class AnalyzeService {
 
     public Map<String, Object> getRelationshipLearning(String categoryInput, String date) {
         String category = "POWER".equalsIgnoreCase(categoryInput) ? "POWER" : "MEGA";
-        List<LotteryNumber> records = repository.findByCategoryOrderByDrawDateDescCreatedAtDesc(category);
+        List<LotteryNumber> records = eligibleHistory(category);
         if (date != null && !date.isBlank()) {
             java.time.LocalDate requested = java.time.LocalDate.parse(date);
             if (records.stream().noneMatch(r -> requested.equals(r.getDrawDate()))) {

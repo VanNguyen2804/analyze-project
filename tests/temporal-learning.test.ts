@@ -1,3 +1,4 @@
+import { verifiedFixture } from './quality-fixture';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -7,7 +8,7 @@ function alternating(count = 30): LearningDraw[] {
   let date = '2026-08-01';
   return Array.from({ length: count }, (_, i) => {
     const result = { category: 'POWER', drawDate: date, numbers: i % 2 ? [20, 21, 22, 23, 24, 25] : [1, 2, 3, 4, 5, 6], specialNumber: 55 };
-    date = scheduledAfter(date, 'POWER'); return result;
+    date = scheduledAfter(date, 'POWER'); return verifiedFixture(result);
   });
 }
 

@@ -1,4 +1,5 @@
-export interface LearningDraw {
+import { eligibleHistory, type QualityDraw } from './draw-quality';
+export interface LearningDraw extends QualityDraw {
   drawDate: string;
   numbers: number[];
   category?: string;
@@ -22,7 +23,7 @@ export function scheduledAfter(date: string, category: string): string {
 export function normalizeLearningHistory(history: LearningDraw[], category: string): LearningDraw[] {
   const max = category === 'POWER' ? 55 : 45;
   const dates = new Set<string>();
-  return history.filter(r => {
+  return eligibleHistory(history).filter(r => {
     const date = new Date(`${r.drawDate}T00:00:00Z`);
     return (!r.category || r.category === category) && Number.isFinite(date.getTime())
       && date.toISOString().slice(0, 10) === r.drawDate && r.numbers?.length === 6

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { reconcileQuality, eligibleDraw, drawFingerprint, type QualityDraw } from './draw-quality';
 
 export type Category = 'MEGA' | 'POWER';
 export interface FeedDraw {
@@ -9,7 +10,7 @@ export interface FeedDraw {
   numbers: number[];
   specialNumber?: number;
 }
-export interface StoredDraw {
+export interface StoredDraw extends QualityDraw {
   id: number;
   category: Category;
   drawDate: string;
@@ -125,28 +126,38 @@ export async function fetchFeed(url: string, timeoutSeconds: number, fetcher = f
 }
 
 export function mergeFeed(existing: StoredDraw[], incoming: FeedDraw[], sourceUrl: string, now = new Date()) {
-  const records = [...existing];
+  let records = [...existing];
   const current = new Map<string, StoredDraw>();
-  [...existing].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id - b.id)
+  [...existing].sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? '') || a.id - b.id)
     .forEach(row => current.set(`${row.category}:${row.drawDate}`, row));
   let id = Math.max(0, ...existing.map(row => row.id)) + 1;
-  let inserted = 0, unchanged = 0;
+  let inserted = 0, unchanged = 0, updated = 0, corrected = 0;
   const conflicts: { date: string; stored: number[]; storedSpecial?: number; incoming: number[]; incomingSpecial?: number }[] = [];
+  const category = incoming[0]?.category;
+  const byDate = new Map(incoming.map(d => [d.drawDate, d]));
+  const dates = [...byDate.keys()].sort();
+  records = records.map(row => {
+    if (row.category !== category || !dates.length || row.drawDate < dates[0] || row.drawDate > dates[dates.length - 1]) return row;
+    const draw = byDate.get(row.drawDate);
+    const superseded = current.get(`${row.category}:${row.drawDate}`) !== row;
+    const next = reconcileQuality(row, draw, sourceUrl, now, superseded ? 'SUPERSEDED_REVISION' : undefined);
+    if (next !== row) updated++;
+    if (drawFingerprint(next) !== drawFingerprint(row)) corrected++;
+    if (!superseded && draw) {
+      if (eligibleDraw(next)) { if (drawFingerprint(next) === drawFingerprint(row)) unchanged++; }
+      else conflicts.push({ date: row.drawDate, stored: row.numbers, storedSpecial: row.specialNumber, incoming: draw.numbers, incomingSpecial: draw.specialNumber });
+    }
+    return next;
+  });
   for (const draw of incoming) {
-    const key = `${draw.category}:${draw.drawDate}`;
-    const prior = current.get(key);
-    if (prior) {
-      if ([...prior.numbers].sort((a, b) => a - b).join(',') === draw.numbers.join(',')
-        && (prior.specialNumber ?? null) === (draw.specialNumber ?? null)) unchanged++;
-      else conflicts.push({ date: draw.drawDate, stored: prior.numbers, storedSpecial: prior.specialNumber,
-        incoming: draw.numbers, incomingSpecial: draw.specialNumber });
-    } else {
+    if (!current.has(`${draw.category}:${draw.drawDate}`)) {
       const record = { ...draw, id: id++, createdAt: now.toISOString(),
         note: `Imported from ${sourceUrl} | draw #${draw.sourceDrawId} | community mirror of vietlott.vn` };
-      records.push(record); current.set(key, record); inserted++;
+      records.push(reconcileQuality(record, draw, sourceUrl, now)); inserted++;
     }
   }
-  return { records, inserted, unchanged, conflicts };
+  const quarantined = records.filter(r => r.category === category && r.quality?.status === 'QUARANTINED').map(r => ({ id: r.id, date: r.drawDate, reason: r.quality!.audit.at(-1)?.reason }));
+  return { records, inserted, unchanged, updated, corrected, quarantined, conflicts };
 }
 
 /** Publish the new in-memory snapshot only after its atomic disk replacement succeeds. */
@@ -184,11 +195,11 @@ export class LotterySync {
           const body = await fetchFeed(sourceUrl, this.config.timeoutSeconds, this.fetcher);
           const draws = parseFeed(body, category, fromDate, now);
           const { records, ...imported } = mergeFeed(this.read(), draws, sourceUrl, now);
-          if (imported.inserted) this.commit(records);
+          if (imported.inserted || imported.updated) this.commit(records);
           const latestSourceDate = draws[draws.length - 1].drawDate;
           const expectedLatestDate = latestExpected(category, now);
           const sourceStale = latestSourceDate < expectedLatestDate;
-          categories[category] = { sourceUrl, status: imported.conflicts.length ? 'CONFLICT' : sourceStale ? 'STALE' : 'SUCCESS',
+          categories[category] = { sourceUrl, status: imported.conflicts.length || imported.quarantined.length ? 'CONFLICT' : sourceStale ? 'STALE' : 'SUCCESS',
             latestSourceDate, expectedLatestDate, sourceStale, ...imported };
         } catch (error) {
           categories[category] = { sourceUrl, status: 'ERROR', error: error instanceof Error ? error.message : String(error) };

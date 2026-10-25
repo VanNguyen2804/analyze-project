@@ -40,13 +40,16 @@ public class LotteryResultScheduler {
                 var imported = importer.importDraws(draws, properties.sourceUrl(category));
                 LocalDate latest = draws.get(draws.size() - 1).date();
                 LocalDate expected = LotteryFeedClient.latestExpected(category, now);
-                detail.put("status", imported.conflicts().isEmpty() ? (latest.isBefore(expected) ? "STALE" : "SUCCESS") : "CONFLICT");
+                detail.put("status", imported.conflicts().isEmpty() && imported.quarantined().isEmpty() ? (latest.isBefore(expected) ? "STALE" : "SUCCESS") : "CONFLICT");
                 detail.put("latestSourceDate", latest);
                 detail.put("expectedLatestDate", expected);
                 detail.put("sourceStale", latest.isBefore(expected));
                 detail.put("inserted", imported.inserted());
                 detail.put("unchanged", imported.unchanged());
                 detail.put("conflicts", imported.conflicts());
+                detail.put("updated", imported.updated());
+                detail.put("corrected", imported.corrected());
+                detail.put("quarantined", imported.quarantined());
                 log.info("Lottery sync {}: {} inserted={}, unchanged={}, conflicts={}", category, detail.get("status"), imported.inserted(), imported.unchanged(), imported.conflicts().size());
             } catch (Exception ex) {
                 if (ex instanceof InterruptedException) Thread.currentThread().interrupt();

@@ -1,3 +1,4 @@
+import { verifiedFixture } from './quality-fixture';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fuseRankings, nextDraw, seededRandom, summarizePatterns } from '../src/algorithm-support';
@@ -11,7 +12,7 @@ function history(category: 'POWER' | 'MEGA', offset = 0) {
     id: i + 1, category, drawDate: `2026-09-${String(i + 1).padStart(2, '0')}`,
     numbers: Array.from({ length: 6 }, (_, j) => (i * 3 + j * 7 + offset) % max + 1),
     createdAt: '2026-09-01T00:00:00Z',
-  }));
+  })).map(verifiedFixture);
 }
 
 test('rank fusion treats both models equally and removes duplicates', () => {

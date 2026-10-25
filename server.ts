@@ -1,3 +1,5 @@
+import { explainDraw, summarizeBacktest } from './src/analysis-report';
+import { eligibleDraw, eligibleHistory, type QualityDraw } from './src/draw-quality';
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -6,7 +8,7 @@ import { learnTemporalRelationships, verifiedWinningTickets } from './src/tempor
 import algorithmCatalog from './backend/src/main/resources/data/algorithm_catalog.json';
 import { LotterySync, syncConfig, writeResults } from './src/lottery-sync';
 
-interface LotteryNumberRecord {
+interface LotteryNumberRecord extends QualityDraw {
   id: number;
   drawDate: string; // YYYY-MM-DD
   category: 'MEGA' | 'POWER';
@@ -62,159 +64,12 @@ let nextUserCheckId = 1;
 
 function loadUserTicketsFromDisk(): void {
   try {
-    if (fs.existsSync(USER_TICKETS_FILE)) {
-      const content = fs.readFileSync(USER_TICKETS_FILE, 'utf-8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        userChecks = parsed;
-        nextUserCheckId = Math.max(...userChecks.map((t) => t.id || 0)) + 1;
-        return;
-      }
-    }
-
-    // Default sample user tickets for demonstration across the 5 most recent draws:
-    userChecks = [
-      // KỲ 1: 2026-09-28 (Trúng 2/6, trượt 4 số)
-      {
-        id: 1,
-        category: 'POWER',
-        drawDate: '2026-09-28',
-        numbers: [4, 14, 18, 35, 48, 52],
-        matchedNumbers: [4, 35],
-        matchedCount: 2,
-        matchedSpecial: false,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-28T19:00:00.000Z',
-        note: 'Vé hạt nhân dựa theo kỳ 19/09: Trượt do lặp quá hạn 14, 52; chỉ trúng 04 và 35',
-      },
-      {
-        id: 2,
-        category: 'POWER',
-        drawDate: '2026-09-28',
-        numbers: [11, 14, 21, 38, 48, 52],
-        matchedNumbers: [],
-        matchedCount: 0,
-        matchedSpecial: true,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-28T19:00:00.000Z',
-        note: 'Vé nuôi dải cao kỳ trước: Bị trượt toàn bộ 6 số chính vì lồng cầu dồn cụm dải thấp',
-      },
-      // KỲ 2: 2026-09-19 (Trúng lớn Jackpot 2 và Giải Nhì)
-      {
-        id: 3,
-        category: 'POWER',
-        drawDate: '2026-09-19',
-        numbers: [14, 18, 21, 38, 48, 49],
-        specialNumber: 49,
-        matchedNumbers: [14, 18, 21, 38, 48],
-        matchedCount: 5,
-        matchedSpecial: true,
-        prize: 'JACKPOT 2',
-        prizeAmount: 'Ước tính > 3.850.000.000 đ',
-        checkedAt: '2026-09-19T19:00:00.000Z',
-        note: 'Vé tự chọn bao gồm số phụ 49',
-      },
-      {
-        id: 4,
-        category: 'POWER',
-        drawDate: '2026-09-19',
-        numbers: [14, 18, 21, 27, 33, 48],
-        matchedNumbers: [14, 18, 21, 48],
-        matchedCount: 4,
-        matchedSpecial: false,
-        prize: 'GIẢI NHÌ',
-        prizeAmount: '500.000 đ',
-        checkedAt: '2026-09-19T19:00:00.000Z',
-        note: 'Vé nuôi dàn số hạt nhân',
-      },
-      // KỲ 3: 2026-09-17 (Trúng 1/6)
-      {
-        id: 5,
-        category: 'POWER',
-        drawDate: '2026-09-17',
-        numbers: [4, 11, 23, 36, 47, 54],
-        matchedNumbers: [23],
-        matchedCount: 1,
-        matchedSpecial: false,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-17T19:00:00.000Z',
-        note: 'Vé bám theo số nóng kỳ 15/09: Chỉ trúng số lặp 23, trượt 5 số còn lại',
-      },
-      {
-        id: 6,
-        category: 'POWER',
-        drawDate: '2026-09-17',
-        numbers: [7, 11, 19, 29, 44, 54],
-        matchedNumbers: [7],
-        matchedCount: 1,
-        matchedSpecial: false,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-17T19:00:00.000Z',
-        note: 'Vé dò điểm rơi phân vùng: Chỉ trúng số 07',
-      },
-      // KỲ 4: 2026-09-15 (Trượt 6 số chính, trúng số phụ 23)
-      {
-        id: 7,
-        category: 'POWER',
-        drawDate: '2026-09-15',
-        numbers: [8, 18, 23, 35, 41, 49],
-        matchedNumbers: [],
-        matchedCount: 0,
-        matchedSpecial: true,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-15T19:00:00.000Z',
-        note: 'Vé đánh lại dàn số kỳ 12/09: Trượt sạch 6 số chính, chỉ trúng số phụ 23',
-      },
-      {
-        id: 8,
-        category: 'POWER',
-        drawDate: '2026-09-15',
-        numbers: [4, 18, 25, 33, 41, 50],
-        matchedNumbers: [4],
-        matchedCount: 1,
-        matchedSpecial: false,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-15T19:00:00.000Z',
-        note: 'Vé lọc ma trận cặp: Chỉ trúng số 04',
-      },
-      // KỲ 5: 2026-09-12 (Trúng 1/6)
-      {
-        id: 9,
-        category: 'POWER',
-        drawDate: '2026-09-12',
-        numbers: [3, 11, 23, 33, 44, 52],
-        matchedNumbers: [23],
-        matchedCount: 1,
-        matchedSpecial: false,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-12T19:00:00.000Z',
-        note: 'Vé đánh theo kết quả kỳ 10/09: Chỉ trúng số 23',
-      },
-      {
-        id: 10,
-        category: 'POWER',
-        drawDate: '2026-09-12',
-        numbers: [8, 14, 22, 31, 44, 52],
-        matchedNumbers: [8],
-        matchedCount: 1,
-        matchedSpecial: true,
-        prize: 'KHÔNG TRÚNG',
-        prizeAmount: '0 đ',
-        checkedAt: '2026-09-12T19:00:00.000Z',
-        note: 'Vé nuôi phân vùng cân bằng: Chỉ trúng số 08 và số phụ 14',
-      },
-    ];
-    nextUserCheckId = 11;
-    saveUserTicketsToDisk();
-  } catch (err) {
-    console.warn('Failed to load user tickets from disk:', err);
+    const parsed = fs.existsSync(USER_TICKETS_FILE) ? JSON.parse(fs.readFileSync(USER_TICKETS_FILE, 'utf8')) : [];
+    userChecks = Array.isArray(parsed) ? parsed : [];
+    nextUserCheckId = Math.max(0, ...userChecks.map(row => row.id || 0)) + 1;
+  } catch (error) {
+    console.warn('Cannot load stored userChecks', error);
+    userChecks = [];
   }
 }
 
@@ -289,114 +144,12 @@ function saveDeviationVariablesToDisk(): void {
 
 function loadHyperparametersFromDisk(): void {
   try {
-    if (fs.existsSync(HYPERPARAMETERS_FILE)) {
-      const content = fs.readFileSync(HYPERPARAMETERS_FILE, 'utf-8');
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        hyperparameters = parsed;
-        nextHyperparameterId = Math.max(...hyperparameters.map((h) => h.id || 0)) + 1;
-        return;
-      }
-    }
-
-    const baselineJson = {
-      model: 'XGBoost Multi-Factor Optimization',
-      targetCategory: 'ALL',
-      drawDate: '2026-09-20',
-      evaluationSummary: {
-        totalTickets: 10,
-        hitRatePercent: 20.0,
-        matchedCount: 4,
-        missedCount: 56,
-        averageMissedRank: 28,
-      },
-      recommendedAdjustments: {
-        momentumDecayRate: 0.12,
-        poissonGapMinRatio: 0.6,
-        poissonGapMaxRatio: 2.6,
-        coOccurrenceWeight: 0.70,
-        repeatExhaustionPenalty: -0.20,
-        parityDistributionFilter: ['2:4', '3:3', '4:2'],
-        sumRangeFilter: [84, 144],
-        maxConsecutivePairsAllowed: 2,
-      },
-      actionableAdvice: 'Baseline model configuration',
-    };
-
-    const v110Json = {
-      model: 'XGBoost Multi-Factor Optimization',
-      targetCategory: 'POWER',
-      drawDate: '2026-09-28',
-      evaluationSummary: {
-        totalTickets: 2,
-        hitRatePercent: 0,
-        matchedCount: 0,
-        missedCount: 12,
-        averageMissedRank: 25,
-      },
-      recommendedAdjustments: {
-        momentumDecayRate: 0.16,
-        poissonGapMinRatio: 0.8,
-        poissonGapMaxRatio: 2.2,
-        coOccurrenceWeight: 0.85,
-        repeatExhaustionPenalty: -0.45,
-        parityDistributionFilter: ['2:4', '3:3', '4:2'],
-        sumRangeFilter: [77, 137],
-        maxConsecutivePairsAllowed: 2,
-      },
-      actionableAdvice:
-        'Cập nhật lại trọng số thuật toán XGBoost cho kỳ quay kế tiếp: Ưu tiên lọc loại trừ các số kiệt sức lặp, đẩy cao trọng số liên kết cặp đồng xuất hiện.',
-    };
-
-    const readmeV100 = `# Thuật toán Dự đoán Xổ số XGBoost AI (v1.0.0 Baseline)
-
-## 1. Kiến trúc mô hình
-- Kết hợp Frequency Counting và Gradient Boosting XGBoost.
-- Đối chuẩn xác suất toàn cầu từ dữ liệu US Powerball & Mega Millions.
-
-## 2. Các tham số chính
-- Momentum Decay Rate λ: 0.12
-- Poisson Gap Window: [0.6, 2.6]
-- Ma trận liên kết cặp số: 0.70
-- Bộ lọc Chẵn/Lẻ: 2:4, 3:3, 4:2`;
-
-    const readmeV110 = `# Báo cáo Cập nhật Thuật toán & Đối chuẩn Toàn cầu (v1.1.0)
-
-## 1. Bối cảnh hiệu chỉnh kỳ 2026-09-28
-- Đối chiếu kết quả kỳ quay Power 6/55 ngày 2026-09-28.
-- Cải tiến: Nâng trọng số liên kết cặp đồng xuất hiện lên 0.85, phạt số lặp kiệt sức -0.45.
-- Tích hợp dữ liệu dị biệt ngẫu nhiên từ giải Powerball Mỹ để kích hoạt điểm rơi hồi quy.`;
-
-    hyperparameters = [
-      {
-        id: 2,
-        version: 'v1.1.0',
-        drawDate: '2026-09-28',
-        category: 'POWER',
-        model: 'XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)',
-        hyperparameters: v110Json,
-        hyperparametersJson: JSON.stringify(v110Json, null, 2),
-        readmeContent: readmeV110,
-        createdAt: '2026-09-28T19:00:00.000Z',
-        note: 'Cập nhật trọng số theo báo cáo đối chiếu vé kỳ quay 2026-09-28',
-      },
-      {
-        id: 1,
-        version: 'v1.0.0',
-        drawDate: '2026-09-20',
-        category: 'ALL',
-        model: 'XGBoost Multi-Factor Optimization',
-        hyperparameters: baselineJson,
-        hyperparametersJson: JSON.stringify(baselineJson, null, 2),
-        readmeContent: readmeV100,
-        createdAt: '2026-09-20T18:00:00.000Z',
-        note: 'Baseline model parameters',
-      },
-    ];
-    nextHyperparameterId = 3;
-    saveHyperparametersToDisk();
-  } catch (err) {
-    console.warn('Failed to load hyperparameters from disk:', err);
+    const parsed = fs.existsSync(HYPERPARAMETERS_FILE) ? JSON.parse(fs.readFileSync(HYPERPARAMETERS_FILE, 'utf8')) : [];
+    hyperparameters = Array.isArray(parsed) ? parsed : [];
+    nextHyperparameterId = Math.max(0, ...hyperparameters.map(row => row.id || 0)) + 1;
+  } catch (error) {
+    console.warn('Cannot load stored hyperparameters', error);
+    hyperparameters = [];
   }
 }
 
@@ -437,28 +190,18 @@ function recordAlgorithmUpdate(
   const versionNum = hyperparameters.length + 1;
   const versionStr = `v1.${versionNum}.0`;
 
-  const defaultReadme = `# Tài liệu Thuật toán Dự đoán Xổ số XGBoost AI (${versionStr})
+  const defaultReadme = `# Configuration ${versionStr}
+Category: ${category}
+Date: ${dateStr}
 
-## 1. Tổng quan phiên bản
-- Áp dụng cho: Vietlott ${category} (Kỳ quay: ${dateStr})
-- Mô hình: XGBoost Multi-Factor Optimization kết hợp đối chuẩn quốc tế US Powerball & Mega Millions.
-
-## 2. Các tham số trọng số chính
-- Hệ số suy giảm quán tính chuỗi (Momentum Decay Rate): ${params.recommendedAdjustments?.momentumDecayRate ?? 0.16}
-- Cửa sổ điểm rơi Poisson: [${params.recommendedAdjustments?.poissonGapMinRatio ?? 0.8}, ${params.recommendedAdjustments?.poissonGapMaxRatio ?? 2.2}]
-- Trọng số liên kết cặp đồng xuất hiện (Co-occurrence Weight): ${params.recommendedAdjustments?.coOccurrenceWeight ?? 0.85}
-- Phạt số lặp kiệt sức (Repeat Exhaustion Penalty): ${params.recommendedAdjustments?.repeatExhaustionPenalty ?? -0.45}
-- Giới hạn tổng giải đấu: [${params.recommendedAdjustments?.sumRangeFilter?.[0] ?? 77}, ${params.recommendedAdjustments?.sumRangeFilter?.[1] ?? 137}]
-
-## 3. Ghi chú hiệu chỉnh
-${note || 'Tự động đồng bộ và tối ưu hóa trọng số thuật toán theo kết quả mở thưởng.'}`;
+${JSON.stringify(params, null, 2)}`;
 
   const newRec: AlgorithmHyperparameterRecord = {
     id: nextHyperparameterId++,
     version: versionStr,
     drawDate: dateStr,
     category,
-    model: params.model || 'XGBoost Multi-Factor Optimization + Global Benchmarking (Powerball/Mega Millions)',
+    model: params.model || 'Configured prediction parameters',
     hyperparameters: params,
     hyperparametersJson:
       typeof params === 'string' ? params : JSON.stringify(params, null, 2),
@@ -772,7 +515,7 @@ function getNextVietlottDraw(
   baseDrawDate: string;
   baseDrawFormatted: string;
 } {
-  const latest = records.filter(r => r.category === category)
+  const latest = eligibleHistory(records).filter(r => r.category === category)
     .map(r => r.drawDate).sort().at(-1) ?? '';
   return nextDraw(category, new Date(), latest, fromDateStr);
 }
@@ -789,7 +532,7 @@ function generateRecommendations(
 ) {
   const isPowerCategory = category === 'POWER';
   const maxLimit = isPowerCategory ? 55 : 45;
-  const catRecords = history.filter(r => r.category === category)
+  const catRecords = eligibleHistory(history).filter(r => r.category === category)
     .sort((a, b) => b.drawDate.localeCompare(a.drawDate));
   const latestOfficial = catRecords[0];
   const baseDrawDate = latestOfficial?.drawDate ?? '';
@@ -802,7 +545,7 @@ function generateRecommendations(
   const baseFormatted = nextDrawInfo.baseDrawFormatted;
   const lotteryName = isPowerCategory ? 'Power 6/55' : 'Mega 6/45';
 
-  const hypVer = getLatestHyperparameters(category)?.version || 'v2.2.0';
+  const hypVer = getLatestHyperparameters(category)?.version ?? null;
 
   // Đánh giá số bóng trùng giữa top10Numbers của thuật toán và kết quả kỳ mở thưởng gần nhất
   // A forecast trained on the latest draw cannot be evaluated against that same draw.
@@ -999,7 +742,7 @@ export function analyzeAndPredict(
     algorithm = 'bayesian_graph'; // Default to the highest ranked algorithm (Top 1)
   }
 
-  const sourceRecords = customRecords ?? records;
+  const sourceRecords = eligibleHistory(customRecords ?? records);
   const seenDates = new Set<string>();
   const categoryRecords = sourceRecords
     .filter((r) => r.category === category && /^\d{4}-\d{2}-\d{2}$/.test(r.drawDate)
@@ -1017,6 +760,7 @@ export function analyzeAndPredict(
     }).reverse();
 
   const totalDraws = categoryRecords.length;
+  const observedPatterns = summarizePatterns(categoryRecords.map(r=>r.numbers), maxLimit);
   if (totalDraws === 0) {
     return {
       status: 'ERROR', category, lotteryType: category, algorithm,
@@ -1597,7 +1341,7 @@ export function analyzeAndPredict(
       } else if (tailCongruenceBonus > 0) {
         tag = 'ĐỒNG DƯ ĐUÔI MOD 10';
         title = `Cặp Đuôi Hàng Đơn Vị (Đuôi ${i % 10})`;
-        reason = `Ghép cặp cùng chữ số hàng đơn vị (đuôi ${i % 10}) với quả banh kỳ trước. Quy luật đồng dư xuất hiện trong 82.1% các kỳ quay.`;
+        reason = `Ghép cùng đuôi ${i % 10} với kỳ trước. Trong lịch sử đã lưu, ${observedPatterns.tailModuloPattern.percentage}% kỳ có ít nhất một cặp cùng đuôi.`;
       } else if (resonanceScore >= 0.6) {
         tag = 'CỘNG HƯỞNG SÓNG HÀI';
         title = 'Đúng Đỉnh Pha Chu Kỳ Fourier';
@@ -1703,7 +1447,7 @@ export function analyzeAndPredict(
 
       let tag = 'PHÂN PHỐI CHUẨN';
       let title = 'Giá Trị Kỳ Vọng Ổn Định';
-      let reason = `Tần suất mô phỏng đạt ${Math.round(ev * 10000) / 100}% trong 100.000 lượt quay Monte Carlo, duy trì phương sai ổn định trong dải tin cậy 95%.`;
+      let reason = `Tần suất mô phỏng đạt ${Math.round(ev * 10000) / 100}% trong ${SIM_RUNS.toLocaleString('vi-VN')} lượt mô phỏng có trọng số.`;
 
       if (drawGap[i] === 0 && mainFrequency[i] >= 4) {
         tag = 'SỐ LẶP QUÁN TÍNH';
@@ -1712,7 +1456,7 @@ export function analyzeAndPredict(
       } else if (ev >= 0.155) {
         tag = 'HỘI TỤ EV CAO';
         title = 'Điểm Hội Tụ Xác Suất Cực Đại';
-        reason = `Đạt tỷ lệ xuất hiện vượt trội ${(ev * 100).toFixed(2)}% qua 100.000 kịch bản ngẫu nhiên có trọng số, có giá trị kỳ vọng (EV) cao hàng đầu giải thưởng.`;
+        reason = `Xuất hiện ${(ev * 100).toFixed(2)}% trong ${SIM_RUNS.toLocaleString('vi-VN')} lượt mô phỏng có trọng số; đây là tần suất mô phỏng.`;
       } else if (drawGap[i] > avgCycle * 2.0) {
         tag = 'ĐIỂM KỲ DỊ NGẪU NHIÊN';
         title = 'Biến Cố Kỳ Dị Được Kích Hoạt';
@@ -1946,7 +1690,7 @@ export function analyzeAndPredict(
         const thisTail = i % 10;
         const tailMatches = lastTails.filter((t: number) => t === thisTail).length;
         if (tailMatches >= 1) {
-          tailCongruenceBonus = 0.22; // 81.8% các kỳ Power có ít nhất 1 cặp cùng đuôi
+          tailCongruenceBonus = 0.22; // Historical heuristic; not an observed success rate: các kỳ Power có ít nhất 1 cặp cùng đuôi
         }
       }
 
@@ -2702,7 +2446,7 @@ export function analyzeAndPredict(
       probabilityPercent: Math.round(sPercent * 10) / 10,
       specialFrequency: specialFrequency[recommendedSpecialNumber] || 0,
       totalFrequency: (mainFrequency[recommendedSpecialNumber] || 0) + (specialFrequency[recommendedSpecialNumber] || 0),
-      drawGap: specialDrawGap[recommendedSpecialNumber] || 2,
+      drawGap: specialDrawGap[recommendedSpecialNumber] ?? null,
       tag: 'CỨU CÁNH JACKPOT 2',
       description: `Bảo hiểm Jackpot 2 (${algName}): Khi trật bất kỳ 1 trong 6 số chính [${selected6Numbers.join(', ')}], số phụ ${recommendedSpecialNumber < 10 ? '0' + recommendedSpecialNumber : recommendedSpecialNumber} đạt chỉ số tương quan bù trừ cao nhất theo ma trận lịch sử để trúng giải Jackpot 2.`,
     };
@@ -3093,7 +2837,7 @@ export function analyzeAndPredict(
       categoryTag: 'drift',
       icon: '↔️',
       numbers: seq1Numbers,
-      specialNumber: category === 'POWER' ? (recommendedSpecialNumber || 48) : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq1Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq1Numbers),
       deltaFormula: 'N_mới = N_gốc ± 1',
       transformationRule: `Áp dụng bước nhảy biên độ sát nút Δ = ±1 lên các vị trí trong dãy số nguyên thủy, hóa giải hiện tượng lệch biên độ 1 nút trong chu kỳ mở thưởng.`,
@@ -3110,10 +2854,10 @@ export function analyzeAndPredict(
       categoryTag: 'special',
       icon: '⭐',
       numbers: seq2Numbers,
-      specialNumber: category === 'POWER' ? 40 : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq2Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq2Numbers),
       deltaFormula: 'N_mới ← Banh Phụ / Gương Chiếu',
-      transformationRule: `Banh phụ ⭐${recommendedSpecialNumber || 48} chuyển vị thành banh chính, kết hợp các cặp số đảo vị gương thập phân đối xứng.`,
+      transformationRule: `Biến thể sử dụng số phụ được xếp hạng ${recommendedSpecialNumber ?? 'chưa có'}, kết hợp số đảo vị hợp lệ trong miền ${maxLimit} số.`,
       keyShifts: seq2Numbers.filter((n: number) => !pureNumbers.includes(n)).map((n: number) => String(n).padStart(2, '0'))
     },
     {
@@ -3124,7 +2868,7 @@ export function analyzeAndPredict(
       categoryTag: 'modulo',
       icon: '🔗',
       numbers: seq3Numbers,
-      specialNumber: category === 'POWER' ? 26 : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq3Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq3Numbers),
       deltaFormula: 'N_mới ≡ N_gốc (mod 10) + Dãn cách cụm',
       transformationRule: `Ghép cặp số có cùng chữ số hàng đơn vị (quy luật đồng dư mod 10) và giải nén năng lượng cụm dồn từ kỳ trước sang các dải phân vùng dãn cách.`,
@@ -3138,7 +2882,7 @@ export function analyzeAndPredict(
       categoryTag: 'core',
       icon: '🏆',
       numbers: seq4Numbers,
-      specialNumber: category === 'POWER' ? (recommendedSpecialNumber || 48) : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq4Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq4Numbers),
       deltaFormula: 'Tổng hợp tối ưu Pareto Wheeling',
       transformationRule: `Tổ hợp số tinh hoa nhất hội tụ đồng thời Quán tính lặp, Bước nhảy lân cận ±1 và Cầu nối chuyển vị banh phụ, tối ưu hóa điểm số bao phủ giải thưởng.`,
@@ -3146,16 +2890,16 @@ export function analyzeAndPredict(
     },
     {
       id: 'high_zone_surge',
-      name: 'Dãy Biến Số #5: Đón Đầu Dải Cao 4x & 5x (Chiến Lược Bắt 44, 53)',
-      badge: 'Bứt Phá Dải Cao 40-55',
+      name: 'Dãy biến thể theo xếp hạng dải cao',
+      badge: `Dải ${highThreshold}-${maxLimit}`,
       badgeClass: 'bg-danger text-white',
       categoryTag: 'high_zone',
       icon: '🚀',
       numbers: seq5Numbers,
-      specialNumber: category === 'POWER' ? 52 : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq5Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq5Numbers),
-      deltaFormula: 'N_mới ∈ Phân vùng 40s - 55 (Đồng dư & Quán tính đỉnh)',
-      transformationRule: `Đón đầu xu hướng phân dồn sang dải cao (bóng 44, 53...). Thống kê CSDL chứng minh hơn 82% các kỳ Power 6/55 xuất hiện từ 1 đến 3 bóng ở dải 40-55.`,
+      deltaFormula: `Số thuộc dải ${highThreshold}-${maxLimit} được chọn theo xếp hạng`,
+      transformationRule: `Có ${categoryRecords.filter(draw=>draw.numbers.some(n=>n>=highThreshold)).length}/${categoryRecords.length} kỳ lịch sử chứa số thuộc dải ${highThreshold}-${maxLimit}. Dãy này lấy các số dải cao có điểm xếp hạng tốt nhất còn phù hợp.`,
       keyShifts: seq5Numbers.filter((n: number) => n >= highThreshold).map((n: number) => String(n).padStart(2, '0'))
     },
     {
@@ -3166,7 +2910,7 @@ export function analyzeAndPredict(
       categoryTag: 'near_miss',
       icon: '🛡️',
       numbers: seq6Numbers,
-      specialNumber: category === 'POWER' ? (recommendedSpecialNumber || 48) : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq6Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq6Numbers),
       deltaFormula: 'N_mới = N_gốc ± 1 hoặc ± 2',
       transformationRule: `Mở rộng biên độ bọc lót sai số 1 và 2 bước nhảy lân cận xung quanh các tọa độ hạt nhân của AI, chuyển hóa các vé trúng sát nút thành vé trúng trọn vẹn.`,
@@ -3180,7 +2924,7 @@ export function analyzeAndPredict(
       categoryTag: 'clique',
       icon: '🔗',
       numbers: seq7Numbers,
-      specialNumber: category === 'POWER' ? 38 : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq7Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq7Numbers),
       deltaFormula: 'Gom cụm Lift Co-occurrence cao nhất CSDL',
       transformationRule: `Neo giữ cố định các cặp số có lực hút tương quan đồng xuất hiện cao nhất trong CSDL (Anti-Scattering), ngăn chặn hiện tượng các số trúng bị tản mạn sang nhiều vé khác nhau.`,
@@ -3194,7 +2938,7 @@ export function analyzeAndPredict(
       categoryTag: 'cold_rebound',
       icon: '📈',
       numbers: seq8Numbers,
-      specialNumber: category === 'POWER' ? 18 : undefined,
+      specialNumber: category === 'POWER' ? specialFor(recommendedSpecialNumber, seq8Numbers, poolCandidates) : undefined,
       composition: calcTicketComp(seq8Numbers),
       deltaFormula: 'Giải phóng áp lực Poisson Gap tới hạn',
       transformationRule: `Đón đầu sự phục hồi xác suất của các bóng vắng bóng vượt ngưỡng kỳ vọng lý thuyết kết hợp nhịp rơi chu kỳ vàng Poisson 3-6 kỳ.`,
@@ -3425,7 +3169,7 @@ export function analyzeAndPredict(
     hedgingRationale: `Dãy vé bọc lót hóa giải bẫy lệch 1 nút: Áp dụng chuyển dịch sai phân Δ = ±1 cho các bóng chịu áp lực nén cao nhất, bảo toàn tối đa xác suất trúng giải Jackpot và tránh trượt sát nút đáng tiếc.`
   };
 
-  const commonPatternsAnalysis = summarizePatterns(categoryRecords.map(r => r.numbers), maxLimit);
+  const commonPatternsAnalysis = observedPatterns;
 
   const realityVsAiAnalysis = undefined;
 
@@ -3437,7 +3181,7 @@ export function analyzeAndPredict(
     algorithmName: algName,
     algorithmDesc: algDesc,
     modelVersion: algorithm === 'temporal_learning' ? 'temporal-links-v1' : activeHyp.model,
-    hyperparameterVersion: activeHyp.version || 'v1.1.0',
+    hyperparameterVersion: activeHyp.version,
     activeAdjustments: adjustments,
     numbers: top10Numbers,
     tickets: generatedTickets,
@@ -3495,6 +3239,10 @@ async function startServer() {
 
   app.use(express.json());
   app.get('/api/lottery-sync/status', (_req, res) => res.json(lotterySync.status()));
+  app.get('/api/lottery-sync/quality', (_req, res) => {
+    const eligible = eligibleHistory(records).length;
+    res.json({ total: records.length, eligible, excluded: records.length - eligible, records });
+  });
 
   // CORS headers
   app.use((req, res, next) => {
@@ -3684,7 +3432,7 @@ async function startServer() {
   app.get('/api/analyze/relationship-learning', (req: Request, res: Response) => {
     const category = String(req.query.category || 'POWER').toUpperCase() === 'POWER' ? 'POWER' : 'MEGA';
     const date = typeof req.query.date === 'string' ? req.query.date : undefined;
-    const available = records.filter(r => r.category === category);
+    const available = eligibleHistory(records).filter(r => r.category === category);
     if (date && !available.some(r => r.drawDate === date)) return res.status(404).json({
       status: 'DRAW_NOT_FOUND', requestedDate: date, availableAsOfDate: available.map(r => r.drawDate).sort().at(-1) ?? null, verifiedWinningTickets: [] });
     const history = available.filter(r => !date || r.drawDate <= date);
@@ -3700,7 +3448,7 @@ async function startServer() {
       req.query.category.toUpperCase() === 'POWER'
         ? 'POWER'
         : 'MEGA';
-    const list = records
+    const list = eligibleHistory(records)
       .filter((r) => r.category === category)
       .sort(
         (a, b) =>
@@ -3841,7 +3589,7 @@ async function startServer() {
       const algorithm = String(req.query.algorithm || 'deep_stacking');
       const reqDate = req.query.date ? String(req.query.date).trim() : '';
 
-      const catRecords = records
+      const catRecords = eligibleHistory(records)
         .filter((r) => r.category === category)
         .sort(
           (a, b) =>
@@ -4055,7 +3803,7 @@ async function startServer() {
           ? 'MEGA'
           : 'POWER';
 
-      const catRecords = records
+      const catRecords = eligibleHistory(records)
         .filter((r) => r.category === category)
         .sort(
           (a, b) =>
@@ -4196,7 +3944,7 @@ async function startServer() {
           : new Date().toISOString().slice(0, 10);
 
       // Evaluate against official draw if exists
-      const official = records.find(
+      const official = eligibleHistory(records).find(
         (r) => r.category === cat && r.drawDate === targetDate
       );
 
@@ -4260,7 +4008,7 @@ async function startServer() {
   app.post('/api/analyze/check-tickets', (req: Request, res: Response) => {
     const { category, drawDate, tickets } = req.body;
     const cat: 'POWER' | 'MEGA' = category === 'POWER' ? 'POWER' : 'MEGA';
-    const official = records.find(
+    const official = eligibleHistory(records).find(
       (r) => r.category === cat && r.drawDate === drawDate
     );
     if (!official) {
@@ -4414,7 +4162,7 @@ async function startServer() {
       decadeDistribution,
       cliques,
       summary: `Phát hiện ${pairs.filter(p => p.count > 0).length} cặp có liên kết lịch sử. Cặp có lực hút mạnh nhất: ${strongestPair}. Cụm liên kết tam giác: ${cliques.length} cụm.`,
-      cliqueWheelingAdvice: 'Thuật toán v1.6.0 đã tích hợp Ma trận Co-occurrence Clique Optimization: Tự động gom các cụm số có liên kết đồng xuất hiện cao nhất vào cùng 1 dãy vé, ngăn chặn tình trạng số trúng bị xé nhỏ sang nhiều vé khác nhau.'
+      cliqueWheelingAdvice: `Observed ${cliques.length} co-occurring clusters in the supplied history; no winning-ticket guarantee.`
     };
   };
 
@@ -4431,7 +4179,7 @@ async function startServer() {
       const limit = isNaN(limitParam) || limitParam <= 0 ? 5 : Math.min(100, limitParam);
       const reqDate = req.query.date ? String(req.query.date).trim() : '';
 
-      const catRecords = records
+      const catRecords = eligibleHistory(records)
         .filter((r) => r.category === category)
         .sort((a, b) => b.drawDate.localeCompare(a.drawDate));
 
@@ -4450,290 +4198,6 @@ async function startServer() {
           testedRecords.unshift(catRecords[targetIndex]);
         }
       }
-
-      const powerExplanations: Record<string, {
-        whyWinningBallsAppeared: Array<{ number: number; isSpecial?: boolean; role: string; drawGap: number; frequency: number; explanation: string }>;
-        whyAlgorithmMissed: { summary: string; primaryReason: string; missedFactors: string[]; correctiveAdjustment: string };
-      }> = {
-        '2026-10-13': {
-          whyWinningBallsAppeared: [
-            { number: 2, role: 'Sóng Phản Xạ Cấp Số Cộng (04 - 2 = 02)', drawGap: 3, frequency: 3, explanation: 'Bước sóng phản xạ cơ học đối xứng từ tam giác 04-05-06 kỳ trước giật lùi 2 đơn vị sinh ra số 02.' },
-            { number: 14, role: 'Điểm Rơi Poisson Chân Không Dải 10-19', drawGap: 4, frequency: 4, explanation: 'Bù đắp khoảng trống phân vị sau khi kỳ 10/10 bỏ trống hoàn toàn dải 10-19. Vé 1 của AI bắt đúng 100% số này!' },
-            { number: 27, role: 'Nhịp Đảo Lặp Cách 1 Kỳ (Skip-1 Repeat)', drawGap: 1, frequency: 3, explanation: 'Nổ kỳ 06/10, nghỉ kỳ 10/10 (gap 1) và tái nổ kỳ 13/10 theo chuỗi Markov bậc 2. Vé 3 của AI bắt đúng số này!' },
-            { number: 40, role: 'Lô Gan Cực Sâu Phá Đáy & Cặp Đuôi 0 {40, 50}', drawGap: 18, frequency: 1, explanation: 'Vắng bóng 18 kỳ từ 25/08/2026! Đạt điểm tới hạn xả nén Poisson (Pressure Release) kết hợp đồng dư mod-10 đuôi 0 cùng số 50.' },
-            { number: 50, role: 'Cân Bằng Phân Vùng Dải Cao Zone 3 & Đuôi 0', drawGap: 7, frequency: 2, explanation: 'Tái xuất hiện sau khi nổ ở bóng phụ kỳ 19/09, cân bằng phân bổ dải cao. Vé 2 của AI bắt đúng số này!' },
-            { number: 53, role: 'Chuyển Vị Banh Phụ Kỳ 10/10 Sang Banh Chính (Special-to-Main)', drawGap: 0, frequency: 4, explanation: 'Banh phụ ⭐53 kỳ 10/10 chuyển vị thành công sang banh chính kỳ 13/10! Vé 1 của AI bắt đúng 100% số này!' },
-            { number: 26, isSpecial: true, role: 'Banh Phụ Jackpot 2 Bám Biên Sát Nút Banh Chính 27', drawGap: 5, frequency: 2, explanation: 'Banh phụ 26 nổ vị trí thứ 7 bám biên sát banh chính 27 (delta = -1) theo cơ chế dao động lồng quay phụ.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ quay 13/10 ghi nhận nghịch lý băm nhỏ vé: Dàn 3 vé AI bắt đúng 4/6 số chính [14, 27, 50, 53], nhưng ma trận bánh xe trải đều khiến 4 số bị xé lẻ vào 3 vé khác nhau (Vé 1 trúng [14, 53]; Vé 2 trúng [50]; Vé 3 trúng [27]), dẫn đến mỗi dãy chỉ trúng tối đa 2 số! 2 số trượt hoàn toàn là 02 và 40 (cùng banh phụ 26).',
-            primaryReason: 'Bẫy Phân Rã Bánh Xe (Fragmented Wheel Dispersion), Bỏ sót Lô Gan cực sâu 40 (gap 18), và Phản xạ cấp số cộng 02.',
-            missedFactors: [
-              'Ma trận bánh xe cũ dàn đều 4 số mạnh sang 3 vé khiến không vé nào đạt từ 3 số trúng trở lên.',
-              'Bộ lọc Poisson cũ loại bỏ số 40 vì xem lô gan sâu 18 kỳ là xác suất chết, không kích hoạt cơ chế xả nén Poisson.',
-              'Chưa tích hợp biến số Đồng Dư Modulo-10 Đuôi 0 (cặp 40 - 50 cùng nổ).',
-              'Chưa tích hợp bước sóng phản xạ cấp số cộng lùi 2 đơn vị từ cụm tam giác liền kề 04-05-06 sinh ra số 02.'
-            ],
-            correctiveAdjustment: 'Nâng cấp toàn diện lên v2.0.0: Kích hoạt 6 biến số mới (Mod-10 Tail Congruence {40, 50}, Deep Gan Rebound 40, Arithmetic Inversion 02, Special-Main Cling {26, 27}, Skip-1 Repeat 27, và Bánh Xe Hội Tụ Hạt Nhân Concentrated Wheeling gom trọn cụm số mạnh vào 1 vé duy nhất, nâng từ trúng 2 số rời rạc lên Giải Nhì 4 số).'
-          }
-        },
-        '2026-10-10': {
-          whyWinningBallsAppeared: [
-            { number: 4, role: 'Nhịp Hồi Phục Sau 3 Kỳ (Tần Suất Tháng)', drawGap: 3, frequency: 3, explanation: 'Tái xuất hiện sau kỳ 28/09 (gap 3), là số hạt nhân dải đầu với 3 lần nổ trong chu kỳ.' },
-            { number: 5, role: 'Cụm Tam Giác Liền Kề Domino (Triplet 04-05-06)', drawGap: 8, frequency: 2, explanation: 'Nổ liên tiếp trong chuỗi 3 số cạnh nhau [04, 05, 06], kích hoạt hiệu ứng cộng hưởng lồng cầu.' },
-            { number: 6, role: 'Cụm Tam Giác Liền Kề & Lặp Quán Tính Chu Kỳ Ngắn', drawGap: 1, frequency: 2, explanation: 'Nổ kỳ 06/10 và tái nổ ngay kỳ 10/10 (gap 1), tạo chóp chuỗi tam giác 04-05-06.' },
-            { number: 29, role: 'Lô Gan Hồi Quy Bù Trừ Dải Chân Không', drawGap: 7, frequency: 2, explanation: 'Vắng 7 kỳ, bứt phá bù đắp khoảng trống sau khi bỏ qua toàn bộ dải 10-19.' },
-            { number: 32, role: 'Di Cư Xuyên Kỳ Mega sang Power (Cross-Game Carrier)', drawGap: 6, frequency: 3, explanation: 'Kỳ Mega 09/10 vừa nổ 32, bóng tiếp tục bảo toàn động năng di cư sang Power 10/10.' },
-            { number: 44, role: 'Bứt Phá Lô Gan Cực Hạn Phân Vùng 40s', drawGap: 10, frequency: 2, explanation: 'Lô gan 10 kỳ tích lũy đạt điểm rơi Poisson, nổ giải phóng dải chẵn kép 44.' },
-            { number: 53, isSpecial: true, role: 'Banh Phụ Jackpot 2 Cân Bằng Con Lắc Cực Biên', drawGap: 4, frequency: 3, explanation: 'Nổ vị trí số 7 dải cực cao 50-55 để cân bằng mô-men con lắc lồng cầu sau khi dàn chính dồn về cụm nhỏ.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ quay 10/10 xuất hiện chuỗi tam giác liền kề 04-05-06 và số di cư xuyên hệ thống 32. Vé khuyến nghị #3 bắt đúng 2 số chính [05, 32] + Bắt chính xác 100% banh phụ Jackpot 2 (53); Vé #2 bắt đúng số 06.',
-            primaryReason: 'Bộ lọc chuỗi liên tiếp cũ (maxConsecutivePairsAllowed <= 2) và thiếu trọng số Cross-Game Carrier cho bóng di cư 32.',
-            missedFactors: [
-              'Bộ lọc cũ chỉ cho phép tối đa 2 cặp liên tiếp nên tự động triệt tiêu các tổ hợp có chuỗi 3 số [04, 05, 06].',
-              'Chưa tích hợp dữ liệu mở thưởng kỳ Mega 09/10 để bắt bóng di cư 32 sang Power 10/10.',
-              'Bẫy lệch sát nút ±1 khiến vé #2 chọn 28 (nổ 29) và vé #3 chọn 45 (nổ 44).'
-            ],
-            correctiveAdjustment: 'Nâng cấp v1.8.0: Nâng maxConsecutivePairsAllowed lên 3, tăng trọng số Triplet Cluster (+0.92), tích hợp Cross-Game Carrier (+0.89) và dung sai bẫy biên neighborDriftTolerance.'
-          }
-        },
-        '2026-10-06': {
-          whyWinningBallsAppeared: [
-            { number: 7, role: 'Số Lặp Quán Tính Chuỗi Markov', drawGap: 0, frequency: 4, explanation: 'Nổ liên tiếp từ kỳ 03/10 (gap 0), duy trì nhịp lặp trạng thái vững chắc với 4 lần nổ trong tháng.' },
-            { number: 18, role: 'Số Lặp Cặp Bài Trùng Markov', drawGap: 0, frequency: 5, explanation: 'Nổ liên tiếp từ kỳ 03/10 (gap 0, nổ 5 lần), cộng hưởng trực tiếp từ cặp tương tác 07-18 có 3 lần nổ chung lịch sử.' },
-            { number: 24, role: 'Điểm Rơi Poisson Chuẩn Hóa Z-Score', drawGap: 7, frequency: 3, explanation: 'Khoảng cách vắng bóng 7 kỳ rơi đúng đỉnh hàm mật độ phân vị Poisson (gapRatio = 0.76), phục hồi điều hòa sau kỳ 15/09.' },
-            { number: 27, role: 'Cộng Hưởng Sóng Hài Fourier Chu Kỳ 6', drawGap: 6, frequency: 2, explanation: 'Chu kỳ hồi phục 6 kỳ dao động tuần hoàn, tương thích cặp phân vùng 24-27.' },
-            { number: 6, role: 'Bù Lấp Phân Vùng Hàng Đơn Vị', drawGap: 6, frequency: 1, explanation: 'Vắng 6 kỳ, xuất hiện giải tỏa khoảng trống phân vị dải 1-9 theo định lý phân phối chuẩn Ergodic.' },
-            { number: 20, role: 'Bứt Phá Lô Gan Cực Hạn Phân Vùng', drawGap: 20, frequency: 0, explanation: 'Lô gan sâu 20 kỳ bứt phá bất ngờ vượt qua ngưỡng quán tính thông thường, giải phóng năng lượng tích lũy.' },
-            { number: 1, isSpecial: true, role: 'Banh Phụ Jackpot 2 Tích Động Năng', drawGap: 3, frequency: 4, explanation: 'Số nóng lồng cầu nổ vị trí bóng thứ 7, chuẩn bị cho nhịp chuyển vị ở các kỳ tiếp theo.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ quay 06/10 ghi nhận hiện tượng nổ lặp kép (Double Repeat) 07 & 18 từ kỳ trước và dải điểm rơi ngắn 6-7 kỳ. Thuật toán phiên bản cũ đã mắc bẫy phạt số lặp kiệt sức và bẫy lọc khoảng cách hẹp.',
-            primaryReason: 'Bẫy Phạt Số Lặp Kiệt Sức (Repeat Exhaustion Penalty) & Ngưỡng cửa sổ Poisson cũ loại bỏ nhịp nổ ngắn.',
-            missedFactors: [
-              'Thuật toán cũ áp dụng hình phạt -0.45 và điểm trễ 0.20 cho các số vừa nổ kỳ trước (gap = 0), khiến cả 2 số trúng 07 và 18 bị loại khỏi danh sách ưu tiên.',
-              'Ngưỡng Poisson cũ gapRatio >= 0.80 loại bỏ các số có gap 6-7 (gapRatio = 0.65 - 0.76) như 06, 24, 27.',
-              'Thiếu cơ chế đánh giá bước nhảy lặp từ kỳ trước khiến các số trúng bị phân tán, không được gom vào cùng một dãy vé.'
-            ],
-            correctiveAdjustment: 'Nâng cấp toàn diện lên DSE-Copula (v1.7.0): Thưởng điểm quán tính lặp Markov (+0.45), mở rộng dải điểm rơi Poisson [0.35 - 2.80], tích hợp ma trận chuyển dịch Markov-2 và giải thuật Co-occurrence Clique Wheeling gom trọn các số có liên kết cao vào cùng 1 vé.'
-          }
-        },
-        '2026-10-03': {
-          whyWinningBallsAppeared: [
-            { number: 7, role: 'Nhịp Hồi Quy Chu Kỳ Ngắn', drawGap: 3, frequency: 3, explanation: 'Tái xuất hiện sau kỳ 22/09, nhịp dao động tuần hoàn 3 kỳ.' },
-            { number: 11, role: 'Hạt Nhân Tần Suất Cao Nhất', drawGap: 2, frequency: 5, explanation: 'Nổ các ngày 19/09, 22/09 và tiếp tục nổ 03/10, quán tính chuỗi cực lớn.' },
-            { number: 13, role: 'Nhịp Lặp Lại Nối Tiếp', drawGap: 1, frequency: 3, explanation: 'Nổ kỳ 28/09 và tái xuất hiện kỳ 03/10, tương tác cặp với số 11.' },
-            { number: 16, role: 'Bù Lấp Phân Vùng 10-19', drawGap: 8, frequency: 1, explanation: 'Giải tỏa khoảng trống phân vùng sau 8 kỳ tích lũy.' },
-            { number: 18, role: 'Hạt Nhân Quán Tính Phân Vùng Giữa', drawGap: 2, frequency: 4, explanation: 'Nổ các ngày 19/09, 26/09 và tiếp tục nổ 03/10.' },
-            { number: 54, role: 'Bật Lò Xo Dải Cao Biên Trên', drawGap: 5, frequency: 3, explanation: 'Nổ lại sau kỳ 12/09, giữ phân bổ dải cao 50-55.' },
-            { number: 41, isSpecial: true, role: 'Banh Phụ Jackpot 2 Đột Biến', drawGap: 2, frequency: 2, explanation: 'Banh phụ xuất hiện ở lồng cầu số 7.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ 03/10 lồng cầu tập trung mạnh vào phân vùng 10-19 (11, 13, 16, 18).',
-            primaryReason: 'Tập trung mật độ cụm dải hẹp 10-19.',
-            missedFactors: [
-              'Thuật toán chọn các số dải rộng thay vì nhận diện được việc lồng cầu tụ cụm dải 10-19.',
-              'Bỏ lỡ cặp 11-18 và 13-18.'
-            ],
-            correctiveAdjustment: 'Tăng trọng số Co-occurrence Clique Optimization để gom các số cùng dải phân vùng khi mật độ cụm tăng cao.'
-          }
-        },
-        '2026-09-28': {
-          whyWinningBallsAppeared: [
-            { number: 2, role: 'Lô Gan Hồi Quy Sâu', drawGap: 12, frequency: 2, explanation: 'Vắng 12 kỳ liên tiếp, đạt ngưỡng giới hạn đàn hồi Poisson (gapRatio = 1.31) kích hoạt điểm nổ bật lò xo.' },
-            { number: 4, role: 'Nhịp Hồi Quy Chu Kỳ Ngắn', drawGap: 2, frequency: 3, explanation: 'Chu kỳ dao động điều hòa sau 2 kỳ (từng nổ kỳ 15/09), giữ tần suất ổn định 3 lần trong tháng 9.' },
-            { number: 13, role: 'Lô Gan Cực Đại Phân Vùng', drawGap: 15, frequency: 1, explanation: 'Vắng 15 kỳ (vùng gan sâu), xuất hiện để bù lấp khoảng trống phân vùng hàng chục (10-19) theo định lý công thái học Ergodic.' },
-            { number: 17, role: 'Cặp Số Đồng Hành Lịch Sử', drawGap: 4, frequency: 2, explanation: 'Tương tác mạnh với số 35 (nổ cùng nhau 8 lần trong lịch sử Vietlott), tái xuất hiện sau kỳ 05/09.' },
-            { number: 35, role: 'Hạt Nhân Tần Suất Chu Kỳ', drawGap: 3, frequency: 4, explanation: 'Quán quân tần suất tháng 9 (nổ 4 lần: 01/09, 05/09, 12/09, 28/09), sở hữu lực quán tính chuỗi cực mạnh.' },
-            { number: 36, role: 'Cặp Số Liền Kề 35-36', drawGap: 2, frequency: 2, explanation: 'Cộng hưởng từ cặp liên tiếp 35-36, nhịp hồi phục sau kỳ 15/09.' },
-            { number: 11, isSpecial: true, role: 'Banh Phụ Jackpot 2 Lặp Siêu Cường', drawGap: 2, frequency: 5, explanation: 'Số nóng cực hạn (nổ 4 lần các kỳ 01/09, 08/09, 10/09, 15/09), tiếp tục nổ ở vị trí lồng cầu số 7.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Vé mua trùng ngày 28/09 đánh lại dàn hạt nhân kỳ 19/09 (14, 18, 21, 38, 48, 52), chỉ trúng 2/6 (04, 35). Bị trượt 4 số còn lại.',
-            primaryReason: 'Bẫy số lặp trễ pha (Lagged Momentum Trap) & Lồng cầu dồn cụm phân vùng thấp [02, 04, 13, 17].',
-            missedFactors: [
-              'Các số 14 và 52 đã nổ 2 kỳ liên tiếp (17/09, 19/09) nên bước vào pha bão hòa kiệt sức, thuật toán cũ vẫn giữ lại trong vé mua.',
-              'Cửa sổ Poisson cũ [0.8 - 2.2] loại bỏ hai số gan sâu 02 (gap 12) và 13 (gap 15) vì cho rằng quán tính quá thấp.',
-              'Lồng cầu đột ngột dịch chuyển phân vùng: dồn 4 bóng ở dải đầu [02, 04, 13, 17], hoàn toàn vắng bóng dải 20-29 và 40-55.'
-            ],
-            correctiveAdjustment: 'Nới rộng cửa sổ Poisson lên 2.80 kèm Điểm Bật Lò Xo (+0.85) cho số gan > 10; đồng thời trừ điểm bão hòa nếu số đã nổ 2 kỳ liên tiếp.'
-          }
-        },
-        '2026-09-19': {
-          whyWinningBallsAppeared: [
-            { number: 14, role: 'Số Lặp Quán Tính Chuỗi Markov', drawGap: 0, frequency: 4, explanation: 'Nổ liên tiếp từ kỳ 17/09, động lượng quán tính λ = 0.16 duy trì bước nhảy trạng thái ổn định.' },
-            { number: 18, role: 'Chuyển Vị Banh Phụ Sang Banh Chính', drawGap: 0, frequency: 3, explanation: 'Kỳ 17/09 là banh phụ, ngay kỳ này nhảy sang làm banh chính với điểm tương tác cặp cực cao.' },
-            { number: 21, role: 'Lô Gan Hồi Quy Biến Cố Kỳ Dị', drawGap: 21, frequency: 1, explanation: 'Lô gan cực hạn 21 kỳ nổ giải mã trạng thái theo đối chuẩn dữ liệu phân phối xác suất US Powerball.' },
-            { number: 38, role: 'Cân Bằng Phân Vùng 30-39', drawGap: 2, frequency: 3, explanation: 'Nhịp hồi phục sau kỳ 08/09, tương tác chặt chẽ với cặp số 18-38.' },
-            { number: 48, role: 'Điểm Rơi Poisson Vàng', drawGap: 7, frequency: 2, explanation: 'Nằm trọn trong cửa sổ điểm rơi Poisson lý tưởng (gapRatio = 0.76), đạt xác suất phục hồi tối ưu.' },
-            { number: 52, role: 'Số Lặp Chuỗi Markov Dải Cao', drawGap: 0, frequency: 5, explanation: 'Cộng hưởng với số 14, tạo thành cặp song hành 14-52 nổ cùng nhau 2 kỳ liên tiếp.' },
-            { number: 49, isSpecial: true, role: 'Banh Phụ Jackpot 2 Phân Vùng Biên', drawGap: 1, frequency: 2, explanation: 'Bù đắp khoảng trống dải 49-55, tương tác phụ giải Jackpot 2.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ 19/09 đạt kết quả xuất sắc: Vé 1 trúng Jackpot 2 (5/6 + phụ 49), Vé 2 trúng Giải Nhì (4/6).',
-            primaryReason: 'Mô hình XGBoost bắt trọn bộ số hạt nhân Markov và điểm rơi Poisson.',
-            missedFactors: [
-              'Vé 1 chỉ lệch duy nhất số 52 (chọn số 49 làm số chính thay vì số phụ).',
-              'Tổng điểm kỳ này vọt lên 191 (5 Chẵn / 1 Lẻ), phá vỡ bộ lọc tổng cũ [77 - 137].'
-            ],
-            correctiveAdjustment: 'Nới rộng bộ lọc tổng Wheeling lên [75 - 195] để bảo vệ các tổ hợp dải cao không bị cắt bỏ.'
-          }
-        },
-        '2026-09-17': {
-          whyWinningBallsAppeared: [
-            { number: 7, role: 'Chu Kỳ Tuần Hoàn Nhịp 3', drawGap: 3, frequency: 3, explanation: 'Tần suất ổn định, chu kỳ dao động lặp lại nhịp nhàng (nổ 01/09, 10/09 phụ, 17/09 nổ chính).' },
-            { number: 14, role: 'Chuyển Vị Banh Phụ Sang Banh Chính', drawGap: 1, frequency: 3, explanation: 'Kỳ 12/09 là banh phụ, sau 1 kỳ tích lũy đã chuyển vị thành công sang nhóm 6 bóng chính.' },
-            { number: 23, role: 'Quán Tính Siêu Bão Hòa Markov', drawGap: 0, frequency: 6, explanation: 'Nổ liên tục các kỳ 10/09, 12/09, 15/09 (phụ) và tiếp tục bùng nổ kỳ 17/09.' },
-            { number: 31, role: 'Bù Lấp Phân Vùng 30-39', drawGap: 5, frequency: 2, explanation: 'Giải tỏa khoảng trống phân vùng sau 5 kỳ vắng bóng, nhịp phục hồi điều hòa.' },
-            { number: 45, role: 'Điểm Rơi Poisson Tầm Trung', drawGap: 8, frequency: 2, explanation: 'Gap = 8 kỳ, gapRatio = 0.87 kích hoạt điểm rơi phân vị Poisson chuẩn.' },
-            { number: 52, role: 'Hạt Nhân Phân Vùng 50-55', drawGap: 2, frequency: 4, explanation: 'Nhịp nổ sau kỳ 10/09, chuẩn bị cho chuỗi lặp 2 kỳ liên tiếp.' },
-            { number: 18, isSpecial: true, role: 'Banh Phụ Tích Lũy Động Năng', drawGap: 1, frequency: 3, explanation: 'Xuất hiện ở lồng cầu phụ, tạo bàn đạp để nổ bóng chính ở kỳ kế tiếp 19/09.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Vé mua ngày 17/09 đánh theo dàn số kỳ 15/09 (04, 11, 23, 36, 47, 54), chỉ trúng duy nhất số 23 (1/6). Trượt 5 số!',
-            primaryReason: 'Bẫy bám đuổi số nóng cũ (04, 11, 47) khi các số này đồng loạt bước vào kỳ nghỉ chu kỳ.',
-            missedFactors: [
-              'Thuật toán không nhận diện được việc số 14 chuyển vị từ banh phụ ngày 12/09.',
-              'Bỏ lỡ số 07 và 31 do không có cơ chế bù lấp phân vùng trống.'
-            ],
-            correctiveAdjustment: 'Thêm trọng số Special-to-Main Migration Weight (+0.75) để tự động đưa các bóng phụ kỳ trước vào danh sách ưu tiên.'
-          }
-        },
-        '2026-09-15': {
-          whyWinningBallsAppeared: [
-            { number: 4, role: 'Nhịp Hồi Phục Sau 2 Kỳ', drawGap: 2, frequency: 3, explanation: 'Nổ lại sau kỳ 05/09, biên độ dãn cách 4 đơn vị.' },
-            { number: 11, role: 'Hạt Nhân Tần Suất Trực Tâm', drawGap: 1, frequency: 4, explanation: 'Nổ các ngày 01/09, 08/09, 10/09 và tiếp tục nổ 15/09.' },
-            { number: 29, role: 'Lô Gan Đột Biến Phân Vùng 20-29', drawGap: 14, frequency: 1, explanation: 'Vắng 14 kỳ, bứt phá bất ngờ vượt ra ngoài cửa sổ Poisson thông thường.' },
-            { number: 36, role: 'Cân Bằng Phân Vùng Giữa', drawGap: 3, frequency: 2, explanation: 'Dao động điều hòa sau kỳ 08/09.' },
-            { number: 47, role: 'Quán Tính Phân Vùng 40-49', drawGap: 1, frequency: 3, explanation: 'Nổ kỳ 05/09, 08/09 và tái xuất hiện kỳ 15/09.' },
-            { number: 54, role: 'Lô Gan Cận Biên Trên', drawGap: 18, frequency: 1, explanation: 'Vắng 18 kỳ, giải phóng năng lượng tồn tích ở cận biên 54-55.' },
-            { number: 23, isSpecial: true, role: 'Banh Phụ Tích Động Năng', drawGap: 0, frequency: 5, explanation: 'Tiếp tục xuất hiện ở lồng cầu phụ sau khi nổ chính ngày 12/09 và 10/09.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Vé mua ngày 15/09 đánh lại dàn kỳ 12/09 (08, 18, 23, 35, 41, 49), trượt sạch 6 số chính! Chỉ trúng banh phụ 23.',
-            primaryReason: 'Xuất hiện đồng thời 2 số gan sâu (29 vắng 14 kỳ, 54 vắng 18 kỳ) mà thuật toán quán tính hoàn toàn bỏ qua.',
-            missedFactors: [
-              'Bộ lọc chỉ tập trung vào nhóm số nóng (Hot numbers) nên bị triệt tiêu khi kỳ quay có 2 số gan sâu.',
-              'Tổng điểm vọt lên 181, nằm ngoài dải tổng trung bình.'
-            ],
-            correctiveAdjustment: 'Phân bổ tỷ trọng bắt buộc: Trong 6 số, luôn dành ít nhất 1 vị trí cho nhóm Lô Gan Đột Biến (Gap > 12).'
-          }
-        },
-        '2026-09-12': {
-          whyWinningBallsAppeared: [
-            { number: 8, role: 'Nhịp Lặp Tuần Hoàn Nhịp 3', drawGap: 3, frequency: 2, explanation: 'Tái xuất hiện sau kỳ 03/09, cặp số tương hỗ với 18 và 23.' },
-            { number: 18, role: 'Cặp Số Đồng Hành Với 23', drawGap: 1, frequency: 3, explanation: 'Cộng hưởng từ ma trận tương tác cặp 18-23 nổ thường xuyên.' },
-            { number: 23, role: 'Quán Tính Đỉnh Cao Chuỗi Markov', drawGap: 0, frequency: 4, explanation: 'Nổ liên tiếp từ kỳ 10/09, lực quán tính momentum đạt 0.95.' },
-            { number: 35, role: 'Hạt Nhân Tần Suất Chu Kỳ', drawGap: 2, frequency: 3, explanation: 'Nổ ngày 01/09, 05/09 và tiếp tục nổ 12/09.' },
-            { number: 41, role: 'Nhịp Hồi Phục Sau 3 Kỳ', drawGap: 3, frequency: 2, explanation: 'Nổ lại sau kỳ 03/09.' },
-            { number: 49, role: 'Điểm Rơi Phân Vùng Cao', drawGap: 4, frequency: 2, explanation: 'Phân bổ chuẩn hóa biên độ dải 45-55.' },
-            { number: 14, isSpecial: true, role: 'Banh Phụ Tích Lũy Động Năng', drawGap: 3, frequency: 2, explanation: 'Banh phụ chuẩn bị cho bước nhảy sang bóng chính ngày 17/09.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Vé mua ngày 12/09 đánh theo kỳ 10/09 (03, 11, 23, 33, 44, 52), chỉ trúng duy nhất số 23 (1/6). Trượt 5 số!',
-            primaryReason: 'Dính bẫy dồn số chẵn/lẻ và lồng cầu phân tán đều các khoảng chục.',
-            missedFactors: [
-              'Bỏ lỡ cặp số 18-23 và nhịp hồi phục của 08, 41.',
-              'Chỉ có số 23 giữ được quán tính lặp.'
-            ],
-            correctiveAdjustment: 'Tăng trọng số Co-occurrence Matrix lên 0.88 để tự động kéo số 18 đi kèm khi đã chọn số 23.'
-          }
-        }
-      };
-
-      const megaExplanations: Record<string, {
-        whyWinningBallsAppeared: Array<{ number: number; isSpecial?: boolean; role: string; drawGap: number; frequency: number; explanation: string }>;
-        whyAlgorithmMissed: { summary: string; primaryReason: string; missedFactors: string[]; correctiveAdjustment: string };
-      }> = {
-        '2026-10-09': {
-          whyWinningBallsAppeared: [
-            { number: 5, role: 'Sóng Hài Fourier & Cặp Di Cư Đồng Pha (05-32)', drawGap: 3, frequency: 3, explanation: 'Bước nhảy sóng hài lùi 7 đơn vị từ số 12, đồng thời tích lũy động năng bảo toàn di cư sang Power 10/10.' },
-            { number: 7, role: 'Kế Thừa Sóng Di Cư Xuyên Kỳ (Cross-Carrier từ Power 06/10)', drawGap: 2, frequency: 4, explanation: 'Nhận xung lực từ bóng 07 của Power 06/10 và phục hồi chuẩn hóa phân vị sau bẫy lệch sát nút.' },
-            { number: 12, role: 'Hạt Nhân Hội Tụ Điểm Rơi Poisson (Z = +0.75σ)', drawGap: 4, frequency: 5, explanation: 'Tâm điểm hút của phân vùng 10-19, nằm chính xác ở đỉnh hàm mật độ xác suất Poisson.' },
-            { number: 23, role: 'Cặp Số Đối Xứng Gương Chiếu (Mirror Pair 23-32)', drawGap: 2, frequency: 4, explanation: 'Xuất hiện đồng thời cùng số đảo vị 32, tạo nên hiện tượng phản chiếu đối xứng gương hiếm gặp.' },
-            { number: 32, role: 'Cặp Số Đối Xứng Gương Chiếu & Di Cư Liên Kỳ', drawGap: 6, frequency: 3, explanation: 'Cộng hưởng từ cặp 23-32, tạo đà bảo toàn năng lượng nổ tiếp ở kỳ Power 10/10.' },
-            { number: 41, role: 'Quán Tính Lặp Markov Nguyên Vị (Gap 0)', drawGap: 0, frequency: 4, explanation: 'Nổ kép liên tiếp từ kỳ 07/10 (gap 0), duy trì nhịp lặp trạng thái vững chắc của phân vùng 40s.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ quay 09/10 ghi nhận cặp đối xứng gương [23, 32], số lặp 41 và 3 bẫy ép biên ±1. Thuật toán mới v1.8.0 bắt trúng 2 số chính [07, 12] (tăng gấp đôi so với 1 số của v1.7.0).',
-            primaryReason: 'Hiện tượng bẫy ép biên sát nút ±1 (11->12, 13->12, 31->32, 42->41) và cặp đảo vị 23-32.',
-            missedFactors: [
-              'Vé cũ #1 chọn 11, vé #2 chọn 13: Cả hai số này đều lệch đúng 1 đơn vị so với số tâm 12.',
-              'Vé cũ #2 chọn 31 (kết quả nổ 32, lệch +1); Cả 3 vé đều có số 42 (kết quả nổ 41, lệch -1).',
-              'Cặp đảo vị 23 <-> 32 cùng nổ đồng thời khiến mô hình phân tán độc lập bị hụt một nửa cặp.'
-            ],
-            correctiveAdjustment: 'Nâng cấp v1.8.0: Kích hoạt dung sai bẫy biên neighborDriftTolerance, tích hợp ma trận đối xứng gương (Mirror Pair Matrix) và Cross-Game Carrier từ kỳ Power.'
-          }
-        },
-        '2026-10-07': {
-          whyWinningBallsAppeared: [
-            { number: 10, role: 'Bù Lấp Phân Vùng Hàng Chục 10-19', drawGap: 5, frequency: 3, explanation: 'Giải phóng khoảng trống phân vùng sau 5 kỳ tích lũy.' },
-            { number: 14, role: 'Điểm Rơi Poisson Vàng', drawGap: 7, frequency: 4, explanation: 'Nằm ở điểm rơi phân vị Poisson lý tưởng của dải 10-19.' },
-            { number: 36, role: 'Cân Bằng Phân Vùng Giữa 30-39', drawGap: 4, frequency: 3, explanation: 'Dao động điều hòa dải trung tâm bàn quay Mega 6/45.' },
-            { number: 37, role: 'Cặp Số Liền Kề 36-37', drawGap: 1, frequency: 3, explanation: 'Cộng hưởng từ cặp liên tiếp 36-37 sau kỳ 04/10.' },
-            { number: 41, role: 'Hạt Nhân Quán Tính Dải Biên 40s', drawGap: 2, frequency: 5, explanation: 'Tái xuất hiện sau kỳ 02/10, chuẩn bị cho chuỗi lặp kỳ 09/10.' },
-            { number: 43, role: 'Lô Gan Hồi Quy Biên Trên', drawGap: 9, frequency: 2, explanation: 'Vắng 9 kỳ, bứt phá hồi quy về trung bình dải 40-45.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ quay 07/10 xuất hiện cặp liền kề [36, 37] và dồn lực về dải cao 40s [41, 43].',
-            primaryReason: 'Lệch phân bổ dải cao và bỏ lỡ cặp liên tiếp 36-37.',
-            missedFactors: [
-              'Thuật toán cũ phân bổ quá dàn trải dải 20-29 trong khi kỳ này hoàn toàn vắng bóng dải 20s.',
-              'Chưa nhận diện được lực hút của cặp kề cận 36-37.'
-            ],
-            correctiveAdjustment: 'Mở rộng bộ lọc cặp liên tiếp và điều chỉnh trọng số phân vùng động.'
-          }
-        },
-        '2026-10-04': {
-          whyWinningBallsAppeared: [
-            { number: 15, role: 'Nhịp Hồi Phục Sau 4 Kỳ', drawGap: 4, frequency: 3, explanation: 'Nổ lại sau kỳ 25/09, tâm điểm phân vị dải 10-19.' },
-            { number: 20, role: 'Quán Tính Lặp Markov Nối Tiếp', drawGap: 1, frequency: 4, explanation: 'Nổ kỳ 02/10 và tái nổ ngay kỳ 04/10 (gap 1).' },
-            { number: 29, role: 'Lô Gan Hồi Quy Bù Trừ Dải Giữa', drawGap: 8, frequency: 2, explanation: 'Đạt điểm rơi Poisson lý tưởng sau 8 kỳ vắng bóng.' },
-            { number: 37, role: 'Bù Lấp Phân Vùng 30-39', drawGap: 6, frequency: 3, explanation: 'Giải tỏa khoảng trống phân vị sau 6 kỳ tích lũy.' },
-            { number: 40, role: 'Cân Bằng Biên Giữa Dải 30 và 40', drawGap: 5, frequency: 2, explanation: 'Điểm nút phân vị tròn chục 40.' },
-            { number: 45, role: 'Bật Lò Xo Cực Biên Bàn Quay', drawGap: 11, frequency: 2, explanation: 'Lô gan cực biên 45 bứt phá sau 11 kỳ vắng bóng.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ quay 04/10 nổ bóng cực biên 45 và tập trung 4 bóng dải cao 30-45.',
-            primaryReason: 'Bỏ lỡ lô gan sâu 45 và độ lệch tổng điểm vọt lên cao.',
-            missedFactors: ['Bộ lọc tổng cũ cắt bỏ các tổ hợp dải cao.', 'Bỏ lỡ bóng cực biên 45.'],
-            correctiveAdjustment: 'Nới rộng bộ lọc tổng và bổ sung điểm bật lò xo lô gan cực hạn.'
-          }
-        },
-        '2026-10-02': {
-          whyWinningBallsAppeared: [
-            { number: 1, role: 'Bù Lấp Hạt Nhân Cực Biên Trái', drawGap: 6, frequency: 3, explanation: 'Giải phóng dải đầu tiên của bàn quay 6/45.' },
-            { number: 6, role: 'Nhịp Dao Động Điều Hòa Dải Đầu', drawGap: 3, frequency: 4, explanation: 'Nổ ổn định trong chu kỳ tuần hoàn ngắn.' },
-            { number: 20, role: 'Hạt Nhân Tần Suất Dải Giữa', drawGap: 4, frequency: 4, explanation: 'Điểm rơi Poisson chuẩn xác của phân vùng 20s.' },
-            { number: 27, role: 'Quán Tính Lặp Kép Markov (Gap 0)', drawGap: 0, frequency: 4, explanation: 'Nổ liên tiếp từ kỳ 30/09 (gap 0), duy trì động lượng cực mạnh.' },
-            { number: 31, role: 'Nhịp Hồi Phục Sau 2 Kỳ', drawGap: 2, frequency: 3, explanation: 'Tái xuất hiện sau kỳ 27/09, cặp bài trùng với 41.' },
-            { number: 41, role: 'Hạt Nhân Quán Tính Dải Cao', drawGap: 3, frequency: 4, explanation: 'Bắt đầu chuỗi bùng nổ của bóng 41 trong tháng 10.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ 02/10 bắt chính xác số 06 trong Top 6 và bắt trúng cả [06, 27] trong Top 10.',
-            primaryReason: 'Mô hình DSE-Copula bám sát quỹ đạo lồng cầu.',
-            missedFactors: ['Lệch nhẹ ở bóng 01 và 20 do biến động ngẫu nhiên.'],
-            correctiveAdjustment: 'Duy trì tham số v1.7.0 / v1.8.0.'
-          }
-        },
-        '2026-09-30': {
-          whyWinningBallsAppeared: [
-            { number: 2, role: 'Quán Tính Lặp Kép Từ Kỳ Trước (Gap 0)', drawGap: 0, frequency: 5, explanation: 'Nổ liên tiếp từ kỳ 27/09, bảo toàn động lượng chuỗi Markov.' },
-            { number: 9, role: 'Bù Lấp Dải Hàng Đơn Vị', drawGap: 4, frequency: 2, explanation: 'Phục hồi sau nhịp nghỉ 4 kỳ.' },
-            { number: 24, role: 'Điểm Rơi Poisson Vàng', drawGap: 5, frequency: 3, explanation: 'Hội tụ z = +0.65σ trong phân vùng 20s.' },
-            { number: 27, role: 'Bứt Phá Lô Gan Dải 20s', drawGap: 8, frequency: 3, explanation: 'Khởi đầu chuỗi nổ liên tiếp của bóng 27.' },
-            { number: 30, role: 'Nút Phân Vị Tròn Chục', drawGap: 6, frequency: 2, explanation: 'Cân bằng giữa dải 20s và 30s.' },
-            { number: 33, role: 'Cặp Kép 30-33', drawGap: 3, frequency: 3, explanation: 'Cộng hưởng từ ma trận liên kết cặp.' }
-          ],
-          whyAlgorithmMissed: {
-            summary: 'Kỳ 30/09 bắt trúng 2 số chính [02, 24] trong Top 6 và trúng 3 số [02, 24, 27] trong Top 10!',
-            primaryReason: 'Mô hình Deep Stacking dự đoán rất chuẩn xác điểm rơi Poisson và quán tính lặp.',
-            missedFactors: ['Một số bóng trượt do lệch biên độ.'],
-            correctiveAdjustment: 'Khai thác tối đa liên kết cặp Co-occurrence.'
-          }
-        }
-      };
 
       const drawsList = testedRecords.map((r, index) => {
         const drawDate = r.drawDate;
@@ -4787,7 +4251,7 @@ async function startServer() {
           : 0;
 
         // DỰ ĐOÁN WALK-FORWARD CỦA AI TRƯỚC KỲ QUAY NÀY
-        const priorRecords = records.filter(
+        const priorRecords = eligibleHistory(records).filter(
           (rec) => rec.category === category && rec.drawDate < drawDate
         );
         const aiPrediction = analyzeAndPredict(category, algorithm, priorRecords);
@@ -4848,52 +4312,14 @@ async function startServer() {
         const bestAiPrizeAmount = bestAiTicket ? bestAiTicket.prizeAmount : '0 đ';
 
         // Đánh giá nhận định của AI: Có đưa ra nhận định gần đúng không?
-        let aiClosenessRating: 'EXCELLENT' | 'GOOD' | 'DEVIATED' = 'DEVIATED';
-        let aiClosenessBadge = '⚠️ LỆCH PHA BIẾN ĐỘNG';
-        let aiClosenessBadgeClass = 'warning';
-        let isAiClose = false;
-        let aiJudgmentSummary = '';
-        let aiJudgmentReason = '';
+        const isAiClose = matchedIn6Count >= 3;
+        const aiClosenessRating = isAiClose ? 'EXCELLENT' : matchedIn6Count > 0 ? 'GOOD' : 'DEVIATED';
+        const aiClosenessBadge = `Khớp ${matchedIn6Count}/${officialNumbers.length} số chính`;
+        const aiClosenessBadgeClass = isAiClose ? 'success' : 'secondary';
+        const aiJudgmentSummary = `Vé sáu số khớp ${matchedIn6Count} số [${matchedIn6Numbers.join(', ')}]; Top 10 phủ ${aiMatchedCount} số kết quả. Có ${nearMissList.length} số lệch một đơn vị, không tính là số trúng.`;
+        const aiJudgmentReason = `Kiểm thử hồi cứu từ ${priorRecords.length} kỳ trước với cấu hình hiện tại.`;
 
-        if (matchedIn6Count >= 3 || aiMatchedCount >= 4 || (aiWinningTickets.length > 0 && ['JACKPOT 1', 'JACKPOT 2', 'GIẢI NHẤT', 'GIẢI NHÌ'].includes(bestAiPrize))) {
-          aiClosenessRating = 'EXCELLENT';
-          aiClosenessBadge = '🎯 RẤT CHÍNH XÁC / TIỆM CẬN CAO';
-          aiClosenessBadgeClass = 'success';
-          isAiClose = true;
-          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định tiệm cận rất cao! 6 số dự đoán khớp ${matchedIn6Count}/6 số trúng [${matchedIn6Numbers.join(', ')}]${nearMissList.length > 0 ? ` và có ${nearMissList.length} số sát nút ±1` : ''}. Top 10 bắt trúng ${aiMatchedCount}/6 bóng và vé AI trúng ${bestAiPrize} (${bestAiPrizeAmount})!`;
-          aiJudgmentReason = `Mô hình ${aiPrediction.algorithmName} dựa trên các kỳ trước đã giải mã chính xác chu kỳ điểm rơi Poisson và cặp số đồng xuất hiện. Tổng điểm lệch chỉ ${sumDiff} điểm, ${parityMatch ? 'trùng khớp hoàn hảo tỷ lệ chẵn/lẻ ' + predictedOddEven : 'tiệm cận phân phối'}.`;
-        } else if (matchedIn6Count === 2 || (matchedIn6Count === 1 && nearMissList.length >= 2) || nearMissList.length >= 3 || aiMatchedCount === 3 || aiWinningTickets.length > 0) {
-          aiClosenessRating = 'GOOD';
-          aiClosenessBadge = '✅ GẦN ĐÚNG / ĐẠT KỲ VỌNG';
-          aiClosenessBadgeClass = 'primary';
-          isAiClose = true;
-          aiJudgmentSummary = `Dự đoán AI đưa ra nhận định gần đúng (sát thực tế): Khớp ${matchedIn6Count}/6 số trúng [${matchedIn6Numbers.join(', ') || 'đang bám sát'}], có ${nearMissList.length} số lệch sát nút đúng 1 đơn vị (${nearMissList.map(n => `${n.predicted} ↔ ${n.officialNear}`).join(', ')}), ${bestAiPrize !== 'KHÔNG TRÚNG' ? `và vé AI đạt ${bestAiPrize}` : `tổng lệch ${sumDiff} điểm`}.`;
-          aiJudgmentReason = `Mô hình đón đầu được quỹ đạo chính của lồng cầu từ dữ liệu các kỳ trước; một số bóng trượt chỉ vì bước nhảy dao động biên cực nhỏ (±1 đơn vị) hoặc lồng cầu đột ngột dịch chuyển phân vùng.`;
-        } else {
-          aiClosenessRating = 'DEVIATED';
-          aiClosenessBadge = '⚠️ LỆCH PHA BIẾN ĐỘNG';
-          aiClosenessBadgeClass = 'danger';
-          isAiClose = false;
-          aiJudgmentSummary = `Dự đoán bị lệch pha so với kết quả mở thưởng: Bắt được ${matchedIn6Count}/6 số [${matchedIn6Numbers.join(', ') || '0 số'}] trong 6 số chính và ${aiMatchedCount}/6 trong Top 10.`;
-          aiJudgmentReason = `Kỳ quay ghi nhận hiện tượng đột biến (lô gan sâu hoặc bão hòa lặp dồn cụm dải số), vượt ra khỏi kỳ vọng thông thường của phân phối xác suất. Dữ liệu các kỳ trước chưa đủ để bao phủ hết bước nhảy dị biệt này.`;
-        }
-
-        const explanationMap = category === 'MEGA' ? megaExplanations : powerExplanations;
-        const explanation = explanationMap[drawDate] || {
-          whyWinningBallsAppeared: officialNumbers.map((n) => ({
-            number: n,
-            role: 'Phân Phối Chuẩn Tự Nhiên',
-            drawGap: 3,
-            frequency: 3,
-            explanation: `Quả banh ${n < 10 ? '0' + n : n} xuất hiện theo chu kỳ điều hòa phân bổ của bàn quay ${category === 'MEGA' ? 'Mega 6/45' : 'Power 6/55'}.`,
-          })),
-          whyAlgorithmMissed: {
-            summary: `Kỳ quay ngày ${drawDate} được phân tích theo chu kỳ hồi quy xác suất tự nhiên.`,
-            primaryReason: 'Phân bổ ngẫu nhiên điều hòa theo bước nhảy không gian trạng thái.',
-            missedFactors: ['Sai lệch biên độ phân vùng.', 'Nhịp lặp chuỗi ngắn.'],
-            correctiveAdjustment: 'Cập nhật lại ma trận tương tác cặp và dung sai bẫy biên.',
-          },
-        };
+        const explanation = explainDraw(r, priorRecords, aiPredicted6Numbers);
 
         return {
           drawDate,
@@ -4966,146 +4392,9 @@ async function startServer() {
         ? Math.round((grandTotalDistinctMatched / grandTotalOfficialBalls) * 1000) / 10
         : 0;
 
-      const dominantFlaws = category === 'MEGA' ? [
-        'Bẫy ép biên sát nút (Neighbor Drift ±1): AI chọn 11, 13 nổ 12; chọn 31 nổ 32; chọn 42 nổ 41; chọn 08 nổ 07.',
-        'Bỏ lỡ cặp đối xứng gương chiếu (Mirror Digits 23 <-> 32): Hai bóng nổ đồng thời trong cùng 1 kỳ mở thưởng 09/10.',
-        'Bỏ qua sóng di cư xuyên hệ thống (Cross-Game Carrier): Bóng 07 nổ từ Power 06/10 và bóng 32 di cư giữa Mega 09/10 và Power 10/10.',
-        'Bẫy phạt số lặp nguyên vị (Repeat Inertia Penalty): Phạt số 41 khiến trượt bóng nổ kép liên tiếp (gap 0).',
-        'Phân tán cụm số có liên kết cao sang nhiều vé riêng lẻ do thiếu bộ lọc Triplet Cluster.'
-      ] : [
-        'Bẫy phân tán số trúng rải rác: 4 số trúng bị xé nhỏ ra các vé khác nhau do bảng mẫu Wheel Index cơ học cũ không xét tương quan cặp.',
-        'Thiếu liên kết cụm đồ thị (Graph Clique): Các số nổ chung trong lịch sử không được ưu tiên gom vào cùng một dãy vé 6 số.',
-        'Bẫy số nóng trễ pha (Lagged Momentum Trap): Mua vé dựa trên kết quả kỳ vừa xong khi các số đó đã chạm đỉnh và bước vào pha kiệt sức.',
-        'Bỏ lỡ hiện tượng chuyển vị bóng phụ sang bóng chính (Special-to-Main Migration): Banh phụ kỳ trước liên tục nhảy sang làm banh chính kỳ sau.',
-        'Loại trừ nhầm Lô Gan sâu (Gap > 10): Cửa sổ Poisson cũ [0.8 - 2.2] loại bỏ các số gan hồi quy đột biến.'
-      ];
-
-      const recNextDraw = getNextVietlottDraw(category as 'POWER' | 'MEGA');
-
-      const coreRemedies = category === 'MEGA' ? [
-        'Tích hợp dung sai bẫy biên neighborDriftTolerance = 1 để bao bọc các số lệch sát nút ±1.',
-        'Kích hoạt trọng số Cross-Game Carrier (+0.89) khai thác sóng di cư bảo toàn động lượng giữa Power 17/10 và Mega.',
-        'Bổ sung ma trận liên kết cặp đối xứng gương (Mirror Pair Weight +0.86) cho các cặp [23-32].',
-        'Nới rộng bộ lọc chuỗi liên tiếp maxConsecutivePairsAllowed = 3 và nâng trọng số Triplet Cluster (+0.92).',
-        'Mở rộng cửa sổ điểm rơi Poisson [0.45 - 2.85] kết hợp hệ số suy giảm quán tính chuỗi momentumDecayRate = 0.12.',
-        `Khuyến nghị 3 dãy số tối ưu cho kỳ Mega ${recNextDraw.dayName} ${recNextDraw.drawDateFormatted}: Vé A [08, 14, 21, 31, 38, 43], Vé B [05, 12, 23, 32, 38, 44], Vé C [03, 07, 15, 22, 27, 41].`
-      ] : [
-        'Kích hoạt Ma Trận Co-occurrence Clique Optimization: Tự động gom các cụm số có liên kết đồng xuất hiện cao nhất vào cùng 1 dãy vé.',
-        'Gỡ bỏ bảng mẫu Wheel Index cơ học: Thay thế bằng hàm mục tiêu tối ưu hoá liên kết cặp (Pairwise Synergy Score x 2.5).',
-        'Áp dụng Hệ Số Chuyển Vị Bóng Phụ (+0.75): Tự động ưu tiên cao các bóng phụ kỳ liền trước nhảy sang làm bóng chính.',
-        'Mở rộng Cửa Sổ Lô Gan Poisson 2 Tầng [0.70 - 2.80]: Bổ sung Điểm Bật Lò Xo (+0.85) cho các số gan sâu > 10 kỳ.',
-        'Kích hoạt Cửa Sổ Lô Gan Poisson 2 Tầng [0.35 - 2.80]: Khắc phục triệt để việc loại bỏ các số có chu kỳ nổ ngắn 6-7 kỳ.',
-        'Thưởng Điểm Quán Tính Lặp Markov (+0.45): Bảo toàn các số nổ liên tiếp (gap 0) như cặp bài trùng 07 & 18.',
-        'Kích hoạt bộ siêu tham số v2.1.0 DSE-Copula tối ưu toàn diện sau kỳ quay 2026-10-17.'
-      ];
-
-      const recommendedHyperparameters = category === 'MEGA' ? {
-        version: 'v2.1.0',
-        model: 'Deep Stacking Ensemble (DSE-Copula) + Triplet Cluster & Cross-Game Carrier Architecture',
-        drawDate: '2026-10-16',
-        appliedToNextDraw: `MEGA 6/45 (${recNextDraw.drawDateFormatted})`,
-        adjustments: {
-          consecutiveTripletWeight: 0.92,
-          maxConsecutivePairsAllowed: 3,
-          crossGameCarrierWeight: 0.89,
-          neighborDriftTolerance: 1,
-          momentumDecayRate: 0.12,
-          poissonGapMinRatio: 0.45,
-          poissonGapMaxRatio: 2.85,
-          coOccurrenceWeight: 0.96,
-          vacuumDecadeCompensation: 0.85,
-          extremeGanReboundBonus: 0.85,
-          sumRangeFilter: [70, 200],
-          parityDistributionFilter: ['4:2', '3:3', '2:4'],
-        },
-        actionableAdvice: `Áp dụng bộ siêu tham số tối ưu cho kỳ Mega 6/45 ngày ${recNextDraw.drawDateFormatted} (${recNextDraw.dayName}): Tích hợp sóng di cư đối soát từ CSDL, bao phủ dung sai bẫy biên ±1 và cặp đối xứng gương [23-32], tối ưu hóa 3 dãy số khuyến nghị có xác suất trúng cao nhất.`
-      } : {
-        version: 'v1.7.0',
-        model: 'Deep Stacking Ensemble (DSE-Copula) + Markov-2 Transition + Multi-Clique Wheeling',
-        drawDate: '2026-10-06',
-        adjustments: {
-          momentumDecayRate: 0.12,
-          poissonGapMinRatio: 0.35,
-          poissonGapMaxRatio: 2.80,
-          extremeGanReboundBonus: 0.85,
-          specialToMainMigrationWeight: 0.88,
-          adaptiveRepeatWeight: 0.75,
-          sumRangeFilter: [75, 195],
-          coOccurrenceWeight: 0.95,
-          pairwiseSynergyMultiplier: 2.8,
-          cliqueWheelingEnabled: true,
-          decadeDiversityBonus: 1.5,
-          parityDistributionFilter: ['2:4', '3:3', '4:2'],
-          maxConsecutivePairsAllowed: 2,
-        },
-        actionableAdvice: 'Hiệu chỉnh thuật toán toàn diện sau kỳ quay 2026-10-06 (POWER 6/55): Khắc phục hiện tượng trượt cả 6 số do bẫy phạt lặp kiệt sức và bẫy lọc khoảng cách hẹp. Kích hoạt thưởng quán tính lặp Markov cho các số vừa nổ kỳ trước (07, 18), mở rộng cửa sổ điểm rơi Poisson [0.35 - 2.80] để bao phủ nhịp nổ 6-7 kỳ (06, 24, 27) và tích hợp giải thuật gom cụm Co-occurrence Clique Wheeling để không bao giờ phân tán các số trúng sang các vé khác.'
-      };
-
-      const backtestComparison = category === 'MEGA' ? {
-        scope: 'Toàn bộ 29 kỳ Mega 6/45 trong hệ thống',
-        totalHistoricalDraws: catRecords.length,
-        evaluatedDrawsCount: Math.max(0, catRecords.length - 5),
-        v170: {
-          version: 'v1.7.0',
-          top6HitTotal: 19,
-          top6AverageHits: 0.79,
-          latestDrawHits: 1,
-          latestDrawHitNumbers: [12],
-          missedFactors: 'Lệch biên độ ±1, chưa nhận diện sóng di cư Cross-Carrier'
-        },
-        v180: {
-          version: 'v1.8.0',
-          top6HitTotal: 20,
-          top6AverageHits: 0.83,
-          latestDrawHits: 2,
-          latestDrawHitNumbers: [7, 12],
-          improvementPercent: 12.5,
-          advantages: 'Tăng gấp đôi số bóng chính xác kỳ 09/10, bao phủ bẫy biên ±1 và sóng di cư Cross-Carrier'
-        },
-        conclusion: 'Thuật toán mới v1.8.0 cho kết quả đối chiếu tốt hơn và ổn định hơn trên toàn bộ 29 kỳ Mega lịch sử. Đặc biệt ở kỳ gần nhất 09/10, v1.8.0 bắt trúng 2 bóng [07, 12] so với chỉ 1 bóng [12] của v1.7.0.'
-      } : {
-        scope: 'Toàn bộ 21 kỳ Power 6/55 trong hệ thống (từ 20/08/2026 đến 10/10/2026)',
-        totalHistoricalDraws: catRecords.length,
-        evaluatedDrawsCount: catRecords.length,
-        draw0610Performance: {
-          drawDate: '2026-10-06',
-          top6Matched: 3,
-          top6Numbers: [7, 18, 20],
-          top10Matched: 5,
-          top10Numbers: [1, 7, 18, 20, 24],
-          specialMatched: 1,
-          winningTicketsCount: 4,
-          winningTicketsTotal: 5,
-          ticketHitRatePercent: 80.0,
-          prizes: '1 Giải Nhì (500.000 đ: 4 số chính [07, 18, 20, 24] + bóng phụ 01), 3 Giải Ba (50.000 đ: 3 số chính + bóng phụ)',
-          whyItSucceeded: 'Kỳ 06/10 hội tụ trọn vẹn mô hình 4 trụ cột chuẩn: 2 bóng lặp nguyên vị Markov (07, 18), 1 bóng chuyển vị banh phụ (01), 1 bóng lô gan sâu Zone 2 (20) và 1 bóng điểm rơi Poisson (24).'
-        },
-        otherDrawsPerformance: {
-          totalOtherDraws: 20,
-          drawsWithPrizes: 3,
-          drawsWithPrizesPercent: 15.0,
-          totalTicketsTested: 100,
-          winningTicketsCount: 7,
-          ticketHitRatePercent: 7.0,
-          averageTop6Hits: 0.90,
-          averageTop10Hits: 1.15,
-          prizes: '7 Giải Ba (50.000 đ: gồm các kỳ 19/09, 25/08), 0 Giải Nhì, 0 Jackpot',
-          whyOtherDrawsMissed: 'Các kỳ khác xuất hiện các biến động đặc thù mà thuật toán kỳ 06/10 chưa bao bọc: (1) Bẫy lệch sát nút ±1 (gần như kỳ nào cũng lệch 1 đơn vị), (2) Nhịp nhảy cóc gap 1 (lặp sau 2 kỳ thay vì lặp tức thì), (3) Cụm tam giác liền kề 3 bóng (như 04-05-06 kỳ 10/10) bị bộ lọc cặp liên tiếp cũ loại bỏ, (4) Bẫy neo số tĩnh (12, 24, 31 chiếm chỗ Top 10).'
-        },
-        v190UpgradePlan: {
-          version: 'v1.9.0',
-          targetNextDraw: 'POWER 6/55 (13/10/2026)',
-          coreImprovements: [
-            'Dung sai bẫy lệch sát nút ±1 (Neighbor Drift Tolerance): Bổ sung điểm bọc lót cho các bóng liền kề bóng nổ kỳ trước.',
-            'Thưởng nhịp nhảy cóc Skip-Repeat (gap 1): Đón đầu các số nổ ở kỳ t-2 tái xuất hiện.',
-            'Cụm Tam Giác Liền Kề (Triplet Cascade): Nâng maxConsecutivePairsAllowed lên 3, tăng trọng số cụm 3 số (+0.92).',
-            'Sóng Di Cư Cross-Game Carrier (+0.89): Tiếp nhận xung lực từ bóng của giải Mega đối ứng (như bóng 32).',
-            'Khử bẫy neo tĩnh: Tích hợp hệ số phân rã thời gian hàm mũ Recency Momentum để giải phóng các vị trí tĩnh trong Top 10.'
-          ]
-        },
-        conclusion: 'Thuật toán kỳ 06/10/2026 cực kỳ thành công ở kỳ đó (4/5 vé trúng giải, tỷ lệ 80%), nhưng khi áp dụng nguyên xi cho các kỳ khác thì tỷ lệ trúng không cao hơn (chỉ đạt 7-10% số vé và 15-19% số kỳ có giải). Do đó, cần áp dụng bộ tham số cải tiến v1.9.0 để nâng tỷ lệ trúng của các kỳ khác lên cao hơn.'
-      };
-
+      const backtestComparison = summarizeBacktest(drawsList, catRecords.length, algorithm, category);
+      const { dominantFlaws, coreRemedies } = backtestComparison;
+      const recommendedHyperparameters = null;
       const closeDrawsCount = drawsList.filter((d) => d.aiPrediction.judgment.isClose).length;
       const closenessRatePercent = drawsList.length > 0
         ? Math.round((closeDrawsCount / drawsList.length) * 1000) / 10
@@ -5131,7 +4420,7 @@ async function startServer() {
           totalTickets: totalUserTickets,
           winningTickets: winningUserTickets,
           missedTickets: totalUserTickets - winningUserTickets,
-          ticketHitRatePercent: totalUserTickets > 0 ? Math.round((winningUserTickets / totalUserTickets) * 1000) / 10 : 20.0,
+          ticketHitRatePercent: totalUserTickets > 0 ? Math.round((winningUserTickets / totalUserTickets) * 1000) / 10 : null,
           totalDistinctMatchedBalls: grandTotalDistinctMatched,
           totalOfficialBalls: grandTotalOfficialBalls,
           ballHitRatePercent: overallBallHitRatePercent,
@@ -5150,7 +4439,8 @@ async function startServer() {
         recommendedHyperparameters,
         backtestComparison,
         recommendations: generateRecommendations(category as 'POWER' | 'MEGA'),
-        currentHyperparameterVersion: getLatestHyperparameters(category as 'POWER' | 'MEGA')?.version || 'v2.1.0'
+        activeHyperparameters: getLatestHyperparameters(category),
+        currentHyperparameterVersion: getLatestHyperparameters(category as 'POWER' | 'MEGA')?.version ?? null
       });
     } catch (err: any) {
       return res.status(500).json({ status: 'ERROR', message: err.message || 'Lỗi server' });
@@ -5292,17 +4582,20 @@ async function startServer() {
   app.post('/api/analyze/deviation-variables', (req: Request, res: Response) => {
     try {
       const body = req.body || {};
+      if (!body.baseDrawDate || !body.targetDrawDate || !Number.isFinite(Number(body.probabilityShift))) {
+        return res.status(400).json({success:false,message:'Draw dates and a measured probabilityShift are required.'});
+      }
       const newVar: DeviationVariableItem = {
         id: nextDeviationVariableId++,
         category: (body.category || 'MEGA').toUpperCase(),
-        baseDrawDate: body.baseDrawDate || '2026-10-04',
-        targetDrawDate: body.targetDrawDate || '2026-10-07',
+        baseDrawDate: body.baseDrawDate,
+        targetDrawDate: body.targetDrawDate,
         aiPredictedNumber: Number(body.aiPredictedNumber) || 0,
         actualNumber: Number(body.actualNumber) || 0,
         variableDelta: Number(body.variableDelta) || 0,
         variableType: body.variableType || 'NEIGHBOR_DRIFT',
         patternName: body.patternName || 'Biến số Lệch Biên Sát Nút (±1)',
-        probabilityShift: Number(body.probabilityShift) || 0.85,
+        probabilityShift: Number(body.probabilityShift),
         transformationRule: body.transformationRule || '',
         createdAt: body.createdAt || new Date().toISOString(),
         note: body.note || 'Biến số thực nghiệm ghi nhận mới',
@@ -5319,259 +4612,23 @@ async function startServer() {
   // =========================================================================================
   // CROSS-GAME COMPARISON API: SO SÁNH KẾT QUẢ KỲ MEGA VÀ POWER GẦN ĐÂY & UPDATE THUẬT TOÁN v2.1.0
   // =========================================================================================
-  const handleCrossGameComparison = (req: Request, res: Response) => {
-    try {
-      const allRecentDraws: Array<{
-        category: 'MEGA' | 'POWER';
-        drawDate: string;
-        numbers: number[];
-        specialNumber?: number | null;
-        note?: string;
-        mod10Tails: number[];
-        consecutivePairs: number[][];
-        deepColdBalls: number[];
-      }> = [];
-
-      for (const r of records) {
-        if (r.drawDate >= '2026-09-20') {
-          const tails = r.numbers.map(n => n % 10);
-          const tailCounts: Record<number, number> = {};
-          tails.forEach(t => { tailCounts[t] = (tailCounts[t] || 0) + 1; });
-          const mod10Tails = Object.keys(tailCounts).filter(k => tailCounts[Number(k)] >= 2).map(Number);
-
-          const consec: number[][] = [];
-          const sNums = [...r.numbers].sort((a, b) => a - b);
-          for (let i = 0; i < sNums.length - 1; i++) {
-            if (sNums[i + 1] - sNums[i] === 1) {
-              consec.push([sNums[i], sNums[i + 1]]);
-            }
-          }
-
-          allRecentDraws.push({
-            category: r.category,
-            drawDate: r.drawDate,
-            numbers: sNums,
-            specialNumber: r.specialNumber,
-            note: r.note,
-            mod10Tails,
-            consecutivePairs: consec,
-            deepColdBalls: r.numbers.filter(n => n === 40 || n === 12 || n === 44)
-          });
-        }
-      }
-
-      allRecentDraws.sort((a, b) => a.drawDate.localeCompare(b.drawDate));
-
-      const crossTransitions: Array<{
-        fromDate: string;
-        fromCategory: 'MEGA' | 'POWER';
-        toDate: string;
-        toCategory: 'MEGA' | 'POWER';
-        exactOverlap: number[];
-        nearDrift: number[];
-        specialMigration: number[];
-        phenomenonName: string;
-        significance: string;
-      }> = [];
-
-      for (let i = 0; i < allRecentDraws.length - 1; i++) {
-        const d1 = allRecentDraws[i];
-        const d2 = allRecentDraws[i + 1];
-
-        const exact = d1.numbers.filter(n => d2.numbers.includes(n));
-        const near: number[] = [];
-        for (const n of d1.numbers) {
-          if (!exact.includes(n)) {
-            if (d2.numbers.includes(n - 1) && !near.includes(n - 1)) near.push(n - 1);
-            if (d2.numbers.includes(n + 1) && !near.includes(n + 1)) near.push(n + 1);
-          }
-        }
-
-        const specMigrate: number[] = [];
-        if (d1.specialNumber && d2.numbers.includes(d1.specialNumber)) {
-          specMigrate.push(d1.specialNumber);
-        }
-
-        let phenom = 'Điều hòa phân phối ngẫu nhiên';
-        let sig = 'Bước sóng phân rã entropy tự nhiên giữa các lồng cầu';
-        if (exact.length >= 2) {
-          phenom = `🔥 Sóng Di Cư Kép Xuyên Giải (${exact.join(', ')})`;
-          sig = `Bảo toàn động lượng đa hệ thống: Cặp số nổ liên tiếp giữa 2 kỳ mở thưởng`;
-        } else if (exact.length === 1) {
-          phenom = `⚡ Quán Tính Xuyên Lồng Cầu (Bóng ${exact[0]})`;
-          sig = `Quả banh ${exact[0]} giữ vững xung lực trạng thái giữa 2 ngày quay`;
-        } else if (specMigrate.length > 0) {
-          phenom = `⭐ Chuyển Vị Banh Phụ Sang Banh Chính (${specMigrate[0]})`;
-          sig = `Banh phụ tích tụ động năng lớn và bùng nổ sang nhóm banh chính`;
-        } else if (near.length >= 2) {
-          phenom = `↔ Bẫy Lệch Biên Sát Nút ±1 (${near.join(', ')})`;
-          sig = `Hiệu ứng lân cận biên do ma sát và quán tính va chạm cơ học`;
-        }
-
-        crossTransitions.push({
-          fromDate: d1.drawDate,
-          fromCategory: d1.category,
-          toDate: d2.drawDate,
-          toCategory: d2.category,
-          exactOverlap: exact,
-          nearDrift: near,
-          specialMigration: specMigrate,
-          phenomenonName: phenom,
-          significance: sig
-        });
-      }
-
-      const hitRateDropAnalysis = {
-        title: 'Chẩn Đoán Toàn Diện: Tại Sao Tỉ Lệ Trúng Số Gần Đây Bị Tụt Giảm?',
-        summary: 'Qua việc đối chiếu chéo dữ liệu lịch sử các kỳ quay Mega 6/45 và Power 6/55 trong tháng 10/2026, hệ thống phân tích phát hiện 4 nguyên nhân cốt lõi khiến tỉ lệ trúng của dàn vé AI bị suy giảm, dù tập ứng viên Top 10 của AI vẫn bắt trúng 3-4 quả bóng mở thưởng!',
-        flaws: [
-          {
-            id: 'FLAW_WHEEL_DISPERSION',
-            name: '1. Bẫy Phân Rã Bánh Xe Tổ Hợp (Wheel Dispersion Dilemma)',
-            severity: 'CỰC KỲ NGHIÊM TRỌNG',
-            impactRate: 'Làm mất 100% cơ hội trúng giải dù đoán trúng 4 số',
-            evidence: 'Tại kỳ Power 13/10/2026, AI đã dự báo chuẩn xác 4 bóng mở thưởng [14, 27, 50, 53] trong pool ứng viên! Tuy nhiên ma trận chia vé cũ phân tán đều (spread wheeling) đã chia vụn 4 bóng này ra 3 vé (Vé 1 có [14, 53], Vé 2 có [50], Vé 3 có [27]). Kết quả: Mỗi vé chỉ trúng 1-2 số, không vé nào đạt ngưỡng trúng giải!',
-            solution: 'Kích hoạt Cơ Chế Khóa Hạt Nhân (Nuclear Concentrated Wheeling): Gom trọn vẹn cụm 4-5 bóng có tương quan cao nhất vào Vé Khuyến Nghị #1, biến 4 số rời rạc thành Giải Nhì (4 số) hoặc Giải Ba trực tiếp.'
-          },
-          {
-            id: 'FLAW_SILOED_ISOLATION',
-            name: '2. Bẫy Mô Hình Ốc Đảo Biệt Lập (Siloed Isolation Trap)',
-            severity: 'CAO',
-            impactRate: 'Bỏ lỡ 4/6 bóng mở thưởng ở các kỳ liên tiếp',
-            evidence: 'Mega 6/45 và Power 6/55 quay thưởng so le nhau từng ngày (CN: Mega -> T3: Power -> T4: Mega -> T5: Power -> T6: Mega -> T7: Power). Kỳ Mega 09/10 nổ 05 & 32 thì ngay hôm sau Power 10/10 nổ tiếp 05 & 32 kèm cặp lệch biên [04, 06]! Do mô hình cũ chạy độc lập từng loại giải, AI đã hoàn toàn mù màu trước dòng năng lượng di cư này.',
-            solution: 'Tích hợp Trọng số Sóng Di Cư Xuyên Hệ Thống (Cross-Game Entanglement Weight: 0.94) và Dung sai lệch biên (Neighbor Drift: 0.88).'
-          },
-          {
-            id: 'FLAW_COLD_SUPPRESSION',
-            name: '3. Bẫy Triệt Tiêu Lô Gan Quá Sâu (Deep Cold Suppression Bias)',
-            severity: 'TRUNG BÌNH CAO',
-            impactRate: 'Bỏ sót các điểm bùng nổ phá đáy Poisson',
-            evidence: 'Bóng 40 ở Power vắng bóng 18 kỳ liên tiếp; bóng 12 ở Mega vắng bóng 16 kỳ. Mô hình tần suất tuyến tính cũ phạt điểm cực nặng các bóng này khiến chúng bị đẩy ra khỏi Top 10.',
-            solution: 'Tích hợp Hàm Lò Xo Bật Poisson Phi Tuyến Tính (Extreme Gan Spring Rebound Bonus: 0.92) khi gap >= 15 kỳ.'
-          },
-          {
-            id: 'FLAW_TAIL_CONGRUENCE',
-            name: '4. Bỏ Sót Ràng Buộc Đồng Dư Đuôi Modulo 10 (Mod-10 Tail Congruence)',
-            severity: 'TRUNG BÌNH',
-            impactRate: 'Thiếu kết dính thập phân tự nhiên',
-            evidence: '81.8% các kỳ quay Vietlott luôn xuất hiện ít nhất một cặp cùng số đuôi: {40, 50} ở 13/10; {04, 44} ở 10/10; {12, 32} ở 09/10. Dàn vé AI trước đây sinh ngẫu nhiên không có ràng buộc này.',
-            solution: 'Bổ sung Bộ Lọc Cưỡng Chế Đồng Dư Đuôi (Mod-10 Tail Congruence Weight: 0.94).'
-          }
-        ]
-      };
-
-      const v21Algorithm = {
-        version: 'v2.1.0',
-        releaseDate: '2026-10-16',
-        model: 'XGBoost Multi-Factor Optimization v2.1.0 + Cross-Game Entanglement & Concentrated Nuclear Wheeling',
-        hyperparameters: {
-          crossGameEntanglementWeight: 0.94,
-          crossGameNeighborDriftWeight: 0.88,
-          concentratedNuclearWheeling: true,
-          mod10TailCongruenceWeight: 0.94,
-          extremeGanDecompressionBonus: 0.92,
-          recencyHalfLifeDecayRate: 0.22,
-          specialToMainMigrationWeight: 0.90,
-          pairCoOccurrenceWeight: 0.96,
-          sumRangeFilter: [75, 205],
-          parityDistributionFilter: ['4:2', '3:3', '2:4']
-        },
-        comparisonTable: [
-          { parameter: 'Cross-Game Entanglement', v190: '0.00 (Tách biệt)', v200: '0.89 (Đơn lẻ)', v210: '0.94 (Đồng bộ song hành + Biên ±1)', effect: 'Bắt trọn sóng lặp Mega <-> Power' },
-          { parameter: 'Chiến Lược Bánh Xe (Wheeling)', v190: 'Phân tán đều (Spread)', v200: 'Bán hội tụ', v210: 'Khóa Hạt Nhân Tuyệt Đối (Concentrated Nuclear)', effect: 'Gom trọn 4-5 số trúng vào Vé #1' },
-          { parameter: 'Đồng Dư Đuôi Modulo 10', v190: 'Không áp dụng', v200: '0.85 (Khuyến khích)', v210: '0.94 (Cưỡng chế tối thiểu 1 cặp)', effect: 'Khớp 81.8% đặc tính Vietlott' },
-          { parameter: 'Xử Lý Lô Gan Cực Sâu (Gap ≥ 15)', v190: 'Phạt điểm (-0.35)', v200: 'Thưởng nhẹ (0.80)', v210: 'Lò Xo Poisson Phi Tuyến (+0.92)', effect: 'Đón trúng điểm nổ phá đáy (40, 12)' },
-          { parameter: 'Thanh Lọc Bẫy Neo Số Tĩnh', v190: 'Không có', v200: 'Chu kỳ trễ tĩnh', v210: 'Phân Rã Nửa Đời Half-Life λ=0.22', effect: 'Loại bỏ số ma 12, 08, 22 khỏi Top 10' }
-        ]
-      };
-
-      const nextPower = getNextVietlottDraw('POWER');
-      const nextMega = getNextVietlottDraw('MEGA');
-      const nextDraws = {
-        power: {
-          category: 'POWER',
-          targetDrawDate: nextPower.drawDate,
-          dayName: nextPower.dayName,
-          lotteryName: 'Power 6/55',
-          tickets: [
-            {
-              index: 1,
-              type: 'VÉ HẠT NHÂN HỘI TỤ TUYỆT ĐỐI (NUCLEAR CORE TICKET v2.1.0)',
-              badge: '🎯 Vé Chủ Lực Chống Phân Tán',
-              numbers: [2, 15, 26, 40, 49, 53],
-              specialNumber: 38,
-              composition: '4 Chẵn / 2 Lẻ • Tổng = 185 • Banh phụ ⭐38',
-              strategy: 'Gom toàn bộ các số hạt nhân tương quan từ kỳ 15/10 [02, 15, 26, 53] vào 1 vé duy nhất, phối hợp cùng banh phụ 40 chuyển vị và điểm rơi dải cao 49. Banh phụ ⭐38 bảo hiểm Jackpot 2.'
-            },
-            {
-              index: 2,
-              type: 'VÉ BIẾN SỐ LÂN CẬN BIÊN ±1 & CHUYỂN VỊ BANH PHỤ',
-              badge: '↔ Bọc Lót Lệch Biên',
-              numbers: [3, 16, 27, 36, 48, 52],
-              specialNumber: 26,
-              composition: '4 Chẵn / 2 Lẻ • Tổng = 182 • Cặp đuôi 6-8',
-              strategy: 'Đón đầu bước sóng bám biên và mở rộng dải số ±1: 02+1=03, 15+1=16, 26+1=27. Banh phụ bảo hiểm ⭐26.'
-            },
-            {
-              index: 3,
-              type: 'VÉ ĐỒNG DƯ ĐUÔI VÀ PHÂN BỔ POISSON VÀNG',
-              badge: '🌐 Cân Bằng Đa Dải',
-              numbers: [6, 14, 25, 30, 42, 50],
-              specialNumber: 15,
-              composition: '4 Chẵn / 2 Lẻ • Tổng = 167 • Đa phân vùng',
-              strategy: 'Khai thác cụm đồng dư kết hợp điểm rơi Poisson cực hạn dải trung. Banh phụ bảo hiểm ⭐15.'
-            }
-          ]
-        },
-        mega: {
-          category: 'MEGA',
-          targetDrawDate: nextMega.drawDate,
-          dayName: nextMega.dayName,
-          lotteryName: 'Mega 6/45',
-          tickets: [
-            {
-              index: 1,
-              type: 'VÉ HẠT NHÂN SÓNG DI CƯ TỪ POWER SANG MEGA (CROSS-CARRIER TICKET)',
-              badge: '🎯 Vé Chủ Lực Xuyên Lồng Cầu',
-              numbers: [8, 14, 21, 26, 38, 43],
-              specialNumber: null,
-              composition: '4 Chẵn / 2 Lẻ • Tổng = 150',
-              strategy: 'Tiếp nhận trực tiếp sóng di cư động lượng từ kỳ Power 15/10 sang Mega: Bóng 14, 26, 38. Khóa trọn cụm số này vào Vé #1 để đón đầu nhịp lặp chéo.'
-            },
-            {
-              index: 2,
-              type: 'VÉ BƯỚC NHẢY PARITY & ĐẢO VỊ GƯƠNG CHIẾU',
-              badge: '🔮 Đảo Vị Đối Xứng',
-              numbers: [7, 15, 22, 31, 35, 42],
-              specialNumber: null,
-              composition: '3 Lẻ / 3 Chẵn • Tổng = 152',
-              strategy: 'Khai thác quán tính lặp của bóng 15, bóng 22 và bóng 31, kết hợp bước nhảy parity bảo toàn tính ngẫu nhiên.'
-            },
-            {
-              index: 3,
-              type: 'VÉ ĐỒNG DƯ ĐUÔI VÀ PHÂN VÙNG CHUẨN HOÁ',
-              badge: '🌐 Chuẩn Hóa Phân Vùng',
-              numbers: [6, 13, 24, 31, 38, 43],
-              specialNumber: null,
-              composition: '3 Chẵn / 3 Lẻ • Tổng = 155',
-              strategy: 'Đón đầu dải biên và cân bằng Poisson đa vùng.'
-            }
-          ]
-        }
-      };
-
-      return res.json({
-        status: 'SUCCESS',
-        generatedAt: new Date().toISOString(),
-        recentDraws: allRecentDraws,
-        crossTransitions,
-        hitRateDropAnalysis,
-        v21Algorithm,
-        nextDraws
-      });
-    } catch (err: any) {
-      return res.status(500).json({ status: 'ERROR', message: err.message || 'Lỗi xử lý so sánh Mega và Power' });
-    }
+  const handleCrossGameComparison = (_req: Request, res: Response) => {
+    const recentDraws = eligibleHistory(records).sort((a,b)=>b.drawDate.localeCompare(a.drawDate));
+    const crossTransitions = recentDraws.slice(1).map((older,i) => {
+      const newer = recentDraws[i];
+      return { fromDate:older.drawDate,fromCategory:older.category,toDate:newer.drawDate,toCategory:newer.category,
+        exactOverlap:older.numbers.filter(n=>newer.numbers.includes(n)),
+        nearDrift:newer.numbers.filter(n=>!older.numbers.includes(n) && older.numbers.some(p=>Math.abs(p-n)===1)),
+        specialMigration:older.specialNumber && newer.numbers.includes(older.specialNumber) ? [older.specialNumber] : [] };
+    }).filter(t=>t.fromCategory!==t.toCategory);
+    res.json({status:'SUCCESS',generatedAt:new Date().toISOString(),recentDraws,crossTransitions,
+      nextDraws:Object.fromEntries((['POWER','MEGA'] as const).map(category=>{
+        const prediction = analyzeAndPredict(category,'temporal_learning');
+        return [category.toLowerCase(),{ drawDate:prediction.targetDrawDate, numbers:prediction.pureNumbers ?? [],
+          tickets:prediction.recommendations?.goldenTicketsRecommendation ?? [], status:prediction.status }];
+      })),
+      activeConfigurations:Object.fromEntries((['POWER','MEGA'] as const).map(category=>[category,getLatestHyperparameters(category)]))
+    });
   };
 
   app.get('/api/analyze/cross-game-comparison', handleCrossGameComparison);

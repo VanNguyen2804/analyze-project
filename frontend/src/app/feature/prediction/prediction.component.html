@@ -41,7 +41,7 @@
               {{ getTargetDrawInfo().statusText }}
             </span>
             <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill small" *ngIf="payload?.baseDrawDateFormatted as baseDate">
-              Cơ sở CSDL: Kỳ {{ baseDate }} ({{ (payload && payload.totalDrawsAnalyzed) || 50 }} kỳ)
+              Cơ sở dữ liệu: Kỳ {{ baseDate }} ({{ payload?.totalDrawsAnalyzed ?? 0 }} kỳ)
             </span>
           </div>
         </div>
@@ -343,7 +343,7 @@
                 </div>
               </div>
               <div class="small text-muted">
-                Chu kỳ lý thuyết Poisson: <strong class="text-primary">{{ linkageChartData?.gapPressureList?.[0]?.expectedInterval || 7.5 }} kỳ/lần</strong>
+                Chu kỳ lý thuyết Poisson: <strong class="text-primary">{{ linkageChartData?.gapPressureList?.[0]?.expectedInterval ?? 'N/A' }} kỳ/lần</strong>
               </div>
             </div>
 
@@ -552,7 +552,7 @@
                       <span class="badge bg-danger small">Đỉnh hội tụ</span>
                     </div>
                     <p class="text-muted small mb-2" style="font-size: 0.8rem;">
-                      Hơn 70% các kỳ mở thưởng có tổng điểm 6 số tập trung quanh vùng đỉnh chuông Gauss.
+                      Nhóm tổng có nhiều kỳ nhất chiếm {{ observedPeakSumPercent == null ? 'N/A' : (observedPeakSumPercent + '%') }} số kỳ trong biểu đồ.
                     </p>
 
                     <div class="d-flex flex-column gap-2">
@@ -1351,7 +1351,7 @@
                   Ghép Vé Tự Chọn Nhanh (Interactive Ticket Mixer)
                 </h5>
                 <span class="text-muted small" style="font-size: 0.8rem;">
-                  Tự chọn 6 số từ bộ số gợi ý AI và các bóng bứt phá (44, 48, 53) để tạo vé mang đậm dấu ấn riêng:
+                  Tự chọn 6 số từ bộ số gợi ý được tính theo lịch sử hiện tại:
                 </span>
               </div>
             </div>
@@ -1376,8 +1376,7 @@
                 class="ball ball-sm cursor-pointer border transition-all"
                 [ngClass]="{
                   'bg-primary text-white border-primary shadow-xs fw-bold scale-105': isMixerNumberSelected(num),
-                  'bg-light text-dark': !isMixerNumberSelected(num),
-                  'border-danger border-2 text-danger fw-bold': (category === 'POWER' && (num === 44 || num === 53)) && !isMixerNumberSelected(num)
+                  'bg-light text-dark': !isMixerNumberSelected(num)
                 }"
                 style="width: 40px; height: 40px; font-size: 15px;"
                 (click)="toggleMixerNumber(num)"

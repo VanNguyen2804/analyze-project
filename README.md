@@ -39,7 +39,7 @@ Nguồn miễn phí, không cần API key: [vietvudanh/vietlott-data](https://gi
 | `LOTTERY_SYNC_MEGA_URL` | [power645.jsonl](https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl) | Nguồn NDJSON MEGA qua HTTPS |
 | `LOTTERY_SYNC_POWER_URL` | [power655.jsonl](https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl) | Nguồn NDJSON POWER qua HTTPS |
 
-Chỉ nhận kết quả đủ sáu số hợp lệ; POWER bắt buộc có số phụ khác sáu số chính. Ngày hiện tại chỉ nhập sau 18:30 giờ `Asia/Ho_Chi_Minh`, không nhập ngày tương lai. Chạy lại không tạo bản ghi trùng. Lỗi mạng / dữ liệu nguồn không hợp lệ được thử lại ở lần kế tiếp, độc lập cho mỗi loại. Số đã lưu khác nguồn, kể cả thiếu số phụ, được giữ nguyên và liệt kê là `CONFLICT` để đối soát; không tự ghi đè lịch sử.
+Chỉ nhận kết quả đủ sáu số hợp lệ; POWER bắt buộc có số phụ khác sáu số chính. Ngày hiện tại chỉ nhập sau 18:30 giờ `Asia/Ho_Chi_Minh`, không nhập ngày tương lai. Chạy lại không tạo bản ghi trùng. Lỗi mạng / dữ liệu nguồn không hợp lệ được thử lại ở lần kế tiếp, độc lập cho mỗi loại. Quy trình làm sạch bên dưới điền số phụ còn thiếu khi sáu số chính khớp và áp dụng các sửa đổi đã được đối chiếu; mọi xung đột khác được cách ly, không tự ghi đè.
 
 Xem trạng thái bằng `GET /api/lottery-sync/status`: thời điểm kiểm tra, ngày mới nhất của nguồn, ngày dự kiến, số kỳ thêm / giữ nguyên, chi tiết xung đột hoặc lỗi. Trạng thái lần chạy nằm trong bộ nhớ và reset khi restart; kết quả đã nhập và nguồn trong `note` được lưu bền vững. `STALE` cho biết nguồn chưa có kỳ mới nhất theo lịch. Frontend lấy kết quả từ API hiện có khi tải lại lịch sử / dự đoán.
 
@@ -54,3 +54,18 @@ npm run sync:results -- data/lottery_numbers.json reports/lottery-sync.json
 Spring Boot ghi thẳng vào PostgreSQL qua transaction, có advisory lock giữa các scheduler replica. Không cần thêm migration theo từng ngày. Muốn lấy lịch sử dài hơn hoặc bù sau thời gian dừng quá 90 ngày, tăng `LOTTERY_SYNC_LOOKBACK_DAYS` trước khi khởi động.
 
 Đối chiếu 25/10/2026: MEGA 23/10 kỳ #01579 = **02–05–11–22–32–40**; POWER 24/10 kỳ #01415 = **06–07–18–41–44–50**, số phụ **53**. Báo cáo nhập lần đầu của resource: [lottery-sync-resources-2026-10-25.json](reports/lottery-sync-resources-2026-10-25.json); báo cáo chạy lại không trùng của Node: [lottery-sync-2026-10-25.json](reports/lottery-sync-2026-10-25.json).
+
+## Làm sạch và kiểm soát chất lượng dữ liệu
+
+Báo cáo dự đoán/đối soát lấy số kỳ, ngày, số khớp và phiên bản cấu hình từ API. Các chỉ số chưa có dữ liệu hiển thị N/A; backtest dùng cấu hình hiện tại và chỉ đo những kỳ tạo được vé sáu số. Phần đề xuất cấu hình mới chỉ cho áp dụng khi backend có một đề xuất đã được đánh giá. Danh sách thuật toán và số kỳ kiểm thử lấy từ kho dữ liệu hiện tại.
+
+Mỗi bản ghi có `quality.status`: chưa có metadata là `UNVERIFIED`, khớp feed là `SOURCE_MATCHED`, cần đối soát là `QUARANTINED`. `SOURCE_MATCHED` có nghĩa khớp nguồn cộng đồng đã cấu hình, không phải chứng nhận độc lập từ Vietlott. Mỗi lần sửa hoặc chuyển trạng thái lưu thời điểm, nguồn, lý do, giá trị trước/sau và ghi chú cũ trong `quality.audit`.
+
+- Scheduler điền số phụ thiếu chỉ khi sáu số chính khớp nguồn; không thay một số phụ đã có nhưng khác nguồn.
+- Sửa số chính chỉ khi cả giá trị cũ và giá trị từ feed khớp một mục trong [danh sách đã đối chiếu](backend/src/main/resources/data/reviewed_draw_corrections.json). Danh sách có URL nguồn thứ hai cho bốn kỳ đã kiểm tra; không phải dữ liệu sinh dự đoán.
+- Xung đột mới, bản ghi không có trong feed trong khoảng ngày đang đối soát và revision cũ bị cách ly. Giữ nguyên bản ghi để kiểm tra, không tự đổi ngày hoặc xóa.
+- Dự đoán, thống kê phân tích, dò vé và backtest chỉ dùng revision mới nhất có trạng thái `SOURCE_MATCHED` và dấu nhận diện giá trị còn khớp. Sửa tay số/ngày/loại xổ số sẽ làm bản ghi mất điều kiện sử dụng cho đến lần đối soát tiếp theo. Không quay về revision cũ đã khớp nguồn nếu revision mới nhất chưa được xác minh.
+- `GET /api/lottery-sync/quality` trả số bản ghi đủ điều kiện/bị loại và toàn bộ lịch sử đối soát. `/api/numbers` vẫn cho xem bản ghi bị cách ly. Lịch sử kiểm tra vé và các báo cáo backtest cũ vẫn là dữ liệu của lần chạy trước, cần tính lại khi đối chiếu với lịch sử đã sửa.
+- `V10__add_draw_quality_audit.sql` chỉ thêm cột `quality_json` cho PostgreSQL, không chèn dữ liệu kỳ quay. Migration này được đổi tên từ V11 để tiếp nối V9; script V10 chèn kết quả cũ vẫn đã bị loại bỏ. Sau khi khởi động bản mới, scheduler đối soát cửa sổ mặc định 90 ngày; tăng `LOTTERY_SYNC_LOOKBACK_DAYS` nếu muốn xác minh các kỳ cũ hơn. Bản ghi ngoài cửa sổ chưa được đối soát tiếp tục bị loại khỏi tập học nếu chưa có trạng thái hợp lệ.
+
+Trong bộ JSON hiện tại: sửa bốn kỳ, điền 11 số phụ, cách ly POWER 28/09/2026 vì không có kỳ tương ứng trong feed (dãy số này xuất hiện ở kỳ 29/09). Lần đồng bộ cũng nhận thêm MEGA 25/10. Có 79 bản ghi, 78 đủ điều kiện. Chạy lại không tạo thêm bản ghi hoặc audit event. Xem [báo cáo tổng hợp](reports/data-cleanup-summary-2026-10-25.json).
