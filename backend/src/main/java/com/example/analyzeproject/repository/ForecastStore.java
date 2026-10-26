@@ -19,6 +19,10 @@ public class ForecastStore {
     private Map<String,Object> decode(String value) { try { return json.readValue(value, new TypeReference<>() {}); } catch(Exception e) { throw new IllegalStateException(e); } }
     public List<Map<String,Object>> forecasts() { return jdbc.query("SELECT snapshot_json FROM forecast_snapshots ORDER BY id", (r,i) -> decode(r.getString(1))); }
     public List<Map<String,Object>> settlements() { return jdbc.query("SELECT settlement_json FROM forecast_settlements ORDER BY id", (r,i) -> decode(r.getString(1))); }
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public Map<String,Object> readLedger() {
+        return ForecastProtocol.map("forecasts", forecasts(), "settlements", settlements());
+    }
     @Transactional
     public Map<String,Object> capture(Map<String,Object> forecast) {
         if (!ForecastProtocol.isProspective(forecast)) throw new IllegalArgumentException("Invalid prospective snapshot");

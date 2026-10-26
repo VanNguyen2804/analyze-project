@@ -1,4 +1,4 @@
-﻿# Analyze Project
+# Analyze Project
 
 Ứng dụng chọn bộ 6 số MEGA 6/45 và POWER 6/55 dựa trên thuật toán và thống kê; lưu dự đoán trước kỳ, đối soát kết quả và đánh giá trên các dự đoán đã lưu. Hiện chưa chứng minh được lợi thế dự đoán đáng tin cậy.
 
@@ -55,7 +55,7 @@ Bản đầu tiên theo loại/kỳ/thuật toán được giữ nguyên, kèm c
 
 | API | Chức năng |
 | --- | --- |
-| `GET /api/forecasts` | Xem snapshot, sự kiện đối soát và trạng thái |
+| `GET /api/forecasts` | Chỉ đọc snapshot, sự kiện đối soát và trạng thái |
 | `POST /api/forecasts/capture` | Thử lưu dự đoán kỳ tiếp theo và đối soát |
 | `POST /api/forecasts/reconcile` | Đối soát bộ đã lưu, không tính lại dự đoán |
 | `GET /api/forecasts/evaluation?category=MEGA` | Đánh giá snapshot đã lưu; bỏ category để xem cả hai loại |
@@ -63,3 +63,5 @@ Bản đầu tiên theo loại/kỳ/thuật toán được giữ nguyên, kèm c
 Đặt `FORECAST_ENABLED=false` để tắt tạo snapshot mới. Dữ liệu hoạt động nằm trong PostgreSQL qua migration V11; việc di chuyển thư mục trong repository không thay đổi database đang chạy. Sáu snapshot JSON cũ đã được giữ trong thư mục archive, chưa chuyển vào sổ PostgreSQL.
 
 Xem [hiện trạng và công việc tiếp theo](PROJECT_ANALYSIS.md) và [hướng dẫn triển khai](DEPLOY_RENDER.md).
+
+Trang `/forecasts` dùng `GET /api/forecasts/overview?category=MEGA&page=0&size=50` để tải một trang gọn cùng thống kê. Các GET chỉ đọc, cache tối đa 10 giây; nút **Đối soát kết quả** hoặc scheduler mới chạy đối soát. Khi có tác vụ lưu/đối soát đang chạy, POST có thể trả `status: BUSY`; giao diện không tự gửi lại liên tục. Lịch sử đầu vào đầy đủ vẫn truy cập qua GET ledger để audit.

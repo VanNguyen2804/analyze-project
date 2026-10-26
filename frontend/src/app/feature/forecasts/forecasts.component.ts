@@ -1,8 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { EMPTY, Subject, switchMap, catchError, finalize, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -14,10 +15,11 @@ import { environment } from '../../../environments/environment';
         Kết quả được đối soát từ 18:30 khi có dữ liệu hợp lệ. Báo cáo chỉ đo các dự đoán đã lưu trước kỳ quay.</p>
       <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
         <label for="forecast-category">Loại xổ số</label>
-        <select id="forecast-category" class="form-select w-auto" [(ngModel)]="category" (change)="load()">
+        <select id="forecast-category" class="form-select w-auto" [(ngModel)]="category" (change)="load()" [disabled]="mutating">
           <option value="MEGA">MEGA 6/45</option><option value="POWER">POWER 6/55</option>
         </select>
-        <button class="btn btn-outline-primary" (click)="load()" [disabled]="busy">Tải lại và đối soát</button>
+        <button class="btn btn-outline-primary" (click)="load()" [disabled]="busy">Tải lại</button>
+        <button class="btn btn-outline-primary" (click)="reconcile()" [disabled]="busy">Đối soát kết quả</button>
         <button class="btn btn-primary" (click)="capture()" [disabled]="busy">Lưu dự đoán kỳ tiếp theo</button>
       </div>
       <p class="alert alert-danger" *ngIf="error" role="alert">{{ error }}</p>
@@ -38,7 +40,7 @@ import { environment } from '../../../environments/environment';
           </tr></tbody>
         </table>
       </div>
-      <p *ngIf="!busy && !groups.length">Chưa có dự đoán đã lưu cho loại xổ số này. Hệ thống không tạo dự đoán hồi tố cho các kỳ đã quay.</p>
+      <p *ngIf="!busy && !error && !groups.length">Chưa có dự đoán đã lưu cho loại xổ số này. Hệ thống không tạo dự đoán hồi tố cho các kỳ đã quay.</p>
       <h3 class="h5 mt-4">Các bộ số đã chốt</h3>
       <div class="table-responsive"><table class="table">
         <thead><tr><th>Kỳ đích</th><th>Thuật toán</th><th>Bộ 6 số</th><th>Thời điểm lưu (Việt Nam)</th><th>Kết quả</th><th>Số khớp</th></tr></thead>
@@ -48,35 +50,66 @@ import { environment } from '../../../environments/environment';
           <td>{{ status(row.settlement?.status) }}</td><td>{{ row.settlement?.matched ?? 'N/A' }}</td>
         </tr></tbody>
       </table></div>
+      <div class="d-flex gap-2 align-items-center mb-3" *ngIf="totalRows > 50">
+        <button class="btn btn-outline-secondary" [disabled]="busy || page === 0" (click)="changePage(-1)">Trang trước</button>
+        <span>Trang {{ page + 1 }} · {{ totalRows }} bộ số</span>
+        <button class="btn btn-outline-secondary" [disabled]="busy || (page + 1) * 50 >= totalRows" (click)="changePage(1)">Trang sau</button>
+      </div>
       <details *ngIf="ledger?.lastRun"><summary>Chi tiết lần lưu tự động gần nhất</summary><pre class="mt-2">{{ ledger.lastRun | json }}</pre></details>
     </section>`
 })
 export class ForecastsComponent implements OnInit {
   category = 'MEGA'; busy = false; error = ''; message = ''; ledger: any; groups: any[] = []; rows: any[] = [];
+  page = 0; totalRows = 0;
+  mutating = false;
+  private loadedCategory = '';
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly requests = new Subject<{ category: string; page: number }>();
   private url = `${environment.apiUrl || ''}/api/forecasts`;
   constructor(private http: HttpClient, private change: ChangeDetectorRef) {}
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.requests.pipe(switchMap(query => {
+      this.busy = true; this.error = '';
+      return this.http.get<any>(`${this.url}/overview?category=${query.category}&page=${query.page}&size=50`).pipe(
+        tap(payload => {
+          this.ledger = payload; this.groups = payload.evaluation.groups;
+          this.rows = payload.rows; this.totalRows = payload.totalRows;
+          this.loadedCategory = query.category;
+        }),
+        catchError(error => {
+          this.error = error.status === 503 ? 'Máy chủ đang quá tải. Vui lòng chờ rồi tải lại.' : 'Không tải được dữ liệu dự đoán. Kiểm tra kết nối và backend.';
+          return EMPTY;
+        }),
+        finalize(() => { this.busy = false; this.change.markForCheck(); })
+      );
+    }), takeUntilDestroyed(this.destroyRef)).subscribe();
+    this.load();
+  }
   metric(value: number | null | undefined) { return value == null ? 'N/A' : value.toFixed(3); }
   status(value?: string) { return value === 'SETTLED' ? 'Đã đối soát' : value === 'RESULT_UNAVAILABLE' ? 'Kết quả cần xác minh lại' : 'Chờ kết quả hợp lệ'; }
-  load() {
-    this.busy = true; this.error = '';
-    forkJoin({ ledger: this.http.get<any>(this.url), evaluation: this.http.get<any>(`${this.url}/evaluation?category=${this.category}`) }).subscribe({
-      next: ({ ledger, evaluation }) => {
-        this.ledger = ledger; this.groups = evaluation.groups;
-        const latest = new Map<string, any>();
-        ledger.settlements.forEach((s: any) => latest.set(s.forecastId,s));
-        this.rows = ledger.forecasts.filter((f: any) => f.category === this.category)
-          .map((f: any) => ({ ...f, settlement: latest.get(f.id) })).sort((a: any,b: any) => b.targetDate.localeCompare(a.targetDate));
-        this.busy = false; this.change.markForCheck();
-      },
-      error: () => { this.error = 'Không tải được dữ liệu dự đoán. Kiểm tra kết nối và backend.'; this.busy = false; this.change.markForCheck(); }
-    });
+  load(resetPage = true) {
+    if (this.mutating) return;
+    if (this.category !== this.loadedCategory) { this.rows = []; this.groups = []; this.totalRows = 0; this.ledger = undefined; }
+    if (resetPage) this.page = 0;
+    this.requests.next({ category: this.category, page: this.page });
   }
+  changePage(delta: number) { if (!this.busy) { this.page += delta; this.load(false); } }
+  reconcile() { this.mutate('reconcile'); }
   capture() {
+    this.mutate('capture');
+  }
+  private mutate(action: 'capture' | 'reconcile') {
+    if (this.busy) return;
+    this.mutating = true;
     this.busy = true; this.error = ''; this.message = '';
-    this.http.post<any>(`${this.url}/capture`,{}).subscribe({
-      next: () => { this.message = 'Đã kiểm tra lưu dự đoán. Xem các bộ số đã chốt và chi tiết lần lưu để biết trạng thái từng thuật toán.'; this.load(); },
-      error: () => { this.error = 'Không hoàn tất lưu dự đoán. Bản đã lưu trước đó vẫn được giữ nguyên.'; this.busy = false; this.change.markForCheck(); }
+    this.http.post<any>(`${this.url}/${action}`,{}).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: result => {
+        this.mutating = false;
+        this.message = result.status === 'BUSY' ? result.message : action === 'capture'
+          ? 'Đã kiểm tra lưu dự đoán. Xem các bộ số đã chốt và chi tiết lần lưu để biết trạng thái từng thuật toán.' : 'Đã đối soát kết quả hiện có.';
+        this.load();
+      },
+      error: () => { this.mutating = false; this.error = 'Không hoàn tất thao tác. Vui lòng chờ rồi thử lại.'; this.busy = false; this.change.markForCheck(); }
     });
   }
 }

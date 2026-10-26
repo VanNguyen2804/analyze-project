@@ -75,7 +75,7 @@ PostgreSQL có `forecast_snapshots` và `forecast_settlements` qua `V11__add_for
 
 | API | Chức năng |
 | --- | --- |
-| `GET /api/forecasts` | Xem snapshot, sự kiện, trạng thái; cập nhật đối soát từ kết quả đã lưu |
+| `GET /api/forecasts` | Chỉ đọc snapshot, sự kiện và trạng thái; không tự chạy đối soát |
 | `POST /api/forecasts/capture` | Thử chốt các thuật toán cho kỳ tiếp theo và đối soát |
 | `POST /api/forecasts/reconcile` | Đối soát lại, không tính lại dự đoán |
 | `GET /api/forecasts/evaluation?category=MEGA` | Đánh giá độc lập; bỏ category để xem cả hai loại |
@@ -135,3 +135,18 @@ mvn.cmd install
 - [Tổng hợp làm sạch dữ liệu](backend/docs/reports/data-cleanup-summary-2026-10-25.json), [kiểm chứng PostgreSQL](backend/docs/reports/data-cleanup-postgres-2026-10-25.json).
 
 Các đường dẫn/lệnh Node nằm trong nội dung báo cáo cũ là thông tin lịch sử, không còn là hướng dẫn chạy dự án hiện tại.
+
+## 10. Tối ưu trang forecasts (26/10/2026)
+
+Phát hiện từ mã: trang trước đây tải hai GET song song, cả hai gọi lại đối soát toàn bộ ledger, truy vấn lịch sử kết quả và chờ cùng advisory lock PostgreSQL. Mỗi lần tải còn gửi toàn bộ history/configuration của từng snapshot về giao diện. Đây là nguồn tải lặp đáng kể; chưa có log production để xác nhận nguyên nhân duy nhất của HTTP 503.
+
+Đã thay đổi:
+
+- Trang gọi một `GET /api/forecasts/overview?category=MEGA&page=0&size=50`, trả hàng hiển thị và đánh giá cùng một phiên đọc. Mỗi trang mặc định 50 dòng, giới hạn 100; báo cáo đánh giá vẫn tính trên toàn bộ loại đã chọn, không chỉ trang hiện tại.
+- GET ledger/evaluation/overview chỉ đọc; đối soát do scheduler hoặc nút/API POST riêng thực hiện. Không lấy khóa ghi và không truy vấn bảng kết quả xổ số trên đường tải trang.
+- Cache trong bộ nhớ 10 giây, dùng chung cho các GET đồng thời trong một instance; đọc hai bảng ledger trong transaction read-only repeatable-read. Cache bị vô hiệu hóa sau khi lưu snapshot hoặc đối soát thành công. Replica khác có thể thấy thay đổi sau tối đa TTL cache; đối soát tự động vẫn theo chu kỳ 60 giây.
+- Dữ liệu trả về overview không chứa lịch sử huấn luyện/cấu hình đầy đủ; GET ledger gốc vẫn phục vụ nhu cầu audit.
+- Chặn tác vụ capture/reconcile chồng nhau trong cùng instance bằng trạng thái `BUSY`, thay vì xếp thêm lượt chờ. PostgreSQL vẫn giữ lock/transaction bảo vệ nhiều replica.
+- Angular hủy request cũ khi đổi loại/rời trang, chặn gửi POST trùng, phân trang và không tự retry 503. Nút tải lại chỉ đọc; nút đối soát mới chạy đối soát.
+
+Kiểm chứng: 34 kiểm thử Java đạt; 4 kiểm thử trang forecasts chạy bằng ChromeHeadless đạt; Angular production build đạt. Kiểm thử đồng thời bằng repository mock xác nhận 8 lượt đọc dùng chung một lần lấy ledger, không gọi truy vấn lịch sử hoặc đối soát. Đây không phải benchmark PostgreSQL/production; chưa khẳng định loại bỏ mọi nguyên nhân 503 như thiếu RAM, cold start hoặc giới hạn nền tảng hosting.
