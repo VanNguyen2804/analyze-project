@@ -1,5 +1,13 @@
 # Analyze Project
 
+## Phòng thử nghiệm AI
+
+Mở `/ai-lab` từ menu để theo dõi nhiều dãy dự đoán trước kỳ: Logistic Regression và tần suất suy giảm theo thời gian, mỗi mô hình 5 vé/kỳ. Backend tự chốt và đối soát mỗi phút khi đang chạy; trang tự cập nhật mỗi phút. Chỉ học trên kết quả hợp lệ trước kỳ đích, cần ít nhất 10 kỳ và kỳ hoàn tất mới nhất.
+
+Khi triển khai bản mới, Flyway chạy migration V12 tạo ledger thử nghiệm riêng. Có thể đặt `AI_LAB_ENABLED=false` để tắt tạo vé mới; đối soát bản cũ vẫn hoạt động. `FORECAST_ENABLED` chỉ điều khiển ledger dự đoán chính.
+
+Trang so sánh tỷ lệ khớp từ ba số của từng vé và từng kỳ với đối chứng cùng 5 vé. Mốc sàng lọc 60 kỳ và hai khối 30 kỳ là quy ước thử nghiệm; mô hình đạt chỉ được đánh dấu ứng viên cần xác nhận thêm, không tự thay thuật toán chính. Chưa có bằng chứng về lợi thế dự đoán.
+
 Ứng dụng chọn bộ 6 số MEGA 6/45 và POWER 6/55 dựa trên thuật toán và thống kê; lưu dự đoán trước kỳ, đối soát kết quả và đánh giá trên các dự đoán đã lưu. Hiện chưa chứng minh được lợi thế dự đoán đáng tin cậy.
 
 ## Cấu trúc

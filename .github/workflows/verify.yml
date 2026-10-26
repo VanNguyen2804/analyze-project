@@ -1,0 +1,64 @@
+name: Verify application
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Install locked frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Test prediction workspace and forecast history
+        working-directory: frontend
+        run: npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/feature/prediction/prediction-workspace.component.spec.ts --include=src/app/feature/forecasts/forecasts.component.spec.ts --include=src/app/feature/ai-lab/ai-lab.component.spec.ts
+      - name: Build Angular production assets
+        working-directory: frontend
+        run: npm run build
+      - name: Test and package Spring Boot
+        working-directory: backend
+        run: mvn --batch-mode --no-transfer-progress clean install
+      - name: Verify packaged Angular assets
+        shell: python
+        run: |
+          from pathlib import Path
+          from zipfile import ZipFile
+          assets = Path('frontend/dist/analyzeproject')
+          jars = list(Path('backend/target').glob('*.jar'))
+          assert len(jars) == 1, f'Expected one executable JAR, found {jars}'
+          assert (assets / 'index.html').is_file(), 'Missing Angular index.html'
+          files = [p for p in assets.rglob('*') if p.is_file()]
+          with ZipFile(jars[0]) as jar:
+              for source in files:
+                  entry = 'BOOT-INF/classes/static/' + source.relative_to(assets).as_posix()
+                  assert jar.read(entry) == source.read_bytes(), f'Asset differs: {entry}'
+          print(f'Verified {len(files)} Angular assets in {jars[0].name}')
+      - name: Upload Java test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-test-reports
+          path: backend/target/surefire-reports/
+          if-no-files-found: ignore

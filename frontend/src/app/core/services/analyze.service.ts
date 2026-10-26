@@ -9,7 +9,6 @@ import { environment } from '../../../environments/environment'; // Import file 
 })
 export class AnalyzeService {
   private apiUrl = `${environment.apiUrl || ''}/api/analyze`;
-  private frenchApiUrl = `${environment.apiUrl || ''}/api/french`;
 
   private categorySource = new BehaviorSubject<string>('MEGA');
   currentCategory$ = this.categorySource.asObservable();
@@ -139,19 +138,4 @@ export class AnalyzeService {
     return this.http.get<any>(`${this.apiUrl}/cross-game-comparison`);
   }
 
-  // ==========================================
-  // API TIẾNG PHÁP
-  // ==========================================
-
-  getFrenchExercises(category: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.frenchApiUrl}/exercises?category=${category}`);
-  }
-
-  submitFrenchAttempt(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.frenchApiUrl}/attempt`, payload);
-  }
-
-  getFrenchHistory(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.frenchApiUrl}/history`);
-  }
 }

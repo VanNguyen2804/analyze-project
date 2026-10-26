@@ -14,7 +14,7 @@ class AnalyzeServiceTest {
     private final LotteryNumberRepository repository = mock(LotteryNumberRepository.class);
     private final AlgorithmHyperparameterRepository parameters = mock(AlgorithmHyperparameterRepository.class);
     private final AnalyzeService service = new AnalyzeService(repository, mock(UserTicketRepository.class),
-            mock(FrenchExerciseRepository.class), mock(FrenchAttemptRepository.class), parameters, null);
+            parameters, null);
 
     private List<LotteryNumber> history(String category, int offset) {
         List<LotteryNumber> result = new ArrayList<>();

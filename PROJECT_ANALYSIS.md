@@ -1,5 +1,28 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Cập nhật 27/10/2026 — Gỡ chức năng học tiếng Pháp
+
+Đã xóa component học tiếng Pháp (TS/HTML/CSS), controller, hai entity và hai repository Java; gỡ API tiếng Pháp khỏi service dùng chung, constructor/test fixture, route `/french`, liên kết header và khóa dịch riêng của chức năng. Route mặc định và route không xác định chuyển sang `/analyze`. Đồng bộ lại static assets của backend để loại bỏ bundle cũ chứa trang đã xóa.
+
+Giữ tính năng đổi ngôn ngữ giao diện vi/en/fr. Migration V1 được giữ nguyên vì chứa schema/seed lịch sử của toàn dự án; các bảng tiếng Pháp cũ chưa bị xóa khỏi database và không còn được mã ứng dụng sử dụng. Không thay đổi dữ liệu production.
+
+Kiểm chứng sau khi gỡ: Angular production build và 12 kiểm thử ChromeHeadless đạt; backend `mvn clean install` đạt với 43 kiểm thử Java. Không còn tham chiếu chức năng tiếng Pháp trong mã ứng dụng/static assets; JAR không còn các class French và chứa đúng 9 asset Angular mới.
+
+## Cập nhật 27/10/2026 — Phòng thử nghiệm AI
+
+- Thêm trang `/ai-lab` và menu **Phòng thử nghiệm AI**, độc lập với trang dự đoán chính. Mỗi loại có hai mô hình: Logistic Regression thực sự học trọng số từ nhãn quá khứ và tần suất suy giảm theo thời gian (phương pháp thống kê). Không dùng LLM hoặc API AI bên ngoài.
+- Mỗi mô hình chốt 5 vé khác nhau/kỳ, gồm vé đứng đầu và các vé lấy mẫu có trọng số với seed cố định. Đối chứng tần suất và ngẫu nhiên cùng có 5 vé, được lưu cùng thời điểm; hai mô hình dùng chung các vé đối chứng cho cùng loại/kỳ.
+- Logistic dùng frequency toàn lịch sử, recent10, decay có bán rã 10 kỳ quan sát, gap tối đa 30 kỳ; học full-batch 80 epoch, learning rate 0.2, L2 0.05. Đặc trưng huấn luyện được tính trước khi tiêu thụ kết quả kỳ tương ứng. Cần ít nhất 10 kỳ hợp lệ và kỳ hoàn tất mới nhất để chốt; dùng sáu số chính, không đánh giá số phụ POWER.
+- Scheduler chạy sau 20 giây rồi mỗi 60 giây khi backend hoạt động; kiểm tra lưu bản đầu tiên và đối soát. Cutoff 18:00, công bố kết quả 18:30 theo giờ Việt Nam. Không sinh bù quá khứ; bản cũ không bị ghi đè. Transaction lưu cả nhóm 5 vé và khóa đối soát dùng riêng cho phòng thử nghiệm.
+- Migration mới `V12__add_ai_lab.sql` tạo `ai_lab_snapshots`, `ai_lab_settlements`, tách khỏi ledger chính. `AI_LAB_ENABLED=false` tắt tạo mới nhưng vẫn đối soát bản cũ. `FORECAST_ENABLED` điều khiển riêng trang dự đoán chính.
+- API `GET /api/ai-lab?category=MEGA&page=0` chỉ đọc, phân trang 50 vé; `POST /api/ai-lab/run` kiểm tra chốt hai loại và đối soát. Trang tự tải lại mỗi phút, hủy request cũ khi đổi loại/rời trang và chặn gửi POST trùng.
+- Báo cáo tách theo loại/mô hình/phiên bản mã/cấu hình, dùng settlement mới nhất; chỉ đo kỳ đủ 5 vé hợp lệ và đã đối soát toàn bộ. Hiển thị tỷ lệ từng vé đạt ≥3 và tỷ lệ kỳ có ít nhất một vé đạt ≥3, cùng hai đối chứng có cùng ngân sách vé.
+- Quy tắc sàng lọc v1: ít nhất 60 kỳ đã đo, 60 kỳ gần nhất liên tiếp theo lịch; cả hai khối 30 kỳ gần nhất có tỷ lệ kỳ đạt ≥3 từ 50%; cận dưới chênh lệch ghép cặp 95% xấp xỉ trên toàn nhóm lớn hơn 0 với cả hai đối chứng. Đây là quy ước thử nghiệm, chưa được hiệu chỉnh cho việc xem lặp lại/nhiều mô hình hoặc phụ thuộc theo thời gian. Nhãn `VALIDATION_CANDIDATE` yêu cầu xác nhận trên các kỳ tương lai mới, không tự áp dụng mô hình vào dự đoán chính.
+- Chưa có bằng chứng hiệu quả thực tế, chưa triển khai production hoặc chạy migration V12 trên database thật trong đợt này. Ưu tiên phát triển chuyển sang học máy và thực nghiệm theo yêu cầu người dùng; không mở rộng hạng mục kiểm thử PostgreSQL.
+- Kiểm chứng local: Angular production build đạt; 12 kiểm thử ChromeHeadless cho workspace/history/AI lab đạt; `mvn install` đạt với 43 kiểm thử Java, gồm kiểm tra học máy, ngân sách vé, giữ bản đã chốt, loại dữ liệu tương lai, thống kê theo kỳ, điều kiện ứng viên và route/API qua MockMvc. Đối chiếu SHA-256 của 9 asset Angular trong JAR đều khớp; JAR chứa mô hình và migration V12. Còn các cảnh báo template/deprecation Angular và unchecked Java có sẵn. MockMvc/mock repository không phải kiểm thử database thật.
+
+Kế hoạch tiếp theo: [lộ trình phát triển và tiêu chí nghiệm thu](backend/docs/DEVELOPMENT_PLAN.md). Đợt 26/10/2026 bổ sung workflow CI kiểm thử hai feature Angular, Java và đối chiếu asset trong JAR; chưa bao gồm PostgreSQL thật hoặc xác nhận workflow chạy trên GitHub.
+
 Cập nhật ngày **26/10/2026**, sau khi dọn cấu trúc theo yêu cầu chỉ giữ frontend và backend. Tài liệu phản ánh repository, không xác nhận phiên bản hoặc dữ liệu production.
 
 ## 1. Mục tiêu

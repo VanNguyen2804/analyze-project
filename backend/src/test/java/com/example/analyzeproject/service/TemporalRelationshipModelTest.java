@@ -76,8 +76,7 @@ class TemporalRelationshipModelTest {
     @Test void serviceUsesTheLearnedTicketAndRecomputesUserMatches() {
         LotteryNumberRepository repository = mock(LotteryNumberRepository.class);
         UserTicketRepository tickets = mock(UserTicketRepository.class);
-        AnalyzeService service = new AnalyzeService(repository, tickets, mock(FrenchExerciseRepository.class),
-                mock(FrenchAttemptRepository.class), mock(AlgorithmHyperparameterRepository.class), null);
+        AnalyzeService service = new AnalyzeService(repository, tickets, mock(AlgorithmHyperparameterRepository.class), null);
         List<LotteryNumber> history = alternating(12);
         history.add(new LotteryNumber(LocalDate.of(2026,10,24), "POWER", List.of(6,7,18,41,44,50), 53, "User-supplied"));
         history.add(new LotteryNumber(LocalDate.of(2026,10,27), "POWER", List.of(1,2,3,4,5,6), 55, "Future test fixture"));

@@ -3,14 +3,10 @@ package com.example.analyzeproject.service;
 import com.example.analyzeproject.dto.*;
 import com.example.analyzeproject.model.LotteryNumber;
 import com.example.analyzeproject.model.UserTicket;
-import com.example.analyzeproject.model.FrenchAttempt;
-import com.example.analyzeproject.model.FrenchExercise;
 import com.example.analyzeproject.model.AlgorithmHyperparameter;
 import com.example.analyzeproject.model.LotteryDeviationVariable;
 import com.example.analyzeproject.repository.LotteryNumberRepository;
 import com.example.analyzeproject.repository.UserTicketRepository;
-import com.example.analyzeproject.repository.FrenchAttemptRepository;
-import com.example.analyzeproject.repository.FrenchExerciseRepository;
 import com.example.analyzeproject.repository.AlgorithmHyperparameterRepository;
 import com.example.analyzeproject.repository.LotteryDeviationVariableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,20 +27,15 @@ public class AnalyzeService {
 
     private final LotteryNumberRepository repository;
     private final UserTicketRepository userTicketRepo;
-    private final FrenchExerciseRepository frenchExerciseRepo;
-    private final FrenchAttemptRepository frenchAttemptRepo;
     private final AlgorithmHyperparameterRepository hyperparameterRepo;
     private final LotteryDeviationVariableRepository devVarRepo;
 
     @Autowired
     public AnalyzeService(LotteryNumberRepository repository, UserTicketRepository userTicketRepo,
-                          FrenchExerciseRepository frenchExerciseRepo, FrenchAttemptRepository frenchAttemptRepo,
                           AlgorithmHyperparameterRepository hyperparameterRepo,
                           @Autowired(required = false) LotteryDeviationVariableRepository devVarRepo) {
         this.repository = repository;
         this.userTicketRepo = userTicketRepo;
-        this.frenchExerciseRepo = frenchExerciseRepo;
-        this.frenchAttemptRepo = frenchAttemptRepo;
         this.hyperparameterRepo = hyperparameterRepo;
         this.devVarRepo = devVarRepo;
     }
@@ -1373,33 +1364,6 @@ public class AnalyzeService {
 
     public void clearUserHistory() {
         userTicketRepo.deleteAll();
-    }
-
-    // =========================================================================================
-    // 4. CHỨC NĂNG HỌC TIẾNG PHÁP (ĐÃ KHÔI PHỤC)
-    // =========================================================================================
-    public List<FrenchExercise> getFrenchExercises(String category) {
-        if (category == null || category.equalsIgnoreCase("ALL")) {
-            return frenchExerciseRepo.findAll();
-        }
-        return frenchExerciseRepo.findByCategoryIn(Arrays.asList(category.split(",")));
-    }
-
-    public FrenchAttempt submitFrenchAttempt(FrenchAttempt attempt) {
-        FrenchExercise exercise = frenchExerciseRepo.findById(attempt.getExerciseId()).orElseThrow();
-        
-        String normalizedExpected = exercise.getSentence().toLowerCase().replaceAll("[.,!?']", " ").replaceAll("\\s+", " ").trim();
-        String normalizedInput = attempt.getUserInput().toLowerCase().replaceAll("[.,!?']", " ").replaceAll("\\s+", " ").trim();
-        
-        attempt.setExpectedSentence(exercise.getSentence());
-        attempt.setCorrect(normalizedExpected.equals(normalizedInput));
-        attempt.setAttemptedAt(LocalDateTime.now());
-        
-        return frenchAttemptRepo.save(attempt);
-    }
-    
-    public List<FrenchAttempt> getFrenchHistory() {
-        return frenchAttemptRepo.findAllByOrderByAttemptedAtDesc();
     }
 
     // =========================================================================================
