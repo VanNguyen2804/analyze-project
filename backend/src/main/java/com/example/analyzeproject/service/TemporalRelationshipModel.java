@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 /** Sequentially fits relationship experts; each evaluation precedes observing its target. */
 final class TemporalRelationshipModel {
-    private static final String[] IDS = {"frequency", "lag1", "lag2", "repeat", "neighbor", "same_tail", "special_to_main"};
-    private static final String[] NAMES = {"Tần suất nền", "Chuyển tiếp một kỳ", "Chuyển tiếp hai kỳ", "Lặp số", "Lân cận ±1", "Cùng đuôi", "Số phụ sang số chính"};
+    private static final String[] IDS = {"frequency", "lag1", "lag2", "repeat", "neighbor", "same_tail", "special_to_main", "recent5", "recent15"};
+    private static final String[] NAMES = {"Tần suất nền", "Chuyển tiếp một kỳ", "Chuyển tiếp hai kỳ", "Lặp số", "Lân cận ±1", "Cùng đuôi", "Số phụ sang số chính", "Tần suất bán rã 5 kỳ", "Tần suất bán rã 15 kỳ"};
     record Result(double[] scores, Map<String, Object> analysis) {}
 
     private final int max;
@@ -16,6 +16,10 @@ final class TemporalRelationshipModel {
     private final double base, prior, rate;
     private final int minHistory;
     private final int[] frequency;
+    private final double[][] recent;
+    private final double[] recentMass = new double[2];
+    private static final int[] HALF_LIVES = {5, 15};
+    private final int[] expertMatched = new int[IDS.length], matchHistogram = new int[7];
     private final int[][][] counts;
     private final int[][] exposures, successes = new int[4][2], trials = new int[4][2];
     private double[] weights = new double[IDS.length];
@@ -30,6 +34,7 @@ final class TemporalRelationshipModel {
         this.rate = valid(rate, 0.5, 0, 10);
         this.minHistory = (int) valid(minHistory, 5, 1, 1000);
         frequency = new int[max + 1];
+        recent = new double[2][max + 1];
         counts = new int[2][max + 1][max + 1];
         exposures = new int[2][max + 1];
         Arrays.fill(weights, 1.0 / IDS.length);
@@ -99,6 +104,7 @@ final class TemporalRelationshipModel {
                 result[feature + 3][n] = feature == 3 && (previous == null || previous.getSpecialNumber() == null) ? marginal
                         : (successes[feature][state] + prior * marginal) / (trials[feature][state] + prior);
             }
+            for (int i = 0; i < HALF_LIVES.length; i++) result[7 + i][n] = (recent[i][n] + prior * base) / (recentMass[i] + prior);
         }
         for (double[] scores : result) normalize(scores);
         return result;
@@ -132,6 +138,12 @@ final class TemporalRelationshipModel {
                 boolean useBaseline = evaluated > 0 && candidateMatched < baselineMatched;
                 double[] forecast = useBaseline ? models[0] : candidate;
                 int hits = (int) rank(forecast).stream().limit(6).filter(actual::contains).count();
+                matchHistogram[hits]++;
+                int[] expertHits = new int[IDS.length];
+                for (int i = 0; i < IDS.length; i++) {
+                    expertHits[i] = (int) rank(models[i]).stream().limit(6).filter(actual::contains).count();
+                    expertMatched[i] += expertHits[i];
+                }
                 candidateMatched += (int) rank(candidate).stream().limit(6).filter(actual::contains).count();
                 if (useBaseline) fallbackDraws++;
                 evaluated++; matched += hits;
@@ -139,7 +151,7 @@ final class TemporalRelationshipModel {
                 if (hits >= 3) hit3++;
                 modelBrier += brier(forecast, actual); baselineBrier += brier(models[0], actual);
                 double total = 0;
-                for (int i = 0; i < weights.length; i++) { weights[i] *= Math.exp(-rate * max * brier(models[i], actual)); total += weights[i]; }
+                for (int i = 0; i < weights.length; i++) { weights[i] *= Math.exp(rate * expertHits[i] / 6.0); total += weights[i]; }
                 for (int i = 0; i < weights.length; i++) weights[i] /= total;
             }
             if (t > 0 && !connected) skipped++;
@@ -161,6 +173,11 @@ final class TemporalRelationshipModel {
                 }
             }
             for (int n : draw.getNumbers()) frequency[n]++;
+            for (int i = 0; i < HALF_LIVES.length; i++) {
+                double decay = Math.pow(0.5, 1.0 / HALF_LIVES[i]);
+                recentMass[i] = recentMass[i] * decay + 1;
+                for (int n = 1; n <= max; n++) recent[i][n] = recent[i][n] * decay + (actual.contains(n) ? 1 : 0);
+            }
             seen++;
         }
         LotteryNumber last = draws.isEmpty() ? null : draws.get(draws.size() - 1);
@@ -178,14 +195,17 @@ final class TemporalRelationshipModel {
                 .thenComparingInt(m -> (int) m.get("fromNumber")).thenComparingInt(m -> (int) m.get("toNumber")));
         List<Map<String, Object>> patterns = new ArrayList<>();
         for (int i = 0; i < IDS.length; i++) patterns.add(map("id", IDS[i], "name", NAMES[i], "weightPercent", weights[i] * 100,
-                "support", i < 3 ? (i == 0 ? seen : Arrays.stream(exposures[i - 1]).sum() / 6) : trials[i - 3][1],
-                "occurrences", i < 3 ? null : successes[i - 3][1]));
-        return new Result(scores, map("modelVersion", "temporal-links-v1", "category", category, "asOfDate", last == null ? null : last.getDrawDate().toString(),
+                "support", i >= 7 ? seen : i < 3 ? (i == 0 ? seen : Arrays.stream(exposures[i - 1]).sum() / 6) : trials[i - 3][1],
+                "occurrences", i < 3 || i >= 7 ? null : successes[i - 3][1],
+                "averageMatched", evaluated == 0 ? null : (double) expertMatched[i] / evaluated));
+        return new Result(scores, map("modelVersion", "temporal-links-v2", "category", category, "asOfDate", last == null ? null : last.getDrawDate().toString(),
                 "forecastPolicy", useBaseline ? "frequency_fallback" : "learned_mixture",
-                "trainingDraws", seen, "skippedGapTransitions", skipped, "parameters", map("priorStrength", prior, "learningRate", rate, "minHistory", minHistory),
+                "trainingDraws", seen, "skippedGapTransitions", skipped, "parameters", map("priorStrength", prior, "learningRate", rate, "minHistory", minHistory,
+                        "recencyHalfLives", HALF_LIVES, "weightObjective", "main_number_matches"),
                 "patterns", patterns, "topTransitions", transitions.stream().limit(12).collect(Collectors.toList()),
                 "predictedNumbers", seen == 0 ? List.of() : rank(scores).stream().limit(6).sorted().collect(Collectors.toList()),
                 "evaluation", map("method", "prequential", "evaluatedDraws", evaluated, "minHistory", minHistory,
+                        "matchHistogram", matchHistogram, "randomExpectedAverageMatched", 36.0 / max,
                         "averageMatched", evaluated == 0 ? null : (double) matched / evaluated,
                         "candidateAverageMatched", evaluated == 0 ? null : (double) candidateMatched / evaluated, "baselineFallbackDraws", fallbackDraws,
                         "baselineAverageMatched", evaluated == 0 ? null : (double) baselineMatched / evaluated,

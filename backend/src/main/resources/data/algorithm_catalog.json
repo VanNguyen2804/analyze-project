@@ -4,8 +4,8 @@
     "name": "Học liên kết giữa các kỳ",
     "icon": "🔗",
     "rankBadge": "Trọng số học từ lịch sử",
-    "formula": "Online expert weighting + smoothed transitions",
-    "description": "Học trọng số tần suất, chuyển tiếp một/hai kỳ, lặp số, lân cận, cùng đuôi và số phụ từ các kỳ đã có kết quả. Đánh giá mỗi dự đoán trước khi cập nhật bằng kết quả tiếp theo.",
+    "formula": "Match-based expert weighting + recency + smoothed transitions",
+    "description": "Học trọng số theo số chính khớp của từng bộ 6 số; kết hợp tần suất toàn lịch sử, tần suất bán rã 5/15 kỳ và liên kết giữa các kỳ. Đánh giá mỗi dự đoán trước khi cập nhật bằng kết quả tiếp theo.",
     "highlight": "Xem số mẫu và kết quả kiểm tra theo thời gian trong phần học liên kết."
   },
   {

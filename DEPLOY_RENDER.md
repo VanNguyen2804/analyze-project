@@ -4,7 +4,7 @@ Dự án này bao gồm:
 * **Frontend:** Angular (TypeScript)
 * **Backend:** Spring Boot (Java 17, Maven)
 * **Database:** PostgreSQL Database
-* **Mô hình phân tích:** XGBoost AI Scoring
+* **Mô hình phân tích:** Thuật toán thống kê và học liên kết temporal-links-v2; hiệu quả phải được kiểm chứng bằng dữ liệu thực tế.
 
 Tôi đã chuẩn bị sẵn đầy đủ cấu hình **Docker multi-stage (`Dockerfile`)**, **Blueprint (`render.yaml`)** kết nối tự động với **PostgreSQL**, và cấu hình **dynamic port (`${PORT}`)** để bạn có thể triển khai lên Render nhanh chóng.
 

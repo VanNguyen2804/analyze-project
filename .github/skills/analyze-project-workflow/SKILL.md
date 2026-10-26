@@ -1,6 +1,6 @@
 ---
 name: analyze-project-workflow
-description: Analyze and refactor analyze-project, replace hard-coded prediction behavior, update lottery algorithms, and verify Node/Vite and Angular/Spring Boot. Use for project analysis, prediction bugs, backtesting, scoring configuration, and related refactors; keep unrelated tasks within their original scope.
+description: Analyze and refactor analyze-project, replace hard-coded prediction behavior, update lottery algorithms, and verify Angular/Spring Boot. Use for project analysis, prediction bugs, backtesting, scoring configuration, and related refactors; keep unrelated tasks within their original scope.
 ---
 
 # Quy trình phân tích và cập nhật analyze-project
@@ -11,18 +11,17 @@ description: Analyze and refactor analyze-project, replace hard-coded prediction
 
 | Stack | Điểm bắt đầu | Dữ liệu / kiểm thử |
 | --- | --- | --- |
-| Node/Vite | `server.ts`, `src/main.ts`, `src/algorithm-support.ts` | `data/`, `tests/prediction.test.ts` |
 | Spring Boot | `backend/src/main/java/com/example/analyzeproject/service/AnalyzeService.java`, `PredictionSupport.java` | PostgreSQL, `backend/src/test/` |
 | Angular | `frontend/src/app/feature/prediction/`, `frontend/src/app/core/models/` và các service | `frontend/package.json`, `frontend/angular.json` |
 
-Các đường dẫn code và lệnh dưới đây tính từ root repo. Root npm build không kiểm tra Java hoặc Angular. Docker ở root build Angular và Spring Boot. Node có thể ưu tiên phục vụ Angular đã build, nên kiểm tra nhánh static khi xác định UI đang chạy code nào.
+Các đường dẫn code tính từ root repo; chạy lệnh build trong đúng thư mục frontend/backend. Docker ở root build Angular và Spring Boot. Ứng dụng Node/Vite ở root đã bị loại bỏ theo yêu cầu người dùng. Dữ liệu cũ được giữ tại `backend/archive/legacy-node-data/`, không tự nhập vào PostgreSQL; báo cáo lịch sử tại `backend/docs/reports/`.
 
 ## Phân tích và chọn cách thay hard-code
 
 - Xem `git status` và giữ nguyên các thay đổi hiện có của người dùng. Lần theo request → history / cấu hình → feature → ranking → sinh vé → DTO → UI và reconciliation.
 - Phân biệt luật nghiệp vụ với dữ liệu bị đóng đinh: miền MEGA 45 / POWER 55, vé sáu số và lịch quay là luật hiện có; dãy dự đoán cố định, ngày cũ, tỷ lệ thành công preset cần dữ liệu, cấu hình hoặc trạng thái thiếu dữ liệu để thay thế.
 - Đưa hệ số điều chỉnh vào cấu hình có kiểm tra kiểu, giá trị hữu hạn, miền hợp lệ và fallback rõ ràng. Không chỉ đổi magic number thành một hằng số khác rồi coi là đã sửa nghiệp vụ.
-- Với thay đổi dùng chung, kiểm tra cả hai backend và fallback của UI. Không yêu cầu hai implementation cho kết quả giống nhau khi công thức vẫn khác; ghi rõ khác biệt có chủ đích.
+- Với thay đổi dùng chung, kiểm tra hợp đồng API giữa Spring Boot và Angular cùng fallback của UI.
 - Không sửa migration Flyway lịch sử hay nạp dữ liệu mẫu thành dữ liệu thật để kiểm thử refactor. Giữ nguyên quy ước UI trong `.github/SKILL.md`; không mở rộng task thành đổi thiết kế ngoài yêu cầu.
 
 ## Bất biến thuật toán
@@ -45,11 +44,6 @@ Các đường dẫn code và lệnh dưới đây tính từ root repo. Root np
 Thay đổi thuật toán cần regression test cho hành vi quan sát được: history thay đổi / đảo thứ tự / rỗng, duplicate và input sai, lựa chọn thuật toán thứ hai, rank fusion đối xứng, số phụ không trùng, tính tái lập, thống kê từ dữ liệu và kỳ backtest đầu tiên.
 
 ```powershell
-# Tại root — khi sửa Node/Vite
-npm test
-npm run lint
-npm run build
-
 # Tại backend/ — kiểm thử và build Spring Boot
 mvn test
 mvn clean install
@@ -58,7 +52,7 @@ mvn clean install
 npm run build
 ```
 
-Với thay đổi code ứng dụng, build riêng Angular và Spring Boot trước khi kết luận hoàn tất theo quy ước dự án; thêm root build nếu sửa Node/Vite. Thay đổi chỉ tài liệu / skill thì kiểm tra frontmatter, nội dung, liên kết và diff, không cần build ứng dụng.
+Với thay đổi code ứng dụng, build riêng Angular và Spring Boot trước khi kết luận hoàn tất theo quy ước dự án. Thay đổi chỉ tài liệu / skill thì kiểm tra frontmatter, nội dung, liên kết và diff, không cần build ứng dụng.
 
 Kiểm tra Node thực tế và `engines` của toolchain trước khi build Angular. Lần kiểm tra trước dùng Node 24 vì Node mặc định 20.9 không đáp ứng dependencies Angular; đây là ghi nhận môi trường, không phải yêu cầu pin vĩnh viễn. Không tự nâng dependencies để né lỗi môi trường. Với PowerShell, tránh shell glob test mà Node đang dùng không hỗ trợ và tránh lệnh xóa kiểu Unix.
 
@@ -74,6 +68,6 @@ Không suy ra cải thiện xác suất trúng từ việc sửa code, tăng đi
 
 ## Nguồn kết quả và scheduler
 
-Khi làm sạch dữ liệu theo yêu cầu người dùng, dùng `DrawQuality` / `src/draw-quality.ts`: sửa đổi phải có audit trước/sau; chỉ áp dụng sửa số chính đã đối chiếu trong `reviewed_draw_corrections.json`, hoặc điền số phụ thiếu khi sáu số chính khớp. Các xung đột chưa xác nhận được cách ly. Dự đoán/backtest dùng revision mới nhất đủ điều kiện, không fallback sang revision cũ khi revision mới chưa được xác minh. Script V10 chèn dữ liệu cũ đã bị bỏ; migration schema audit hiện mang tên `V10__add_draw_quality_audit.sql`, tiếp nối V9 theo yêu cầu người dùng, không chèn lại dữ liệu kỳ quay. Không coi `SOURCE_MATCHED` từ feed cộng đồng là xác minh chính thức của Vietlott.
+Khi làm sạch dữ liệu theo yêu cầu người dùng, dùng `DrawQuality`: sửa đổi phải có audit trước/sau; chỉ áp dụng sửa số chính đã đối chiếu trong `reviewed_draw_corrections.json`, hoặc điền số phụ thiếu khi sáu số chính khớp. Các xung đột chưa xác nhận được cách ly. Dự đoán/backtest dùng revision mới nhất đủ điều kiện, không fallback sang revision cũ khi revision mới chưa được xác minh. Script V10 chèn dữ liệu cũ đã bị bỏ; migration schema audit hiện mang tên `V10__add_draw_quality_audit.sql`, tiếp nối V9 theo yêu cầu người dùng, không chèn lại dữ liệu kỳ quay. Không coi `SOURCE_MATCHED` từ feed cộng đồng là xác minh chính thức của Vietlott.
 
-Khi cần kết quả kỳ mới, kiểm tra feed và trạng thái đồng bộ trước khi yêu cầu người dùng nhập tay. Spring dùng `backend/src/main/java/com/example/analyzeproject/sync/`; Node dùng `src/lottery-sync.ts`; cấu hình và cách chạy trong `README.md`. Nguồn mặc định là `vietvudanh/vietlott-data`: `power645.jsonl` tương ứng MEGA, `power655.jsonl` tương ứng POWER, phần tử thứ bảy là số phụ. Không gọi nguồn cộng đồng là API chính thức. Kiểm tra ngày, giờ Việt Nam, độ mới, kỳ thiếu, trùng và xung đột; không ghi đè lịch sử khác nguồn. Phân biệt cutoff nhận kết quả 18:30 với cutoff dự đoán 18:00. Node JSON chỉ chạy một tiến trình ghi; Spring scheduler dùng transaction và advisory lock. Khi nhập thêm dữ liệu, báo cáo backtest cũ là snapshot của lịch sử cũ, không tiếp tục gọi đó là metric hiện tại.
+Khi cần kết quả kỳ mới, kiểm tra feed và trạng thái đồng bộ trước khi yêu cầu người dùng nhập tay. Spring dùng `backend/src/main/java/com/example/analyzeproject/sync/`; cấu hình và cách chạy trong `README.md`. Nguồn mặc định là `vietvudanh/vietlott-data`: `power645.jsonl` tương ứng MEGA, `power655.jsonl` tương ứng POWER, phần tử thứ bảy là số phụ. Không gọi nguồn cộng đồng là API chính thức. Kiểm tra ngày, giờ Việt Nam, độ mới, kỳ thiếu, trùng và xung đột; không ghi đè lịch sử khác nguồn. Phân biệt cutoff nhận kết quả 18:30 với cutoff dự đoán 18:00. Spring scheduler dùng transaction và advisory lock. Khi nhập thêm dữ liệu, báo cáo backtest cũ là snapshot của lịch sử cũ, không tiếp tục gọi đó là metric hiện tại.

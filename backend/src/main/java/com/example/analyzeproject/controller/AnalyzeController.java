@@ -22,10 +22,12 @@ import java.util.Map;
 public class AnalyzeController {
 
     private final AnalyzeService analyzeService;
+    private final com.example.analyzeproject.service.ForecastService forecasts;
 
     @Autowired
-    public AnalyzeController(AnalyzeService analyzeService) {
+    public AnalyzeController(AnalyzeService analyzeService, com.example.analyzeproject.service.ForecastService forecasts) {
         this.analyzeService = analyzeService;
+        this.forecasts = forecasts;
     }
 
     @GetMapping("/algorithms")
@@ -65,7 +67,7 @@ public class AnalyzeController {
             @RequestParam(required = false, defaultValue = "MEGA") String category,
             @RequestParam(required = false, defaultValue = "temporal_learning") String algorithm,
             @RequestParam(required = false) String algorithm2) {
-        PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm, algorithm2);
+        PredictionResponseDto result = forecasts.predict(category, algorithm, algorithm2);
         return ResponseEntity.ok(result);
     }
 

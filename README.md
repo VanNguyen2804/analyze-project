@@ -1,71 +1,65 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+﻿# Analyze Project
 
-# Run and deploy your AI Studio app
+Ứng dụng chọn bộ 6 số MEGA 6/45 và POWER 6/55 dựa trên thuật toán và thống kê; lưu dự đoán trước kỳ, đối soát kết quả và đánh giá trên các dự đoán đã lưu. Hiện chưa chứng minh được lợi thế dự đoán đáng tin cậy.
 
-Project architecture, completed algorithm fixes, validation commands, and remaining work are documented in [PROJECT_ANALYSIS.md](PROJECT_ANALYSIS.md).
+## Cấu trúc
 
-This contains everything you need to run your app locally.
+- `frontend/`: Angular, giao diện dự đoán và trang `/forecasts`.
+- `backend/`: Spring Boot Java 17, PostgreSQL, Flyway và kiểm thử Java.
+- `Dockerfile`, `render.yaml`: build/triển khai Angular cùng Spring Boot.
+- `.github/`: hướng dẫn agent và skills; `.vscode/`: cấu hình IDE.
+- `.env.example`: mẫu biến môi trường; `metadata.json`: metadata AI Studio được giữ lại.
+- `backend/docs/reports/`: bằng chứng kiểm chứng lịch sử.
+- `backend/archive/legacy-node-data/`: dữ liệu của ứng dụng Node/Vite cũ, giữ để đối chiếu, không tự nhập vào database.
 
-View your app in AI Studio: https://ai.studio/apps/9648a017-762c-49e9-8c3e-53f514eb93b4
+Ứng dụng Node/Vite riêng ở root đã được loại bỏ. Không còn lệnh npm tại root; chạy npm trong `frontend/` và Maven trong `backend/`.
 
-## Run Locally
+## Chạy và kiểm tra
 
-**Prerequisites:**  Node.js
+Cài Node tương thích với toolchain Angular, Java 17+, Maven và PostgreSQL. Cấu hình kết nối bằng `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`; tham khảo `.env.example` và `backend/src/main/resources/application.properties`. Spring không tự đọc file `.env`; cần đưa các giá trị vào môi trường chạy hoặc cấu hình IDE.
 
-
-1. Install dependencies:
-   `npm install`
-2. Optionally set `PORT` in the process environment (default: `3000`). The root prediction code uses stored history and does not require a Gemini API key.
-3. Run the app:
-   `npm run dev`
-
-Run regression tests with `npm test` and type checks with `npm run lint`. Docker uses the separate Angular/Spring Boot stack described in the project analysis.
-
-## Tự động cập nhật kết quả Vietlott
-
-Spring Boot và Node đều bật scheduler mặc định: chạy sau khi khởi động 10 giây, sau đó kiểm tra mỗi 15 phút (tính từ lúc lần trước hoàn tất). Ứng dụng phải đang chạy; nếu máy chủ ngủ hoặc dừng, scheduler sẽ bù dữ liệu trong cửa sổ cấu hình khi chạy lại.
-
-Nguồn miễn phí, không cần API key: [vietvudanh/vietlott-data](https://github.com/vietvudanh/vietlott-data) (MIT). Đây là **feed cộng đồng thu thập từ Vietlott**, không phải API chính thức hoặc cam kết cập nhật tức thì. File `power645.jsonl` là **MEGA 6/45**; `power655.jsonl` là **POWER 6/55**. Mỗi dòng chứa `date`, `id`, `result`, `process_time`; phần tử thứ bảy của POWER là số phụ.
-
-| Biến môi trường | Mặc định | Ý nghĩa |
-| --- | --- | --- |
-| `LOTTERY_SYNC_ENABLED` | `true` | Bật/tắt đồng bộ |
-| `LOTTERY_SYNC_INTERVAL_SECONDS` | `900` | Khoảng nghỉ giữa hai lần kiểm tra, 60–86400 giây |
-| `LOTTERY_SYNC_STARTUP_DELAY_SECONDS` | `10` | Chờ sau khởi động, 0–3600 giây |
-| `LOTTERY_SYNC_LOOKBACK_DAYS` | `90` | Bù kỳ thiếu trong 1–7300 ngày gần nhất |
-| `LOTTERY_SYNC_TIMEOUT_SECONDS` | `20` | Timeout mỗi nguồn, 1–120 giây |
-| `LOTTERY_SYNC_MEGA_URL` | [power645.jsonl](https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl) | Nguồn NDJSON MEGA qua HTTPS |
-| `LOTTERY_SYNC_POWER_URL` | [power655.jsonl](https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl) | Nguồn NDJSON POWER qua HTTPS |
-
-Chỉ nhận kết quả đủ sáu số hợp lệ; POWER bắt buộc có số phụ khác sáu số chính. Ngày hiện tại chỉ nhập sau 18:30 giờ `Asia/Ho_Chi_Minh`, không nhập ngày tương lai. Chạy lại không tạo bản ghi trùng. Lỗi mạng / dữ liệu nguồn không hợp lệ được thử lại ở lần kế tiếp, độc lập cho mỗi loại. Quy trình làm sạch bên dưới điền số phụ còn thiếu khi sáu số chính khớp và áp dụng các sửa đổi đã được đối chiếu; mọi xung đột khác được cách ly, không tự ghi đè.
-
-Xem trạng thái bằng `GET /api/lottery-sync/status`: thời điểm kiểm tra, ngày mới nhất của nguồn, ngày dự kiến, số kỳ thêm / giữ nguyên, chi tiết xung đột hoặc lỗi. Trạng thái lần chạy nằm trong bộ nhớ và reset khi restart; kết quả đã nhập và nguồn trong `note` được lưu bền vững. `STALE` cho biết nguồn chưa có kỳ mới nhất theo lịch. Frontend lấy kết quả từ API hiện có khi tải lại lịch sử / dự đoán.
-
-Đồng bộ thủ công cho Node (dừng Node server trước vì JSON chỉ hỗ trợ một tiến trình ghi):
+Build frontend:
 
 ```powershell
-npm run sync:results
-# Tùy chọn đường dẫn dữ liệu và báo cáo:
-npm run sync:results -- data/lottery_numbers.json reports/lottery-sync.json
+Set-Location frontend
+npm.cmd install
+npm.cmd run build
 ```
 
-Spring Boot ghi thẳng vào PostgreSQL qua transaction, có advisory lock giữa các scheduler replica. Không cần thêm migration theo từng ngày. Muốn lấy lịch sử dài hơn hoặc bù sau thời gian dừng quá 90 ngày, tăng `LOTTERY_SYNC_LOOKBACK_DAYS` trước khi khởi động.
+Từ root, kiểm thử và build backend:
 
-Đối chiếu 25/10/2026: MEGA 23/10 kỳ #01579 = **02–05–11–22–32–40**; POWER 24/10 kỳ #01415 = **06–07–18–41–44–50**, số phụ **53**. Báo cáo nhập lần đầu của resource: [lottery-sync-resources-2026-10-25.json](reports/lottery-sync-resources-2026-10-25.json); báo cáo chạy lại không trùng của Node: [lottery-sync-2026-10-25.json](reports/lottery-sync-2026-10-25.json).
+```powershell
+Set-Location backend
+mvn.cmd install
+java -jar target/analyzeproject-0.0.1-SNAPSHOT.jar
+```
 
-## Làm sạch và kiểm soát chất lượng dữ liệu
+Build Angular trước Maven để profile `local-frontend-build` đóng gói giao diện mới vào JAR. Spring mặc định dùng cổng 8080, có thể cấu hình `PORT`. Để phát triển giao diện riêng, chạy `npm.cmd start` trong `frontend/` và cấu hình `frontend/src/environments/environment.ts` trỏ đến backend; cấu hình hiện tại gọi API cùng origin.
 
-Báo cáo dự đoán/đối soát lấy số kỳ, ngày, số khớp và phiên bản cấu hình từ API. Các chỉ số chưa có dữ liệu hiển thị N/A; backtest dùng cấu hình hiện tại và chỉ đo những kỳ tạo được vé sáu số. Phần đề xuất cấu hình mới chỉ cho áp dụng khi backend có một đề xuất đã được đánh giá. Danh sách thuật toán và số kỳ kiểm thử lấy từ kho dữ liệu hiện tại.
+## Đồng bộ kết quả
 
-Mỗi bản ghi có `quality.status`: chưa có metadata là `UNVERIFIED`, khớp feed là `SOURCE_MATCHED`, cần đối soát là `QUARANTINED`. `SOURCE_MATCHED` có nghĩa khớp nguồn cộng đồng đã cấu hình, không phải chứng nhận độc lập từ Vietlott. Mỗi lần sửa hoặc chuyển trạng thái lưu thời điểm, nguồn, lý do, giá trị trước/sau và ghi chú cũ trong `quality.audit`.
+Spring scheduler mặc định chạy sau khởi động 10 giây, sau đó mỗi 900 giây; đối soát 90 ngày gần nhất. Nguồn mặc định là feed cộng đồng `vietvudanh/vietlott-data`, không phải API chính thức. `power645.jsonl` là MEGA, `power655.jsonl` là POWER; phần tử thứ bảy của POWER là số phụ.
 
-- Scheduler điền số phụ thiếu chỉ khi sáu số chính khớp nguồn; không thay một số phụ đã có nhưng khác nguồn.
-- Sửa số chính chỉ khi cả giá trị cũ và giá trị từ feed khớp một mục trong [danh sách đã đối chiếu](backend/src/main/resources/data/reviewed_draw_corrections.json). Danh sách có URL nguồn thứ hai cho bốn kỳ đã kiểm tra; không phải dữ liệu sinh dự đoán.
-- Xung đột mới, bản ghi không có trong feed trong khoảng ngày đang đối soát và revision cũ bị cách ly. Giữ nguyên bản ghi để kiểm tra, không tự đổi ngày hoặc xóa.
-- Dự đoán, thống kê phân tích, dò vé và backtest chỉ dùng revision mới nhất có trạng thái `SOURCE_MATCHED` và dấu nhận diện giá trị còn khớp. Sửa tay số/ngày/loại xổ số sẽ làm bản ghi mất điều kiện sử dụng cho đến lần đối soát tiếp theo. Không quay về revision cũ đã khớp nguồn nếu revision mới nhất chưa được xác minh.
-- `GET /api/lottery-sync/quality` trả số bản ghi đủ điều kiện/bị loại và toàn bộ lịch sử đối soát. `/api/numbers` vẫn cho xem bản ghi bị cách ly. Lịch sử kiểm tra vé và các báo cáo backtest cũ vẫn là dữ liệu của lần chạy trước, cần tính lại khi đối chiếu với lịch sử đã sửa.
-- `V10__add_draw_quality_audit.sql` chỉ thêm cột `quality_json` cho PostgreSQL, không chèn dữ liệu kỳ quay. Migration này được đổi tên từ V11 để tiếp nối V9; script V10 chèn kết quả cũ vẫn đã bị loại bỏ. Sau khi khởi động bản mới, scheduler đối soát cửa sổ mặc định 90 ngày; tăng `LOTTERY_SYNC_LOOKBACK_DAYS` nếu muốn xác minh các kỳ cũ hơn. Bản ghi ngoài cửa sổ chưa được đối soát tiếp tục bị loại khỏi tập học nếu chưa có trạng thái hợp lệ.
+Các biến chính: `LOTTERY_SYNC_ENABLED`, `LOTTERY_SYNC_INTERVAL_SECONDS`, `LOTTERY_SYNC_STARTUP_DELAY_SECONDS`, `LOTTERY_SYNC_LOOKBACK_DAYS`, `LOTTERY_SYNC_TIMEOUT_SECONDS`, `LOTTERY_SYNC_MEGA_URL`, `LOTTERY_SYNC_POWER_URL`.
 
-Trong bộ JSON hiện tại: sửa bốn kỳ, điền 11 số phụ, cách ly POWER 28/09/2026 vì không có kỳ tương ứng trong feed (dãy số này xuất hiện ở kỳ 29/09). Lần đồng bộ cũng nhận thêm MEGA 25/10. Có 79 bản ghi, 78 đủ điều kiện. Chạy lại không tạo thêm bản ghi hoặc audit event. Xem [báo cáo tổng hợp](reports/data-cleanup-summary-2026-10-25.json).
+Chỉ nhập ngày hiện tại sau 18:30 giờ Việt Nam; không nhập ngày tương lai. Dự đoán chỉ sử dụng revision mới nhất có chất lượng hợp lệ. Xung đột được cách ly, sửa đổi có audit; `SOURCE_MATCHED` chỉ có nghĩa khớp nguồn đã cấu hình.
+
+- `GET /api/lottery-sync/status`: trạng thái lần đồng bộ, lỗi và độ mới của nguồn.
+- `GET /api/lottery-sync/quality`: chất lượng dữ liệu và lịch sử đối soát.
+
+## Lưu dự đoán và đánh giá
+
+Mở `/forecasts` để xem các bộ số đã chốt và kết quả đo. Hệ thống kiểm tra sau khởi động 12 giây rồi mỗi 60 giây khi ứng dụng đang chạy; API dự đoán cũng thử lưu bộ chính đang hiển thị.
+
+Bản đầu tiên theo loại/kỳ/thuật toán được giữ nguyên, kèm cấu hình, phiên bản, lịch sử và dấu SHA-256. Chốt trước 18:00 giờ Việt Nam; đối soát sau 18:30 khi có kết quả hợp lệ. Không sinh bù dự đoán quá khứ. Chỉ đo bộ số đã lưu trước kỳ, tách nhóm theo phiên bản/cấu hình và so sánh với tần suất nền, ngẫu nhiên. Không tự lưu mọi vé biến thể hoặc vé kết hợp.
+
+| API | Chức năng |
+| --- | --- |
+| `GET /api/forecasts` | Xem snapshot, sự kiện đối soát và trạng thái |
+| `POST /api/forecasts/capture` | Thử lưu dự đoán kỳ tiếp theo và đối soát |
+| `POST /api/forecasts/reconcile` | Đối soát bộ đã lưu, không tính lại dự đoán |
+| `GET /api/forecasts/evaluation?category=MEGA` | Đánh giá snapshot đã lưu; bỏ category để xem cả hai loại |
+
+Đặt `FORECAST_ENABLED=false` để tắt tạo snapshot mới. Dữ liệu hoạt động nằm trong PostgreSQL qua migration V11; việc di chuyển thư mục trong repository không thay đổi database đang chạy. Sáu snapshot JSON cũ đã được giữ trong thư mục archive, chưa chuyển vào sổ PostgreSQL.
+
+Xem [hiện trạng và công việc tiếp theo](PROJECT_ANALYSIS.md) và [hướng dẫn triển khai](DEPLOY_RENDER.md).

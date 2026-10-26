@@ -59,6 +59,20 @@ class TemporalRelationshipModelTest {
         assertEquals(List.of(), TemporalRelationshipModel.fit(List.of(), "POWER").analysis().get("predictedNumbers"));
     }
 
+    @Test void reportsTicketObjectiveWeightsAndMeasuredHistogram() {
+        var result = TemporalRelationshipModel.fit(alternating(22), "POWER").analysis();
+        Map<?, ?> evaluation = (Map<?, ?>) result.get("evaluation");
+        assertEquals(17, Arrays.stream((int[]) evaluation.get("matchHistogram")).sum());
+        assertEquals(36.0 / 55, evaluation.get("randomExpectedAverageMatched"));
+        List<Map<String, Object>> patterns = (List<Map<String, Object>>) result.get("patterns");
+        assertEquals(9, patterns.size());
+        Map<String, Object> frequency = patterns.get(0);
+        for (var expert : patterns) {
+            double difference = ((double) expert.get("averageMatched") - (double) frequency.get("averageMatched")) * 17;
+            assertEquals(Math.exp(0.5 * difference / 6), (double) expert.get("weightPercent") / (double) frequency.get("weightPercent"), 1e-12);
+        }
+    }
+
     @Test void serviceUsesTheLearnedTicketAndRecomputesUserMatches() {
         LotteryNumberRepository repository = mock(LotteryNumberRepository.class);
         UserTicketRepository tickets = mock(UserTicketRepository.class);

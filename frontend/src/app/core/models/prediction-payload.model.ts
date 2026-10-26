@@ -146,6 +146,7 @@ export interface AlgorithmResultItem {
 }
 
 export interface PredictionPayload {
+  forecastSnapshot?: { status: string; id?: string; createdAt?: string; numbers?: number[]; sameAsDisplayed?: boolean; message?: string };
   relationshipLearning?: RelationshipLearning;
   status: string;
   message?: string;

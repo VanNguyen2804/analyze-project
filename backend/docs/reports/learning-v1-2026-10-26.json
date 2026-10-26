@@ -1,0 +1,1993 @@
+{
+  "note": "Retrospective prefix replay, not saved pre-draw forecasts. Model design has seen this history; these are development measurements, not an untouched test set.",
+  "report": {
+    "MEGA": {
+      "modelVersion": "temporal-links-v1",
+      "category": "MEGA",
+      "asOfDate": "2026-10-25",
+      "trainingDraws": 39,
+      "forecastPolicy": "learned_mixture",
+      "skippedGapTransitions": 0,
+      "parameters": {
+        "priorStrength": 7.5,
+        "learningRate": 0.5,
+        "minHistory": 5
+      },
+      "patterns": [
+        {
+          "id": "frequency",
+          "name": "Tần suất nền",
+          "weightPercent": 3.725738992183673,
+          "support": 39,
+          "occurrences": null
+        },
+        {
+          "id": "lag1",
+          "name": "Chuyển tiếp một kỳ",
+          "weightPercent": 1.650362084906386,
+          "support": 38,
+          "occurrences": null
+        },
+        {
+          "id": "lag2",
+          "name": "Chuyển tiếp hai kỳ",
+          "weightPercent": 2.4934780571112114,
+          "support": 37,
+          "occurrences": null
+        },
+        {
+          "id": "repeat",
+          "name": "Lặp số",
+          "weightPercent": 31.433800101356287,
+          "support": 228,
+          "occurrences": 30
+        },
+        {
+          "id": "neighbor",
+          "name": "Lân cận ±1",
+          "weightPercent": 28.00711375692221,
+          "support": 431,
+          "occurrences": 59
+        },
+        {
+          "id": "same_tail",
+          "name": "Cùng đuôi",
+          "weightPercent": 28.963768015336555,
+          "support": 704,
+          "occurrences": 98
+        },
+        {
+          "id": "special_to_main",
+          "name": "Số phụ sang số chính",
+          "weightPercent": 3.725738992183673,
+          "support": 0,
+          "occurrences": 0
+        }
+      ],
+      "topTransitions": [
+        {
+          "fromNumber": 4,
+          "toNumber": 11,
+          "support": 4,
+          "occurrences": 3,
+          "conditionalPercent": 34.50210378681627
+        },
+        {
+          "fromNumber": 13,
+          "toNumber": 15,
+          "support": 3,
+          "occurrences": 2,
+          "conditionalPercent": 34.40860215053763
+        },
+        {
+          "fromNumber": 25,
+          "toNumber": 2,
+          "support": 5,
+          "occurrences": 3,
+          "conditionalPercent": 34.32258064516129
+        },
+        {
+          "fromNumber": 41,
+          "toNumber": 15,
+          "support": 6,
+          "occurrences": 3,
+          "conditionalPercent": 34.16965352449223
+        },
+        {
+          "fromNumber": 22,
+          "toNumber": 40,
+          "support": 6,
+          "occurrences": 3,
+          "conditionalPercent": 32.97491039426523
+        },
+        {
+          "fromNumber": 40,
+          "toNumber": 36,
+          "support": 7,
+          "occurrences": 3,
+          "conditionalPercent": 30.700778642936594
+        },
+        {
+          "fromNumber": 40,
+          "toNumber": 43,
+          "support": 7,
+          "occurrences": 3,
+          "conditionalPercent": 30.700778642936594
+        },
+        {
+          "fromNumber": 4,
+          "toNumber": 3,
+          "support": 4,
+          "occurrences": 2,
+          "conditionalPercent": 30.014025245441797
+        },
+        {
+          "fromNumber": 4,
+          "toNumber": 40,
+          "support": 4,
+          "occurrences": 2,
+          "conditionalPercent": 30.014025245441797
+        },
+        {
+          "fromNumber": 40,
+          "toNumber": 22,
+          "support": 7,
+          "occurrences": 3,
+          "conditionalPercent": 29.58843159065628
+        },
+        {
+          "fromNumber": 25,
+          "toNumber": 27,
+          "support": 5,
+          "occurrences": 2,
+          "conditionalPercent": 28.90322580645161
+        },
+        {
+          "fromNumber": 4,
+          "toNumber": 2,
+          "support": 4,
+          "occurrences": 2,
+          "conditionalPercent": 28.61150070126227
+        }
+      ],
+      "predictedNumbers": [
+        3,
+        6,
+        15,
+        27,
+        40,
+        43
+      ],
+      "evaluation": {
+        "method": "prequential",
+        "evaluatedDraws": 34,
+        "minHistory": 5,
+        "averageMatched": 0.6764705882352942,
+        "baselineAverageMatched": 0.7058823529411765,
+        "candidateAverageMatched": 0.7058823529411765,
+        "baselineFallbackDraws": 21,
+        "hit3RatePercent": 0,
+        "brierScore": 0.11726345675802838,
+        "baselineBrierScore": 0.1184520960677553
+      },
+      "replay": [
+        {
+          "targetDate": "2026-08-09",
+          "trainingThrough": "2026-08-07",
+          "predictedNumbers": [
+            2,
+            6,
+            16,
+            25,
+            36,
+            43
+          ],
+          "actualNumbers": [
+            3,
+            17,
+            20,
+            27,
+            31,
+            35
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-12",
+          "trainingThrough": "2026-08-09",
+          "predictedNumbers": [
+            2,
+            3,
+            6,
+            16,
+            20,
+            36
+          ],
+          "actualNumbers": [
+            15,
+            17,
+            22,
+            29,
+            33,
+            40
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-14",
+          "trainingThrough": "2026-08-12",
+          "predictedNumbers": [
+            2,
+            3,
+            6,
+            20,
+            36,
+            43
+          ],
+          "actualNumbers": [
+            7,
+            9,
+            13,
+            31,
+            35,
+            44
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-16",
+          "trainingThrough": "2026-08-14",
+          "predictedNumbers": [
+            2,
+            6,
+            16,
+            17,
+            25,
+            31
+          ],
+          "actualNumbers": [
+            6,
+            7,
+            15,
+            19,
+            36,
+            41
+          ],
+          "matchedNumbers": [
+            6
+          ],
+          "matchedCount": 1,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-19",
+          "trainingThrough": "2026-08-16",
+          "predictedNumbers": [
+            2,
+            6,
+            25,
+            27,
+            31,
+            36
+          ],
+          "actualNumbers": [
+            6,
+            15,
+            18,
+            33,
+            40,
+            43
+          ],
+          "matchedNumbers": [
+            6
+          ],
+          "matchedCount": 1,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-21",
+          "trainingThrough": "2026-08-19",
+          "predictedNumbers": [
+            2,
+            6,
+            15,
+            31,
+            36,
+            43
+          ],
+          "actualNumbers": [
+            7,
+            26,
+            31,
+            38,
+            43,
+            45
+          ],
+          "matchedNumbers": [
+            31,
+            43
+          ],
+          "matchedCount": 2,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-23",
+          "trainingThrough": "2026-08-21",
+          "predictedNumbers": [
+            6,
+            7,
+            15,
+            31,
+            36,
+            43
+          ],
+          "actualNumbers": [
+            4,
+            16,
+            17,
+            22,
+            32,
+            39
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-26",
+          "trainingThrough": "2026-08-23",
+          "predictedNumbers": [
+            2,
+            6,
+            7,
+            15,
+            31,
+            43
+          ],
+          "actualNumbers": [
+            3,
+            10,
+            11,
+            16,
+            33,
+            40
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-28",
+          "trainingThrough": "2026-08-26",
+          "predictedNumbers": [
+            2,
+            6,
+            7,
+            16,
+            31,
+            43
+          ],
+          "actualNumbers": [
+            3,
+            13,
+            15,
+            22,
+            36,
+            39
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-30",
+          "trainingThrough": "2026-08-28",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            31,
+            36
+          ],
+          "actualNumbers": [
+            1,
+            3,
+            12,
+            15,
+            37,
+            45
+          ],
+          "matchedNumbers": [
+            3,
+            15
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-02",
+          "trainingThrough": "2026-08-30",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            31,
+            36
+          ],
+          "actualNumbers": [
+            6,
+            9,
+            27,
+            29,
+            35,
+            44
+          ],
+          "matchedNumbers": [
+            6
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-04",
+          "trainingThrough": "2026-09-02",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            31,
+            36
+          ],
+          "actualNumbers": [
+            16,
+            21,
+            23,
+            29,
+            34,
+            45
+          ],
+          "matchedNumbers": [
+            16
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-06",
+          "trainingThrough": "2026-09-04",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            31,
+            36
+          ],
+          "actualNumbers": [
+            9,
+            14,
+            22,
+            26,
+            27,
+            40
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-09",
+          "trainingThrough": "2026-09-06",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            22,
+            27
+          ],
+          "actualNumbers": [
+            12,
+            17,
+            20,
+            21,
+            36,
+            43
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-11",
+          "trainingThrough": "2026-09-09",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            36,
+            43
+          ],
+          "actualNumbers": [
+            14,
+            18,
+            20,
+            21,
+            26,
+            27
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-13",
+          "trainingThrough": "2026-09-11",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            27,
+            36
+          ],
+          "actualNumbers": [
+            4,
+            12,
+            31,
+            34,
+            38,
+            41
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-16",
+          "trainingThrough": "2026-09-13",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            27,
+            31
+          ],
+          "actualNumbers": [
+            1,
+            3,
+            10,
+            11,
+            18,
+            23
+          ],
+          "matchedNumbers": [
+            3
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-18",
+          "trainingThrough": "2026-09-16",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            27,
+            31
+          ],
+          "actualNumbers": [
+            7,
+            12,
+            26,
+            27,
+            41,
+            43
+          ],
+          "matchedNumbers": [
+            27
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-20",
+          "trainingThrough": "2026-09-18",
+          "predictedNumbers": [
+            3,
+            6,
+            12,
+            15,
+            27,
+            43
+          ],
+          "actualNumbers": [
+            10,
+            15,
+            16,
+            27,
+            33,
+            38
+          ],
+          "matchedNumbers": [
+            15,
+            27
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-23",
+          "trainingThrough": "2026-09-20",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            27,
+            43
+          ],
+          "actualNumbers": [
+            2,
+            6,
+            12,
+            15,
+            25,
+            26
+          ],
+          "matchedNumbers": [
+            6,
+            15
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-25",
+          "trainingThrough": "2026-09-23",
+          "predictedNumbers": [
+            3,
+            6,
+            12,
+            15,
+            16,
+            27
+          ],
+          "actualNumbers": [
+            3,
+            15,
+            18,
+            28,
+            33,
+            36
+          ],
+          "matchedNumbers": [
+            3,
+            15
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-27",
+          "trainingThrough": "2026-09-25",
+          "predictedNumbers": [
+            3,
+            6,
+            12,
+            15,
+            16,
+            27
+          ],
+          "actualNumbers": [
+            2,
+            4,
+            13,
+            25,
+            31,
+            39
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-30",
+          "trainingThrough": "2026-09-27",
+          "predictedNumbers": [
+            3,
+            6,
+            12,
+            15,
+            16,
+            27
+          ],
+          "actualNumbers": [
+            2,
+            9,
+            24,
+            27,
+            30,
+            33
+          ],
+          "matchedNumbers": [
+            27
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-02",
+          "trainingThrough": "2026-09-30",
+          "predictedNumbers": [
+            2,
+            3,
+            6,
+            12,
+            15,
+            27
+          ],
+          "actualNumbers": [
+            1,
+            6,
+            20,
+            27,
+            31,
+            41
+          ],
+          "matchedNumbers": [
+            6,
+            27
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-04",
+          "trainingThrough": "2026-10-02",
+          "predictedNumbers": [
+            2,
+            3,
+            6,
+            15,
+            27,
+            31
+          ],
+          "actualNumbers": [
+            15,
+            20,
+            29,
+            37,
+            40,
+            45
+          ],
+          "matchedNumbers": [
+            15
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-07",
+          "trainingThrough": "2026-10-04",
+          "predictedNumbers": [
+            2,
+            3,
+            6,
+            15,
+            27,
+            31
+          ],
+          "actualNumbers": [
+            10,
+            14,
+            36,
+            37,
+            41,
+            43
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-09",
+          "trainingThrough": "2026-10-07",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            27,
+            31,
+            36
+          ],
+          "actualNumbers": [
+            5,
+            7,
+            12,
+            23,
+            32,
+            41
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-11",
+          "trainingThrough": "2026-10-09",
+          "predictedNumbers": [
+            3,
+            6,
+            12,
+            15,
+            27,
+            31
+          ],
+          "actualNumbers": [
+            3,
+            9,
+            16,
+            29,
+            30,
+            44
+          ],
+          "matchedNumbers": [
+            3
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-14",
+          "trainingThrough": "2026-10-11",
+          "predictedNumbers": [
+            3,
+            6,
+            12,
+            15,
+            16,
+            27
+          ],
+          "actualNumbers": [
+            6,
+            16,
+            19,
+            21,
+            34,
+            43
+          ],
+          "matchedNumbers": [
+            6,
+            16
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-16",
+          "trainingThrough": "2026-10-14",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            27,
+            43
+          ],
+          "actualNumbers": [
+            9,
+            20,
+            26,
+            35,
+            36,
+            38
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-18",
+          "trainingThrough": "2026-10-16",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            27,
+            43
+          ],
+          "actualNumbers": [
+            10,
+            11,
+            31,
+            38,
+            40,
+            44
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-10-21",
+          "trainingThrough": "2026-10-18",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            27,
+            36,
+            43
+          ],
+          "actualNumbers": [
+            4,
+            10,
+            14,
+            22,
+            25,
+            44
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-10-23",
+          "trainingThrough": "2026-10-21",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            16,
+            27,
+            43
+          ],
+          "actualNumbers": [
+            2,
+            5,
+            11,
+            22,
+            32,
+            40
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-10-25",
+          "trainingThrough": "2026-10-23",
+          "predictedNumbers": [
+            3,
+            6,
+            15,
+            27,
+            31,
+            36
+          ],
+          "actualNumbers": [
+            4,
+            13,
+            22,
+            25,
+            40,
+            41
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        }
+      ]
+    },
+    "POWER": {
+      "modelVersion": "temporal-links-v1",
+      "category": "POWER",
+      "asOfDate": "2026-10-24",
+      "trainingDraws": 39,
+      "forecastPolicy": "frequency_fallback",
+      "skippedGapTransitions": 0,
+      "parameters": {
+        "priorStrength": 9.166666666666666,
+        "learningRate": 0.5,
+        "minHistory": 5
+      },
+      "patterns": [
+        {
+          "id": "frequency",
+          "name": "Tần suất nền",
+          "weightPercent": 3.8192837715439536,
+          "support": 39,
+          "occurrences": null
+        },
+        {
+          "id": "lag1",
+          "name": "Chuyển tiếp một kỳ",
+          "weightPercent": 1.793532924151085,
+          "support": 38,
+          "occurrences": null
+        },
+        {
+          "id": "lag2",
+          "name": "Chuyển tiếp hai kỳ",
+          "weightPercent": 2.6851100526054705,
+          "support": 37,
+          "occurrences": null
+        },
+        {
+          "id": "repeat",
+          "name": "Lặp số",
+          "weightPercent": 22.908893182903334,
+          "support": 228,
+          "occurrences": 24
+        },
+        {
+          "id": "neighbor",
+          "name": "Lân cận ±1",
+          "weightPercent": 22.110049367662867,
+          "support": 420,
+          "occurrences": 49
+        },
+        {
+          "id": "same_tail",
+          "name": "Cùng đuôi",
+          "weightPercent": 23.36083890158444,
+          "support": 852,
+          "occurrences": 100
+        },
+        {
+          "id": "special_to_main",
+          "name": "Số phụ sang số chính",
+          "weightPercent": 23.32229179954886,
+          "support": 38,
+          "occurrences": 4
+        }
+      ],
+      "topTransitions": [
+        {
+          "fromNumber": 6,
+          "toNumber": 7,
+          "support": 2,
+          "occurrences": 2,
+          "conditionalPercent": 36.65754273614626
+        },
+        {
+          "fromNumber": 7,
+          "toNumber": 27,
+          "support": 9,
+          "occurrences": 4,
+          "conditionalPercent": 31.446620742198665
+        },
+        {
+          "fromNumber": 7,
+          "toNumber": 24,
+          "support": 9,
+          "occurrences": 4,
+          "conditionalPercent": 30.399034951271393
+        },
+        {
+          "fromNumber": 18,
+          "toNumber": 7,
+          "support": 8,
+          "occurrences": 3,
+          "conditionalPercent": 29.6704404206
+        },
+        {
+          "fromNumber": 7,
+          "toNumber": 1,
+          "support": 9,
+          "occurrences": 4,
+          "conditionalPercent": 29.351449160344117
+        },
+        {
+          "fromNumber": 7,
+          "toNumber": 11,
+          "support": 9,
+          "occurrences": 3,
+          "conditionalPercent": 26.98961937716263
+        },
+        {
+          "fromNumber": 6,
+          "toNumber": 11,
+          "support": 2,
+          "occurrences": 1,
+          "conditionalPercent": 25.99803749418995
+        },
+        {
+          "fromNumber": 6,
+          "toNumber": 18,
+          "support": 2,
+          "occurrences": 1,
+          "conditionalPercent": 25.99803749418995
+        },
+        {
+          "fromNumber": 41,
+          "toNumber": 2,
+          "support": 4,
+          "occurrences": 2,
+          "conditionalPercent": 25.30769567693049
+        },
+        {
+          "fromNumber": 18,
+          "toNumber": 1,
+          "support": 8,
+          "occurrences": 3,
+          "conditionalPercent": 25.235999596869018
+        },
+        {
+          "fromNumber": 6,
+          "toNumber": 27,
+          "support": 2,
+          "occurrences": 1,
+          "conditionalPercent": 24.29375613283066
+        },
+        {
+          "fromNumber": 44,
+          "toNumber": 47,
+          "support": 4,
+          "occurrences": 2,
+          "conditionalPercent": 23.862292497043494
+        }
+      ],
+      "predictedNumbers": [
+        7,
+        11,
+        14,
+        18,
+        23,
+        27
+      ],
+      "evaluation": {
+        "method": "prequential",
+        "evaluatedDraws": 34,
+        "minHistory": 5,
+        "averageMatched": 0.7058823529411765,
+        "baselineAverageMatched": 0.7647058823529411,
+        "candidateAverageMatched": 0.6176470588235294,
+        "baselineFallbackDraws": 26,
+        "hit3RatePercent": 2.941176470588235,
+        "brierScore": 0.09859369858352884,
+        "baselineBrierScore": 0.09921735645319966
+      },
+      "replay": [
+        {
+          "targetDate": "2026-08-08",
+          "trainingThrough": "2026-08-06",
+          "predictedNumbers": [
+            14,
+            23,
+            44,
+            49,
+            54,
+            55
+          ],
+          "actualNumbers": [
+            5,
+            29,
+            33,
+            38,
+            40,
+            45
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-11",
+          "trainingThrough": "2026-08-08",
+          "predictedNumbers": [
+            14,
+            23,
+            40,
+            44,
+            49,
+            55
+          ],
+          "actualNumbers": [
+            2,
+            7,
+            19,
+            20,
+            39,
+            50
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-13",
+          "trainingThrough": "2026-08-11",
+          "predictedNumbers": [
+            14,
+            23,
+            39,
+            40,
+            49,
+            55
+          ],
+          "actualNumbers": [
+            5,
+            9,
+            27,
+            29,
+            45,
+            46
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-15",
+          "trainingThrough": "2026-08-13",
+          "predictedNumbers": [
+            2,
+            7,
+            14,
+            39,
+            49,
+            55
+          ],
+          "actualNumbers": [
+            16,
+            20,
+            25,
+            27,
+            30,
+            50
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-08-18",
+          "trainingThrough": "2026-08-15",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            14,
+            16,
+            27
+          ],
+          "actualNumbers": [
+            3,
+            15,
+            18,
+            38,
+            41,
+            48
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-08-20",
+          "trainingThrough": "2026-08-18",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            14,
+            16,
+            27
+          ],
+          "actualNumbers": [
+            2,
+            8,
+            29,
+            38,
+            39,
+            51
+          ],
+          "matchedNumbers": [
+            2
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-08-22",
+          "trainingThrough": "2026-08-20",
+          "predictedNumbers": [
+            2,
+            14,
+            27,
+            29,
+            38,
+            39
+          ],
+          "actualNumbers": [
+            9,
+            18,
+            19,
+            21,
+            25,
+            36
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-08-25",
+          "trainingThrough": "2026-08-22",
+          "predictedNumbers": [
+            2,
+            14,
+            18,
+            27,
+            29,
+            38
+          ],
+          "actualNumbers": [
+            5,
+            7,
+            13,
+            18,
+            31,
+            40
+          ],
+          "matchedNumbers": [
+            18
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-08-27",
+          "trainingThrough": "2026-08-25",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            14,
+            18,
+            27
+          ],
+          "actualNumbers": [
+            1,
+            3,
+            11,
+            21,
+            26,
+            44
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-08-29",
+          "trainingThrough": "2026-08-27",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            14,
+            18,
+            27
+          ],
+          "actualNumbers": [
+            5,
+            10,
+            15,
+            29,
+            34,
+            45
+          ],
+          "matchedNumbers": [
+            5
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-01",
+          "trainingThrough": "2026-08-29",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            14,
+            18,
+            29
+          ],
+          "actualNumbers": [
+            1,
+            17,
+            41,
+            44,
+            49,
+            55
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-03",
+          "trainingThrough": "2026-09-01",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            18,
+            29,
+            44
+          ],
+          "actualNumbers": [
+            8,
+            9,
+            16,
+            42,
+            46,
+            47
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-05",
+          "trainingThrough": "2026-09-03",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            18,
+            29,
+            44
+          ],
+          "actualNumbers": [
+            9,
+            11,
+            24,
+            31,
+            33,
+            47
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-08",
+          "trainingThrough": "2026-09-05",
+          "predictedNumbers": [
+            2,
+            5,
+            9,
+            18,
+            29,
+            44
+          ],
+          "actualNumbers": [
+            8,
+            11,
+            14,
+            23,
+            25,
+            54
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-10",
+          "trainingThrough": "2026-09-08",
+          "predictedNumbers": [
+            5,
+            9,
+            14,
+            18,
+            29,
+            44
+          ],
+          "actualNumbers": [
+            2,
+            5,
+            28,
+            32,
+            51,
+            53
+          ],
+          "matchedNumbers": [
+            5
+          ],
+          "matchedCount": 1,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-09-12",
+          "trainingThrough": "2026-09-10",
+          "predictedNumbers": [
+            11,
+            14,
+            18,
+            29,
+            44,
+            55
+          ],
+          "actualNumbers": [
+            7,
+            24,
+            31,
+            43,
+            47,
+            54
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-09-15",
+          "trainingThrough": "2026-09-12",
+          "predictedNumbers": [
+            5,
+            11,
+            14,
+            18,
+            23,
+            44
+          ],
+          "actualNumbers": [
+            24,
+            27,
+            32,
+            36,
+            38,
+            47
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-09-17",
+          "trainingThrough": "2026-09-15",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            14,
+            18,
+            47
+          ],
+          "actualNumbers": [
+            6,
+            11,
+            25,
+            27,
+            37,
+            45
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "learned_mixture"
+        },
+        {
+          "targetDate": "2026-09-19",
+          "trainingThrough": "2026-09-17",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            11,
+            27,
+            47
+          ],
+          "actualNumbers": [
+            4,
+            7,
+            11,
+            18,
+            22,
+            25
+          ],
+          "matchedNumbers": [
+            7,
+            11
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-22",
+          "trainingThrough": "2026-09-19",
+          "predictedNumbers": [
+            5,
+            7,
+            11,
+            18,
+            25,
+            27
+          ],
+          "actualNumbers": [
+            1,
+            3,
+            9,
+            11,
+            41,
+            46
+          ],
+          "matchedNumbers": [
+            11
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-24",
+          "trainingThrough": "2026-09-22",
+          "predictedNumbers": [
+            5,
+            7,
+            9,
+            11,
+            18,
+            25
+          ],
+          "actualNumbers": [
+            1,
+            13,
+            23,
+            25,
+            26,
+            28
+          ],
+          "matchedNumbers": [
+            25
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-26",
+          "trainingThrough": "2026-09-24",
+          "predictedNumbers": [
+            5,
+            7,
+            9,
+            11,
+            18,
+            25
+          ],
+          "actualNumbers": [
+            14,
+            18,
+            21,
+            38,
+            48,
+            52
+          ],
+          "matchedNumbers": [
+            18
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-09-29",
+          "trainingThrough": "2026-09-26",
+          "predictedNumbers": [
+            5,
+            7,
+            9,
+            11,
+            18,
+            25
+          ],
+          "actualNumbers": [
+            2,
+            4,
+            13,
+            17,
+            35,
+            36
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-01",
+          "trainingThrough": "2026-09-29",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            11,
+            18,
+            25
+          ],
+          "actualNumbers": [
+            4,
+            5,
+            13,
+            34,
+            52,
+            55
+          ],
+          "matchedNumbers": [
+            5
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-03",
+          "trainingThrough": "2026-10-01",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            11,
+            18,
+            25
+          ],
+          "actualNumbers": [
+            7,
+            11,
+            13,
+            16,
+            18,
+            54
+          ],
+          "matchedNumbers": [
+            7,
+            11,
+            18
+          ],
+          "matchedCount": 3,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-06",
+          "trainingThrough": "2026-10-03",
+          "predictedNumbers": [
+            2,
+            5,
+            7,
+            11,
+            18,
+            25
+          ],
+          "actualNumbers": [
+            6,
+            7,
+            18,
+            20,
+            24,
+            27
+          ],
+          "matchedNumbers": [
+            7,
+            18
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-08",
+          "trainingThrough": "2026-10-06",
+          "predictedNumbers": [
+            5,
+            7,
+            11,
+            18,
+            25,
+            27
+          ],
+          "actualNumbers": [
+            1,
+            7,
+            12,
+            27,
+            31,
+            52
+          ],
+          "matchedNumbers": [
+            7,
+            27
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-10",
+          "trainingThrough": "2026-10-08",
+          "predictedNumbers": [
+            5,
+            7,
+            11,
+            18,
+            25,
+            27
+          ],
+          "actualNumbers": [
+            14,
+            17,
+            21,
+            23,
+            24,
+            39
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-13",
+          "trainingThrough": "2026-10-10",
+          "predictedNumbers": [
+            5,
+            7,
+            11,
+            14,
+            18,
+            27
+          ],
+          "actualNumbers": [
+            2,
+            14,
+            27,
+            40,
+            50,
+            53
+          ],
+          "matchedNumbers": [
+            14,
+            27
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-15",
+          "trainingThrough": "2026-10-13",
+          "predictedNumbers": [
+            2,
+            7,
+            11,
+            14,
+            18,
+            27
+          ],
+          "actualNumbers": [
+            7,
+            23,
+            25,
+            42,
+            45,
+            51
+          ],
+          "matchedNumbers": [
+            7
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-17",
+          "trainingThrough": "2026-10-15",
+          "predictedNumbers": [
+            7,
+            11,
+            14,
+            18,
+            25,
+            27
+          ],
+          "actualNumbers": [
+            1,
+            10,
+            11,
+            12,
+            16,
+            37
+          ],
+          "matchedNumbers": [
+            11
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-20",
+          "trainingThrough": "2026-10-17",
+          "predictedNumbers": [
+            7,
+            11,
+            14,
+            18,
+            25,
+            27
+          ],
+          "actualNumbers": [
+            13,
+            20,
+            23,
+            30,
+            50,
+            55
+          ],
+          "matchedNumbers": [],
+          "matchedCount": 0,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-22",
+          "trainingThrough": "2026-10-20",
+          "predictedNumbers": [
+            7,
+            11,
+            14,
+            18,
+            23,
+            27
+          ],
+          "actualNumbers": [
+            14,
+            19,
+            24,
+            31,
+            34,
+            42
+          ],
+          "matchedNumbers": [
+            14
+          ],
+          "matchedCount": 1,
+          "policy": "frequency_fallback"
+        },
+        {
+          "targetDate": "2026-10-24",
+          "trainingThrough": "2026-10-22",
+          "predictedNumbers": [
+            7,
+            11,
+            14,
+            18,
+            23,
+            27
+          ],
+          "actualNumbers": [
+            6,
+            7,
+            18,
+            41,
+            44,
+            50
+          ],
+          "matchedNumbers": [
+            7,
+            18
+          ],
+          "matchedCount": 2,
+          "policy": "frequency_fallback"
+        }
+      ]
+    }
+  }
+}

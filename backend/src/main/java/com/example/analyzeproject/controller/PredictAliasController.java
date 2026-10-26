@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.*;
 public class PredictAliasController {
 
     private final AnalyzeService analyzeService;
+    private final com.example.analyzeproject.service.ForecastService forecasts;
 
     @Autowired
-    public PredictAliasController(AnalyzeService analyzeService) {
+    public PredictAliasController(AnalyzeService analyzeService, com.example.analyzeproject.service.ForecastService forecasts) {
         this.analyzeService = analyzeService;
+        this.forecasts = forecasts;
     }
 
     @RequestMapping(value = {"/predict", "/api/predict"}, method = {RequestMethod.GET, RequestMethod.POST})
@@ -22,7 +24,7 @@ public class PredictAliasController {
             @RequestParam(required = false, defaultValue = "MEGA") String category,
             @RequestParam(required = false, defaultValue = "temporal_learning") String algorithm,
             @RequestParam(required = false) String algorithm2) {
-        PredictionResponseDto result = analyzeService.analyzeAndPredict(category, algorithm, algorithm2);
+        PredictionResponseDto result = forecasts.predict(category, algorithm, algorithm2);
         return ResponseEntity.ok(result);
     }
 

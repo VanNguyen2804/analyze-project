@@ -1,0 +1,376 @@
+{
+  "checkedAt": "2026-10-26T02:44:47.032Z",
+  "environment": "Disposable local PostgreSQL 16.4 / forecast_validation_final; no production connection",
+  "migrations": [
+    {
+      "version": "1",
+      "success": true
+    },
+    {
+      "version": "2",
+      "success": true
+    },
+    {
+      "version": "3",
+      "success": true
+    },
+    {
+      "version": "4",
+      "success": true
+    },
+    {
+      "version": "5",
+      "success": true
+    },
+    {
+      "version": "6",
+      "success": true
+    },
+    {
+      "version": "7",
+      "success": true
+    },
+    {
+      "version": "8",
+      "success": true
+    },
+    {
+      "version": "9",
+      "success": true
+    },
+    {
+      "version": "10",
+      "success": true
+    },
+    {
+      "version": "11",
+      "success": true
+    }
+  ],
+  "savedRealFutureForecasts": [
+    {
+      "id": "MEGA:2026-10-28:bayesian_graph",
+      "createdAt": "2026-10-26T02:44:10.112181700Z",
+      "numbers": [
+        4,
+        12,
+        22,
+        25,
+        40,
+        41
+      ],
+      "trainingThrough": "2026-10-25"
+    },
+    {
+      "id": "MEGA:2026-10-28:deep_stacking",
+      "createdAt": "2026-10-26T02:44:11.425554100Z",
+      "numbers": [
+        3,
+        4,
+        13,
+        15,
+        25,
+        41
+      ],
+      "trainingThrough": "2026-10-25"
+    },
+    {
+      "id": "MEGA:2026-10-28:temporal_learning",
+      "createdAt": "2026-10-26T02:44:09.589437Z",
+      "numbers": [
+        3,
+        6,
+        15,
+        22,
+        27,
+        40
+      ],
+      "trainingThrough": "2026-10-25"
+    },
+    {
+      "id": "POWER:2026-10-27:bayesian_graph",
+      "createdAt": "2026-10-26T02:44:15.468147300Z",
+      "numbers": [
+        5,
+        7,
+        14,
+        18,
+        24,
+        50
+      ],
+      "trainingThrough": "2026-10-24"
+    },
+    {
+      "id": "POWER:2026-10-27:deep_stacking",
+      "createdAt": "2026-10-26T02:44:16.327033800Z",
+      "numbers": [
+        7,
+        18,
+        27,
+        41,
+        44,
+        50
+      ],
+      "trainingThrough": "2026-10-24"
+    },
+    {
+      "id": "POWER:2026-10-27:temporal_learning",
+      "createdAt": "2026-10-26T02:44:14.952433100Z",
+      "numbers": [
+        7,
+        11,
+        14,
+        18,
+        24,
+        27
+      ],
+      "trainingThrough": "2026-10-24"
+    }
+  ],
+  "futureEvaluation": {
+    "protocol": "prospective-first-ticket-v1",
+    "method": "prospective_frozen_forecasts",
+    "excludedInvalidSnapshots": 0,
+    "note": "Chỉ đo vé đầu tiên lưu trước kỳ. Không chọn cấu hình từ tập đánh giá. Khoảng tin cậy xấp xỉ và chênh lệch chưa chứng minh cải thiện.",
+    "groups": [
+      {
+        "cohort": "MEGA|bayesian_graph|XGBoost Multi-Factor Optimization v1.2.0|73c79797d021ca3e55cd6eb1d980b1b552863f47927f704ee558bc152462ad58|daa28d262f8ff1f96eb4e717b43a2734062ede89153b885634c79b7c2f3a11d3",
+        "category": "MEGA",
+        "algorithm": "bayesian_graph",
+        "modelVersion": "XGBoost Multi-Factor Optimization v1.2.0",
+        "configurationHash": "daa28d262f8ff1f96eb4e717b43a2734062ede89153b885634c79b7c2f3a11d3",
+        "savedForecasts": 1,
+        "evaluatedDraws": 0,
+        "pendingOrUnavailable": 1,
+        "firstTargetDate": "2026-10-28",
+        "lastTargetDate": "2026-10-28",
+        "matchHistogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "averageMatched": null,
+        "frequencyAverageMatched": null,
+        "randomAverageMatched": null,
+        "randomExpectedAverageMatched": 0.8,
+        "hit3RatePercent": null,
+        "pairedDifferenceVsFrequency": null,
+        "approximate95PercentInterval": null,
+        "evidenceStatus": "INSUFFICIENT_SAMPLE"
+      },
+      {
+        "cohort": "MEGA|deep_stacking|XGBoost Multi-Factor Optimization v1.2.0|73c79797d021ca3e55cd6eb1d980b1b552863f47927f704ee558bc152462ad58|daa28d262f8ff1f96eb4e717b43a2734062ede89153b885634c79b7c2f3a11d3",
+        "category": "MEGA",
+        "algorithm": "deep_stacking",
+        "modelVersion": "XGBoost Multi-Factor Optimization v1.2.0",
+        "configurationHash": "daa28d262f8ff1f96eb4e717b43a2734062ede89153b885634c79b7c2f3a11d3",
+        "savedForecasts": 1,
+        "evaluatedDraws": 0,
+        "pendingOrUnavailable": 1,
+        "firstTargetDate": "2026-10-28",
+        "lastTargetDate": "2026-10-28",
+        "matchHistogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "averageMatched": null,
+        "frequencyAverageMatched": null,
+        "randomAverageMatched": null,
+        "randomExpectedAverageMatched": 0.8,
+        "hit3RatePercent": null,
+        "pairedDifferenceVsFrequency": null,
+        "approximate95PercentInterval": null,
+        "evidenceStatus": "INSUFFICIENT_SAMPLE"
+      },
+      {
+        "cohort": "MEGA|temporal_learning|temporal-links-v2|73c79797d021ca3e55cd6eb1d980b1b552863f47927f704ee558bc152462ad58|daa28d262f8ff1f96eb4e717b43a2734062ede89153b885634c79b7c2f3a11d3",
+        "category": "MEGA",
+        "algorithm": "temporal_learning",
+        "modelVersion": "temporal-links-v2",
+        "configurationHash": "daa28d262f8ff1f96eb4e717b43a2734062ede89153b885634c79b7c2f3a11d3",
+        "savedForecasts": 1,
+        "evaluatedDraws": 0,
+        "pendingOrUnavailable": 1,
+        "firstTargetDate": "2026-10-28",
+        "lastTargetDate": "2026-10-28",
+        "matchHistogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "averageMatched": null,
+        "frequencyAverageMatched": null,
+        "randomAverageMatched": null,
+        "randomExpectedAverageMatched": 0.8,
+        "hit3RatePercent": null,
+        "pairedDifferenceVsFrequency": null,
+        "approximate95PercentInterval": null,
+        "evidenceStatus": "INSUFFICIENT_SAMPLE"
+      },
+      {
+        "cohort": "POWER|bayesian_graph|XGBoost Multi-Factor Optimization|73c79797d021ca3e55cd6eb1d980b1b552863f47927f704ee558bc152462ad58|3790a0698d65b72511f88acbeabf10b791a0aaa3e2599b0b441cb67eca8145cd",
+        "category": "POWER",
+        "algorithm": "bayesian_graph",
+        "modelVersion": "XGBoost Multi-Factor Optimization",
+        "configurationHash": "3790a0698d65b72511f88acbeabf10b791a0aaa3e2599b0b441cb67eca8145cd",
+        "savedForecasts": 1,
+        "evaluatedDraws": 0,
+        "pendingOrUnavailable": 1,
+        "firstTargetDate": "2026-10-27",
+        "lastTargetDate": "2026-10-27",
+        "matchHistogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "averageMatched": null,
+        "frequencyAverageMatched": null,
+        "randomAverageMatched": null,
+        "randomExpectedAverageMatched": 0.6545454545454545,
+        "hit3RatePercent": null,
+        "pairedDifferenceVsFrequency": null,
+        "approximate95PercentInterval": null,
+        "evidenceStatus": "INSUFFICIENT_SAMPLE"
+      },
+      {
+        "cohort": "POWER|deep_stacking|XGBoost Multi-Factor Optimization|73c79797d021ca3e55cd6eb1d980b1b552863f47927f704ee558bc152462ad58|3790a0698d65b72511f88acbeabf10b791a0aaa3e2599b0b441cb67eca8145cd",
+        "category": "POWER",
+        "algorithm": "deep_stacking",
+        "modelVersion": "XGBoost Multi-Factor Optimization",
+        "configurationHash": "3790a0698d65b72511f88acbeabf10b791a0aaa3e2599b0b441cb67eca8145cd",
+        "savedForecasts": 1,
+        "evaluatedDraws": 0,
+        "pendingOrUnavailable": 1,
+        "firstTargetDate": "2026-10-27",
+        "lastTargetDate": "2026-10-27",
+        "matchHistogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "averageMatched": null,
+        "frequencyAverageMatched": null,
+        "randomAverageMatched": null,
+        "randomExpectedAverageMatched": 0.6545454545454545,
+        "hit3RatePercent": null,
+        "pairedDifferenceVsFrequency": null,
+        "approximate95PercentInterval": null,
+        "evidenceStatus": "INSUFFICIENT_SAMPLE"
+      },
+      {
+        "cohort": "POWER|temporal_learning|temporal-links-v2|73c79797d021ca3e55cd6eb1d980b1b552863f47927f704ee558bc152462ad58|3790a0698d65b72511f88acbeabf10b791a0aaa3e2599b0b441cb67eca8145cd",
+        "category": "POWER",
+        "algorithm": "temporal_learning",
+        "modelVersion": "temporal-links-v2",
+        "configurationHash": "3790a0698d65b72511f88acbeabf10b791a0aaa3e2599b0b441cb67eca8145cd",
+        "savedForecasts": 1,
+        "evaluatedDraws": 0,
+        "pendingOrUnavailable": 1,
+        "firstTargetDate": "2026-10-27",
+        "lastTargetDate": "2026-10-27",
+        "matchHistogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "averageMatched": null,
+        "frequencyAverageMatched": null,
+        "randomAverageMatched": null,
+        "randomExpectedAverageMatched": 0.6545454545454545,
+        "hit3RatePercent": null,
+        "pairedDifferenceVsFrequency": null,
+        "approximate95PercentInterval": null,
+        "evidenceStatus": "INSUFFICIENT_SAMPLE"
+      }
+    ]
+  },
+  "checks": [
+    "V1–V11 migrations",
+    "six pre-draw tickets",
+    "verified input only",
+    "concurrent duplicate capture preserves first ticket",
+    "zero evaluated future draws",
+    "settlement intersections",
+    "idempotent reconcile",
+    "quarantine excludes old settlement",
+    "restored result appends audit",
+    "prediction alias persists snapshot",
+    "final JAR preserves snapshots after restart",
+    "Node/Java random-control parity",
+    "forecast API CORS",
+    "pinned-configuration prediction endpoint"
+  ],
+  "syntheticSettlementEvents": [
+    {
+      "forecastId": "MEGA:2026-10-25:integration_fixture",
+      "checkedAt": "2026-10-26T02:44:46.218208100Z",
+      "resultFingerprint": "MEGA|2026-10-25|4,13,22,25,40,41|",
+      "status": "SETTLED",
+      "actualNumbers": [
+        4,
+        13,
+        22,
+        25,
+        40,
+        41
+      ],
+      "matched": 1,
+      "frequencyMatched": 1,
+      "randomMatched": 0
+    },
+    {
+      "forecastId": "MEGA:2026-10-25:integration_fixture",
+      "checkedAt": "2026-10-26T02:44:46.613448100Z",
+      "resultFingerprint": null,
+      "status": "RESULT_UNAVAILABLE",
+      "actualNumbers": null,
+      "matched": null,
+      "frequencyMatched": null,
+      "randomMatched": null
+    },
+    {
+      "forecastId": "MEGA:2026-10-25:integration_fixture",
+      "checkedAt": "2026-10-26T02:44:46.868249500Z",
+      "resultFingerprint": "MEGA|2026-10-25|4,13,22,25,40,41|",
+      "status": "SETTLED",
+      "actualNumbers": [
+        4,
+        13,
+        22,
+        25,
+        40,
+        41
+      ],
+      "matched": 1,
+      "frequencyMatched": 1,
+      "randomMatched": 0
+    }
+  ],
+  "finalJarRestartVerified": true,
+  "finalJarVerifiedAt": "2026-10-26T02:50:48.173Z"
+}

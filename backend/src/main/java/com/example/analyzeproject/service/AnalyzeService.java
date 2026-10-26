@@ -214,10 +214,16 @@ public class AnalyzeService {
     }
 
     public PredictionResponseDto analyzeAndPredict(String categoryInput, String algorithm, String algorithm2, List<LotteryNumber> customRecords) {
+        String category = "POWER".equalsIgnoreCase(categoryInput == null ? "" : categoryInput.trim()) ? "POWER" : "MEGA";
+        return analyzeAndPredictWithConfiguration(categoryInput, algorithm, algorithm2, customRecords, getLatestHyperparameter(category));
+    }
+
+    public PredictionResponseDto analyzeAndPredictWithConfiguration(String categoryInput, String algorithm, String algorithm2,
+            List<LotteryNumber> customRecords, AlgorithmHyperparameter capturedConfiguration) {
         String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
         int maxLimit = "POWER".equals(category) ? 55 : 45;
 
-        AlgorithmHyperparameter latestHyp = getLatestHyperparameter(category);
+        AlgorithmHyperparameter latestHyp = capturedConfiguration;
         double decayRate = 0.16;
         double gapMinRatio = 0.8;
         double gapMaxRatio = 2.2;
@@ -823,7 +829,7 @@ public class AnalyzeService {
             response.setAlgorithmDesc("Phân tích thuật toán " + algorithm);
         }
 
-        response.setModelVersion("temporal_learning".equalsIgnoreCase(algorithm) ? "temporal-links-v1" : (latestHyp != null ? latestHyp.getModel() : "History-based heuristic"));
+        response.setModelVersion("temporal_learning".equalsIgnoreCase(algorithm) ? "temporal-links-v2" : (latestHyp != null ? latestHyp.getModel() : "History-based heuristic"));
         response.setHyperparameterVersion(latestHyp != null ? latestHyp.getVersion() : "v1.1.0");
 
         if (!records.isEmpty() && records.get(0).getDrawDate() != null) {
