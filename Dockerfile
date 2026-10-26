@@ -1,15 +1,14 @@
 # ==========================================
 # STAGE 1: Build Angular Frontend
 # ==========================================
-FROM node:22-slim AS frontend-builder
+FROM node:24-slim AS frontend-builder
 WORKDIR /app/frontend
 
 # Configure Node memory limit to prevent OOM on Render Free Tier (512MB RAM limit)
 ENV NODE_OPTIONS="--max-old-space-size=450"
-ENV NG_FORCE_COMPAT_CHECK=false
 
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY frontend/ ./
 RUN npm run build

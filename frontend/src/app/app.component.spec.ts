@@ -1,32 +1,31 @@
-import { TestBed } from '@angular/core/testing';
-import { AppComponent } from './app.component';
 import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { AppComponent } from './app.component';
+import { HeaderComponent } from './share/components/header/header.component';
+import { LeftMenuComponent } from './share/components/left-menu/left-menu.component';
 
-@Component({
-  selector: 'app-prediction',
-  template: ''
-})
-class MockPredictionComponent {}
+@Component({ selector: 'app-header', template: '' })
+class HeaderStub {}
+@Component({ selector: 'app-left-menu', template: '' })
+class LeftMenuStub {}
 
 describe('AppComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [
-        AppComponent,
-        MockPredictionComponent
-      ],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [provideRouter([])],
+    }).overrideComponent(AppComponent, {
+      remove: { imports: [HeaderComponent, LeftMenuComponent] },
+      add: { imports: [HeaderStub, LeftMenuStub] },
+    });
   });
-
-  it('should create the app', () => {
+  it('renders the application shell', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it(`should have as title 'Analyze Project'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('Analyze Project');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.title).toBe('Analyze Project');
+    expect(fixture.nativeElement.querySelector('main router-outlet')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-header')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-left-menu')).not.toBeNull();
   });
 });

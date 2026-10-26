@@ -1,0 +1,83 @@
+.ball {
+  width: 45px;
+  height: 45px;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ball:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+
+.ball-mega {
+  background: radial-gradient(circle at 15px 15px, #b066cc, #7b1fa2) !important;
+  color: white !important;
+  border: 2px solid #4a148c !important;
+}
+
+@keyframes pulseHighlight {
+  0% {
+    transform: scale(1.18);
+    box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
+  }
+  100% {
+    transform: scale(1.28);
+    box-shadow: 0 0 16px rgba(255, 146, 43, 0.95);
+  }
+}
+.ball-power {
+  background: radial-gradient(circle at 15px 15px, #fbc2eb, #a6c1ee); /* Cam/Vàng Power */
+  color: #333;
+}
+
+.ball-sm {
+  width: 36px;
+  height: 36px;
+  color: white;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+.ball-sm:hover {
+  transform: scale(1.1);
+}
+
+.ball-sm.ball-mega {
+  background: radial-gradient(circle at 10px 10px, #ff6b6b, #c92a2a);
+}
+
+.ball-sm.ball-power {
+  background: radial-gradient(circle at 10px 10px, #339af0, #1864ab);
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}

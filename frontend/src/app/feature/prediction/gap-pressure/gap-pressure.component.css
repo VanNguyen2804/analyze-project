@@ -1,0 +1,21 @@
+@import '../prediction-shared.css';
+:host {
+  display: block;
+}
+
+.pressure-card {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.pressure-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+  border-color: #3b82f6 !important;
+}
+
+:host([hidden]) {
+  display: none;
+}

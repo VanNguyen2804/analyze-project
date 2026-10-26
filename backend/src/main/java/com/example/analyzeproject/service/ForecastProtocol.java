@@ -35,7 +35,7 @@ public final class ForecastProtocol {
     }
     public static LocalDate expected(String category, Instant now) {
         ZonedDateTime local = now.atZone(ZONE);
-        LocalDate date = local.toLocalTime().isBefore(LocalTime.of(18,30)) ? local.toLocalDate().minusDays(1) : local.toLocalDate();
+        LocalDate date = local.toLocalTime().isBefore(LocalTime.of(19,0)) ? local.toLocalDate().minusDays(1) : local.toLocalDate();
         while (!scheduled(date, category)) date = date.minusDays(1);
         return date;
     }
@@ -91,7 +91,7 @@ public final class ForecastProtocol {
     public static Map<String,Object> settle(Map<String,Object> forecast, List<LotteryNumber> rows, Instant now, Map<String,Object> previous) {
         var date = LocalDate.parse((String) forecast.get("targetDate"));
         var actual = DrawQuality.history(rows).stream().filter(r -> forecast.get("category").equals(r.getCategory()) && date.equals(r.getDrawDate())).findFirst().orElse(null);
-        boolean ready = actual != null && !now.isBefore(date.atTime(18,30).atZone(ZONE).toInstant());
+        boolean ready = actual != null && !now.isBefore(date.atTime(19,0).atZone(ZONE).toInstant());
         String status = ready ? "SETTLED" : previous != null && Set.of("SETTLED","RESULT_UNAVAILABLE").contains(previous.get("status")) ? "RESULT_UNAVAILABLE" : "PENDING";
         return map("forecastId", forecast.get("id"), "checkedAt", now.toString(), "resultFingerprint", ready ? DrawQuality.fingerprint(actual) : null,
                 "status", status, "actualNumbers", ready ? actual.getNumbers().stream().sorted().toList() : null,

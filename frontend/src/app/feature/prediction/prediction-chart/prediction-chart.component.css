@@ -1,0 +1,4 @@
+@import '../prediction-shared.css';
+:host {
+  display: block;
+}

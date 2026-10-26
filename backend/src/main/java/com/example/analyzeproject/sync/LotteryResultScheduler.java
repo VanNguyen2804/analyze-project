@@ -24,6 +24,7 @@ public class LotteryResultScheduler {
 
     @Scheduled(fixedDelayString = "${lottery.sync.interval-seconds:900}",
             initialDelayString = "${lottery.sync.startup-delay-seconds:10}", timeUnit = TimeUnit.SECONDS)
+    @Scheduled(cron = "0 0 19 * * *", zone = "Asia/Ho_Chi_Minh")
     public void sync() {
         if (!properties.isEnabled()) return;
         runAt(ZonedDateTime.now(LotteryFeedClient.ZONE));

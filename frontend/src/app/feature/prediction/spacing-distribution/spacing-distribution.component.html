@@ -1,0 +1,152 @@
+@let chartData = linkageChartData();
+<div class="delta-distribution-view">
+  <!-- Strategic Recommendation Banner -->
+  <div
+    class="alert alert-primary bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-4 p-3 mb-4 shadow-xs"
+  >
+    <div class="d-flex align-items-start gap-3">
+      <span class="fs-3">💡</span>
+      <div>
+        <h6 class="fw-bold text-primary mb-1">
+          Nhận Định Cấu Trúc Vé Tối Ưu Cho Kỳ Mở Thưởng Kế Tiếp ({{ chartData?.categoryTitle }})
+        </h6>
+        <p class="small text-dark mb-0">
+          Dựa trên toàn bộ {{ chartData?.totalDraws }} kỳ CSDL:
+          <strong>{{ chartData?.recommendedDeltaSpacing }}</strong
+          >. Đồng thời, cấu trúc vé nên duy trì tổng điểm rơi vào
+          <strong>vùng Đỉnh Vàng [{{ chartData?.optimalSumRange }}]</strong> và tỷ lệ
+          <strong>3 Chẵn - 3 Lẻ</strong> hoặc <strong>4C - 2L / 2C - 4L</strong> để đạt xác suất
+          trúng cao nhất.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="row g-4">
+    <!-- Cột 1: Phổ Dãn Cách Delta (Khoảng cách giữa các số liền kề) -->
+    <div class="col-12 col-lg-6">
+      <div class="p-3 bg-white rounded-4 border shadow-xs h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <span>📐</span> Phổ Dãn Cách Delta (Δ = Số sau - Số trước)
+          </h6>
+          <span class="badge bg-primary small">Dãn cách số</span>
+        </div>
+        <p class="text-muted small mb-3" style="font-size: 0.8rem">
+          Thống kê khoảng cách dãn giữa 2 số kế tiếp nhau trong dãy 6 số trúng thưởng từ CSDL thực
+          tế.
+        </p>
+        <div class="d-flex flex-column gap-3">
+          @for (item of chartData?.deltaDistributions; track item) {
+            <div
+              class="p-3 rounded-3 border"
+              [ngClass]="item.isOptimal ? 'bg-primary bg-opacity-10 border-primary' : 'bg-light'"
+            >
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-dark d-flex align-items-center gap-2">
+                  <span
+                    class="badge"
+                    [ngClass]="item.isOptimal ? 'bg-primary text-white' : 'bg-secondary text-white'"
+                  >
+                    {{ item.deltaRange }}
+                  </span>
+                  <span class="small">{{ item.description }}</span>
+                </span>
+                <div class="text-end">
+                  <span
+                    class="fw-bold fs-6"
+                    [ngClass]="item.isOptimal ? 'text-primary' : 'text-dark'"
+                  >
+                    {{ item.percent }}%
+                  </span>
+                  <span class="text-muted text-xs ms-1">({{ item.count }} lần)</span>
+                </div>
+              </div>
+              <div class="progress" style="height: 8px">
+                <div
+                  class="progress-bar"
+                  [ngClass]="item.isOptimal ? 'bg-primary' : 'bg-secondary'"
+                  [style.width.%]="item.percent"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    <!-- Cột 2: Đường Cong Tổng Điểm (Sum Gauss) & Tỷ Lệ Chẵn Lẻ -->
+    <div class="col-12 col-lg-6">
+      <div class="p-3 bg-white rounded-4 border shadow-xs h-100 d-flex flex-column gap-3">
+        <!-- Phân phối tổng điểm Gauss -->
+        <div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <span>🔔</span> Đường Cong Tổng Điểm 6 Số (Phân Phối Chuẩn Gauss)
+            </h6>
+            <span class="badge bg-danger small">Đỉnh hội tụ</span>
+          </div>
+          <p class="text-muted small mb-2" style="font-size: 0.8rem">
+            Nhóm tổng có nhiều kỳ nhất chiếm
+            {{ observedPeakSumPercent == null ? 'N/A' : observedPeakSumPercent + '%' }}
+            số kỳ trong biểu đồ.
+          </p>
+          <div class="d-flex flex-column gap-2">
+            @for (s of chartData?.sumDistributions; track s) {
+              <div
+                class="p-2 rounded-2 border"
+                [ngClass]="s.isPeak ? 'bg-danger bg-opacity-10 border-danger' : 'bg-light'"
+              >
+                <div class="d-flex justify-content-between align-items-center mb-1 small">
+                  <span class="fw-bold text-dark">
+                    Khoảng {{ s.sumRange }}
+                    @if (s.isPeak) {
+                      <span class="badge bg-danger text-white ms-1">🎯 Đỉnh Vàng</span>
+                    }
+                  </span>
+                  <span class="fw-bold" [ngClass]="s.isPeak ? 'text-danger' : 'text-dark'">
+                    {{ s.percent }}% ({{ s.count }} kỳ)
+                  </span>
+                </div>
+                <div class="progress" style="height: 6px">
+                  <div
+                    class="progress-bar"
+                    [ngClass]="s.isPeak ? 'bg-danger' : 'bg-secondary'"
+                    [style.width.%]="s.percent"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        <!-- Phân phối chẵn lẻ -->
+        <div class="pt-2 border-top">
+          <h6 class="fw-bold text-dark mb-2 small d-flex align-items-center gap-2">
+            <span>⚖️</span> Tỷ Lệ Chẵn / Lẻ Trong CSDL
+          </h6>
+          <div class="row g-2">
+            @for (p of chartData?.parityDistributions; track p) {
+              <div class="col-6">
+                <div
+                  class="p-2 rounded-2 border bg-light text-center"
+                  [ngClass]="{
+                    'border-primary bg-primary bg-opacity-10': p.isDominant,
+                  }"
+                >
+                  <div class="fw-bold small text-dark">{{ p.ratio }}</div>
+                  <div
+                    class="fs-6 fw-bold"
+                    [ngClass]="p.isDominant ? 'text-primary' : 'text-secondary'"
+                  >
+                    {{ p.percent }}%
+                  </div>
+                  @if (p.isDominant) {
+                    <span class="badge bg-primary text-white text-xs">Ưu thế áp đảo</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

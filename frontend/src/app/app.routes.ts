@@ -1,20 +1,42 @@
 import { Routes } from '@angular/router';
-import { PredictionComponent } from './feature/prediction/prediction.component';
-import { EntryComponent } from './feature/entry/entry.component';
-import { LatestDrawAnalysisComponent } from './feature/latest-draw-analysis/latest-draw-analysis.component';
-import { ForecastsComponent } from './feature/forecasts/forecasts.component';
-import { PredictionWorkspaceComponent } from './feature/prediction/prediction-workspace.component';
-import { AiLabComponent } from './feature/ai-lab/ai-lab.component';
 
 export const routes: Routes = [
-  { path: 'ai-lab', component: AiLabComponent },
+  {
+    path: 'ai-lab',
+    loadComponent: () => import('./feature/ai-lab/ai-lab.component').then((m) => m.AiLabComponent),
+  },
   { path: 'forecasts', redirectTo: 'analyze/history', pathMatch: 'full' },
-  { path: 'analyze', component: PredictionWorkspaceComponent, children: [
-    { path: '', component: PredictionComponent, pathMatch: 'full' },
-    { path: 'history', component: ForecastsComponent }
-  ] },
-  { path: 'latest-analysis', component: LatestDrawAnalysisComponent },
-  { path: 'entry', component: EntryComponent },
+  {
+    path: 'analyze',
+    loadComponent: () =>
+      import('./feature/prediction/prediction-workspace.component').then(
+        (m) => m.PredictionWorkspaceComponent,
+      ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./feature/prediction/prediction.component').then((m) => m.PredictionComponent),
+        pathMatch: 'full',
+      },
+      {
+        path: 'history',
+        loadComponent: () =>
+          import('./feature/forecasts/forecasts.component').then((m) => m.ForecastsComponent),
+      },
+    ],
+  },
+  {
+    path: 'latest-analysis',
+    loadComponent: () =>
+      import('./feature/latest-draw-analysis/latest-draw-analysis.component').then(
+        (m) => m.LatestDrawAnalysisComponent,
+      ),
+  },
+  {
+    path: 'entry',
+    loadComponent: () => import('./feature/entry/entry.component').then((m) => m.EntryComponent),
+  },
   { path: '', redirectTo: '/analyze', pathMatch: 'full' },
-  { path: '**', redirectTo: '/analyze' }
+  { path: '**', redirectTo: '/analyze' },
 ];

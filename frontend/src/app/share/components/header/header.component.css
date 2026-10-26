@@ -1,0 +1,12 @@
+.app-header {
+  height: 70px;
+}
+.category-picker {
+  z-index: 10;
+}
+.header-nav-link {
+  font-size: 0.95rem;
+}
+.header-divider {
+  height: 25px;
+}

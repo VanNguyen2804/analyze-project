@@ -1,6 +1,7 @@
-<header class="app-header d-flex align-items-center px-3 px-md-4 shadow-sm position-relative bg-white" style="height: 70px;">
+<header
+  class="app-header d-flex align-items-center px-3 px-md-4 shadow-sm position-relative bg-white"
+>
   <div class="d-flex align-items-center justify-content-between w-100">
-    
     <!-- Logo (Bên trái) -->
     <div class="d-flex align-items-center gap-2">
       <span class="fs-4">🎯</span>
@@ -11,12 +12,14 @@
     </div>
 
     <!-- Chọn danh mục xổ số (Căn giữa tuyệt đối) -->
-    <div class="position-absolute top-50 start-50 translate-middle d-flex bg-light p-1 rounded-pill border shadow-sm" style="z-index: 10;">
+    <div
+      class="position-absolute top-50 start-50 translate-middle d-flex bg-light p-1 rounded-pill border shadow-sm category-picker"
+    >
       <button
         type="button"
         class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
-        [ngClass]="currentCategory === 'POWER' ? 'btn-primary shadow text-white' : 'text-primary'"
-        [style.background-color]="currentCategory === 'POWER' ? '' : '#dbeafe'"
+        [ngClass]="currentCategory() === 'POWER' ? 'btn-primary shadow text-white' : 'text-primary'"
+        [style.background-color]="currentCategory() === 'POWER' ? '' : '#dbeafe'"
         (click)="selectCategory('POWER')"
       >
         {{ 'CATEGORY.POWER' | translate }}
@@ -24,8 +27,8 @@
       <button
         type="button"
         class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
-        [ngClass]="currentCategory === 'MEGA' ? 'btn-danger shadow text-white' : 'text-danger'"
-        [style.background-color]="currentCategory === 'MEGA' ? '' : '#ffe4e6'"
+        [ngClass]="currentCategory() === 'MEGA' ? 'btn-danger shadow text-white' : 'text-danger'"
+        [style.background-color]="currentCategory() === 'MEGA' ? '' : '#ffe4e6'"
         (click)="selectCategory('MEGA')"
       >
         {{ 'CATEGORY.MEGA' | translate }}
@@ -34,31 +37,68 @@
 
     <!-- Menu Điều hướng & Đổi ngôn ngữ (Bên phải) -->
     <div class="d-none d-lg-flex align-items-center gap-4">
-      <a routerLink="/analyze" routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" class="text-decoration-none text-secondary transition-hover" style="font-size: 0.95rem;">
+      <a
+        routerLink="/analyze"
+        routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1"
+        class="text-decoration-none text-secondary transition-hover header-nav-link"
+      >
         {{ 'HEADER.AI_ANALYSIS' | translate }}
       </a>
-      <a routerLink="/latest-analysis" routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" class="text-decoration-none text-secondary transition-hover" style="font-size: 0.95rem;">
+      <a
+        routerLink="/latest-analysis"
+        routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1"
+        class="text-decoration-none text-secondary transition-hover header-nav-link"
+      >
         🎯 Kỳ mới nhất
       </a>
-      <a routerLink="/entry" routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1" class="text-decoration-none text-secondary transition-hover" style="font-size: 0.95rem;">
+      <a
+        routerLink="/entry"
+        routerLinkActive="text-primary fw-bold border-bottom border-2 border-primary pb-1"
+        class="text-decoration-none text-secondary transition-hover header-nav-link"
+      >
         {{ 'HEADER.CHECK_TICKET' | translate }}
       </a>
 
       <!-- Vạch ngăn cách -->
-      <div class="vr bg-secondary" style="height: 25px;"></div>
+      <div class="vr bg-secondary header-divider"></div>
 
       <!-- Nút Dropdown Đổi Ngôn Ngữ -->
       <div class="dropdown">
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3 fw-semibold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-          🌐 {{ currentLang | uppercase }}
+        <button
+          class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3 fw-semibold"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          🌐 {{ currentLang() | uppercase }}
         </button>
         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
-          <li><a class="dropdown-item" [class.active]="currentLang === 'vi'" (click)="switchLanguage('vi')">🇻🇳 {{ 'HEADER.VI' | translate }}</a></li>
-          <li><a class="dropdown-item" [class.active]="currentLang === 'en'" (click)="switchLanguage('en')">🇬🇧 {{ 'HEADER.EN' | translate }}</a></li>
-          <li><a class="dropdown-item" [class.active]="currentLang === 'fr'" (click)="switchLanguage('fr')">🇫🇷 {{ 'HEADER.FR' | translate }}</a></li>
+          <li>
+            <a
+              class="dropdown-item"
+              [class.active]="currentLang() === 'vi'"
+              (click)="switchLanguage('vi')"
+              >🇻🇳 {{ 'HEADER.VI' | translate }}</a
+            >
+          </li>
+          <li>
+            <a
+              class="dropdown-item"
+              [class.active]="currentLang() === 'en'"
+              (click)="switchLanguage('en')"
+              >🇬🇧 {{ 'HEADER.EN' | translate }}</a
+            >
+          </li>
+          <li>
+            <a
+              class="dropdown-item"
+              [class.active]="currentLang() === 'fr'"
+              (click)="switchLanguage('fr')"
+              >🇫🇷 {{ 'HEADER.FR' | translate }}</a
+            >
+          </li>
         </ul>
       </div>
     </div>
-
   </div>
 </header>

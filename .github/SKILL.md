@@ -28,6 +28,11 @@ Khi phân tích dự án, thay hard-code, sửa prediction, cập nhật scoring
   * `share/`: Nơi lưu trữ các Shared Services, Pipes, và Components để tái sử dụng xuyên suốt dự án.
 
 ## 3. Quy trình Build & Kiểm thử (Build Standards)
+
+### Quy ước tách frontend
+
+Khi template/style hoặc logic lớn, tách theo chức năng có trạng thái và trách nhiệm riêng. Component con dùng input/model/output rõ ràng; không truyền toàn bộ instance cha. Đặt style đáng kể trong stylesheet cạnh component, không đặt thẻ `<style>` trong HTML; giữ CSS encapsulation và gom các quy tắc dùng chung theo feature. Kiểm tra lại tương tác, hủy request, trạng thái tab/bộ lọc và style sau khi tách. Xem bản đồ component tại `frontend/README.md`.
+
 * **Quy tắc Build (Build Mandate):** Mỗi lần thay đổi code ứng dụng, bắt buộc phải build từng phần riêng lẻ thành công trước khi hoàn thành. Thay đổi chỉ tài liệu / skill thì kiểm tra nội dung, liên kết và định dạng; không cần chạy lại build ứng dụng:
   * **Frontend:** Chạy lệnh build trong thư mục `frontend`:
     ```bash

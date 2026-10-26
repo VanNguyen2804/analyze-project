@@ -1,0 +1,226 @@
+@let chartData = linkageChartData();
+<div class="gap-pressure-view">
+  <!-- Filter Bar & Context Explainer -->
+  <div
+    class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 p-3 bg-light rounded-3 border"
+  >
+    <div>
+      <span class="fw-bold text-dark me-2">Lọc trạng thái bóng:</span>
+      <div class="btn-group btn-group-sm shadow-xs" role="group">
+        <button
+          type="button"
+          class="btn fw-semibold"
+          [ngClass]="gapFilterZone === 'ALL' ? 'btn-dark text-white' : 'btn-outline-secondary'"
+          (click)="setGapFilterZone('ALL')"
+        >
+          Tất cả ({{ chartData?.maxLimit }})
+        </button>
+        <button
+          type="button"
+          class="btn fw-semibold"
+          [ngClass]="gapFilterZone === 'HOT' ? 'btn-success text-white' : 'btn-outline-success'"
+          (click)="setGapFilterZone('HOT')"
+        >
+          🟢 Đang có đà (Gap 0-2)
+        </button>
+        <button
+          type="button"
+          class="btn fw-semibold"
+          [ngClass]="gapFilterZone === 'CYCLE' ? 'btn-primary text-white' : 'btn-outline-primary'"
+          (click)="setGapFilterZone('CYCLE')"
+        >
+          🟡 Nhịp chuẩn
+        </button>
+        <button
+          type="button"
+          class="btn fw-semibold"
+          [ngClass]="gapFilterZone === 'PRESSURE' ? 'btn-warning text-dark' : 'btn-outline-warning'"
+          (click)="setGapFilterZone('PRESSURE')"
+        >
+          🟠 Áp suất tới hạn
+        </button>
+        <button
+          type="button"
+          class="btn fw-semibold"
+          [ngClass]="gapFilterZone === 'OVERDUE' ? 'btn-danger text-white' : 'btn-outline-danger'"
+          (click)="setGapFilterZone('OVERDUE')"
+        >
+          🔴 Lô gan tích lũy
+        </button>
+      </div>
+    </div>
+    <div class="small text-muted">
+      Chu kỳ lý thuyết Poisson:
+      <strong class="text-primary"
+        >{{ chartData?.gapPressureList?.[0]?.expectedInterval ?? 'N/A' }} kỳ/lần</strong
+      >
+    </div>
+  </div>
+  <!-- Top Highlights: Áp suất nổ phục hồi Poisson vs Quán tính nóng -->
+  <div class="row g-3 mb-4">
+    <!-- Cột 1: Top 6 Bóng Áp Suất Điểm Rơi Phục Hồi -->
+    <div class="col-12 col-md-6">
+      <div class="p-3 bg-white rounded-4 border border-2 border-warning-subtle shadow-xs h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <span>🎯</span> Top 6 Bóng Áp Suất Phục Hồi Cao (Poisson Mean Reversion)
+          </h6>
+          <span class="badge bg-warning text-dark small">Tới hạn nổ</span>
+        </div>
+        <p class="text-muted small mb-3" style="font-size: 0.8rem">
+          Các số có độ trễ vượt chu kỳ kỳ vọng (λ), tích lũy áp suất xác suất theo phân phối
+          Poisson, có xác suất nổ phục hồi cao nhất ở kỳ này.
+        </p>
+        <div class="row g-2">
+          @for (p of chartData?.topPressureNumbers; track p) {
+            <div class="col-6 col-sm-4">
+              <div
+                class="p-2 rounded-3 border bg-light text-center cursor-pointer"
+                (click)="selectPressureNumber(p)"
+              >
+                <span
+                  class="badge rounded-circle fs-6 p-2 mb-1"
+                  [ngClass]="chartData?.category === 'POWER' ? 'bg-primary' : 'bg-danger'"
+                >
+                  {{ p.number < 10 ? '0' + p.number : p.number }}
+                </span>
+                <div class="fw-bold text-dark small">Trễ {{ p.currentGap }} kỳ</div>
+                <div class="progress my-1" style="height: 5px">
+                  <div
+                    class="progress-bar"
+                    [ngClass]="p.pressurePercent >= 100 ? 'bg-danger' : 'bg-warning'"
+                    [style.width.%]="p.pressurePercent"
+                  ></div>
+                </div>
+                <span
+                  class="text-xs"
+                  [ngClass]="p.pressurePercent >= 100 ? 'text-danger fw-bold' : 'text-muted'"
+                >
+                  Áp suất {{ p.pressurePercent }}%
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    <!-- Cột 2: Top 6 Bóng Quán Tính Nóng (Hot Momentum) -->
+    <div class="col-12 col-md-6">
+      <div class="p-3 bg-white rounded-4 border border-2 border-success-subtle shadow-xs h-100">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <span>🔥</span> Top 6 Bóng Quán Tính Nóng (Hot Momentum)
+          </h6>
+          <span class="badge bg-success text-white small">Vừa nổ gần đây</span>
+        </div>
+        <p class="text-muted small mb-3" style="font-size: 0.8rem">
+          Các số đang có nhịp về dày đặc (trễ 0 - 2 kỳ), duy trì lực kéo theo chuỗi Markov và quán
+          tính lặp số giữa các kỳ liên tiếp.
+        </p>
+        <div class="row g-2">
+          @for (h of chartData?.topHotNumbers; track h) {
+            <div class="col-6 col-sm-4">
+              <div
+                class="p-2 rounded-3 border bg-light text-center cursor-pointer"
+                (click)="selectPressureNumber(h)"
+              >
+                <span class="badge rounded-circle fs-6 p-2 mb-1 bg-success text-white">
+                  {{ h.number < 10 ? '0' + h.number : h.number }}
+                </span>
+                <div class="fw-bold text-success small">Trễ {{ h.currentGap }} kỳ</div>
+                <div class="progress my-1" style="height: 5px">
+                  <div
+                    class="progress-bar bg-success"
+                    [style.width.%]="h.frequency * 15 > 100 ? 100 : h.frequency * 15"
+                  ></div>
+                </div>
+                <span class="text-xs text-muted"> Nổ {{ h.frequency }} lần CSDL </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Ma trận 45 / 55 số trực quan -->
+  <div class="p-3 bg-light rounded-4 border shadow-xs">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-bold text-dark mb-0">
+        📊 Ma Trận Phân Bổ Áp Suất Toàn Bộ Bóng Số ({{ getFilteredGapPressureList().length }}/{{
+          chartData?.maxLimit
+        }})
+      </h6>
+      <span class="text-muted small fst-italic">Bấm vào từng số để xem chi tiết độ trễ</span>
+    </div>
+    <!-- Thẻ chi tiết khi chọn 1 số -->
+    @if (selectedPressureNumber; as sel) {
+      <div
+        class="alert alert-info py-2 px-3 mb-3 rounded-3 d-flex justify-content-between align-items-center"
+      >
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge rounded-circle fs-5 p-2 bg-dark text-white">
+            {{ sel.number < 10 ? '0' + sel.number : sel.number }}
+          </span>
+          <div>
+            <div class="fw-bold text-dark">
+              Bóng [{{ sel.number < 10 ? '0' + sel.number : sel.number }}]: Hiện đang trễ
+              {{ sel.currentGap }} kỳ
+            </div>
+            <div class="small text-secondary">
+              Tần suất: <strong>{{ sel.frequency }} lần</strong> • Chu kỳ kỳ vọng Poisson:
+              <strong>{{ sel.expectedInterval }} kỳ</strong> • Z-Score trễ:
+              <strong>{{ sel.zScore }}</strong>
+            </div>
+          </div>
+        </div>
+        <span [class]="sel.zoneBadgeClass + ' px-3 py-2 rounded-pill fw-bold'">
+          {{ sel.zoneLabel }}
+        </span>
+      </div>
+    }
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-2">
+      @for (item of getFilteredGapPressureList(); track item) {
+        <div class="col">
+          <div
+            class="p-2 bg-white rounded-3 border shadow-xs text-center cursor-pointer pressure-card transition-all"
+            [ngClass]="{
+              'border-primary border-2 shadow-sm': selectedPressureNumber?.number === item.number,
+            }"
+            (click)="selectPressureNumber(item)"
+          >
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span
+                class="fw-bold"
+                [ngClass]="chartData?.category === 'POWER' ? 'text-primary' : 'text-danger'"
+              >
+                [{{ item.number < 10 ? '0' + item.number : item.number }}]
+              </span>
+              <span [class]="item.zoneBadgeClass" style="font-size: 0.65rem; padding: 2px 4px">
+                {{ item.currentGap === 0 ? 'Vừa về' : item.currentGap + ' kỳ' }}
+              </span>
+            </div>
+            <div class="progress" style="height: 4px">
+              <div
+                class="progress-bar"
+                [ngClass]="{
+                  'bg-success': item.zone === 'HOT',
+                  'bg-info': item.zone === 'CYCLE',
+                  'bg-warning': item.zone === 'PRESSURE',
+                  'bg-danger': item.zone === 'OVERDUE',
+                }"
+                [style.width.%]="item.pressurePercent"
+              ></div>
+            </div>
+            <div
+              class="d-flex justify-content-between align-items-center mt-1 text-muted text-xs"
+              style="font-size: 0.68rem"
+            >
+              <span>Áp suất: {{ item.pressurePercent }}%</span>
+              <span>{{ item.frequency }} lần</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

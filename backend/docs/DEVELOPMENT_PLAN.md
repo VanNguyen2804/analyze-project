@@ -30,7 +30,7 @@ Thời lượng dưới đây là ước lượng công việc phát triển, b�
 | 2 — Dữ liệu và vận hành | Báo cáo kỳ thiếu theo lịch, revision bị cách ly, độ mới từng loại; lịch sử sync bền vững; kiểm tra PostgreSQL tạm, migration và restart trong CI | Không dùng revision chưa hợp lệ; kiểm thử database thật xác nhận snapshot không trùng/ghi đè, settlement đúng và giữ qua restart; cảnh báo khi thiếu kỳ hoàn tất mới nhất | 3–5 ngày |
 | 3 — Quy trình thực nghiệm | Công cụ backend chạy walk-forward; phân chia development/validation/test theo ngày; đóng băng cấu hình và ghi manifest trước khi mở test | Báo cáo có hash dữ liệu, khoảng ngày, cấu hình, phiên bản, seed, số kỳ bị loại; mọi dự đoán chỉ dùng dữ liệu trước kỳ đích | 4–6 ngày |
 | 4 — Đo đóng góp thành phần | So tần suất với temporal; lần lượt bỏ từng thành phần; chỉ chọn tham số trên development/validation | Một cấu hình ứng viên được chọn theo quy tắc ghi trước; chạy test giữ kín một lần; báo cáo cả trường hợp giảm chất lượng | 3–5 ngày |
-| 5 — Theo dõi tương lai | Chạy scheduler ổn định; chốt trước 18:00 giờ Việt Nam; đối soát sau 18:30; kiểm tra bỏ lỡ và độ trễ | Bản đầu tiên giữ nguyên; không sinh bù quá khứ; báo cáo theo phiên bản cố định, đối chứng cùng kỳ và khoảng bất định | Liên tục |
+| 5 — Theo dõi tương lai | Chạy scheduler ổn định; chốt trước 18:00 giờ Việt Nam; đối soát sau 19:00; kiểm tra bỏ lỡ và độ trễ | Bản đầu tiên giữ nguyên; không sinh bù quá khứ; báo cáo theo phiên bản cố định, đối chứng cùng kỳ và khoảng bất định | Liên tục |
 
 ## Quy trình thực nghiệm cần triển khai ở giai đoạn 3
 

@@ -1,0 +1,10 @@
+@import '../analysis-shared.css';
+:host {
+  display: block;
+}
+
+.btn-xs {
+  font-size: 0.76rem;
+  padding: 2px 10px;
+  line-height: 1.4;
+}

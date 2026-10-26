@@ -1,0 +1,94 @@
+<div class="mt-4 p-3 p-md-4 rounded-4 bg-white border shadow-xs">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <span class="fs-4">🎛️</span>
+      <div>
+        <h5 class="fw-bold text-dark mb-0 small text-uppercase">
+          Ghép Vé Tự Chọn Nhanh (Interactive Ticket Mixer)
+        </h5>
+        <span class="text-muted small mixer-caption">
+          Tự chọn 6 số từ bộ số gợi ý được tính theo lịch sử hiện tại:
+        </span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button
+        class="btn btn-sm btn-outline-primary rounded-pill fw-semibold"
+        (click)="fillMixerAuto()"
+      >
+        ⚡ Tự Chọn 6 Số Gợi Ý
+      </button>
+      <button
+        class="btn btn-sm btn-outline-secondary rounded-pill"
+        (click)="clearMixerNumbers()"
+        [disabled]="customMixerNumbers.length === 0"
+      >
+        🗑️ Xóa
+      </button>
+    </div>
+  </div>
+  <!-- BỂ SỐ ĐỀ XUẤT (CURATED POOL) -->
+  <div class="mb-3">
+    <div class="small fw-bold text-muted mb-2">
+      Bấm chọn số để ghép vào vé của bạn (tối đa 6 số):
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      @for (num of getCuratedMixerPool(); track num) {
+        <button
+          type="button"
+          class="ball ball-sm cursor-pointer border transition-all mixer-choice-ball"
+          [ngClass]="{
+            'bg-primary text-white border-primary shadow-xs fw-bold scale-105':
+              isMixerNumberSelected(num),
+            'bg-light text-dark': !isMixerNumberSelected(num),
+          }"
+          (click)="toggleMixerNumber(num)"
+        >
+          {{ formatNumber(num) }}
+        </button>
+      }
+    </div>
+  </div>
+  <!-- VÉ ĐANG GHÉP -->
+  <div
+    class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-3"
+  >
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <span class="small fw-bold text-dark">Vé bạn đã chọn:</span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        @for (n of customMixerNumbers; track n) {
+          <div
+            class="ball ball-sm shadow-xs mixer-selected-ball"
+            [ngClass]="category() === 'POWER' ? 'ball-power' : 'ball-mega'"
+          >
+            {{ formatNumber(n) }}
+          </div>
+        }
+        @if (customMixerNumbers.length === 0) {
+          <span class="text-muted small fst-italic">
+            (Chưa chọn số nào. Hãy bấm vào các bóng ở trên)
+          </span>
+        }
+        @if (customMixerNumbers.length > 0 && customMixerNumbers.length < 6) {
+          <span class="text-warning small fw-bold">
+            (Cần chọn thêm {{ 6 - customMixerNumbers.length }} số nữa)
+          </span>
+        }
+      </div>
+    </div>
+    @if (customMixerNumbers.length === 6) {
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="small text-muted">
+          Tổng: <strong class="text-dark">{{ getMixerSum() }}</strong> •
+          {{ getMixerParity() }}
+        </div>
+        <button
+          class="btn btn-success btn-sm rounded-pill fw-bold shadow-xs d-flex align-items-center gap-1"
+          (click)="copyMixerTicket()"
+        >
+          <span>📋</span> {{ mixerCopySuccess ? 'Đã Sao Chép!' : 'Sao Chép Vé Tự Ghép' }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

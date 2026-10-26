@@ -1,16 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SavedLotteryRecord, NumberEntryRequest } from '../models/lottery-number.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LotteryService {
   private apiUrl = (environment.apiUrl ? environment.apiUrl : '') + '/api/numbers';
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getAll(date?: string, category?: string): Observable<SavedLotteryRecord[]> {
     let params = new HttpParams();

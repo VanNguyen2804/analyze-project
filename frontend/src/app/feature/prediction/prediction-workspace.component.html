@@ -1,0 +1,25 @@
+<section class="workspace">
+  <header class="workspace-heading">
+    <div>
+      <span class="eyebrow">VIETLOTT · PHÂN TÍCH & THEO DÕI</span>
+      <h1>Dự đoán & kết quả</h1>
+      <p>Tạo bộ số trước kỳ quay, theo dõi bản đã chốt và đối chiếu kết quả thực tế.</p>
+    </div>
+  </header>
+  <nav class="workspace-tabs" aria-label="Chức năng dự đoán">
+    <a
+      routerLink="/analyze"
+      routerLinkActive="selected"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page"
+    >
+      <span class="step">01</span
+      ><span><strong>Tạo dự đoán</strong><small>Xem bộ số và lý do lựa chọn</small></span>
+    </a>
+    <a routerLink="/analyze/history" routerLinkActive="selected" ariaCurrentWhenActive="page">
+      <span class="step">02</span
+      ><span><strong>Lịch sử & đối soát</strong><small>Theo dõi bộ đã chốt và số khớp</small></span>
+    </a>
+  </nav>
+  <router-outlet />
+</section>

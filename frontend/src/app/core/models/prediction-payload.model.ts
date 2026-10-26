@@ -146,7 +146,14 @@ export interface AlgorithmResultItem {
 }
 
 export interface PredictionPayload {
-  forecastSnapshot?: { status: string; id?: string; createdAt?: string; numbers?: number[]; sameAsDisplayed?: boolean; message?: string };
+  forecastSnapshot?: {
+    status: string;
+    id?: string;
+    createdAt?: string;
+    numbers?: number[];
+    sameAsDisplayed?: boolean;
+    message?: string;
+  };
   relationshipLearning?: RelationshipLearning;
   status: string;
   message?: string;
@@ -172,7 +179,7 @@ export interface PredictionPayload {
   frequentPairs?: string[];
   jackpot2Pairs?: string[];
   oddEvenRatio?: string;
-  selectionReasons?: NumberSelectionReason[]; 
+  selectionReasons?: NumberSelectionReason[];
   recentDraws?: any[];
   overallReason?: string;
   analysisSummary?: string;
@@ -205,10 +212,28 @@ export interface RelationshipLearning {
   forecastPolicy: 'frequency_fallback' | 'learned_mixture';
   skippedGapTransitions: number;
   predictedNumbers: number[];
-  patterns: Array<{ id: string; name: string; weightPercent: number; support: number; occurrences: number | null }>;
-  topTransitions: Array<{ fromNumber: number; toNumber: number; support: number; occurrences: number; conditionalPercent: number }>;
-  verifiedWinningTickets?: Array<{ id?: number; drawDate: string; numbers: number[]; matchedNumbers: number[]; matchedCount: number;
-    historicalLinks?: Array<{ drawDate: string; sharedNumbers: number[]; daysApart: number }> }>;
+  patterns: Array<{
+    id: string;
+    name: string;
+    weightPercent: number;
+    support: number;
+    occurrences: number | null;
+  }>;
+  topTransitions: Array<{
+    fromNumber: number;
+    toNumber: number;
+    support: number;
+    occurrences: number;
+    conditionalPercent: number;
+  }>;
+  verifiedWinningTickets?: Array<{
+    id?: number;
+    drawDate: string;
+    numbers: number[];
+    matchedNumbers: number[];
+    matchedCount: number;
+    historicalLinks?: Array<{ drawDate: string; sharedNumbers: number[]; daysApart: number }>;
+  }>;
   evaluation: {
     method: string;
     evaluatedDraws: number;
@@ -287,7 +312,6 @@ export interface DeviationVariable {
   savedInDb?: boolean;
 }
 
-
 export interface NumberScoreDetail {
   number: number;
   probabilityPercent: number;
@@ -295,7 +319,6 @@ export interface NumberScoreDetail {
   drawGap: number;
   tag: string;
 }
-
 
 export interface NumberSelectionReason {
   number: number;
@@ -419,4 +442,3 @@ export interface CategoryLinkageChartData {
   optimalSumRange: string;
   recommendedDeltaSpacing: string;
 }
-

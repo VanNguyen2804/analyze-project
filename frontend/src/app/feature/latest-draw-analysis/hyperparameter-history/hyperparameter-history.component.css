@@ -1,0 +1,71 @@
+@import '../analysis-shared.css';
+:host {
+  display: block;
+}
+
+.history-caption {
+  font-size: 0.75rem;
+}
+.history-table {
+  font-size: 0.85rem;
+}
+.history-date-column {
+  width: 10%;
+}
+.history-category-column {
+  width: 8%;
+}
+.history-model-column {
+  width: 20%;
+}
+.history-readme-column {
+  width: 18%;
+}
+.history-created-column {
+  width: 13%;
+}
+.history-note-column {
+  width: 12%;
+}
+.history-actions-column {
+  width: 9%;
+}
+.active-version-label {
+  font-size: 0.65rem;
+}
+.history-model-preview {
+  max-width: 200px;
+}
+.history-readme-button {
+  font-size: 0.72rem;
+}
+.history-readme-preview {
+  max-width: 120px;
+}
+.history-note-preview {
+  max-width: 150px;
+}
+.configuration-overlay {
+  background-color: rgba(0, 0, 0, 0.65);
+  z-index: 1060;
+}
+.configuration-dialog {
+  max-width: 800px;
+  max-height: 88vh;
+}
+.configuration-dialog-body {
+  max-height: calc(88vh - 170px);
+}
+.configuration-json {
+  background-color: #0f172a;
+  font-size: 0.82rem;
+  border: 1px solid #334155;
+  white-space: pre-wrap;
+}
+.configuration-readme {
+  background-color: #1e293b;
+  font-size: 0.84rem;
+  border: 1px solid #475569;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}

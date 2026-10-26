@@ -1,85 +1,71 @@
-<style>
-  /* Biến ô input thành hình quả bóng */
-  .ball-input {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    text-align: center;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #333;
-    border: 2px solid #ced4da;
-    padding: 0;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
-    transition: all 0.2s ease-in-out;
-  }
-  .ball-input:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25), inset 0 2px 4px rgba(0,0,0,0.08);
-    outline: none;
-    transform: scale(1.05);
-  }
-  .ball-input::-webkit-outer-spin-button,
-  .ball-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  .ball-input[type=number] {
-    -moz-appearance: textfield;
-  }
-  .hover-lift {
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-  }
-</style>
-
 <div class="prediction-container w-100 mt-4">
-
   <!-- KHỐI 1: NHẬP KẾT QUẢ VIETLOTT MỞ THƯỞNG THEO NGÀY (LƯU VÀO DATABASE) -->
   <div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div
+      class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2"
+    >
       <div class="d-flex align-items-center gap-2">
         <span class="fs-4">🏆</span>
         <div>
           <h3 class="card-title h5 fw-bold text-primary mb-0">Nhập Kết Quả Vietlott Theo Ngày</h3>
-          <small class="text-muted">Lưu kết quả mở thưởng chính thức vào Database để cập nhật dữ liệu học máy AI</small>
+          <small class="text-muted"
+            >Lưu kết quả mở thưởng chính thức vào Database để cập nhật dữ liệu học máy AI</small
+          >
         </div>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <span *ngIf="editingOfficialDrawId" class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm">
-          ✏️ Đang sửa kỳ quay ID #{{ editingOfficialDrawId }} ({{ drawDate }})
-        </span>
-        <span *ngIf="!editingOfficialDrawId && existingOfficialDraw" class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm">
-          ✅ Đã có KQ trong Database ({{ existingOfficialDraw.drawDate }})
-        </span>
-        <span *ngIf="!editingOfficialDrawId && !existingOfficialDraw" class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
-          ⚠️ Chưa có KQ ngày {{ drawDate }}
-        </span>
+        @if (editingOfficialDrawId) {
+          <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm">
+            ✏️ Đang sửa kỳ quay ID #{{ editingOfficialDrawId }} ({{ drawDate }})
+          </span>
+        }
+        @if (!editingOfficialDrawId && existingOfficialDraw) {
+          <span class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm">
+            ✅ Đã có KQ trong Database ({{ existingOfficialDraw.drawDate }})
+          </span>
+        }
+        @if (!editingOfficialDrawId && !existingOfficialDraw) {
+          <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
+            ⚠️ Chưa có KQ ngày {{ drawDate }}
+          </span>
+        }
       </div>
     </div>
 
     <div class="card-body p-4 p-md-5 bg-light">
       <!-- BANNER CHẾ ĐỘ CHỈNH SỬA KỲ QUAY (CHO PHÉP SỬA CẢ NGÀY MỞ THƯỞNG VÀ DÃY SỐ) -->
-      <div *ngIf="editingOfficialDrawId" class="alert alert-info py-3 px-4 rounded-4 border-0 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-        <div class="d-flex align-items-center gap-3">
-          <span class="fs-3">✏️</span>
-          <div>
-            <div class="fw-bold fs-6">Đang chỉnh sửa kỳ quay ID #{{ editingOfficialDrawId }}</div>
-            <div class="small text-muted">Bạn có thể chỉnh sửa lại <strong>Ngày mở thưởng</strong> và <strong>Dãy số trúng thưởng</strong> bên dưới, sau đó bấm <strong>"Cập nhật kết quả"</strong> để lưu vào Database.</div>
+      @if (editingOfficialDrawId) {
+        <div
+          class="alert alert-info py-3 px-4 rounded-4 border-0 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <span class="fs-3">✏️</span>
+            <div>
+              <div class="fw-bold fs-6">Đang chỉnh sửa kỳ quay ID #{{ editingOfficialDrawId }}</div>
+              <div class="small text-muted">
+                Bạn có thể chỉnh sửa lại <strong>Ngày mở thưởng</strong> và
+                <strong>Dãy số trúng thưởng</strong> bên dưới, sau đó bấm
+                <strong>"Cập nhật kết quả"</strong> để lưu vào Database.
+              </div>
+            </div>
           </div>
+          <button
+            class="btn btn-outline-secondary rounded-pill px-3 py-1 shadow-sm fw-semibold"
+            (click)="cancelOfficialEdit()"
+          >
+            ✖ Hủy chế độ sửa
+          </button>
         </div>
-        <button class="btn btn-outline-secondary rounded-pill px-3 py-1 shadow-sm fw-semibold" (click)="cancelOfficialEdit()">
-          ✖ Hủy chế độ sửa
-        </button>
-      </div>
+      }
 
       <div class="row g-4 mb-4 align-items-end">
         <div class="col-md-4">
           <label class="form-label fw-bold text-secondary">Loại xổ số Vietlott</label>
-          <select class="form-select form-select-lg border-0 shadow-sm" [(ngModel)]="category" (ngModelChange)="onCategoryChange($event)">
+          <select
+            class="form-select form-select-lg border-0 shadow-sm"
+            [(ngModel)]="category"
+            (ngModelChange)="onCategoryChange($event)"
+          >
             <option value="MEGA">🔴 Mega 6/45</option>
             <option value="POWER">🔵 Power 6/55</option>
           </select>
@@ -87,19 +73,34 @@
         <div class="col-md-4">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <label class="form-label fw-bold text-secondary mb-0">Ngày mở thưởng</label>
-            <span *ngIf="editingOfficialDrawId" class="badge bg-primary text-white" style="font-size: 0.72rem;">✏️ Có thể sửa ngày</span>
-            <button *ngIf="!editingOfficialDrawId && existingOfficialDraw" 
-                    type="button" 
-                    class="btn btn-sm btn-link text-primary p-0 text-decoration-none" 
-                    style="font-size: 0.78rem;" 
-                    (click)="loadDrawToMainForm(existingOfficialDraw)">
-              ✏️ Sửa kỳ quay này
-            </button>
+            @if (editingOfficialDrawId) {
+              <span class="badge bg-primary text-white" style="font-size: 0.72rem"
+                >✏️ Có thể sửa ngày</span
+              >
+            }
+            @if (!editingOfficialDrawId && existingOfficialDraw) {
+              <button
+                type="button"
+                class="btn btn-sm btn-link text-primary p-0 text-decoration-none"
+                style="font-size: 0.78rem"
+                (click)="loadDrawToMainForm(existingOfficialDraw)"
+              >
+                ✏️ Sửa kỳ quay này
+              </button>
+            }
           </div>
-          <input type="date" class="form-control form-control-lg border-0 shadow-sm" [(ngModel)]="drawDate" (ngModelChange)="onDateOrCategoryChange()">
+          <input
+            type="date"
+            class="form-control form-control-lg border-0 shadow-sm"
+            [(ngModel)]="drawDate"
+            (ngModelChange)="onDateOrCategoryChange()"
+          />
         </div>
         <div class="col-md-4 text-md-end">
-          <button class="btn btn-outline-secondary rounded-pill px-3 py-2 shadow-sm" (click)="clearOfficialInputs()">
+          <button
+            class="btn btn-outline-secondary rounded-pill px-3 py-2 shadow-sm"
+            (click)="clearOfficialInputs()"
+          >
             🧹 Xóa trắng ô nhập
           </button>
         </div>
@@ -109,58 +110,92 @@
       <div class="p-3 p-md-4 bg-white rounded-4 shadow-sm border mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
           <div>
-            <label class="fw-bold text-dark fs-6 mb-0">Dãy 6 số mở thưởng chính thức của Vietlott:</label>
-            <div class="text-muted small">Nhập các số từ 1 đến {{ category === 'POWER' ? '55' : '45' }}</div>
+            <label class="fw-bold text-dark fs-6 mb-0"
+              >Dãy 6 số mở thưởng chính thức của Vietlott:</label
+            >
+            <div class="text-muted small">
+              Nhập các số từ 1 đến {{ category === 'POWER' ? '55' : '45' }}
+            </div>
           </div>
-          <div *ngIf="category === 'POWER'" class="badge bg-warning text-dark border px-3 py-2 rounded-pill">
-            ⭐ Kỳ quay Power 6/55 có bóng phụ Jackpot 2
-          </div>
+          @if (category === 'POWER') {
+            <div class="badge bg-warning text-dark border px-3 py-2 rounded-pill">
+              ⭐ Kỳ quay Power 6/55 có bóng phụ Jackpot 2
+            </div>
+          }
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <!-- 6 Ô BÓNG SỐ CHÍNH -->
           <div class="d-flex gap-2 flex-wrap">
-            <input *ngFor="let num of officialNumbers; let idx = index; trackBy: trackByIndex" 
-                   type="number" 
-                   class="form-control ball-input fw-bold shadow-sm" 
-                   [ngClass]="category === 'POWER' ? 'border-primary text-primary' : 'border-danger text-danger'"
-                   style="width: 52px; height: 52px; font-size: 1.25rem;"
-                   [(ngModel)]="officialNumbers[idx]" 
-                   min="1" [max]="category === 'POWER' ? 55 : 45"
-                   placeholder="00">
+            @for (num of officialNumbers; track $index; let idx = $index) {
+              <input
+                type="number"
+                class="form-control ball-input fw-bold shadow-sm"
+                [ngClass]="
+                  category === 'POWER' ? 'border-primary text-primary' : 'border-danger text-danger'
+                "
+                style="width: 52px; height: 52px; font-size: 1.25rem"
+                [(ngModel)]="officialNumbers[idx]"
+                min="1"
+                [max]="category === 'POWER' ? 55 : 45"
+                placeholder="00"
+              />
+            }
           </div>
 
           <!-- Ô BÓNG SỐ PHỤ POWER 6/55 -->
-          <div *ngIf="category === 'POWER'" class="d-flex align-items-center gap-2 ms-md-3 p-2 rounded-4 bg-warning bg-opacity-10 border border-warning">
-            <label class="fw-bold text-dark small mb-0">⭐ Banh Phụ (Jackpot 2):</label>
-            <input type="number" 
-                   class="form-control ball-input fw-bold border-warning bg-white text-dark shadow-sm" 
-                   style="width: 52px; height: 52px; font-size: 1.25rem; border-width: 2px;"
-                   [(ngModel)]="officialSpecialNumber" 
-                   min="1" max="55"
-                   placeholder="00">
-          </div>
+          @if (category === 'POWER') {
+            <div
+              class="d-flex align-items-center gap-2 ms-md-3 p-2 rounded-4 bg-warning bg-opacity-10 border border-warning"
+            >
+              <label class="fw-bold text-dark small mb-0">⭐ Banh Phụ (Jackpot 2):</label>
+              <input
+                type="number"
+                class="form-control ball-input fw-bold border-warning bg-white text-dark shadow-sm"
+                style="width: 52px; height: 52px; font-size: 1.25rem; border-width: 2px"
+                [(ngModel)]="officialSpecialNumber"
+                min="1"
+                max="55"
+                placeholder="00"
+              />
+            </div>
+          }
         </div>
       </div>
 
       <!-- NÚT LƯU KẾT QUẢ VIETLOTT VÀO DATABASE -->
       <div class="d-flex flex-wrap align-items-center gap-3">
-        <button class="btn btn-primary btn-lg fw-bold px-4 py-2 rounded-pill shadow-sm hover-lift d-flex align-items-center gap-2" 
-                (click)="saveOfficialVietlottResult()" 
-                [disabled]="isSavingOfficial">
-          <span *ngIf="isSavingOfficial" class="spinner-border spinner-border-sm"></span>
-          <span>{{ editingOfficialDrawId ? '💾 Cập nhật kết quả (Ngày & Dãy số)' : '💾 Lưu kết quả Vietlott vào Database' }}</span>
+        <button
+          class="btn btn-primary btn-lg fw-bold px-4 py-2 rounded-pill shadow-sm hover-lift d-flex align-items-center gap-2"
+          (click)="saveOfficialVietlottResult()"
+          [disabled]="isSavingOfficial"
+        >
+          @if (isSavingOfficial) {
+            <span class="spinner-border spinner-border-sm"></span>
+          }
+          <span>{{
+            editingOfficialDrawId
+              ? '💾 Cập nhật kết quả (Ngày & Dãy số)'
+              : '💾 Lưu kết quả Vietlott vào Database'
+          }}</span>
         </button>
 
-        <button *ngIf="editingOfficialDrawId" 
-                class="btn btn-outline-secondary btn-lg fw-semibold px-4 py-2 rounded-pill shadow-sm"
-                (click)="cancelOfficialEdit()">
-          ✖ Hủy sửa
-        </button>
+        @if (editingOfficialDrawId) {
+          <button
+            class="btn btn-outline-secondary btn-lg fw-semibold px-4 py-2 rounded-pill shadow-sm"
+            (click)="cancelOfficialEdit()"
+          >
+            ✖ Hủy sửa
+          </button>
+        }
 
-        <span *ngIf="saveOfficialMessage" class="badge bg-success-subtle text-success border border-success fs-6 px-3 py-2 rounded-pill shadow-sm">
-          {{ saveOfficialMessage }}
-        </span>
+        @if (saveOfficialMessage) {
+          <span
+            class="badge bg-success-subtle text-success border border-success fs-6 px-3 py-2 rounded-pill shadow-sm"
+          >
+            {{ saveOfficialMessage }}
+          </span>
+        }
       </div>
     </div>
   </div>
@@ -171,45 +206,66 @@
       <span class="fs-4">🎫</span>
       <div>
         <h3 class="card-title h5 fw-bold text-success mb-0">Dò Vé Số Của Bạn</h3>
-        <small class="text-muted">Nhập các dãy số trên vé bạn đã mua để đối chiếu với kết quả kỳ quay ngày {{ drawDate }}</small>
+        <small class="text-muted"
+          >Nhập các dãy số trên vé bạn đã mua để đối chiếu với kết quả kỳ quay ngày
+          {{ drawDate }}</small
+        >
       </div>
     </div>
 
     <div class="card-body p-4 p-md-5 bg-light">
       <div class="d-flex justify-content-between align-items-end mb-3">
         <h5 class="fw-bold text-dark mb-0">Các vé bạn muốn dò</h5>
-        <button class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm hover-lift d-flex align-items-center gap-2" (click)="addTicketRow()">
+        <button
+          class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm hover-lift d-flex align-items-center gap-2"
+          (click)="addTicketRow()"
+        >
           <span class="fs-5">+</span> Thêm dãy số
         </button>
       </div>
 
       <div class="d-flex flex-column gap-3 mb-4">
-        <div *ngFor="let ticket of userTickets; let i = index" class="d-flex align-items-center gap-3 flex-wrap p-3 border-0 rounded-4 bg-white shadow-sm transition-all">
-          <div class="badge bg-dark rounded-pill px-3 py-2 fs-6 shadow-sm">Vé {{ i + 1 }}</div>
-          
-          <div class="d-flex gap-2 flex-wrap">
-            <input *ngFor="let num of ticket; let j = index; trackBy: trackByIndex" 
-                   type="number" 
-                   class="form-control ball-input" 
-                   [(ngModel)]="userTickets[i][j]" 
-                   min="1" max="55"
-                   placeholder="00">
+        @for (ticket of userTickets; track ticket; let i = $index) {
+          <div
+            class="d-flex align-items-center gap-3 flex-wrap p-3 border-0 rounded-4 bg-white shadow-sm transition-all"
+          >
+            <div class="badge bg-dark rounded-pill px-3 py-2 fs-6 shadow-sm">Vé {{ i + 1 }}</div>
+            <div class="d-flex gap-2 flex-wrap">
+              @for (num of ticket; track $index; let j = $index) {
+                <input
+                  type="number"
+                  class="form-control ball-input"
+                  [(ngModel)]="userTickets[i][j]"
+                  min="1"
+                  max="55"
+                  placeholder="00"
+                />
+              }
+            </div>
+            @if (userTickets.length > 1) {
+              <button
+                class="btn btn-outline-danger rounded-circle ms-auto d-flex justify-content-center align-items-center hover-lift"
+                style="width: 40px; height: 40px"
+                (click)="removeTicketRow(i)"
+                title="Xóa vé này"
+              >
+                ✖
+              </button>
+            }
           </div>
-                 
-          <button class="btn btn-outline-danger rounded-circle ms-auto d-flex justify-content-center align-items-center hover-lift" 
-                  style="width: 40px; height: 40px;" 
-                  (click)="removeTicketRow(i)" 
-                  *ngIf="userTickets.length > 1"
-                  title="Xóa vé này">
-            ✖
-          </button>
-        </div>
+        }
       </div>
 
       <!-- NÚT ĐỐI CHIẾU KẾT QUẢ DUY NHẤT (ĐÃ BỎ NÚT NẠP VÉ 1) -->
       <div class="d-flex flex-wrap gap-3">
-        <button class="btn btn-success btn-lg fw-bold px-5 rounded-pill shadow-sm hover-lift d-flex align-items-center gap-2" (click)="submitCheck()" [disabled]="isChecking">
-          <span *ngIf="isChecking" class="spinner-border spinner-border-sm"></span>
+        <button
+          class="btn btn-success btn-lg fw-bold px-5 rounded-pill shadow-sm hover-lift d-flex align-items-center gap-2"
+          (click)="submitCheck()"
+          [disabled]="isChecking"
+        >
+          @if (isChecking) {
+            <span class="spinner-border spinner-border-sm"></span>
+          }
           🔍 Đối chiếu kết quả
         </button>
       </div>
@@ -217,81 +273,152 @@
   </div>
 
   <!-- KẾT QUẢ ĐỐI CHIẾU DÒ VÉ -->
-  <div *ngIf="checkResult" class="card shadow-sm border-0 mb-4 animation-fade">
-    <div class="card-header bg-white py-3 border-bottom">
-      <h4 class="h5 fw-bold text-dark mb-0">Kết quả dò vé ngày {{ drawDate }}</h4>
-    </div>
-    
-    <div class="card-body p-4" *ngIf="checkResult.status === 'SUCCESS'">
-      <div class="p-3 bg-light rounded-4 border mb-4 d-flex align-items-center flex-wrap gap-2">
-        <span class="fw-bold text-secondary me-2">KQ Chính thức:</span>
-        <div class="ball shadow-sm bg-primary text-white" *ngFor="let n of checkResult.officialNumbers" style="width: 35px; height: 35px; font-size: 0.9rem;">
-          {{ n < 10 ? '0'+n : n }}
-        </div>
-        <div class="ball shadow-sm bg-warning text-dark border ms-2" *ngIf="checkResult.officialSpecialNumber" style="width: 35px; height: 35px; font-size: 0.9rem;" title="Banh Phụ">
-          {{ checkResult.officialSpecialNumber < 10 ? '0'+checkResult.officialSpecialNumber : checkResult.officialSpecialNumber }}
-        </div>
+  @if (checkResult) {
+    <div class="card shadow-sm border-0 mb-4 animation-fade">
+      <div class="card-header bg-white py-3 border-bottom">
+        <h4 class="h5 fw-bold text-dark mb-0">Kết quả dò vé ngày {{ drawDate }}</h4>
       </div>
-
-      <div class="d-flex flex-column gap-3">
-        <div *ngFor="let res of checkResult.results; let i = index" class="p-3 border-0 rounded-4 shadow-sm d-flex justify-content-between align-items-center bg-white">
-          <div class="d-flex gap-2 flex-wrap">
-            <div class="ball shadow-sm" *ngFor="let n of res.userNumbers"
-                 [ngClass]="checkResult.officialNumbers?.includes(n) ? 'bg-success text-white border-success' : (n === checkResult.officialSpecialNumber ? 'bg-warning text-dark border-warning' : 'bg-secondary text-white border-secondary')"
-                 style="width: 45px; height: 45px; font-size: 1.1rem; border: 2px solid;">
-              {{ n < 10 ? '0'+n : n }}
+      @if (checkResult.status === 'SUCCESS') {
+        <div class="card-body p-4">
+          <div class="p-3 bg-light rounded-4 border mb-4 d-flex align-items-center flex-wrap gap-2">
+            <span class="fw-bold text-secondary me-2">KQ Chính thức:</span>
+            @for (n of checkResult.officialNumbers; track n) {
+              <div
+                class="ball shadow-sm bg-primary text-white"
+                style="width: 35px; height: 35px; font-size: 0.9rem"
+              >
+                {{ n < 10 ? '0' + n : n }}
+              </div>
+            }
+            @if (checkResult.officialSpecialNumber) {
+              <div
+                class="ball shadow-sm bg-warning text-dark border ms-2"
+                style="width: 35px; height: 35px; font-size: 0.9rem"
+                title="Banh Phụ"
+              >
+                {{
+                  checkResult.officialSpecialNumber < 10
+                    ? '0' + checkResult.officialSpecialNumber
+                    : checkResult.officialSpecialNumber
+                }}
+              </div>
+            }
+          </div>
+          <div class="d-flex flex-column gap-3">
+            @for (res of checkResult.results; track res; let i = $index) {
+              <div
+                class="p-3 border-0 rounded-4 shadow-sm d-flex justify-content-between align-items-center bg-white"
+              >
+                <div class="d-flex gap-2 flex-wrap">
+                  @for (n of res.userNumbers; track n) {
+                    <div
+                      class="ball shadow-sm"
+                      [ngClass]="
+                        checkResult.officialNumbers?.includes(n)
+                          ? 'bg-success text-white border-success'
+                          : n === checkResult.officialSpecialNumber
+                            ? 'bg-warning text-dark border-warning'
+                            : 'bg-secondary text-white border-secondary'
+                      "
+                      style="width: 45px; height: 45px; font-size: 1.1rem; border: 2px solid"
+                    >
+                      {{ n < 10 ? '0' + n : n }}
+                    </div>
+                  }
+                </div>
+                <div class="text-end">
+                  <div class="text-muted small fw-semibold">Trùng {{ res.matchCount }} số</div>
+                  <div
+                    class="fw-bold fs-4 mt-1"
+                    [ngClass]="res.prize === 'KHÔNG TRÚNG' ? 'text-secondary' : 'text-danger'"
+                  >
+                    {{ res.prize }}
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+      @if (checkResult.status === 'NOT_FOUND') {
+        <div class="card-body p-4">
+          <div
+            class="alert alert-warning mb-0 fw-semibold d-flex align-items-center gap-3 rounded-4 border-0 shadow-sm"
+          >
+            <span class="fs-2">⚠️</span>
+            <div>
+              {{ checkResult.message }}<br />
+              <small class="text-muted fw-normal"
+                >Bạn hãy nhập kết quả mở thưởng chính thức ở khung
+                <strong>"Nhập Kết Quả Vietlott Theo Ngày"</strong> phía trên rồi nhấn
+                <strong>"Lưu kết quả Vietlott vào Database"</strong>.</small
+              >
             </div>
           </div>
-          <div class="text-end">
-            <div class="text-muted small fw-semibold">Trùng {{ res.matchCount }} số</div>
-            <div class="fw-bold fs-4 mt-1" [ngClass]="res.prize === 'KHÔNG TRÚNG' ? 'text-secondary' : 'text-danger'">
-              {{ res.prize }}
-            </div>
-          </div>
         </div>
-      </div>
+      }
     </div>
-
-    <div class="card-body p-4" *ngIf="checkResult.status === 'NOT_FOUND'">
-      <div class="alert alert-warning mb-0 fw-semibold d-flex align-items-center gap-3 rounded-4 border-0 shadow-sm">
-        <span class="fs-2">⚠️</span>
-        <div>
-          {{ checkResult.message }}<br>
-          <small class="text-muted fw-normal">Bạn hãy nhập kết quả mở thưởng chính thức ở khung <strong>"Nhập Kết Quả Vietlott Theo Ngày"</strong> phía trên rồi nhấn <strong>"Lưu kết quả Vietlott vào Database"</strong>.</small>
-        </div>
-      </div>
-    </div>
-  </div>
+  }
 
   <div class="row">
     <!-- KHỐI 1: LỊCH SỬ DÒ VÉ CỦA USER -->
     <div class="col-md-6 mb-5">
       <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <div
+          class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center"
+        >
           <h4 class="h6 fw-bold text-dark mb-0">🕒 Lịch sử vé bạn đã dò</h4>
-          <button class="btn btn-sm btn-link text-danger text-decoration-none" (click)="clearUserHistory()" *ngIf="userCheckHistory.length > 0">Xóa lịch sử</button>
+          @if (userCheckHistory.length > 0) {
+            <button
+              class="btn btn-sm btn-link text-danger text-decoration-none"
+              (click)="clearUserHistory()"
+            >
+              Xóa lịch sử
+            </button>
+          }
         </div>
         <div class="card-body p-0">
-          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto">
             <table class="table table-hover mb-0 align-middle">
               <tbody>
-                <tr *ngFor="let ticket of userCheckHistory">
-                  <td class="ps-4">
-                    <div class="fw-bold text-dark">{{ ticket.drawDate }} <span class="badge bg-light text-secondary border">{{ ticket.category }}</span></div>
-                    <div class="text-muted" style="font-size: 0.75rem;">Lúc: {{ ticket.checkedAt | date:'HH:mm - dd/MM/yyyy' }}</div>
-                  </td>
-                  <td>
-                    <div class="d-flex align-items-center justify-content-between my-1 p-1 bg-light rounded border">
-                      <div class="d-flex gap-1">
-                        <span class="badge bg-secondary" *ngFor="let n of ticket.numbers">{{ n < 10 ? '0'+n : n }}</span>
+                @for (ticket of userCheckHistory; track ticket) {
+                  <tr>
+                    <td class="ps-4">
+                      <div class="fw-bold text-dark">
+                        {{ ticket.drawDate }}
+                        <span class="badge bg-light text-secondary border">{{
+                          ticket.category
+                        }}</span>
                       </div>
-                      <span class="badge" [ngClass]="ticket.prize === 'KHÔNG TRÚNG' ? 'bg-dark' : 'bg-danger'">{{ ticket.prize }}</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr *ngIf="userCheckHistory.length === 0">
-                  <td colspan="2" class="text-center py-5 text-muted">Bạn chưa lưu vé nào vào hệ thống.</td>
-                </tr>
+                      <div class="text-muted" style="font-size: 0.75rem">
+                        Lúc: {{ ticket.checkedAt | date: 'HH:mm - dd/MM/yyyy' }}
+                      </div>
+                    </td>
+                    <td>
+                      <div
+                        class="d-flex align-items-center justify-content-between my-1 p-1 bg-light rounded border"
+                      >
+                        <div class="d-flex gap-1">
+                          @for (n of ticket.numbers; track n) {
+                            <span class="badge bg-secondary">{{ n < 10 ? '0' + n : n }}</span>
+                          }
+                        </div>
+                        <span
+                          class="badge"
+                          [ngClass]="ticket.prize === 'KHÔNG TRÚNG' ? 'bg-dark' : 'bg-danger'"
+                          >{{ ticket.prize }}</span
+                        >
+                      </div>
+                    </td>
+                  </tr>
+                }
+                @if (userCheckHistory.length === 0) {
+                  <tr>
+                    <td colspan="2" class="text-center py-5 text-muted">
+                      Bạn chưa lưu vé nào vào hệ thống.
+                    </td>
+                  </tr>
+                }
               </tbody>
             </table>
           </div>
@@ -302,87 +429,188 @@
     <!-- KHỐI 2: LỊCH SỬ KẾT QUẢ ĐÃ LƯU TRONG DATABASE KÈM NÚT SỬA -->
     <div class="col-md-6 mb-5">
       <div class="card shadow-sm border-0 h-100">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <div
+          class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center"
+        >
           <h4 class="h6 fw-bold text-dark mb-0">🗄️ Dữ liệu Database ({{ category }})</h4>
-          <button class="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-1" (click)="loadHistory()" [disabled]="isLoadingHistory">
-            <span *ngIf="isLoadingHistory" class="spinner-border spinner-border-sm" role="status"></span>
+          <button
+            class="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-1"
+            (click)="loadHistory()"
+            [disabled]="isLoadingHistory"
+          >
+            @if (isLoadingHistory) {
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+            }
             <span>🔄 Làm mới</span>
           </button>
         </div>
         <div class="card-body p-0">
-          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto">
             <table class="table table-hover mb-0 align-middle">
               <tbody>
-                <tr *ngIf="isLoadingHistory">
-                  <td colspan="2" class="text-center py-4 text-muted">
-                    <span class="spinner-border spinner-border-sm me-2"></span> Đang tải dữ liệu lịch sử {{ category }}...
-                  </td>
-                </tr>
-                <tr *ngFor="let draw of recentDraws">
-                  <td class="ps-4 fw-semibold text-muted" style="width: 32%;">
-                    <!-- CHẾ ĐỘ XEM NGÀY -->
-                    <span *ngIf="editingDrawId !== draw.id">{{ draw.drawDate }}</span>
-
-                    <!-- CHẾ ĐỘ CHỈNH SỬA NGÀY -->
-                    <div *ngIf="editingDrawId === draw.id" class="d-flex flex-column gap-1 pe-2">
-                      <label class="form-label text-secondary mb-0 fw-bold" style="font-size: 0.72rem;">📅 Sửa ngày:</label>
-                      <input type="date" 
-                             class="form-control form-control-sm border shadow-sm fw-bold text-primary" 
-                             [(ngModel)]="editDrawDate" 
-                             title="Chỉnh sửa ngày mở thưởng">
-                    </div>
-                  </td>
-                  
-                  <td>
-                    <!-- CHẾ ĐỘ XEM (CHỈ ĐỌC) -->
-                    <div *ngIf="editingDrawId !== draw.id" class="d-flex justify-content-between align-items-center">
-                      <div class="d-flex gap-1 flex-wrap align-items-center">
-                        <span class="badge" [ngClass]="category === 'MEGA' ? 'bg-danger text-white' : 'bg-primary text-white'" *ngFor="let n of (draw.numbers || [])" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">
-                          {{ (n != null && n < 10) ? '0' + n : n }}
-                        </span>
-                        <span class="badge bg-warning text-dark border border-warning ms-2" *ngIf="draw.specialNumber != null" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;" title="Số phụ Jackpot 2">
-                          ★{{ (draw.specialNumber < 10 ? '0' + draw.specialNumber : draw.specialNumber) }}
-                        </span>
-                      </div>
-                      <div class="d-flex align-items-center gap-1 ms-2">
-                        <button class="btn btn-sm btn-light border text-primary rounded-circle shadow-sm" (click)="startEdit(draw)" title="Chỉnh sửa ngày và dãy số tại dòng này">
-                          ✏️
-                        </button>
-                        <button class="btn btn-sm btn-light border text-secondary rounded-circle shadow-sm" (click)="loadDrawToMainForm(draw)" title="Nạp lên khung nhập trên cùng để sửa">
-                          ⬆️
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- CHẾ ĐỘ CHỈNH SỬA VỚI INPUT HÌNH QUẢ BÓNG NHỎ -->
-                    <div *ngIf="editingDrawId === draw.id" class="d-flex align-items-center flex-wrap gap-2 bg-light p-2 border rounded-3">
-                      <div class="d-flex gap-1">
-                        <input *ngFor="let num of editNumbers; let k = index; trackBy: trackByIndex" 
-                               type="number" 
-                               class="form-control ball-input bg-white" 
-                               style="width: 32px; height: 32px; font-size: 0.8rem; border-width: 1px;" 
-                               [(ngModel)]="editNumbers[k]" 
-                               min="1" [max]="category === 'POWER' ? 55 : 45">
-                      </div>
-                      
-                      <input *ngIf="category === 'POWER'" 
-                             type="number" 
-                             class="form-control ball-input bg-white border-warning ms-1" 
-                             style="width: 32px; height: 32px; font-size: 0.8rem; border-width: 1px;" 
-                             [(ngModel)]="editSpecialNumber" 
-                             min="1" max="55"
-                             title="Số phụ Jackpot 2">
-
-                      <div class="ms-auto d-flex gap-1">
-                        <button class="btn btn-sm btn-success fw-semibold shadow-sm px-2" (click)="saveEdit(draw)" title="Lưu ngày và số">Lưu</button>
-                        <button class="btn btn-sm btn-secondary fw-semibold shadow-sm px-2" (click)="cancelEdit()">Hủy</button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-                <tr *ngIf="!isLoadingHistory && recentDraws.length === 0">
-                  <td colspan="2" class="text-center py-5 text-muted">Chưa có dữ liệu chính thức cho loại vé này.</td>
-                </tr>
+                @if (isLoadingHistory) {
+                  <tr>
+                    <td colspan="2" class="text-center py-4 text-muted">
+                      <span class="spinner-border spinner-border-sm me-2"></span> Đang tải dữ liệu
+                      lịch sử {{ category }}...
+                    </td>
+                  </tr>
+                }
+                @for (draw of recentDraws; track draw) {
+                  <tr>
+                    <td class="ps-4 fw-semibold text-muted" style="width: 32%">
+                      <!-- CHẾ ĐỘ XEM NGÀY -->
+                      @if (editingDrawId !== draw.id) {
+                        <span>{{ draw.drawDate }}</span>
+                      }
+                      <!-- CHẾ ĐỘ CHỈNH SỬA NGÀY -->
+                      @if (editingDrawId === draw.id) {
+                        <div class="d-flex flex-column gap-1 pe-2">
+                          <label
+                            class="form-label text-secondary mb-0 fw-bold"
+                            style="font-size: 0.72rem"
+                            >📅 Sửa ngày:</label
+                          >
+                          <input
+                            type="date"
+                            class="form-control form-control-sm border shadow-sm fw-bold text-primary"
+                            [(ngModel)]="editDrawDate"
+                            title="Chỉnh sửa ngày mở thưởng"
+                          />
+                        </div>
+                      }
+                    </td>
+                    <td>
+                      <!-- CHẾ ĐỘ XEM (CHỈ ĐỌC) -->
+                      @if (editingDrawId !== draw.id) {
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div class="d-flex gap-1 flex-wrap align-items-center">
+                            @for (n of draw.numbers || []; track n) {
+                              <span
+                                class="badge"
+                                [ngClass]="
+                                  category === 'MEGA'
+                                    ? 'bg-danger text-white'
+                                    : 'bg-primary text-white'
+                                "
+                                style="
+                                  width: 28px;
+                                  height: 28px;
+                                  display: inline-flex;
+                                  align-items: center;
+                                  justify-content: center;
+                                  border-radius: 50%;
+                                  font-size: 0.8rem;
+                                "
+                              >
+                                {{ n != null && n < 10 ? '0' + n : n }}
+                              </span>
+                            }
+                            @if (draw.specialNumber != null) {
+                              <span
+                                class="badge bg-warning text-dark border border-warning ms-2"
+                                style="
+                                  width: 28px;
+                                  height: 28px;
+                                  display: inline-flex;
+                                  align-items: center;
+                                  justify-content: center;
+                                  border-radius: 50%;
+                                  font-size: 0.8rem;
+                                "
+                                title="Số phụ Jackpot 2"
+                              >
+                                ★{{
+                                  draw.specialNumber < 10
+                                    ? '0' + draw.specialNumber
+                                    : draw.specialNumber
+                                }}
+                              </span>
+                            }
+                          </div>
+                          <div class="d-flex align-items-center gap-1 ms-2">
+                            <button
+                              class="btn btn-sm btn-light border text-primary rounded-circle shadow-sm"
+                              (click)="startEdit(draw)"
+                              title="Chỉnh sửa ngày và dãy số tại dòng này"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              class="btn btn-sm btn-light border text-secondary rounded-circle shadow-sm"
+                              (click)="loadDrawToMainForm(draw)"
+                              title="Nạp lên khung nhập trên cùng để sửa"
+                            >
+                              ⬆️
+                            </button>
+                          </div>
+                        </div>
+                      }
+                      <!-- CHẾ ĐỘ CHỈNH SỬA VỚI INPUT HÌNH QUẢ BÓNG NHỎ -->
+                      @if (editingDrawId === draw.id) {
+                        <div
+                          class="d-flex align-items-center flex-wrap gap-2 bg-light p-2 border rounded-3"
+                        >
+                          <div class="d-flex gap-1">
+                            @for (num of editNumbers; track $index; let k = $index) {
+                              <input
+                                type="number"
+                                class="form-control ball-input bg-white"
+                                style="
+                                  width: 32px;
+                                  height: 32px;
+                                  font-size: 0.8rem;
+                                  border-width: 1px;
+                                "
+                                [(ngModel)]="editNumbers[k]"
+                                min="1"
+                                [max]="category === 'POWER' ? 55 : 45"
+                              />
+                            }
+                          </div>
+                          @if (category === 'POWER') {
+                            <input
+                              type="number"
+                              class="form-control ball-input bg-white border-warning ms-1"
+                              style="
+                                width: 32px;
+                                height: 32px;
+                                font-size: 0.8rem;
+                                border-width: 1px;
+                              "
+                              [(ngModel)]="editSpecialNumber"
+                              min="1"
+                              max="55"
+                              title="Số phụ Jackpot 2"
+                            />
+                          }
+                          <div class="ms-auto d-flex gap-1">
+                            <button
+                              class="btn btn-sm btn-success fw-semibold shadow-sm px-2"
+                              (click)="saveEdit(draw)"
+                              title="Lưu ngày và số"
+                            >
+                              Lưu
+                            </button>
+                            <button
+                              class="btn btn-sm btn-secondary fw-semibold shadow-sm px-2"
+                              (click)="cancelEdit()"
+                            >
+                              Hủy
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+                @if (!isLoadingHistory && recentDraws.length === 0) {
+                  <tr>
+                    <td colspan="2" class="text-center py-5 text-muted">
+                      Chưa có dữ liệu chính thức cho loại vé này.
+                    </td>
+                  </tr>
+                }
               </tbody>
             </table>
           </div>

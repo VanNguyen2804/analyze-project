@@ -1,1809 +1,1004 @@
-<style>
-  .analysis-wrapper {
-    background-color: #244177;
-    border-radius: 12px;
-    padding: 30px;
-    color: white;
-    font-family: Arial, sans-serif;
-  }
-  .toggle-btn {
-    border-radius: 20px;
-    padding: 8px 24px;
-    font-weight: 600;
-    border: 1px solid rgba(255,255,255,0.3);
-    background: transparent;
-    color: white;
-    transition: all 0.3s;
-  }
-  .toggle-btn.active-power {
-    background: linear-gradient(180deg, #3b5998, #192f5d);
-    border-color: #5c7cfa;
-  }
-  .toggle-btn.active-mega {
-    background: linear-gradient(180deg, #d32f2f, #9a0007);
-    border-color: #ff5252;
-  }
-  .dark-card {
-    background-color: #0b0f19;
-    border: 1px solid #444;
-    border-radius: 8px;
-  }
-  .ball-drawn {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: bold;
-    border: 2px solid white;
-  }
-  .ball-mega-style { background: linear-gradient(180deg, #ff4d4d, #b30000); }
-  .ball-power-style { background: linear-gradient(180deg, #4dabf7, #0b5ed7); }
-  
-  /* Style cho Card phân tích giống ảnh */
-  .card-analysis {
-    border-radius: 16px;
-    border: 1px solid #eaeaea;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .card-analysis:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
-  }
-</style>
-
 <div class="analysis-wrapper mt-4 shadow">
   <!-- Header & Title -->
   <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
-    <span class="badge text-dark rounded-pill px-3 py-2" style="background: linear-gradient(90deg, #d4af37, #f3e5ab);">
+    <span
+      class="badge text-dark rounded-pill px-3 py-2"
+      style="background: linear-gradient(90deg, #d4af37, #f3e5ab)"
+    >
       🏆 ĐỐI SOÁT & PHÂN TÍCH CHUYÊN SÂU
     </span>
     <span class="badge bg-warning text-dark rounded-pill px-3 py-2">KỲ MỚI NHẤT</span>
-    <span class="badge bg-light text-dark rounded-pill px-3 py-2">{{ analysisData?.drawDate || '...' }}</span>
+    <span class="badge bg-light text-dark rounded-pill px-3 py-2">{{
+      analysisData?.drawDate || '...'
+    }}</span>
   </div>
 
-  <h2 class="fw-bold mb-3">Phân Tích Kết Quả Trúng Kỳ Quay {{ category === 'MEGA' ? 'Mega 6/45' : 'Power 6/55' }} Mới Nhất</h2>
-  
+  <h2 class="fw-bold mb-3">
+    Phân Tích Kết Quả Trúng Kỳ Quay {{ category === 'MEGA' ? 'Mega 6/45' : 'Power 6/55' }} Mới Nhất
+  </h2>
+
   <!-- Toggle Buttons -->
   <div class="d-flex gap-3 mb-4">
-    <button class="toggle-btn d-flex align-items-center gap-2" [ngClass]="category === 'POWER' ? 'active-power' : ''" (click)="changeCategory('POWER')">
-      <span class="rounded-circle d-inline-block" style="width:12px; height:12px; background:#5c7cfa;"></span> Power 6/55
+    <button
+      class="toggle-btn d-flex align-items-center gap-2"
+      [ngClass]="category === 'POWER' ? 'active-power' : ''"
+      (click)="changeCategory('POWER')"
+    >
+      <span
+        class="rounded-circle d-inline-block"
+        style="width: 12px; height: 12px; background: #5c7cfa"
+      ></span>
+      Power 6/55
     </button>
-    <button class="toggle-btn d-flex align-items-center gap-2" [ngClass]="category === 'MEGA' ? 'active-mega' : ''" (click)="changeCategory('MEGA')">
-      <span class="rounded-circle d-inline-block" style="width:12px; height:12px; background:#ff5252;"></span> Mega 6/45
+    <button
+      class="toggle-btn d-flex align-items-center gap-2"
+      [ngClass]="category === 'MEGA' ? 'active-mega' : ''"
+      (click)="changeCategory('MEGA')"
+    >
+      <span
+        class="rounded-circle d-inline-block"
+        style="width: 12px; height: 12px; background: #ff5252"
+      ></span>
+      Mega 6/45
     </button>
   </div>
 
   <!-- DÃY BÓNG SỐ MỞ THƯỞNG CỦA KỲ QUAY ĐANG XEM -->
-  <div *ngIf="analysisData?.numbers" class="d-flex align-items-center gap-2 flex-wrap mb-4 p-3 rounded-3" style="background: rgba(255,255,255,0.12);">
-    <span class="fw-bold me-2 text-white">Kết quả kỳ quay:</span>
-    <div *ngFor="let n of analysisData.numbers" class="ball-drawn text-white shadow-sm" [ngClass]="category === 'MEGA' ? 'ball-mega-style' : 'ball-power-style'">
-      {{ n < 10 ? '0' + n : n }}
+  @if (analysisData?.numbers) {
+    <div
+      class="d-flex align-items-center gap-2 flex-wrap mb-4 p-3 rounded-3"
+      style="background: rgba(255, 255, 255, 0.12)"
+    >
+      <span class="fw-bold me-2 text-white">Kết quả kỳ quay:</span>
+      @for (n of analysisData.numbers; track n) {
+        <div
+          class="ball-drawn text-white shadow-sm"
+          [ngClass]="category === 'MEGA' ? 'ball-mega-style' : 'ball-power-style'"
+        >
+          {{ n < 10 ? '0' + n : n }}
+        </div>
+      }
+      @if (category === 'POWER' && analysisData?.specialNumber) {
+        <div
+          class="ball-drawn text-dark shadow-sm bg-warning border-warning ms-2"
+          title="Banh Phụ Jackpot 2"
+        >
+          ⭐
+          {{
+            analysisData.specialNumber < 10
+              ? '0' + analysisData.specialNumber
+              : analysisData.specialNumber
+          }}
+        </div>
+      }
+      @if (analysisData?.oddEvenRatio) {
+        <span class="ms-auto badge bg-light text-dark fw-bold px-3 py-2">{{
+          analysisData.oddEvenRatio
+        }}</span>
+      }
+      @if (analysisData?.sum) {
+        <span class="badge bg-warning text-dark fw-bold px-3 py-2"
+          >Tổng điểm: {{ analysisData.sum }}</span
+        >
+      }
     </div>
-    <div *ngIf="category === 'POWER' && analysisData?.specialNumber" class="ball-drawn text-dark shadow-sm bg-warning border-warning ms-2" title="Banh Phụ Jackpot 2">
-      ⭐ {{ analysisData.specialNumber < 10 ? '0' + analysisData.specialNumber : analysisData.specialNumber }}
-    </div>
-    <span class="ms-auto badge bg-light text-dark fw-bold px-3 py-2" *ngIf="analysisData?.oddEvenRatio">{{ analysisData.oddEvenRatio }}</span>
-    <span class="badge bg-warning text-dark fw-bold px-3 py-2" *ngIf="analysisData?.sum">Tổng điểm: {{ analysisData.sum }}</span>
-  </div>
+  }
 
   <!-- Thanh công cụ: ĐỦ 3 THAM SỐ (Ngày, Category, Thuật toán) -->
   <div class="dark-card p-3 mb-4 d-flex flex-wrap align-items-center gap-3">
     <div class="d-flex align-items-center gap-2 text-white fw-semibold">
       <span>📅 Tra cứu & Phân tích theo ngày:</span>
-      <input type="date" class="form-control form-control-sm text-dark fw-bold" style="width: 140px;" [(ngModel)]="selectedDate">
-      
+      <input
+        type="date"
+        class="form-control form-control-sm text-dark fw-bold"
+        style="width: 140px"
+        [(ngModel)]="selectedDate"
+      />
+
       <span class="ms-2">🤖 Thuật toán:</span>
-      <select class="form-select form-select-sm text-dark fw-bold" style="min-width: 230px;" [(ngModel)]="algorithm">
-        <option *ngFor="let algo of availableAlgorithms" [value]="algo.id">{{ algo.name }}</option>
+      <select
+        class="form-select form-select-sm text-dark fw-bold"
+        style="min-width: 230px"
+        [(ngModel)]="algorithm"
+      >
+        @for (algo of availableAlgorithms; track algo) {
+          <option [value]="algo.id">{{ algo.name }}</option>
+        }
       </select>
     </div>
-    <button class="btn btn-warning btn-sm fw-bold px-3 rounded-pill text-dark" (click)="fetchAnalysis(false)" [disabled]="isLoading">
-      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1"></span> 🔍 Lấy 6 số & Phân tích
+    <button
+      class="btn btn-warning btn-sm fw-bold px-3 rounded-pill text-dark"
+      (click)="fetchAnalysis(false)"
+      [disabled]="isLoading"
+    >
+      @if (isLoading) {
+        <span class="spinner-border spinner-border-sm me-1"></span>
+      }
+      🔍 Lấy 6 số & Phân tích
     </button>
-    <button class="btn btn-outline-light btn-sm fw-bold px-3 rounded-pill border-secondary" (click)="fetchAnalysis(true)" [disabled]="isLoading">
+    <button
+      class="btn btn-outline-light btn-sm fw-bold px-3 rounded-pill border-secondary"
+      (click)="fetchAnalysis(true)"
+      [disabled]="isLoading"
+    >
       🔄 Kỳ mới nhất
     </button>
-    <div *ngIf="errorMessage" class="w-100 mt-2 text-warning small fw-bold">{{ errorMessage }}</div>
+    @if (errorMessage) {
+      <div class="w-100 mt-2 text-warning small fw-bold">{{ errorMessage }}</div>
+    }
   </div>
 </div>
 
 <!-- ======================================================== -->
 <!-- 0. BÁO CÁO ĐỐI SOÁT 5 KỲ QUAY GẦN NHẤT & CHẨN ĐOÁN NGUYÊN NHÂN SAI LỆCH -->
 <!-- ======================================================== -->
-<div class="card shadow border-0 rounded-4 mb-4 mt-4 overflow-hidden" style="background: #ffffff; border: 1.5px solid #3b82f6 !important;">
-  <!-- CARD HEADER -->
-  <div class="p-3 p-md-4 text-white d-flex justify-content-between align-items-center flex-wrap gap-2"
-       style="background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);">
-    <div>
-      <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 0.8rem;">
-          🔬 KIỂM THỬ HỒI QUY LỊCH SỬ & ĐỐI SOÁT VÉ MUA
-        </span>
-        <span class="badge bg-info text-dark rounded-pill px-3 py-1 fw-bold" style="font-size: 0.8rem;">
-          {{ category === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}
-        </span>
-        <span class="badge bg-success text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 0.8rem;" *ngIf="reconciliationData?.overallSummary">
-          Nhận định gần đúng: {{ reconciliationData.overallSummary.aiClosenessRatePercent }}% ({{ reconciliationData.overallSummary.aiCloseDrawsCount }}/{{ reconciliationData.draws?.length }} kỳ)
-        </span>
-      </div>
-      <h3 class="h4 fw-bold mb-1 text-white">
-        Kiểm Thử Các Kỳ Trước, Kiểm Tra Vé Mua & Đánh Giá Nhận Định Dự Đoán AI
-      </h3>
-      <p class="text-white-50 small mb-0">
-        Chạy kiểm thử ngược (Walk-Forward Historical Testing) đối chiếu kết quả mở thưởng chính thức, các vé bạn đã mua và dự đoán của mô hình AI để kiểm tra xem dự đoán có đưa ra nhận định gần đúng không.
-      </p>
-    </div>
-
-    <!-- Quick Metrics Summary -->
-    <div class="d-flex gap-2 flex-wrap" *ngIf="reconciliationData?.overallSummary">
-      <div class="p-2 px-3 rounded-3 bg-white text-dark text-center shadow-xs">
-        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">NHẬN ĐỊNH GẦN ĐÚNG</div>
-        <div class="fs-5 fw-bolder text-success">{{ reconciliationData.overallSummary.aiClosenessRatePercent }}%</div>
-        <div class="small text-muted" style="font-size: 0.65rem;">({{ reconciliationData.overallSummary.aiCloseDrawsCount }}/{{ reconciliationData.draws?.length }} kỳ đạt)</div>
-      </div>
-      <div class="p-2 px-3 rounded-3 bg-success-subtle text-dark text-center border border-success">
-        <div class="small text-success fw-bold" style="font-size: 0.7rem;">VÉ AI TRÚNG THƯỞNG</div>
-        <div class="fs-5 fw-bolder text-success">{{ reconciliationData.overallSummary.totalAiWinningTickets }} vé</div>
-        <div class="small text-muted" style="font-size: 0.65rem;">(Vé tối ưu AI sinh ra)</div>
-      </div>
-      <div class="p-2 px-3 rounded-3 bg-primary-subtle text-dark text-center border border-primary">
-        <div class="small text-primary fw-bold" style="font-size: 0.7rem;">VÉ MUA TRÚNG GIẢI</div>
-        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.winningTickets }}/{{ reconciliationData.overallSummary.totalTickets }} vé</div>
-        <div class="small text-muted" style="font-size: 0.65rem;">(Vé bạn mua thực tế)</div>
-      </div>
-      <div class="p-2 px-3 rounded-3 bg-light text-dark text-center border">
-        <div class="small text-muted fw-bold" style="font-size: 0.7rem;">ĐỘ PHỦ BÓNG AI (TOP 10)</div>
-        <div class="fs-5 fw-bolder text-primary">{{ reconciliationData.overallSummary.totalAiMatchedBalls }}/{{ reconciliationData.overallSummary.totalOfficialBalls }}</div>
-        <div class="small text-muted" style="font-size: 0.65rem;">({{ reconciliationData.overallSummary.aiBallHitRatePercent }}% bóng mở thưởng)</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BODY -->
-  <div class="card-body p-3 p-md-4">
-    <!-- ========================================================================================= -->
-    <!-- ========================================================================================= -->
-    <!-- KHUNG 1: KHUYẾN NGHỊ ĐẶC BIỆT 3 BỘ SỐ CHO KỲ TIẾP THEO (TỰ ĐỘNG TỪ MÔ HÌNH HỌC MÁY) -->
-    <!-- ========================================================================================= -->
-    <div *ngIf="recommendationsData?.goldenTicketsRecommendation?.length" class="card border-0 mb-4 rounded-4 shadow-sm text-white overflow-hidden" style="background: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e1b4b 100%); border: 1px solid rgba(99, 102, 241, 0.3) !important;">
-      <div class="card-body p-3 p-md-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 border-bottom border-light border-opacity-10 pb-3">
-          <div>
-            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-              <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bolder" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                🎯 BỘ SỐ KHUYẾN NGHỊ KỲ MỚI NHẤT
-              </span>
-              <span class="badge bg-primary px-3 py-1 rounded-pill fw-bold" style="font-size: 0.75rem;">
-                {{ recommendationsData?.lotteryName }} • {{ recommendationsData?.targetDrawDate }}
-              </span>
-              <span class="badge bg-success text-white px-2 py-1 rounded-pill fw-semibold" style="font-size: 0.72rem;">
-                Phiên bản {{ currentHyperparameterVersion }}
-              </span>
-            </div>
-            <h4 class="fw-bolder mb-1 text-white">
-              {{ recommendationsData?.summaryTitle }}
-            </h4>
-            <p class="text-white-50 small mb-0" style="max-width: 800px;">
-              {{ recommendationsData?.megaDrawReconciliation?.remedySummary }}
-            </p>
-          </div>
-          <div class="text-end">
-            <span class="badge bg-light bg-opacity-10 text-warning px-3 py-2 rounded-3 border border-warning border-opacity-25 small">
-              ⚡ {{ recommendationsData?.goldenTicketsRecommendation?.length }} Vé Khuyến Nghị Tối Ưu
-            </span>
-          </div>
-        </div>
-
-        <!-- 3 DÃY VÉ KHUYẾN NGHỊ DYNAMIC -->
-        <div class="row g-3">
-          <div class="col-md-4" *ngFor="let t of recommendationsData?.goldenTicketsRecommendation">
-            <div class="h-100 p-3 rounded-3 border position-relative" style="background: rgba(30, 41, 59, 0.7); border-color: rgba(96, 165, 250, 0.4) !important; backdrop-filter: blur(8px);">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-primary text-white fw-bold px-2 py-1">VÉ #{{ t.ticketIndex }}</span>
-                <span class="small text-warning fw-semibold">{{ t.composition }}</span>
-              </div>
-              <h6 class="text-white fw-bold mb-2">{{ t.title }}</h6>
-              <!-- BALLS -->
-              <div class="d-flex gap-2 flex-wrap mb-3">
-                <span *ngFor="let num of t.numbers"
-                      class="d-inline-flex align-items-center justify-content-center rounded-circle fw-bolder shadow-xs text-white"
-                      style="width: 38px; height: 38px; font-size: 0.95rem; background: radial-gradient(circle, #3b82f6 0%, #1d4ed8 100%); border: 2px solid #60a5fa;">
-                  {{ formatNumber(num) }}
-                </span>
-                <span *ngIf="t.specialNumber"
-                      class="d-inline-flex align-items-center justify-content-center rounded-circle fw-bolder shadow-xs text-dark bg-warning"
-                      title="Banh phụ Jackpot 2"
-                      style="width: 38px; height: 38px; font-size: 0.95rem; border: 2px solid #fbbf24;">
-                  ⭐{{ formatNumber(t.specialNumber) }}
-                </span>
-              </div>
-              <div class="small text-white-50 lh-sm" style="font-size: 0.78rem;">
-                <strong>Cơ sở xác suất:</strong> {{ t.strategyReason }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================================= -->
-    <!-- ========================================================================================= -->
-    <!-- KHUNG 2: BÁO CÁO ĐỐI CHIẾU HIỆU NĂNG MEGA -->
-    <!-- ========================================================================================= -->
-    <div *ngIf="reconciliationData?.backtestComparison as report" class="card border rounded-4 mb-4 shadow-xs bg-light">
-      <div class="card-body p-3 p-md-4">
-        <h5 class="fw-bolder text-dark">Đối soát vé sáu số — {{ category }}</h5>
-        <p class="small text-muted">{{ report.scope }}</p>
-        <div class="row g-3 mb-3">
-          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
-            <div class="small text-muted">Kỳ đủ lịch sử</div><div class="fs-4 fw-bold">{{ report.evaluatedDrawsCount }}/{{ report.requestedDrawsCount }}</div>
-          </div></div>
-          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
-            <div class="small text-muted">Số khớp trung bình/vé</div><div class="fs-4 fw-bold">{{ report.averageMatched == null ? 'N/A' : (report.averageMatched | number:'1.2-2') }}</div>
-          </div></div>
-          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
-            <div class="small text-muted">Kỳ khớp ít nhất ba số</div><div class="fs-4 fw-bold">{{ report.hit3Draws }}/{{ report.evaluatedDrawsCount }}</div>
-          </div></div>
-          <div class="col-6 col-lg-3"><div class="p-3 bg-white rounded-3 border text-center h-100">
-            <div class="small text-muted">Tỷ lệ đạt ba số</div><div class="fs-4 fw-bold">{{ report.hit3RatePercent == null ? 'N/A' : ((report.hit3RatePercent | number:'1.1-1') + '%') }}</div>
-          </div></div>
-        </div>
-        <p class="small mb-0">{{ report.conclusion }}</p>
-      </div>
-    </div>
-
-    <!-- TOOLBAR: BỘ ĐIỀU KHIỂN KIỂM THỬ HỒI QUY -->
-    <div class="p-3 bg-light rounded-3 border mb-3">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
-        <!-- 1. Chọn số lượng kỳ kiểm thử (5, 10, 15, 20, 25, 29, 30, 50) -->
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <span class="small fw-bold text-dark">📊 Số kỳ kiểm thử:</span>
-          <div class="btn-group btn-group-sm flex-wrap" role="group">
-            <button *ngFor="let lim of availableLimits"
-                    type="button"
-                    class="btn fw-semibold"
-                    [ngClass]="reconcileLimit === lim ? 'btn-primary text-white shadow-xs' : 'btn-outline-secondary bg-white'"
-                    (click)="setReconcileLimit(lim)">
-              {{ getLimitLabel(lim) }}
-            </button>
-          </div>
-        </div>
-
-        <!-- 2. Nút chạy lại & xem bảng tổng hợp -->
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <button class="btn btn-outline-primary btn-sm fw-bold rounded-pill px-3"
-                  (click)="showAllBacktestTable = !showAllBacktestTable">
-            {{ showAllBacktestTable ? '🔼 Thu Gọn Bảng Ma Trận' : '📊 Bảng Ma Trận Tất Cả Các Kỳ' }}
-          </button>
-          <button class="btn btn-warning btn-sm fw-bold rounded-pill px-3 text-dark shadow-xs" 
-                  (click)="load5DrawsReconciliation()" 
-                  [disabled]="isLoadingReconciliation">
-            <span *ngIf="isLoadingReconciliation" class="spinner-border spinner-border-sm me-1"></span>
-            🧪 Chạy Lại Kiểm Thử
-          </button>
-        </div>
-      </div>
-
-      <div class="d-flex align-items-center gap-3 flex-wrap pt-2 border-top">
-        <!-- Chọn thuật toán kiểm thử -->
-        <div class="d-flex align-items-center gap-2">
-          <span class="small fw-bold text-dark">🤖 Thuật toán kiểm thử:</span>
-          <select class="form-select form-select-sm fw-bold text-dark" style="min-width: 220px;" [(ngModel)]="reconcileAlgorithm" (change)="load5DrawsReconciliation()">
-            <option value="deep_stacking">⚡ Xếp Chồng AI & Copula (DSE-Copula)</option>
-            <option value="bayesian_graph">🔮 Mạng Đồ Thị Bayes (BEGN)</option>
-            <option value="xgboost">🧠 AI XGBoost + Poisson</option>
-            <option value="markov">🔗 Mô hình Chuỗi Markov</option>
-          </select>
-        </div>
-
-        <!-- Chọn ngày cụ thể để kiểm thử đối soát trực tiếp -->
-        <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 240px;">
-          <span class="small fw-bold text-dark">📅 Chọn kỳ quay cụ thể:</span>
-          <select class="form-select form-select-sm fw-bold text-dark"
-                  [ngModel]="selectedReconcileDate"
-                  (ngModelChange)="onReconcileDateChange($event)">
-            <option value="">⚡ Tất cả {{ reconciliationData?.draws?.length || reconcileLimit }} kỳ (mới nhất)</option>
-            <option *ngFor="let dt of reconciliationData?.allAvailableDates || []" [value]="dt">
-              Kỳ ngày {{ dt }}
-            </option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- LOADING STATE -->
-    <div *ngIf="isLoadingReconciliation" class="alert bg-primary-subtle border border-primary text-primary p-4 rounded-4 text-center my-3 shadow-xs">
-      <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
-      <h6 class="fw-bold mb-1">Đang huấn luyện mô hình Walk-Forward & Kiểm thử các kỳ trước...</h6>
-      <p class="small mb-0 text-secondary">
-        Hệ thống đang trích xuất dữ liệu của tất cả các kỳ trước từng ngày mở thưởng, chạy mô hình AI để dự đoán ra 6 số và so sánh trực tiếp với 6 số thực sự trúng để đánh giá thuật toán.
-      </p>
-    </div>
-
-    <!-- ERROR STATE -->
-    <div *ngIf="reconcileError && !isLoadingReconciliation" class="alert alert-danger p-3 rounded-3 my-3 d-flex justify-content-between align-items-center">
-      <span>⚠️ {{ reconcileError }}</span>
-      <button class="btn btn-sm btn-outline-danger" (click)="load5DrawsReconciliation()">Thử Lại</button>
-    </div>
-
-    <!-- BẢNG MA TRẬN TỔNG HỢP TẤT CẢ CÁC KỲ ĐÃ KIỂM THỬ (NẾU BẬT) -->
-    <div class="card border rounded-3 mb-4 shadow-xs" *ngIf="showAllBacktestTable && reconciliationData?.draws?.length">
-      <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
-        <span class="small fw-bold">📋 BẢNG MA TRẬN ĐỐI SOÁT TOÀN DIỆN {{ reconciliationData.draws.length }} KỲ (HỌC TỪ CÁC KỲ TRƯỚC ĐÓ)</span>
-        <button class="btn btn-sm btn-link text-white text-decoration-none py-0" (click)="showAllBacktestTable = false">Đóng ✕</button>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-hover table-sm align-middle mb-0 text-center" style="font-size: 0.82rem;">
-          <thead class="table-light">
-            <tr>
-              <th>#</th>
-              <th>Ngày Mở Thưởng</th>
-              <th>6 Số Mở Thưởng Thực Tế</th>
-              <th>6 Số AI Dự Đoán (Trước Kỳ)</th>
-              <th>Khớp 6 Số</th>
-              <th>Sát Nút ±1</th>
-              <th>Top 10 AI</th>
-              <th>Vé Mua</th>
-              <th>Đánh Giá Nhận Định</th>
-              <th>Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let d of reconciliationData.draws; let idx = index"
-                [class.table-primary]="selected5DrawIndex === idx"
-                style="cursor: pointer;"
-                (click)="select5Draw(idx)">
-              <td class="fw-bold">{{ idx + 1 }}</td>
-              <td class="fw-bold">{{ d.drawDate }}</td>
-              <td>
-                <span *ngFor="let num of d.officialNumbers" class="badge bg-dark me-1" style="font-size: 0.72rem;">
-                  {{ formatNumber(num) }}
-                </span>
-                <span *ngIf="d.officialSpecial" class="badge bg-warning text-dark" style="font-size: 0.72rem;">⭐{{ formatNumber(d.officialSpecial) }}</span>
-              </td>
-              <td>
-                <span *ngFor="let p of d.aiPrediction?.predicted6Numbers || []"
-                      class="badge me-1"
-                      [ngClass]="{
-                        'bg-success text-white': d.officialNumbers?.includes(p),
-                        'bg-warning text-dark': isNearMiss(p, d.officialNumbers),
-                        'bg-light text-muted border': !d.officialNumbers?.includes(p) && !isNearMiss(p, d.officialNumbers)
-                      }"
-                      style="font-size: 0.72rem;">
-                  {{ formatNumber(p) }}
-                </span>
-              </td>
-              <td>
-                <span class="badge" [ngClass]="(d.aiPrediction?.matchedIn6Count || 0) >= 2 ? 'bg-success text-white' : 'bg-secondary text-white'">
-                  {{ d.aiPrediction?.matchedIn6Count || 0 }}/6
-                </span>
-              </td>
-              <td>
-                <span class="badge bg-info-subtle text-dark border">
-                  {{ d.aiPrediction?.nearMissList?.length || 0 }} số
-                </span>
-              </td>
-              <td>
-                <span class="fw-semibold text-primary">{{ d.aiPrediction?.matchedCount }}/6</span>
-              </td>
-              <td>
-                <span class="badge" [ngClass]="d.uniqueMatchedCount >= 2 ? 'bg-success text-white' : 'bg-light text-muted border'">
-                  {{ d.uniqueMatchedCount }}/6
-                </span>
-              </td>
-              <td>
-                <span class="badge" [ngClass]="'bg-' + (d.aiPrediction?.judgment?.badgeClass || 'secondary')" style="font-size: 0.72rem;">
-                  {{ d.aiPrediction?.judgment?.badge }}
-                </span>
-              </td>
-              <td>
-                <button class="btn btn-xs btn-outline-primary py-0 px-2" (click)="select5Draw(idx); $event.stopPropagation()">
-                  Chi Tiết
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 1. BỘ CHỌN KỲ QUAY ĐỂ XEM CHI TIẾT (PILLS) -->
-    <div class="mb-3" *ngIf="reconciliationData?.draws?.length">
-      <div class="small fw-bold text-secondary mb-2 d-flex justify-content-between align-items-center">
-        <span>📅 BẤM CHỌN KỲ QUAY ĐỂ ĐỐI SOÁT CHI TIẾT (ĐANG XEM {{ reconciliationData?.draws?.length }} KỲ):</span>
-        <span class="small text-muted" *ngIf="isLoadingReconciliation">Đang tính toán mô hình...</span>
-      </div>
-
-      <div class="d-flex gap-2 flex-wrap">
-        <button *ngFor="let draw of reconciliationData.draws; let idx = index"
-                type="button"
-                class="btn text-start p-2 px-3 rounded-3 border transition-all flex-grow-1"
-                [ngClass]="selected5DrawIndex === idx ? 'btn-primary text-white shadow-sm' : 'btn-light text-dark border-secondary-subtle'"
-                (click)="select5Draw(idx)"
-                style="min-width: 190px;">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span class="badge" [ngClass]="selected5DrawIndex === idx ? 'bg-white text-dark' : 'bg-dark text-white'" style="font-size: 0.7rem;">
-              Kỳ {{ idx + 1 }}: {{ draw.drawDate }}
-            </span>
-            <span class="badge" [ngClass]="'bg-' + (draw.aiPrediction?.judgment?.badgeClass || 'secondary')" style="font-size: 0.68rem;">
-              {{ draw.aiPrediction?.judgment?.badge || 'Đang tính' }}
-            </span>
-          </div>
-          <div class="d-flex justify-content-between align-items-center small" style="font-size: 0.75rem;">
-            <span [ngClass]="selected5DrawIndex === idx ? 'text-white' : 'text-primary fw-bold'">
-              🎯 6 số AI: {{ draw.aiPrediction?.matchedIn6Count || 0 }}/6 (Top 10: {{ draw.aiPrediction?.matchedCount }}/6)
-            </span>
-            <span [ngClass]="selected5DrawIndex === idx ? 'text-white-50' : 'text-muted'">
-              🎟️ Vé mua: {{ draw.uniqueMatchedCount }}/6
-            </span>
-          </div>
-        </button>
-      </div>
-    </div>
-
-    <!-- 2. CHI TIẾT KỲ ĐANG CHỌN -->
-    <div *ngIf="getCurrent5Draw()" class="mt-4">
-      <!-- 3. TABS PHÂN TÍCH CHUYÊN SÂU CỦA KỲ ĐANG CHỌN -->
-      <div class="bg-light p-1 rounded-pill d-inline-flex gap-1 mb-3 border flex-wrap">
-        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
-                [ngClass]="activeReconciliationTab === 'aiPredictionJudgment' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
-                (click)="activeReconciliationTab = 'aiPredictionJudgment'">
-          🎯 Đối Soát Dự Đoán AI & Đánh Giá Nhận Định ({{ getCurrent5Draw().drawDate }})
-        </button>
-        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
-                [ngClass]="activeReconciliationTab === 'winningBalls' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
-                (click)="activeReconciliationTab = 'winningBalls'">
-          💡 Động Năng Lồng Cầu & Lý Do Ra Banh ({{ getCurrent5Draw().officialNumbers?.length }} Banh)
-        </button>
-        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
-                [ngClass]="activeReconciliationTab === 'algorithmFlaws' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
-                (click)="activeReconciliationTab = 'algorithmFlaws'">
-          ⚠️ Chẩn Đoán Nguyên Nhân Sai Lệch
-        </button>
-        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
-                [ngClass]="activeReconciliationTab === 'tuningPlan' ? 'btn-primary text-white shadow-xs' : 'btn-light text-secondary'"
-                (click)="activeReconciliationTab = 'tuningPlan'">
-          ⚡ Kế Hoạch Hiệu Chỉnh Siêu Tham Số
-        </button>
-        <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold"
-                [ngClass]="activeReconciliationTab === 'affinityNetwork' ? 'btn-danger text-white shadow-xs' : 'btn-light text-secondary'"
-                (click)="activeReconciliationTab = 'affinityNetwork'">
-          🔗 Mối Liên Hệ Số Trúng & Gom Cụm Vé (Anti-Scattering)
-        </button>
-      </div>
-
-      <!-- TAB 0: ĐỐI SOÁT DỰ ĐOÁN AI & ĐÁNH GIÁ NHẬN ĐỊNH CÓ GẦN ĐÚNG KHÔNG (TAB CHÍNH MỚI) -->
-      <div *ngIf="activeReconciliationTab === 'aiPredictionJudgment'">
-        <!-- BANNER ĐÁNH GIÁ NHẬN ĐỊNH CỦA AI -->
-        <div class="p-3 rounded-4 mb-3 border shadow-xs"
-             [ngClass]="{
-               'bg-success-subtle border-success': getCurrent5Draw().aiPrediction?.judgment?.rating === 'EXCELLENT',
-               'bg-primary-subtle border-primary': getCurrent5Draw().aiPrediction?.judgment?.rating === 'GOOD',
-               'bg-warning-subtle border-warning': getCurrent5Draw().aiPrediction?.judgment?.rating === 'DEVIATED'
-             }">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div class="d-flex align-items-center gap-2">
-              <span class="fs-4">
-                {{ getCurrent5Draw().aiPrediction?.judgment?.rating === 'EXCELLENT' ? '🌟' : getCurrent5Draw().aiPrediction?.judgment?.rating === 'GOOD' ? '🎯' : '⚠️' }}
-              </span>
-              <div>
-                <h5 class="fw-bold mb-0 text-dark">
-                  Đánh Giá Nhận Định Dự Đoán Của AI Kỳ Ngày {{ getCurrent5Draw().drawDate }}:
-                </h5>
-                <span class="badge" [ngClass]="'bg-' + (getCurrent5Draw().aiPrediction?.judgment?.badgeClass || 'secondary')" style="font-size: 0.78rem;">
-                  {{ getCurrent5Draw().aiPrediction?.judgment?.badge }}
-                </span>
-              </div>
-            </div>
-            <div class="text-end">
-              <span class="badge bg-dark text-white rounded-pill px-3 py-1">
-                Thuật toán: {{ getCurrent5Draw().aiPrediction?.algorithmName || reconcileAlgorithm }}
-              </span>
-            </div>
-          </div>
-          <div class="alert bg-white border rounded-3 p-2 px-3 mb-2 small text-dark">
-            <strong>Nhận định tổng quan:</strong> {{ getCurrent5Draw().aiPrediction?.judgment?.summary }}
-          </div>
-          <div class="small text-secondary">
-            <strong>Phân tích cơ chế:</strong> {{ getCurrent5Draw().aiPrediction?.judgment?.reason }}
-          </div>
-        </div>
-
-        <!-- SO SÁNH TRỰC DIỆN: 6 SỐ MỞ THƯỞNG vs 6 SỐ AI DỰ ĐOÁN (TỪ CÁC KỲ TRƯỚC) -->
-        <div class="card border rounded-4 mb-3 overflow-hidden shadow-sm">
-          <div class="card-header bg-gradient text-white py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2"
-               style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);">
-            <div class="d-flex align-items-center gap-2">
-              <span class="fs-5">🎯</span>
-              <span class="fw-bold">SO SÁNH TRỰC DIỆN: 6 SỐ THỰC SỰ TRÚNG vs 6 SỐ AI DỰ ĐOÁN (HỌC TỪ CÁC KỲ TRƯỚC)</span>
-            </div>
-            <span class="badge bg-warning text-dark px-3 py-1 fw-bold rounded-pill">
-              Kỳ quay: {{ getCurrent5Draw().drawDate }}
-            </span>
-          </div>
-
-          <div class="card-body p-3 p-md-4 bg-white">
-            <div class="row g-3 align-items-stretch">
-              <!-- HÀNG/CỘT 1: 6 SỐ THỰC SỰ TRÚNG THƯỞNG -->
-              <div class="col-lg-6">
-                <div class="p-3 rounded-3 bg-light border h-100">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge bg-dark text-white px-2 py-1">LỒNG CẦU QUAY THỰC TẾ</span>
-                    <span class="badge bg-secondary-subtle text-dark border">{{ getCurrent5Draw().oddEven }}</span>
-                  </div>
-                  <h6 class="fw-bold text-primary mb-2">6 Số Mở Thưởng Chính Thức ({{ getCurrent5Draw().drawDate }}):</h6>
-                  
-                  <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
-                    <div *ngFor="let num of getCurrent5Draw().officialNumbers"
-                         class="ball shadow-xs"
-                         [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
-                         style="width: 44px; height: 44px; font-size: 1.15rem; font-weight: bold;">
-                      {{ formatNumber(num) }}
-                    </div>
-                    <div *ngIf="getCurrent5Draw().officialSpecial"
-                         class="ball ball-special shadow-xs ms-1"
-                         title="Banh phụ Jackpot 2"
-                         style="width: 42px; height: 42px; font-size: 1rem;">
-                      ⭐{{ formatNumber(getCurrent5Draw().officialSpecial) }}
-                    </div>
-                  </div>
-
-                  <div class="small p-2 px-3 rounded bg-white border text-secondary">
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                      <span>Tổng điểm 6 bóng:</span>
-                      <strong class="text-dark">{{ getCurrent5Draw().sum }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                      <span>Cơ cấu Chẵn / Lẻ:</span>
-                      <strong class="text-dark">{{ getCurrent5Draw().oddEven }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between pt-1">
-                      <span>Phân vùng lồng cầu:</span>
-                      <span class="text-muted">{{ getCurrent5Draw().officialNumbers?.length }} bóng chính{{ getCurrent5Draw().officialSpecial ? ' + 1 bóng phụ' : '' }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- HÀNG/CỘT 2: 6 SỐ AI DỰ ĐOÁN DỰA VÀO CÁC KỲ TRƯỚC ĐÓ -->
-              <div class="col-lg-6">
-                <div class="p-3 rounded-3 bg-light border h-100" style="border-left: 4px solid #3b82f6 !important;">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge bg-primary text-white px-2 py-1">AI DỰ ĐOÁN (TỪ CÁC KỲ TRƯỚC)</span>
-                    <span class="badge" [ngClass]="(getCurrent5Draw().aiPrediction?.matchedIn6Count || 0) >= 2 ? 'bg-success text-white' : 'bg-warning text-dark'">
-                      Khớp {{ getCurrent5Draw().aiPrediction?.matchedIn6Count || 0 }}/6 số ({{ getCurrent5Draw().aiPrediction?.matchedIn6Percent || 0 }}%)
-                    </span>
-                  </div>
-                  <h6 class="fw-bold text-dark mb-2">6 Số AI Dự Đoán Dựa Trên Lịch Sử Trước Kỳ Này:</h6>
-
-                  <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
-                    <div *ngFor="let p of getCurrent5Draw().aiPrediction?.predicted6Numbers || []"
-                         class="ball shadow-xs position-relative"
-                         [ngClass]="{
-                           'ball-highlight border border-2 border-warning': getCurrent5Draw().officialNumbers?.includes(p),
-                           'bg-warning-subtle text-dark border border-2 border-warning': isNearMiss(p, getCurrent5Draw().officialNumbers),
-                           'bg-white text-muted border text-decoration-line-through': !getCurrent5Draw().officialNumbers?.includes(p) && !isNearMiss(p, getCurrent5Draw().officialNumbers)
-                         }"
-                         style="width: 44px; height: 44px; font-size: 1.15rem; font-weight: bold;">
-                      {{ formatNumber(p) }}
-                      <span *ngIf="getCurrent5Draw().officialNumbers?.includes(p)"
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
-                            style="font-size: 0.6rem; padding: 2px 4px;">✓</span>
-                      <span *ngIf="isNearMiss(p, getCurrent5Draw().officialNumbers)"
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
-                            style="font-size: 0.58rem; padding: 2px 3px;"
-                            [title]="'Sát nút với số trúng ' + getNearMissTarget(p, getCurrent5Draw().officialNumbers)">±1</span>
-                    </div>
-                  </div>
-
-                  <div class="small p-2 px-3 rounded bg-white border text-secondary">
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                      <span>Bóng trúng trực diện:</span>
-                      <strong class="text-success">{{ getCurrent5Draw().aiPrediction?.matchedIn6Count || 0 }}/6 số [{{ getCurrent5Draw().aiPrediction?.matchedIn6Numbers?.join(', ') || 'Chưa trúng trực tiếp' }}]</strong>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                      <span>Bóng lệch sát nút (±1 đơn vị):</span>
-                      <span class="text-warning-emphasis fw-bold">
-                        {{ getCurrent5Draw().aiPrediction?.nearMissList?.length || 0 }} bóng 
-                        <span *ngIf="getCurrent5Draw().aiPrediction?.nearMissList?.length > 0" class="small text-muted">
-                          ({{ getCurrent5Draw().aiPrediction?.nearMissList?.[0]?.predicted }} ↔ {{ getCurrent5Draw().aiPrediction?.nearMissList?.[0]?.officialNear }})
-                        </span>
-                      </span>
-                    </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                      <span>Tổng điểm 6 số dự đoán:</span>
-                      <span><strong>{{ getCurrent5Draw().aiPrediction?.predictedSum }}</strong> (Chênh lệch: <strong class="text-primary">{{ getCurrent5Draw().aiPrediction?.sumDiff }} điểm</strong>)</span>
-                    </div>
-                    <div class="d-flex justify-content-between pt-1">
-                      <span>Cơ cấu Chẵn / Lẻ:</span>
-                      <span><strong>{{ getCurrent5Draw().aiPrediction?.predictedOddEven }}</strong> <span *ngIf="getCurrent5Draw().aiPrediction?.parityMatch" class="text-success ms-1">✓ Khớp hoàn toàn</span></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SO SÁNH 3 CỘT: TOP 10 AI vs VÉ AI SINH RA vs VÉ BẠN ĐÃ MUA THỰC TẾ -->
-        <div class="row g-3">
-          <!-- CỘT 1: TOP 10 SỐ AI GỢI Ý & ĐỘ PHỦ -->
-          <div class="col-lg-4 col-md-6">
-            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs" style="border-left: 3px solid #3b82f6 !important;">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-primary text-white">TOP 10 ỨNG VIÊN AI</span>
-                <span class="badge" [ngClass]="getCurrent5Draw().aiPrediction?.matchedCount >= 3 ? 'bg-success text-white' : 'bg-warning text-dark'">
-                  Khớp {{ getCurrent5Draw().aiPrediction?.matchedCount }}/6 bóng ({{ getCurrent5Draw().aiPrediction?.matchedPercent }}%)
-                </span>
-              </div>
-              <h6 class="fw-bold text-dark mb-1">Top 10 Bóng Tiềm Năng Nhất:</h6>
-              <div class="d-flex align-items-center gap-1 flex-wrap mb-2">
-                <div *ngFor="let b of getCurrent5Draw().aiPrediction?.top10Numbers"
-                     class="ball shadow-xs"
-                     [ngClass]="{
-                       'ball-highlight': getCurrent5Draw().aiPrediction?.matchedNumbers?.includes(b),
-                       'bg-light text-muted border text-decoration-line-through': !getCurrent5Draw().aiPrediction?.matchedNumbers?.includes(b)
-                     }"
-                     style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
-                  {{ formatNumber(b) }}
-                </div>
-                <div *ngIf="getCurrent5Draw().aiPrediction?.specialNumber"
-                     class="ball ball-special shadow-xs ms-1"
-                     title="Banh phụ AI gợi ý"
-                     style="width: 32px; height: 32px; font-size: 0.85rem;">
-                  ⭐{{ formatNumber(getCurrent5Draw().aiPrediction?.specialNumber) }}
-                </div>
-              </div>
-              <div class="small p-2 rounded bg-white border text-secondary" style="font-size: 0.75rem;">
-                <div>Độ phủ bóng chính: <strong class="text-primary">{{ getCurrent5Draw().aiPrediction?.matchedCount }}/6 bóng mở thưởng</strong></div>
-                <div>Số bóng trúng trong Top 10: <strong class="text-success">[{{ getCurrent5Draw().aiPrediction?.matchedNumbers?.join(', ') || 'Chưa trúng' }}]</strong></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- CỘT 2: DÀN VÉ TỰ CHỌN DO AI SINH RA CHO KỲ NÀY -->
-          <div class="col-lg-4 col-md-6">
-            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs" style="border-left: 3px solid #10b981 !important;">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-success text-white">5 VÉ TỐI ƯU AI SINH RA</span>
-                <span class="badge bg-success-subtle text-success border">
-                  {{ getCurrent5Draw().aiPrediction?.winningTickets?.length || 0 }} vé trúng giải
-                </span>
-              </div>
-              <h6 class="fw-bold text-dark mb-1">Kiểm Tra Giải Thưởng Vé AI:</h6>
-              <div class="d-flex flex-column gap-1 mb-2">
-                <div *ngFor="let t of getCurrent5Draw().aiPrediction?.generatedTickets"
-                     class="p-1 px-2 rounded bg-white border d-flex justify-content-between align-items-center"
-                     [class.border-success]="t.prize && t.prize !== 'KHÔNG TRÚNG'">
-                  <div class="d-flex gap-1 flex-wrap">
-                    <span *ngFor="let num of ($any(t).numbers || t)"
-                          class="badge"
-                          [ngClass]="t.matchedNumbers?.includes(num) ? 'bg-success text-white' : 'bg-light text-secondary border'"
-                          style="font-size: 0.7rem; padding: 2px 4px;">
-                      {{ formatNumber(num) }}
-                    </span>
-                  </div>
-                  <span class="badge" [ngClass]="t.prize && t.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-secondary text-white'" style="font-size: 0.65rem;">
-                    {{ t.prize && t.prize !== 'KHÔNG TRÚNG' ? t.prize : 'Trượt' }}
-                  </span>
-                </div>
-              </div>
-              <div class="small p-2 rounded bg-white border text-secondary" style="font-size: 0.75rem;">
-                Giải cao nhất vé AI: <strong class="text-success">{{ getCurrent5Draw().aiPrediction?.bestPrize }}</strong> ({{ getCurrent5Draw().aiPrediction?.bestPrizeAmount }})
-              </div>
-            </div>
-          </div>
-
-          <!-- CỘT 3: VÉ BẠN ĐÃ MUA THỰC TẾ -->
-          <div class="col-lg-4 col-12">
-            <div class="p-3 rounded-3 bg-light border h-100 shadow-xs" style="border-left: 3px solid #6366f1 !important;">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-secondary text-white">VÉ BẠN MUA TRÙNG NGÀY</span>
-                <span class="badge bg-info-subtle text-dark border">
-                  {{ getCurrent5Draw().userTickets?.length || 0 }} vé mua
-                </span>
-              </div>
-              <h6 class="fw-bold text-dark mb-1">Kết Quả Vé Bạn Mua:</h6>
-              <div *ngIf="getCurrent5Draw().userTickets?.length === 0" class="text-muted small p-3 text-center bg-white rounded border my-2">
-                Chưa có vé cá nhân lưu cho ngày này. Bạn có thể nhập vé ở phần bên dưới để so khớp!
-              </div>
-              <div class="d-flex flex-column gap-2" *ngIf="getCurrent5Draw().userTickets?.length > 0">
-                <div *ngFor="let ticket of getCurrent5Draw().userTickets; let tIdx = index"
-                     class="p-2 rounded bg-white border"
-                     [class.border-success]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG'">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="fw-bold small text-dark">Vé #{{ tIdx + 1 }}:</span>
-                    <span class="badge" [ngClass]="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? 'bg-success text-white' : 'bg-danger text-white'" style="font-size: 0.7rem;">
-                      {{ ticket.prize && ticket.prize !== 'KHÔNG TRÚNG' ? ('🎉 ' + ticket.prize) : '❌ Không trúng' }}
-                    </span>
-                  </div>
-                  <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
-                    <div *ngFor="let b of ticket.numbers"
-                         class="ball shadow-xs"
-                         [ngClass]="{
-                           'ball-highlight': ticket.matchedNumbers?.includes(b),
-                           'bg-light text-muted border text-decoration-line-through': !ticket.matchedNumbers?.includes(b) && b !== getCurrent5Draw().officialSpecial,
-                           'ball-special': b === getCurrent5Draw().officialSpecial
-                         }"
-                         style="width: 28px; height: 28px; font-size: 0.75rem; font-weight: bold;">
-                      {{ formatNumber(b) }}
-                    </div>
-                  </div>
-                  <div class="small text-muted" style="font-size: 0.7rem;">
-                    Khớp: <strong>{{ ticket.matchedCount }}/6</strong>{{ ticket.matchedSpecial ? ' (+Phụ)' : '' }} &bull; <em>{{ ticket.note }}</em>
-                  </div>
-                </div>
-              </div>
-              <div class="small p-2 rounded bg-white border mt-2" *ngIf="getCurrent5Draw().userTickets?.length > 0">
-                Tổng kết vé mua: <strong class="text-primary">Khớp {{ getCurrent5Draw().uniqueMatchedCount }}/6 bóng duy nhất</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 1: BÓC TÁCH LÝ DO TẠI SAO LỒNG CẦU RA CÁC BANH ĐÓ -->
-      <div *ngIf="activeReconciliationTab === 'winningBalls'">
-        <div class="alert alert-info border-0 rounded-3 py-2 px-3 mb-3 small d-flex align-items-center gap-2">
-          <span>💡</span>
-          <span>Bóc tách động năng lồng cầu và xác suất cho từng con số mở thưởng của kỳ <strong>{{ getCurrent5Draw().drawDate }}</strong>:</span>
-        </div>
-
-        <div class="row g-2">
-          <div class="col-md-6 col-lg-4" *ngFor="let item of getCurrent5Draw().whyWinningBallsAppeared">
-            <div class="p-3 rounded-3 bg-white border h-100 shadow-xs" [class.border-warning]="item.isSpecial">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="d-flex align-items-center gap-2">
-                  <div class="ball shadow-xs"
-                       [ngClass]="item.isSpecial ? 'ball-special' : (category === 'POWER' ? 'ball-power' : 'ball-mega')"
-                       style="width: 38px; height: 38px; font-size: 1rem; font-weight: bold;">
-                    {{ formatNumber(item.number) }}
-                  </div>
-                  <div>
-                    <div class="fw-bold text-dark mb-0">Quả Banh {{ formatNumber(item.number) }}</div>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.68rem;">
-                      {{ item.role }}
-                    </span>
-                  </div>
-                </div>
-                <div class="text-end text-muted small" style="font-size: 0.72rem;">
-                  <div>Gap: <strong>{{ item.drawGap === 0 ? 'Lặp (0)' : item.drawGap + ' kỳ' }}</strong></div>
-                  <div>Tần suất: <strong>{{ formatMetric(item.frequency) }} lần</strong></div>
-                </div>
-              </div>
-
-              <div class="text-secondary small" style="font-size: 0.78rem; line-height: 1.45;">
-                <strong>Lý do ra banh:</strong> {{ item.explanation }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 2: NGUYÊN NHÂN SAI LỆCH CỦA THUẬT TOÁN TẠI KỲ NÀY -->
-      <div *ngIf="activeReconciliationTab === 'algorithmFlaws'">
-        <div class="p-3 rounded-3 bg-light border">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="badge bg-danger text-white">CHẨN ĐOÁN SAI LỆCH</span>
-            <h5 class="fw-bold text-dark mb-0">Tại Sao Vé Mua Bị Trượt Ở Kỳ {{ getCurrent5Draw().drawDate }}?</h5>
-          </div>
-
-          <div class="alert alert-warning border-warning rounded-3 py-2 px-3 small text-dark mb-3">
-            <strong>Tóm tắt chẩn đoán:</strong> {{ getCurrent5Draw().whyAlgorithmMissed?.summary }}
-          </div>
-
-          <div class="mb-3">
-            <strong class="text-danger small">Nguyên nhân cốt lõi:</strong>
-            <p class="text-dark small mb-2 fw-semibold">
-              {{ getCurrent5Draw().whyAlgorithmMissed?.primaryReason }}
-            </p>
-          </div>
-
-          <div class="mb-3">
-            <strong class="text-secondary small">Các yếu tố thuật toán đã bỏ sót:</strong>
-            <ul class="text-secondary small mb-2 ps-3" style="line-height: 1.5;">
-              <li *ngFor="let factor of getCurrent5Draw().whyAlgorithmMissed?.missedFactors">
-                {{ factor }}
-              </li>
-            </ul>
-          </div>
-
-          <div class="p-2 rounded bg-success-subtle border border-success text-success small">
-            <strong>Hành động khắc phục trong {{ reconciliationData?.recommendedHyperparameters?.version || currentHyperparameterVersion || 'phiên bản mới' }}:</strong> {{ getCurrent5Draw().whyAlgorithmMissed?.correctiveAdjustment }}
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 3: 5 LỖI HỆ THỐNG & KÍCH HOẠT THUẬT TOÁN MỚI -->
-      <div *ngIf="activeReconciliationTab === 'tuningPlan'">
-        <div class="p-3 rounded-3 bg-light border">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div>
-              <span class="badge bg-success text-white mb-1">TỔNG HỢP 5 KỲ QUAY</span>
-              <h5 class="fw-bold text-dark mb-0">5 Lỗi Hệ Thống Khiến Thuật Toán Sai Quá Nhiều & Giải Pháp Khắc Phục</h5>
-            </div>
-
-            <!-- NÚT KÍCH HOẠT THUẬT TOÁN MỚI -->
-            <button class="btn btn-success fw-bold px-3 py-2 rounded-pill shadow-xs"
-                    (click)="applyV150Tuning()"
-                    [disabled]="isApplyingV150 || !reconciliationData?.recommendedHyperparameters?.adjustments">
-              <span *ngIf="isApplyingV150" class="spinner-border spinner-border-sm me-1"></span>
-              ⚡ Kích Hoạt & Lưu Thuật Toán {{ reconciliationData?.recommendedHyperparameters?.version || currentHyperparameterVersion || 'Mới' }} Vào Bảng
-            </button>
-          </div>
-
-          <!-- 5 LỖI HỆ THỐNG -->
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <div class="p-3 rounded-3 bg-white border h-100">
-                <div class="fw-bold text-danger mb-2 small d-flex align-items-center gap-1">
-                  <span>❌</span>
-                  <span>5 NGUYÊN NHÂN CỐT LÕI GÂY SAI LỆCH:</span>
-                </div>
-                <ol class="small text-secondary ps-3 mb-0" style="line-height: 1.6;">
-                  <li *ngFor="let flaw of reconciliationData?.overallSummary?.dominantFlaws" class="mb-1">
-                    {{ flaw }}
-                  </li>
-                </ol>
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="p-3 rounded-3 bg-white border h-100 border-success">
-                <div class="fw-bold text-success mb-2 small d-flex align-items-center gap-1">
-                  <span>✓</span>
-                  <span>{{ reconciliationData?.overallSummary?.coreRemedies?.length ?? 0 }} ĐỀ XUẤT TỪ BÁO CÁO ĐỐI SOÁT:</span>
-                </div>
-                <ol class="small text-secondary ps-3 mb-0" style="line-height: 1.6;">
-                  <li *ngFor="let remedy of reconciliationData?.overallSummary?.coreRemedies" class="mb-1">
-                    {{ remedy }}
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
-
-          <!-- BẢNG THAM SỐ KHUYẾN NGHỊ -->
-          <div class="p-3 rounded-3 bg-dark text-light font-monospace small">
-            <div class="d-flex justify-content-between align-items-center mb-1 text-white-50">
-              <span>Cấu hình siêu tham số mới nhất (Phiên bản {{ reconciliationData?.recommendedHyperparameters?.version || currentHyperparameterVersion || 'Mới' }}):</span>
-              <span class="badge bg-primary">XGBoost Multi-Factor + Powerball Benchmarking</span>
-            </div>
-            <pre class="mb-0 text-success" style="font-size: 0.78rem;">{{ reconciliationData?.recommendedHyperparameters?.adjustments | json }}</pre>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 4: MỐI LIÊN HỆ GIỮA CÁC SỐ TRÚNG & GOM CỤM DÃY VÉ (ANTI-SCATTERING) -->
-      <div *ngIf="activeReconciliationTab === 'affinityNetwork'">
-        <div class="p-3 rounded-4 bg-light border mb-4">
-          <!-- BANNER CHẨN ĐOÁN VẤN ĐỀ NGƯỜI DÙNG: CÓ 4 SỐ TRÚNG NHƯNG BỊ TẢN MẠN -->
-          <div class="p-3 rounded-3 mb-3 text-white shadow-xs"
-               style="background: linear-gradient(135deg, #b91c1c 0%, #991b1b 50%, #450a0a 100%); border-left: 5px solid #fbbf24;">
-            <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="fs-4">🚨</span>
-              <h5 class="fw-bold mb-0 text-warning">CHẨN ĐOÁN & KHẮC PHỤC HIỆN TƯỢNG: "CÓ 4 SỐ TRÚNG NHƯNG BỊ PHÂN TÁN KHÔNG VÀO MỘT DÃY"</h5>
-            </div>
-            <p class="small mb-2" style="line-height: 1.6;">
-              <strong>Vấn đề thực tế:</strong> Ở kỳ quay vừa qua, tập số ứng viên / vé mua trúng được <strong>4 con số</strong>, nhưng do chưa áp dụng giải thuật gom cụm tương quan nên 4 số trúng bị tản mạn sang các vé khác nhau (vé 1 trúng 2 số, vé 2 trúng 2 số), dẫn đến việc người chơi bị trượt giải thưởng 4 số (Jackpot / Giải Nhất)!
-            </p>
-            <div class="p-2 px-3 rounded-3 small fw-semibold" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(251,191,36,0.4);">
-              ✅ <strong>Thuật toán mới đã giải quyết:</strong> Tích hợp <strong>Ma trận Lực hút đồng xuất hiện (Co-occurrence Lift Matrix)</strong> và <strong>Thuật toán Gom cụm Đồ thị (Graph Clique Clustering)</strong>. Tự động nhận diện các cụm 3-4 số có chỉ số tương quan Lift &gt; 1.25 và <strong>ràng buộc chặt chẽ trong cùng một dãy vé</strong>, đảm bảo khi 4 số trúng cùng nổ thì sẽ nằm trọn vẹn trong một dãy vé!
-            </div>
-          </div>
-
-          <!-- PHẦN 1: CÁC CỤM SỐ TƯƠNG HỖ MẠNH NHẤT ĐƯỢC GOM CỤM (CLIQUES) -->
-          <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs" *ngIf="getCurrent5Draw().winningNumbersRelationship?.cliques?.length > 0 || getCurrent5Draw().aiPrediction?.numberRelationships?.topCliques?.length > 0">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <div class="d-flex align-items-center gap-2">
-                <span class="fs-5">🧩</span>
-                <h6 class="fw-bold text-dark mb-0">Các Cụm Hạt Nhân Tương Quan Mạnh Nhất (Top Affinity Cliques)</h6>
-              </div>
-              <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1">
-                Gom Cố Định Vào Cùng Một Dãy Vé
-              </span>
-            </div>
-            <p class="small text-muted mb-3">
-              Những cụm số dưới đây có tần suất nổ chung cao nhất trong lịch sử. Thuật toán mới bắt buộc neo giữ toàn bộ cụm này vào cùng một vé cược để bảo toàn giải thưởng khi nổ cụm:
-            </p>
-
-            <div class="row g-2">
-              <div class="col-md-6" *ngFor="let clq of (getCurrent5Draw().aiPrediction?.numberRelationships?.topCliques || []); let cIdx = index">
-                <div class="p-2 px-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
-                  <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-dark text-white rounded-pill px-2">Cụm #{{ cIdx + 1 }}</span>
-                    <div class="d-flex gap-1">
-                      <div *ngFor="let num of clq.numbers"
-                           class="ball shadow-xs"
-                           [ngClass]="getCurrent5Draw().officialNumbers?.includes(num) ? 'ball-highlight' : 'bg-white text-dark border'"
-                           style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
-                        {{ formatNumber(num) }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="text-end">
-                    <span class="badge bg-success-subtle text-success border border-success-subtle small">
-                      Điểm: {{ clq.affinityScore }}
-                    </span>
-                    <div class="text-muted" style="font-size: 0.68rem;">Neo vào Vé #{{ cIdx + 1 }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- PHẦN 2: BẢNG MA TRẬN TƯƠNG QUAN GIỮA CÁC SỐ TRÚNG (PAIRWISE RELATIONSHIP) -->
-          <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <div class="d-flex align-items-center gap-2">
-                <span class="fs-5">🔗</span>
-                <h6 class="fw-bold text-dark mb-0">Ma Trận Mối Liên Hệ Giữa Các Số Trúng (Kỳ {{ getCurrent5Draw().drawDate }})</h6>
-              </div>
-              <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
-                {{ getCurrent5Draw().winningNumbersRelationship?.summary || 'Tương quan cặp số' }}
-              </span>
-            </div>
-
-            <div class="table-responsive">
-              <table class="table table-hover table-bordered table-sm align-middle mb-0" style="font-size: 0.8rem;">
-                <thead class="table-dark">
-                  <tr>
-                    <th class="text-center py-2" style="width: 50px;">#</th>
-                    <th class="py-2" style="width: 140px;">Cặp Số Trúng</th>
-                    <th class="text-center py-2" style="width: 110px;">Số Lần Về Cùng</th>
-                    <th class="text-center py-2" style="width: 110px;">Chỉ Số Lực Hút (Lift)</th>
-                    <th class="text-center py-2" style="width: 100px;">Độ Lệch Delta</th>
-                    <th class="text-center py-2" style="width: 140px;">Mức Độ Liên Kết</th>
-                    <th class="py-2">Phân Tích Cơ Chế & Hành Vi Liên Kết</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let p of getCurrent5Draw().winningNumbersRelationship?.pairs; let pIdx = index"
-                      [class.table-warning]="p.count >= 2">
-                    <td class="text-center text-muted fw-bold">{{ pIdx + 1 }}</td>
-                    <td>
-                      <div class="d-flex align-items-center gap-1">
-                        <span class="ball shadow-xs" [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'" style="width: 26px; height: 26px; font-size: 0.72rem; font-weight: bold;">
-                          {{ formatNumber(p.n1) }}
-                        </span>
-                        <span class="text-muted fw-bold">&harr;</span>
-                        <span class="ball shadow-xs" [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'" style="width: 26px; height: 26px; font-size: 0.72rem; font-weight: bold;">
-                          {{ formatNumber(p.n2) }}
-                        </span>
-                      </div>
-                    </td>
-                    <td class="text-center fw-bold" [class.text-danger]="p.count >= 2">
-                      {{ p.count }} lần
-                    </td>
-                    <td class="text-center fw-bold" [class.text-success]="p.lift >= 1.25">
-                      {{ p.lift ? p.lift.toFixed(2) + 'x' : 'N/A' }}
-                    </td>
-                    <td class="text-center font-monospace">
-                      &Delta; {{ p.diff }}
-                    </td>
-                    <td class="text-center">
-                      <span class="badge"
-                            [ngClass]="p.count >= 2 ? 'bg-danger text-white' : (p.count === 1 ? 'bg-primary-subtle text-primary border' : 'bg-light text-muted border')">
-                        {{ p.affinity }}
-                      </span>
-                    </td>
-                    <td class="small text-secondary">
-                      {{ p.role }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- PHẦN 3: BẢNG DÃY VÉ TỐI ƯU GOM CỤM THEO THUẬT TOÁN MỚI -->
-          <div class="card border rounded-3 p-3 bg-white shadow-xs" *ngIf="getCurrent5Draw().aiPrediction?.numberRelationships?.ticketAffinityDetails?.length > 0">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-              <div class="d-flex align-items-center gap-2">
-                <span class="fs-5">🎟️</span>
-                <h6 class="fw-bold text-dark mb-0">Các Dãy Vé Đã Áp Dụng Thuật Toán Gom Cụm (Chống Phân Tán 4 Số Trúng)</h6>
-              </div>
-              <span class="badge bg-success text-white px-3 py-1">
-                {{ getCurrent5Draw().aiPrediction?.numberRelationships?.ticketAffinityDetails?.length }} Dãy Vé Tối Ưu
-              </span>
-            </div>
-            <p class="small text-muted mb-3">
-              Mỗi dãy số được xây dựng xung quanh một hạt nhân liên kết (Affinity Core), đảm bảo các số có lực hút đồng xuất hiện cao không bao giờ bị xé rời sang các vé khác:
-            </p>
-
-            <div class="row g-2">
-              <div class="col-lg-6" *ngFor="let t of getAffinityTickets(getCurrent5Draw())">
-                <div class="p-2 px-3 rounded-3 bg-light border">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold text-dark small">Dãy Vé #{{ t.ticketIndex }}:</span>
-                    <span class="badge bg-danger text-white" style="font-size: 0.68rem;">{{ t.cohesionLevel }}</span>
-                  </div>
-                  <div class="d-flex align-items-center gap-1 flex-wrap mb-2">
-                    <div *ngFor="let b of t.numbers"
-                         class="ball shadow-xs"
-                         [ngClass]="getCurrent5Draw().officialNumbers?.includes(b) ? 'ball-highlight' : 'bg-white text-dark border'"
-                         style="width: 32px; height: 32px; font-size: 0.85rem; font-weight: bold;">
-                      {{ formatNumber(b) }}
-                    </div>
-                  </div>
-                  <div class="small text-secondary" style="font-size: 0.72rem;">
-                    {{ t.explanation }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<app-draw-reconciliation
+  [category]="category"
+  [selectedDate]="selectedDate"
+  [algorithm]="algorithm"
+  [version]="currentHyperparameterVersion"
+  (versionChanged)="currentHyperparameterVersion = $event"
+  (refresh)="loadHyperparameters()"
+  (statusChanged)="algorithmUpdateMessage = $event"
+/>
 
 <!-- ======================================================== -->
 <!-- 1. PHẦN VÉ CỦA USER & KẾT QUẢ ĐỐI SOÁT TRỰC QUAN         -->
 <!-- ======================================================== -->
-<div class="card shadow-sm border-0 rounded-4 mb-4 mt-4 overflow-hidden" *ngIf="analysisData">
-  <div class="card-header bg-gradient py-3 px-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-2"
-       style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 2px solid #3b82f6;">
-    <div class="d-flex align-items-center gap-2">
-      <span class="fs-4">🎟️</span>
-      <div>
-        <h5 class="fw-bold mb-0 text-white">Vé Của User & Kết Quả Đối Soát Kỳ Quay</h5>
-        <small class="text-info">
-          {{ userTickets.length > 0 ? ('Đã tìm thấy ' + userTickets.length + ' vé cá nhân cho kỳ ' + selectedDate) : 'Chưa có vé lưu cho kỳ này - Bạn có thể nhập vé để đối chiếu ngay!' }}
-        </small>
-      </div>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold" *ngIf="userTickets.length > 0">
-        {{ userTickets.length }} vé tham gia
-      </span>
-      <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold" *ngIf="userTickets.length === 0">
-        Chưa có vé
-      </span>
-    </div>
-  </div>
-
-  <div class="card-body p-4 bg-light">
-    <!-- BANNER TỔNG HỢP HIỆU SUẤT ĐỐI SOÁT VÉ CỦA USER CHO KỲ QUAY NÀY (ĐÃ LOẠI TRỪ TRÙNG LẶP) -->
-    <div class="row g-3 mb-4" *ngIf="userTicketsSummary">
-      <!-- 1. Tỉ lệ khớp trúng bóng chính thức -->
-      <div class="col-lg-4 col-md-6 col-12">
-        <div class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
-             style="border-left: 5px solid #2563eb !important;">
-          <div>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="small text-muted fw-bold text-uppercase">🎯 Tỉ Lệ Khớp Trúng Bóng</span>
-              <span class="badge rounded-pill px-2 py-1"
-                    [ngClass]="userTicketsSummary.hitRatePercent >= 30 ? 'bg-success text-white' : 'bg-primary text-white'">
-                {{ userTicketsSummary.hitRatePercent }}%
-              </span>
-            </div>
-            <div class="fs-4 fw-bolder text-primary mb-1">
-              {{ userTicketsSummary.uniqueMatchedCount }}/{{ userTicketsSummary.officialWinningCount }} bóng trúng duy nhất
-            </div>
-            <div class="small fw-bold text-success" *ngIf="userTicketsSummary.uniqueMatchedNumbers.length > 0">
-              Các bóng khớp: [ {{ userTicketsSummary.uniqueMatchedNumbers.join(', ') }} ]
-            </div>
-            <div class="small text-muted" *ngIf="userTicketsSummary.uniqueMatchedNumbers.length === 0">
-              Chưa có bóng nào khớp với kỳ quay này.
-            </div>
-          </div>
-          <!-- Chú thích loại trừ trùng lặp cực kỳ rõ ràng -->
-          <div class="alert alert-light border rounded-3 p-2 mt-2 mb-0 small text-secondary" style="font-size: 0.76rem; line-height: 1.35;">
-            <div *ngIf="userTicketsSummary.duplicateCount > 0" class="text-danger fw-semibold">
-              ⚠️ Đã loại trừ trùng lặp: Tổng các vé có {{ userTicketsSummary.rawTotalMatchedOccurrences }} lượt trúng, nhưng có {{ userTicketsSummary.duplicateCount }} số trùng nhau nên chỉ tính <strong>{{ userTicketsSummary.uniqueMatchedCount }} bóng trúng độc nhất</strong> (Tỉ lệ: {{ userTicketsSummary.uniqueMatchedCount }}/{{ userTicketsSummary.officialWinningCount }} = {{ userTicketsSummary.hitRatePercent }}%).
-            </div>
-            <div *ngIf="userTicketsSummary.duplicateCount === 0" class="text-success">
-              ✅ Không có số trúng nào bị trùng lặp giữa các vé (Tỉ lệ khớp: {{ userTicketsSummary.uniqueMatchedCount }}/{{ userTicketsSummary.officialWinningCount }} = {{ userTicketsSummary.hitRatePercent }}%).
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Thống kê vé & giải thưởng -->
-      <div class="col-lg-4 col-md-6 col-12">
-        <div class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
-             style="border-left: 5px solid #10b981 !important;">
-          <div>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="small text-muted fw-bold text-uppercase">🎟️ Số Lượng Vé & Giải Thưởng</span>
-              <span class="badge bg-success rounded-pill px-2 py-1" *ngIf="userTicketsSummary.winningTicketsCount > 0">
-                {{ userTicketsSummary.winningTicketsCount }} vé trúng giải
-              </span>
-              <span class="badge bg-secondary rounded-pill px-2 py-1" *ngIf="userTicketsSummary.winningTicketsCount === 0">
-                Chưa trúng giải
-              </span>
-            </div>
-            <div class="fs-4 fw-bolder text-dark mb-1">
-              {{ userTicketsSummary.totalTickets }} vé đối soát
-            </div>
-            <div class="small text-muted">
-              Kỳ quay ngày: <strong class="text-dark">{{ selectedDate }}</strong> &bull; Loại vé: <strong class="text-primary">{{ category === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}</strong>
-            </div>
-          </div>
-          <div class="mt-2 small text-secondary" style="font-size: 0.78rem;">
-            Toàn bộ {{ userTicketsSummary.totalTickets }} vé được đối chiếu trực tiếp với kết quả mở thưởng chính thức của Vietlott.
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Tập hợp số đã chọn độc nhất -->
-      <div class="col-lg-4 col-12">
-        <div class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
-             style="border-left: 5px solid #f59e0b !important;">
-          <div>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="small text-muted fw-bold text-uppercase">📊 Tập Số Bạn Đã Chọn</span>
-              <span class="badge bg-warning text-dark rounded-pill px-2 py-1">
-                {{ userTicketsSummary.uniqueUserCount }} số độc nhất
-              </span>
-            </div>
-            <div class="fs-4 fw-bolder text-dark mb-1">
-              <span class="text-success">{{ userTicketsSummary.uniqueMatchedCount }} trúng</span> / 
-              <span class="text-danger">{{ userTicketsSummary.uniqueMissedCount }} trượt</span>
-            </div>
-            <div class="small text-muted text-truncate" title="[ {{ userTicketsSummary.uniqueUserNumbers.join(', ') }} ]">
-              Dãy số đã chọn: [ {{ userTicketsSummary.uniqueUserNumbers.join(', ') }} ]
-            </div>
-          </div>
-          <div class="mt-2 small text-secondary" style="font-size: 0.78rem;">
-            Tỉ lệ trúng trên tập số chọn: <strong>{{ userTicketsSummary.uniqueUserCount > 0 ? (userTicketsSummary.uniqueMatchedCount / userTicketsSummary.uniqueUserCount * 100 | number:'1.1-1') : 0 }}%</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Danh sách vé của user -->
-    <div *ngIf="userTickets.length > 0" class="mb-4">
-      <div class="row g-3">
-        <div class="col-12" *ngFor="let ticket of userTickets; let idx = index">
-          <div class="card border rounded-3 shadow-sm bg-white p-3">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-              <!-- Label vé -->
-              <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-dark px-3 py-2 text-white fw-bold rounded-pill">
-                  Vé #{{ idx + 1 }}
-                </span>
-                <span class="badge px-3 py-2 rounded-pill fw-bold"
-                      [ngClass]="ticket.matchedCount >= 3 ? 'bg-success text-white' : 'bg-secondary text-white'">
-                  🎯 Khớp {{ ticket.matchedCount }}/6 số
-                </span>
-                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold"
-                      *ngIf="ticket.prize && ticket.prize !== 'KHÔNG TRÚNG'">
-                  🏆 {{ ticket.prize }} ({{ ticket.prizeAmount }})
-                </span>
-                <span class="badge bg-light text-muted border px-2 py-1 small" *ngIf="ticket.source === 'manual'">
-                  Vé nhập thủ công
-                </span>
-              </div>
-
-              <!-- Dãy 6 bóng của vé -->
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <div *ngFor="let n of ticket.numbers" class="d-flex flex-column align-items-center">
-                  <div class="ball-drawn text-white shadow-sm"
-                       [style.background]="ticket.matchedNumbers.includes(n) ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#64748b'"
-                       [style.border]="ticket.matchedNumbers.includes(n) ? '2px solid #34d399' : '2px solid #cbd5e1'"
-                       [style.boxShadow]="ticket.matchedNumbers.includes(n) ? '0 0 12px rgba(16, 185, 129, 0.7)' : 'none'">
-                    {{ n < 10 ? '0' + n : n }}
-                  </div>
-                  <span class="small fw-bold mt-1" style="font-size: 0.7rem;"
-                        [ngClass]="ticket.matchedNumbers.includes(n) ? 'text-success' : 'text-muted'">
-                    {{ ticket.matchedNumbers.includes(n) ? '✅ Khớp' : '❌ Trượt' }}
-                  </span>
-                </div>
-
-                <!-- Banh phụ nếu có -->
-                <div *ngIf="category === 'POWER' && ticket.specialNumber" class="d-flex flex-column align-items-center ms-2 border-start ps-2">
-                  <div class="ball-drawn text-dark shadow-sm bg-warning border-warning">
-                    ⭐ {{ ticket.specialNumber < 10 ? '0' + ticket.specialNumber : ticket.specialNumber }}
-                  </div>
-                  <span class="small fw-bold mt-1 text-warning" style="font-size: 0.7rem;">
-                    {{ ticket.matchedSpecial ? '✅ Khớp Phụ' : 'Phụ' }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Nút xóa nếu là vé thử nghiệm -->
-              <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                      *ngIf="ticket.source === 'manual'"
-                      (click)="removeTicket(idx)">
-                ✕ Bỏ vé này
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Thông báo nếu chưa có vé -->
-    <div *ngIf="userTickets.length === 0" class="alert alert-info border-0 rounded-3 p-3 mb-4 d-flex align-items-center gap-3">
-      <span class="fs-2">💡</span>
-      <div>
-        <div class="fw-bold">Bạn chưa lưu vé nào cho kỳ quay ngày {{ selectedDate }}!</div>
-        <div class="small text-secondary">
-          Bạn có thể nhập 6 con số vé của mình ở khung dưới đây để hệ thống chạy thuật toán đối chiếu ngay lập tức.
-        </div>
-      </div>
-    </div>
-
-    <!-- Khung nhập / thử nghiệm vé cá nhân nhanh (Hỗ trợ nhập chuỗi nhanh & nhập ô tròn không bị che khuất) -->
-    <div class="card border-0 rounded-4 bg-white p-3 p-md-4 shadow-sm" style="border: 2px dashed #3b82f6 !important;">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+@if (analysisData) {
+  <div class="card shadow-sm border-0 rounded-4 mb-4 mt-4 overflow-hidden">
+    <div
+      class="card-header bg-gradient py-3 px-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-2"
+      style="
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-bottom: 2px solid #3b82f6;
+      "
+    >
+      <div class="d-flex align-items-center gap-2">
+        <span class="fs-4">🎟️</span>
         <div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="fs-4">➕</span>
-            <h5 class="fw-bold text-dark mb-0">Thử Nghiệm / Nhập Thêm Vé Cá Nhân Của Bạn Để Đối Chiếu:</h5>
-          </div>
-          <small class="text-muted d-block mt-1">
-            Nhập dãy 6 số từ 01 đến {{ category === 'POWER' ? 55 : 45 }}{{ category === 'POWER' ? ' (+1 số phụ Jackpot 2 nếu có)' : '' }}. Bạn có thể dán cả chuỗi hoặc gõ trực tiếp từng ô tròn.
+          <h5 class="fw-bold mb-0 text-white">Vé Của User & Kết Quả Đối Soát Kỳ Quay</h5>
+          <small class="text-info">
+            {{
+              userTickets.length > 0
+                ? 'Đã tìm thấy ' + userTickets.length + ' vé cá nhân cho kỳ ' + selectedDate
+                : 'Chưa có vé lưu cho kỳ này - Bạn có thể nhập vé để đối chiếu ngay!'
+            }}
           </small>
         </div>
-        <div class="d-flex gap-2">
-          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="resetManualInputs()">
-            🔄 Làm mới ô nhập
-          </button>
-        </div>
       </div>
-
-      <!-- Ô nhập nhanh cả dãy số (Copy/Paste hoặc gõ liên tục không sợ mất số) -->
-      <div class="mb-3">
-        <div class="input-group shadow-xs">
-          <span class="input-group-text bg-light text-primary fw-bold border-end-0">
-            📋 Nhập nhanh cả dãy:
+      <div class="d-flex align-items-center gap-2">
+        @if (userTickets.length > 0) {
+          <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold">
+            {{ userTickets.length }} vé tham gia
           </span>
-          <input type="text"
-                 class="form-control border-start-0 ps-1"
-                 placeholder="Dán hoặc gõ cả dãy số (VD: 04 14 18 35 48 52 hoặc 04, 14, 18, 35, 48, 52...)"
-                 [(ngModel)]="quickSequenceInput"
-                 (ngModelChange)="onQuickSequenceChange($event)">
-        </div>
-        <div class="form-text small text-muted ms-1" style="font-size: 0.74rem;">
-          💡 Gợi ý: Bạn có thể copy cả dãy số từ tin nhắn, SMS, hoặc web và dán vào đây, hệ thống sẽ tự động điền đủ từng ô bóng bên dưới.
-        </div>
+        }
+        @if (userTickets.length === 0) {
+          <span class="badge bg-secondary px-3 py-2 rounded-pill fw-bold"> Chưa có vé </span>
+        }
       </div>
-
-      <!-- Hàng 6 ô bóng nhập liệu tròn trực quan (Hiển thị đầy đủ số, không bị che khuất) -->
-      <div class="p-3 bg-light rounded-4 border d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <span class="small fw-bold text-dark me-1">Dãy bóng số:</span>
-          
-          <div *ngFor="let val of manualTicketInputs; let i = index; trackBy: trackByIndex"
-               class="d-flex flex-column align-items-center">
-            <input [id]="'manual-ball-' + i"
-                   type="text"
-                   inputmode="numeric"
-                   maxlength="2"
-                   class="manual-ball-input form-control shadow-xs"
-                   [placeholder]="'#' + (i + 1)"
-                   [(ngModel)]="manualTicketInputs[i]"
-                   (input)="onBallInput(i, $event)"
-                   (paste)="onPasteIntoBalls($event)">
-            <span class="text-muted fw-semibold mt-1" style="font-size: 0.68rem;">Bóng {{ i + 1 }}</span>
+    </div>
+    <div class="card-body p-4 bg-light">
+      <!-- BANNER TỔNG HỢP HIỆU SUẤT ĐỐI SOÁT VÉ CỦA USER CHO KỲ QUAY NÀY (ĐÃ LOẠI TRỪ TRÙNG LẶP) -->
+      @if (userTicketsSummary) {
+        <div class="row g-3 mb-4">
+          <!-- 1. Tỉ lệ khớp trúng bóng chính thức -->
+          <div class="col-lg-4 col-md-6 col-12">
+            <div
+              class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
+              style="border-left: 5px solid #2563eb !important"
+            >
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small text-muted fw-bold text-uppercase"
+                    >🎯 Tỉ Lệ Khớp Trúng Bóng</span
+                  >
+                  <span
+                    class="badge rounded-pill px-2 py-1"
+                    [ngClass]="
+                      userTicketsSummary.hitRatePercent >= 30
+                        ? 'bg-success text-white'
+                        : 'bg-primary text-white'
+                    "
+                  >
+                    {{ userTicketsSummary.hitRatePercent }}%
+                  </span>
+                </div>
+                <div class="fs-4 fw-bolder text-primary mb-1">
+                  {{ userTicketsSummary.uniqueMatchedCount }}/{{
+                    userTicketsSummary.officialWinningCount
+                  }}
+                  bóng trúng duy nhất
+                </div>
+                @if (userTicketsSummary.uniqueMatchedNumbers.length > 0) {
+                  <div class="small fw-bold text-success">
+                    Các bóng khớp: [ {{ userTicketsSummary.uniqueMatchedNumbers.join(', ') }} ]
+                  </div>
+                }
+                @if (userTicketsSummary.uniqueMatchedNumbers.length === 0) {
+                  <div class="small text-muted">Chưa có bóng nào khớp với kỳ quay này.</div>
+                }
+              </div>
+              <!-- Chú thích loại trừ trùng lặp cực kỳ rõ ràng -->
+              <div
+                class="alert alert-light border rounded-3 p-2 mt-2 mb-0 small text-secondary"
+                style="font-size: 0.76rem; line-height: 1.35"
+              >
+                @if (userTicketsSummary.duplicateCount > 0) {
+                  <div class="text-danger fw-semibold">
+                    ⚠️ Đã loại trừ trùng lặp: Tổng các vé có
+                    {{ userTicketsSummary.rawTotalMatchedOccurrences }} lượt trúng, nhưng có
+                    {{ userTicketsSummary.duplicateCount }} số trùng nhau nên chỉ tính
+                    <strong>{{ userTicketsSummary.uniqueMatchedCount }} bóng trúng độc nhất</strong>
+                    (Tỉ lệ: {{ userTicketsSummary.uniqueMatchedCount }}/{{
+                      userTicketsSummary.officialWinningCount
+                    }}
+                    = {{ userTicketsSummary.hitRatePercent }}%).
+                  </div>
+                }
+                @if (userTicketsSummary.duplicateCount === 0) {
+                  <div class="text-success">
+                    ✅ Không có số trúng nào bị trùng lặp giữa các vé (Tỉ lệ khớp:
+                    {{ userTicketsSummary.uniqueMatchedCount }}/{{
+                      userTicketsSummary.officialWinningCount
+                    }}
+                    = {{ userTicketsSummary.hitRatePercent }}%).
+                  </div>
+                }
+              </div>
+            </div>
           </div>
-
-          <!-- Ô nhập banh phụ Jackpot 2 nếu là POWER -->
-          <div *ngIf="category === 'POWER'" class="d-flex flex-column align-items-center ms-md-2 border-start ps-md-2">
-            <input id="manual-special-ball"
-                   type="text"
-                   inputmode="numeric"
-                   maxlength="2"
-                   class="manual-ball-input special-ball-input form-control shadow-xs"
-                   placeholder="⭐"
-                   title="Số phụ Jackpot 2 (nếu có, từ 01-55)"
-                   [(ngModel)]="manualSpecialInput"
-                   (input)="onBallInput(6, $event)">
-            <span class="text-warning fw-bold mt-1" style="font-size: 0.68rem;">⭐ Số Phụ</span>
+          <!-- 2. Thống kê vé & giải thưởng -->
+          <div class="col-lg-4 col-md-6 col-12">
+            <div
+              class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
+              style="border-left: 5px solid #10b981 !important"
+            >
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small text-muted fw-bold text-uppercase"
+                    >🎟️ Số Lượng Vé & Giải Thưởng</span
+                  >
+                  @if (userTicketsSummary.winningTicketsCount > 0) {
+                    <span class="badge bg-success rounded-pill px-2 py-1">
+                      {{ userTicketsSummary.winningTicketsCount }} vé trúng giải
+                    </span>
+                  }
+                  @if (userTicketsSummary.winningTicketsCount === 0) {
+                    <span class="badge bg-secondary rounded-pill px-2 py-1"> Chưa trúng giải </span>
+                  }
+                </div>
+                <div class="fs-4 fw-bolder text-dark mb-1">
+                  {{ userTicketsSummary.totalTickets }} vé đối soát
+                </div>
+                <div class="small text-muted">
+                  Kỳ quay ngày: <strong class="text-dark">{{ selectedDate }}</strong> &bull; Loại
+                  vé:
+                  <strong class="text-primary">{{
+                    category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'
+                  }}</strong>
+                </div>
+              </div>
+              <div class="mt-2 small text-secondary" style="font-size: 0.78rem">
+                Toàn bộ {{ userTicketsSummary.totalTickets }} vé được đối chiếu trực tiếp với kết
+                quả mở thưởng chính thức của Vietlott.
+              </div>
+            </div>
+          </div>
+          <!-- 3. Tập hợp số đã chọn độc nhất -->
+          <div class="col-lg-4 col-12">
+            <div
+              class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column justify-content-between"
+              style="border-left: 5px solid #f59e0b !important"
+            >
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small text-muted fw-bold text-uppercase">📊 Tập Số Bạn Đã Chọn</span>
+                  <span class="badge bg-warning text-dark rounded-pill px-2 py-1">
+                    {{ userTicketsSummary.uniqueUserCount }} số độc nhất
+                  </span>
+                </div>
+                <div class="fs-4 fw-bolder text-dark mb-1">
+                  <span class="text-success"
+                    >{{ userTicketsSummary.uniqueMatchedCount }} trúng</span
+                  >
+                  /
+                  <span class="text-danger">{{ userTicketsSummary.uniqueMissedCount }} trượt</span>
+                </div>
+                <div
+                  class="small text-muted text-truncate"
+                  title="[ {{ userTicketsSummary.uniqueUserNumbers.join(', ') }} ]"
+                >
+                  Dãy số đã chọn: [ {{ userTicketsSummary.uniqueUserNumbers.join(', ') }} ]
+                </div>
+              </div>
+              <div class="mt-2 small text-secondary" style="font-size: 0.78rem">
+                Tỉ lệ trúng trên tập số chọn:
+                <strong
+                  >{{
+                    userTicketsSummary.uniqueUserCount > 0
+                      ? ((userTicketsSummary.uniqueMatchedCount /
+                          userTicketsSummary.uniqueUserCount) *
+                          100 | number: '1.1-1')
+                      : 0
+                  }}%</strong
+                >
+              </div>
+            </div>
           </div>
         </div>
-
-        <!-- Nút bấm Đối chiếu -->
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-primary btn-lg fw-bold px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-2"
-                  (click)="addManualTicket()">
-            <span>🔍 Đối Chiếu Vé Này</span>
-          </button>
+      }
+      <!-- Danh sách vé của user -->
+      @if (userTickets.length > 0) {
+        <div class="mb-4">
+          <div class="row g-3">
+            @for (ticket of userTickets; track ticket; let idx = $index) {
+              <div class="col-12">
+                <div class="card border rounded-3 shadow-sm bg-white p-3">
+                  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <!-- Label vé -->
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-dark px-3 py-2 text-white fw-bold rounded-pill">
+                        Vé #{{ idx + 1 }}
+                      </span>
+                      <span
+                        class="badge px-3 py-2 rounded-pill fw-bold"
+                        [ngClass]="
+                          ticket.matchedCount >= 3
+                            ? 'bg-success text-white'
+                            : 'bg-secondary text-white'
+                        "
+                      >
+                        🎯 Khớp {{ ticket.matchedCount }}/6 số
+                      </span>
+                      @if (ticket.prize && ticket.prize !== 'KHÔNG TRÚNG') {
+                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                          🏆 {{ ticket.prize }} ({{ ticket.prizeAmount }})
+                        </span>
+                      }
+                      @if (ticket.source === 'manual') {
+                        <span class="badge bg-light text-muted border px-2 py-1 small">
+                          Vé nhập thủ công
+                        </span>
+                      }
+                    </div>
+                    <!-- Dãy 6 bóng của vé -->
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      @for (n of ticket.numbers; track n) {
+                        <div class="d-flex flex-column align-items-center">
+                          <div
+                            class="ball-drawn text-white shadow-sm"
+                            [style.background]="
+                              ticket.matchedNumbers.includes(n)
+                                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                : '#64748b'
+                            "
+                            [style.border]="
+                              ticket.matchedNumbers.includes(n)
+                                ? '2px solid #34d399'
+                                : '2px solid #cbd5e1'
+                            "
+                            [style.boxShadow]="
+                              ticket.matchedNumbers.includes(n)
+                                ? '0 0 12px rgba(16, 185, 129, 0.7)'
+                                : 'none'
+                            "
+                          >
+                            {{ n < 10 ? '0' + n : n }}
+                          </div>
+                          <span
+                            class="small fw-bold mt-1"
+                            style="font-size: 0.7rem"
+                            [ngClass]="
+                              ticket.matchedNumbers.includes(n) ? 'text-success' : 'text-muted'
+                            "
+                          >
+                            {{ ticket.matchedNumbers.includes(n) ? '✅ Khớp' : '❌ Trượt' }}
+                          </span>
+                        </div>
+                      }
+                      <!-- Banh phụ nếu có -->
+                      @if (category === 'POWER' && ticket.specialNumber) {
+                        <div class="d-flex flex-column align-items-center ms-2 border-start ps-2">
+                          <div class="ball-drawn text-dark shadow-sm bg-warning border-warning">
+                            ⭐
+                            {{
+                              ticket.specialNumber < 10
+                                ? '0' + ticket.specialNumber
+                                : ticket.specialNumber
+                            }}
+                          </div>
+                          <span class="small fw-bold mt-1 text-warning" style="font-size: 0.7rem">
+                            {{ ticket.matchedSpecial ? '✅ Khớp Phụ' : 'Phụ' }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+                    <!-- Nút xóa nếu là vé thử nghiệm -->
+                    @if (ticket.source === 'manual') {
+                      <button
+                        class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                        (click)="removeTicket(idx)"
+                      >
+                        ✕ Bỏ vé này
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
         </div>
-      </div>
-
-      <!-- Thông báo lỗi nhập nếu có -->
-      <div *ngIf="manualInputError" class="alert alert-danger border-0 rounded-3 py-2 px-3 mt-3 mb-0 small fw-bold">
-        ⚠️ {{ manualInputError }}
+      }
+      <!-- Thông báo nếu chưa có vé -->
+      @if (userTickets.length === 0) {
+        <div class="alert alert-info border-0 rounded-3 p-3 mb-4 d-flex align-items-center gap-3">
+          <span class="fs-2">💡</span>
+          <div>
+            <div class="fw-bold">Bạn chưa lưu vé nào cho kỳ quay ngày {{ selectedDate }}!</div>
+            <div class="small text-secondary">
+              Bạn có thể nhập 6 con số vé của mình ở khung dưới đây để hệ thống chạy thuật toán đối
+              chiếu ngay lập tức.
+            </div>
+          </div>
+        </div>
+      }
+      <!-- Khung nhập / thử nghiệm vé cá nhân nhanh (Hỗ trợ nhập chuỗi nhanh & nhập ô tròn không bị che khuất) -->
+      <div
+        class="card border-0 rounded-4 bg-white p-3 p-md-4 shadow-sm"
+        style="border: 2px dashed #3b82f6 !important"
+      >
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">➕</span>
+              <h5 class="fw-bold text-dark mb-0">
+                Thử Nghiệm / Nhập Thêm Vé Cá Nhân Của Bạn Để Đối Chiếu:
+              </h5>
+            </div>
+            <small class="text-muted d-block mt-1">
+              Nhập dãy 6 số từ 01 đến {{ category === 'POWER' ? 55 : 45
+              }}{{ category === 'POWER' ? ' (+1 số phụ Jackpot 2 nếu có)' : '' }}. Bạn có thể dán cả
+              chuỗi hoặc gõ trực tiếp từng ô tròn.
+            </small>
+          </div>
+          <div class="d-flex gap-2">
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+              (click)="resetManualInputs()"
+            >
+              🔄 Làm mới ô nhập
+            </button>
+          </div>
+        </div>
+        <!-- Ô nhập nhanh cả dãy số (Copy/Paste hoặc gõ liên tục không sợ mất số) -->
+        <div class="mb-3">
+          <div class="input-group shadow-xs">
+            <span class="input-group-text bg-light text-primary fw-bold border-end-0">
+              📋 Nhập nhanh cả dãy:
+            </span>
+            <input
+              type="text"
+              class="form-control border-start-0 ps-1"
+              placeholder="Dán hoặc gõ cả dãy số (VD: 04 14 18 35 48 52 hoặc 04, 14, 18, 35, 48, 52...)"
+              [(ngModel)]="quickSequenceInput"
+              (ngModelChange)="onQuickSequenceChange($event)"
+            />
+          </div>
+          <div class="form-text small text-muted ms-1" style="font-size: 0.74rem">
+            💡 Gợi ý: Bạn có thể copy cả dãy số từ tin nhắn, SMS, hoặc web và dán vào đây, hệ thống
+            sẽ tự động điền đủ từng ô bóng bên dưới.
+          </div>
+        </div>
+        <!-- Hàng 6 ô bóng nhập liệu tròn trực quan (Hiển thị đầy đủ số, không bị che khuất) -->
+        <div
+          class="p-3 bg-light rounded-4 border d-flex flex-wrap align-items-center justify-content-between gap-3"
+        >
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="small fw-bold text-dark me-1">Dãy bóng số:</span>
+            @for (val of manualTicketInputs; track $index; let i = $index) {
+              <div class="d-flex flex-column align-items-center">
+                <input
+                  [id]="'manual-ball-' + i"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="2"
+                  class="manual-ball-input form-control shadow-xs"
+                  [placeholder]="'#' + (i + 1)"
+                  [(ngModel)]="manualTicketInputs[i]"
+                  (input)="onBallInput(i, $event)"
+                  (paste)="onPasteIntoBalls($event)"
+                />
+                <span class="text-muted fw-semibold mt-1" style="font-size: 0.68rem"
+                  >Bóng {{ i + 1 }}</span
+                >
+              </div>
+            }
+            <!-- Ô nhập banh phụ Jackpot 2 nếu là POWER -->
+            @if (category === 'POWER') {
+              <div class="d-flex flex-column align-items-center ms-md-2 border-start ps-md-2">
+                <input
+                  id="manual-special-ball"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="2"
+                  class="manual-ball-input special-ball-input form-control shadow-xs"
+                  placeholder="⭐"
+                  title="Số phụ Jackpot 2 (nếu có, từ 01-55)"
+                  [(ngModel)]="manualSpecialInput"
+                  (input)="onBallInput(6, $event)"
+                />
+                <span class="text-warning fw-bold mt-1" style="font-size: 0.68rem">⭐ Số Phụ</span>
+              </div>
+            }
+          </div>
+          <!-- Nút bấm Đối chiếu -->
+          <div class="d-flex align-items-center gap-2">
+            <button
+              class="btn btn-primary btn-lg fw-bold px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-2"
+              (click)="addManualTicket()"
+            >
+              <span>🔍 Đối Chiếu Vé Này</span>
+            </button>
+          </div>
+        </div>
+        <!-- Thông báo lỗi nhập nếu có -->
+        @if (manualInputError) {
+          <div class="alert alert-danger border-0 rounded-3 py-2 px-3 mt-3 mb-0 small fw-bold">
+            ⚠️ {{ manualInputError }}
+          </div>
+        }
       </div>
     </div>
   </div>
-</div>
+}
 
 <!-- ======================================================== -->
 <!-- 2. ĐỐI CHIẾU THUẬT TOÁN: LÝ DO KHÔNG RA SỐ CỦA USER       -->
 <!-- ======================================================== -->
-<div class="mt-4 mb-4" *ngIf="missedNumberReasons.length > 0">
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-    <div>
-      <h4 class="fw-bold text-dark mb-1">
-        🔬 Đối Chiếu Thuật Toán: Tại Sao Các Con Số Của Bạn Không Ra?
-      </h4>
-      <p class="text-muted mb-0 small">
-        Phân tích chuyên sâu {{ missedNumberReasons.length }} con số trượt từ các vé của bạn dựa trên mô hình {{ analysisData?.algorithmName || algorithm }}.
-      </p>
+@if (missedNumberReasons.length > 0) {
+  <div class="mt-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <div>
+        <h4 class="fw-bold text-dark mb-1">
+          🔬 Đối Chiếu Thuật Toán: Tại Sao Các Con Số Của Bạn Không Ra?
+        </h4>
+        <p class="text-muted mb-0 small">
+          Phân tích chuyên sâu {{ missedNumberReasons.length }} con số trượt từ các vé của bạn dựa
+          trên mô hình {{ analysisData?.algorithmName || algorithm }}.
+        </p>
+      </div>
+      <span
+        class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill fw-bold"
+      >
+        ⚠️ Có {{ missedNumberReasons.length }} số không nổ trong kỳ quay này
+      </span>
     </div>
-    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill fw-bold">
-      ⚠️ Có {{ missedNumberReasons.length }} số không nổ trong kỳ quay này
-    </span>
-  </div>
-
-  <div class="row g-3">
-    <div class="col-lg-4 col-md-6" *ngFor="let item of missedNumberReasons">
-      <div class="card h-100 border shadow-sm rounded-4 bg-white hover-shadow transition-all"
-           style="border-left: 5px solid #ef4444 !important;">
-        <div class="card-body p-3 d-flex flex-column">
-          <!-- Card Header -->
-          <div class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom">
-            <div class="d-flex align-items-center gap-2">
-              <div class="ball-drawn shadow-sm text-white"
-                   style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">
-                {{ item.number < 10 ? '0' + item.number : item.number }}
+    <div class="row g-3">
+      @for (item of missedNumberReasons; track item) {
+        <div class="col-lg-4 col-md-6">
+          <div
+            class="card h-100 border shadow-sm rounded-4 bg-white hover-shadow transition-all"
+            style="border-left: 5px solid #ef4444 !important"
+          >
+            <div class="card-body p-3 d-flex flex-column">
+              <!-- Card Header -->
+              <div
+                class="d-flex justify-content-between align-items-center pb-2 mb-2 border-bottom"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <div
+                    class="ball-drawn shadow-sm text-white"
+                    style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)"
+                  >
+                    {{ item.number < 10 ? '0' + item.number : item.number }}
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark" style="font-size: 0.95rem">
+                      Số {{ item.number < 10 ? '0' + item.number : item.number }} (Số của bạn)
+                    </div>
+                    <span
+                      class="badge bg-danger bg-opacity-10 text-danger fw-bold"
+                      style="font-size: 0.7rem"
+                    >
+                      ❌ Không Ra Trong Kỳ
+                    </span>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-light text-dark border">
+                    Hạng #{{ formatMetric(item.rank) }}/{{ category === 'POWER' ? 55 : 45 }}
+                  </span>
+                  <div class="small text-muted fw-bold mt-1" style="font-size: 0.75rem">
+                    Điểm xếp hạng: {{ formatMetric(item.probabilityPercent) }}
+                  </div>
+                </div>
               </div>
-              <div>
-                <div class="fw-bold text-dark" style="font-size: 0.95rem;">Số {{ item.number < 10 ? '0' + item.number : item.number }} (Số của bạn)</div>
-                <span class="badge bg-danger bg-opacity-10 text-danger fw-bold" style="font-size: 0.7rem;">
-                  ❌ Không Ra Trong Kỳ
+              <!-- Tag & Tiêu đề chẩn đoán -->
+              <div class="mb-2">
+                <span
+                  class="badge bg-warning bg-opacity-25 text-dark fw-bold mb-1 px-2 py-1"
+                  style="font-size: 0.75rem"
+                >
+                  {{ item.tag }}
                 </span>
+                <div class="fw-bold text-dark" style="font-size: 0.88rem">{{ item.title }}</div>
               </div>
-            </div>
-            <div class="text-end">
-              <span class="badge bg-light text-dark border">
-                Hạng #{{ formatMetric(item.rank) }}/{{ category === 'POWER' ? 55 : 45 }}
-              </span>
-              <div class="small text-muted fw-bold mt-1" style="font-size: 0.75rem;">
-                Điểm xếp hạng: {{ formatMetric(item.probabilityPercent) }}
+              <!-- 3 Chỉ số kỹ thuật -->
+              <div class="row text-center g-1 py-2 px-1 rounded-2 mb-2 bg-light border">
+                <div class="col-4">
+                  <span class="text-muted d-block" style="font-size: 0.7rem">Tần suất</span>
+                  <span class="fw-bold text-dark" style="font-size: 0.85rem"
+                    >{{ formatMetric(item.frequency) }} lần</span
+                  >
+                </div>
+                <div class="col-4 border-start border-end">
+                  <span class="text-muted d-block" style="font-size: 0.7rem">Chu kỳ Gan</span>
+                  <span class="fw-bold text-danger" style="font-size: 0.85rem"
+                    >{{ formatMetric(item.drawGap) }} kỳ</span
+                  >
+                </div>
+                <div class="col-4">
+                  <span class="text-muted d-block" style="font-size: 0.7rem">Quán tính</span>
+                  <span class="fw-bold text-primary" style="font-size: 0.85rem">{{
+                    formatMetric(item.momentum)
+                  }}</span>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Tag & Tiêu đề chẩn đoán -->
-          <div class="mb-2">
-            <span class="badge bg-warning bg-opacity-25 text-dark fw-bold mb-1 px-2 py-1" style="font-size: 0.75rem;">
-              {{ item.tag }}
-            </span>
-            <div class="fw-bold text-dark" style="font-size: 0.88rem;">{{ item.title }}</div>
-          </div>
-
-          <!-- 3 Chỉ số kỹ thuật -->
-          <div class="row text-center g-1 py-2 px-1 rounded-2 mb-2 bg-light border">
-            <div class="col-4">
-              <span class="text-muted d-block" style="font-size: 0.7rem;">Tần suất</span>
-              <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ formatMetric(item.frequency) }} lần</span>
-            </div>
-            <div class="col-4 border-start border-end">
-              <span class="text-muted d-block" style="font-size: 0.7rem;">Chu kỳ Gan</span>
-              <span class="fw-bold text-danger" style="font-size: 0.85rem;">{{ formatMetric(item.drawGap) }} kỳ</span>
-            </div>
-            <div class="col-4">
-              <span class="text-muted d-block" style="font-size: 0.7rem;">Quán tính</span>
-              <span class="fw-bold text-primary" style="font-size: 0.85rem;">{{ formatMetric(item.momentum) }}</span>
-            </div>
-          </div>
-
-          <!-- Lý do không ra theo thuật toán -->
-          <div class="mt-auto p-2 rounded-2 bg-danger bg-opacity-10 border border-danger border-opacity-25">
-            <div class="fw-bold text-danger mb-1" style="font-size: 0.75rem;">
-              📌 Lý do thuật toán loại trừ số này:
-            </div>
-            <div class="text-dark small" style="line-height: 1.5; font-size: 0.8rem;">
-              {{ item.reason }}
+              <!-- Lý do không ra theo thuật toán -->
+              <div
+                class="mt-auto p-2 rounded-2 bg-danger bg-opacity-10 border border-danger border-opacity-25"
+              >
+                <div class="fw-bold text-danger mb-1" style="font-size: 0.75rem">
+                  📌 Lý do thuật toán loại trừ số này:
+                </div>
+                <div class="text-dark small" style="line-height: 1.5; font-size: 0.8rem">
+                  {{ item.reason }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      }
     </div>
   </div>
-</div>
+}
 
 <!-- ======================================================== -->
 <!-- 3. KẾT LUẬN & KIẾN NGHỊ CẬP NHẬT THUẬT TOÁN (COPY TO CHAT)-->
 <!-- ======================================================== -->
-<div class="card shadow rounded-4 border-0 mb-5 overflow-hidden" *ngIf="tuningReport"
-     style="border: 2px solid #2563eb !important; background: #ffffff;">
-  <div class="card-header p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3"
-       style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);">
-    <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="fs-4">📋</span>
-        <h4 class="fw-bold mb-0 text-white">Kết Luận Chẩn Đoán & Kiến Nghị Cập Nhật Thuật Toán</h4>
+@if (tuningReport) {
+  <div
+    class="card shadow rounded-4 border-0 mb-5 overflow-hidden"
+    style="border: 2px solid #2563eb !important; background: #ffffff"
+  >
+    <div
+      class="card-header p-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-3"
+      style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)"
+    >
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="fs-4">📋</span>
+          <h4 class="fw-bold mb-0 text-white">
+            Kết Luận Chẩn Đoán & Kiến Nghị Cập Nhật Thuật Toán
+          </h4>
+        </div>
+        <p class="text-blue-100 mb-0 small opacity-75">
+          Báo cáo tổng hợp sai số & tham số đề xuất tối ưu hóa mô hình AI để bạn copy và tinh chỉnh
+          trọng số.
+        </p>
       </div>
-      <p class="text-blue-100 mb-0 small opacity-75">
-        Báo cáo tổng hợp sai số & tham số đề xuất tối ưu hóa mô hình AI để bạn copy và tinh chỉnh trọng số.
-      </p>
+      <!-- Nút Copy chính -->
+      <div class="d-flex align-items-center gap-2">
+        <button
+          class="btn btn-warning btn-lg fw-bold px-4 py-2 rounded-pill text-dark shadow d-flex align-items-center gap-2"
+          (click)="copyConclusion()"
+        >
+          <span>{{
+            copiedSuccess ? '✅ Đã Sao Chép Báo Cáo!' : '📋 Copy Kết Luận & Cập Nhật Thuật Toán'
+          }}</span>
+        </button>
+      </div>
     </div>
-
-    <!-- Nút Copy chính -->
-    <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-warning btn-lg fw-bold px-4 py-2 rounded-pill text-dark shadow d-flex align-items-center gap-2"
-              (click)="copyConclusion()">
-        <span>{{ copiedSuccess ? '✅ Đã Sao Chép Báo Cáo!' : '📋 Copy Kết Luận & Cập Nhật Thuật Toán' }}</span>
-      </button>
+    <div class="card-body p-4">
+      <!-- Banner thông báo copy thành công -->
+      @if (copiedSuccess) {
+        <div
+          class="alert alert-success d-flex align-items-center gap-2 py-2 px-3 mb-4 rounded-3 shadow-sm"
+        >
+          <span class="fs-5">🎉</span>
+          <span class="fw-bold"
+            >Đã sao chép toàn bộ kết luận và cấu hình tham số JSON vào bộ nhớ tạm (Clipboard)! Bạn
+            có thể dán (Paste) để cập nhật thuật toán ngay.</span
+          >
+        </div>
+      }
+      <!-- 4 Khối Chỉ số Hiệu Suất Tổng Quan -->
+      <div class="row g-3 mb-4 text-center">
+        <div class="col-md-3 col-6">
+          <div
+            class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center"
+          >
+            <div class="text-muted small fw-semibold">Tỉ lệ khớp trúng bóng</div>
+            <div
+              class="fs-3 fw-bold"
+              [ngClass]="tuningReport.hitRatePercent >= 30 ? 'text-success' : 'text-danger'"
+            >
+              {{ tuningReport.hitRatePercent }}%
+            </div>
+            <small class="text-secondary">
+              <strong
+                >{{ tuningReport.totalMatched }}/{{
+                  tuningReport.officialWinningCount || 6
+                }}</strong
+              >
+              bóng trúng duy nhất
+            </small>
+            @if (tuningReport.uniqueMatchedNumbers.length > 0) {
+              <div class="small text-success mt-1 fw-bold" style="font-size: 0.75rem">
+                Khớp: [ {{ tuningReport.uniqueMatchedNumbers.join(', ') }} ]
+              </div>
+            }
+            @if (tuningReport.duplicateMatchedCount > tuningReport.totalMatched) {
+              <div class="text-danger mt-1 fw-semibold" style="font-size: 0.7rem">
+                ⚠️ Đã lọc trùng: {{ tuningReport.duplicateMatchedCount }} lượt trúng &rarr; Giữ
+                {{ tuningReport.totalMatched }} số trúng độc nhất
+              </div>
+            }
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div
+            class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center"
+          >
+            <div class="text-muted small fw-semibold">Xếp hạng TB số trượt</div>
+            <div class="fs-3 fw-bold text-warning">
+              #{{ formatMetric(tuningReport.averageRank) }}
+            </div>
+            <small class="text-secondary">Trên tổng {{ category === 'POWER' ? 55 : 45 }} số</small>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div
+            class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center"
+          >
+            <div class="text-muted small fw-semibold">Tổng số vé đối soát</div>
+            <div class="fs-3 fw-bold text-primary">{{ tuningReport.totalTickets }} vé</div>
+            <small class="text-secondary"
+              >{{ tuningReport.uniqueUserNumbersCount }} bóng độc nhất đã chọn</small
+            >
+            <div class="text-muted" style="font-size: 0.7rem">
+              {{ tuningReport.totalMissed }} bóng trượt
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div
+            class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center"
+          >
+            <div class="text-muted small fw-semibold">Dãy trúng kỳ này</div>
+            <div class="fs-5 fw-bold text-dark text-truncate mt-1">
+              {{ analysisData?.oddEvenRatio || 'Cân bằng' }}
+            </div>
+            <small class="text-secondary">Tổng = {{ analysisData?.sum }}</small>
+          </div>
+        </div>
+      </div>
+      <!-- Chi tiết chẩn đoán nguyên nhân -->
+      <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+          <div class="p-3 rounded-3 border bg-light h-100">
+            <h6 class="fw-bold text-danger mb-3 d-flex align-items-center gap-2">
+              <span>🚨</span> Chẩn Đoán Nguyên Nhân Lệch Số:
+            </h6>
+            <ul class="list-unstyled mb-0">
+              @for (diag of tuningReport.keyDiagnoses; track diag) {
+                <li class="mb-2 d-flex align-items-start gap-2">
+                  <span class="text-danger mt-1">●</span>
+                  <span class="small text-dark" style="line-height: 1.5">{{ diag }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="p-3 rounded-3 border bg-light h-100">
+            <h6 class="fw-bold text-success mb-3 d-flex align-items-center gap-2">
+              <span>💡</span> Khuyến Nghị Điều Chỉnh Thuật Toán Kỳ Tới:
+            </h6>
+            <ul class="list-unstyled mb-0">
+              @for (rec of tuningReport.tuningRecommendations; track rec) {
+                <li class="mb-2 d-flex align-items-start gap-2">
+                  <span class="text-success mt-1">✔</span>
+                  <span class="small text-dark" style="line-height: 1.5">{{ rec }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- Khối Code JSON tham số thuật toán -->
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <span class="fw-bold text-dark small">⚙️ Cấu hình đang lưu và kết quả đối soát:</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button
+              class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill fw-bold"
+              (click)="copyConclusion()"
+            >
+              {{ copiedSuccess ? '✅ Đã Copy' : '📋 Copy JSON' }}
+            </button>
+            <button
+              class="btn btn-sm btn-success py-1 px-3 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-1"
+              (click)="updateAlgorithmAndSaveTable()"
+              [disabled]="isUpdatingAlgorithm || !currentParameters"
+            >
+              @if (isUpdatingAlgorithm) {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+              }
+              <span>{{
+                isUpdatingAlgorithm ? 'Đang lưu vào bảng...' : 'Lưu cấu hình kèm kết quả đối soát'
+              }}</span>
+            </button>
+          </div>
+        </div>
+        <div class="position-relative">
+          <pre
+            class="p-3 rounded-3 text-success font-monospace mb-0 overflow-auto"
+            style="
+              background-color: #0f172a;
+              max-height: 280px;
+              font-size: 0.85rem;
+              border: 1px solid #334155;
+            "
+            >{{ tuningReport.hyperparametersJson }}</pre>
+        </div>
+      </div>
+      <!-- Thông báo kết quả cập nhật thuật toán -->
+      @if (algorithmUpdateMessage) {
+        <div
+          class="alert alert-success border-0 shadow-sm rounded-3 py-2 px-3 mb-3 d-flex align-items-center justify-content-between"
+        >
+          <div class="d-flex align-items-center gap-2 small fw-bold">
+            <span>🎉</span>
+            <span>{{ algorithmUpdateMessage }}</span>
+          </div>
+          <button
+            type="button"
+            class="btn-close btn-sm"
+            (click)="algorithmUpdateMessage = null"
+          ></button>
+        </div>
+      }
+      <!-- Nút Copy phía dưới cùng -->
+      <div class="text-center pt-2 pb-3">
+        <button
+          class="btn btn-primary btn-lg fw-bold px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2"
+          (click)="copyConclusion()"
+        >
+          <span class="fs-5">📋</span>
+          <span>{{
+            copiedSuccess
+              ? '✅ Đã Sao Chép Toàn Bộ Báo Cáo!'
+              : 'Copy Toàn Bộ Báo Cáo & Khuyến Nghị Thuật Toán'
+          }}</span>
+        </button>
+        <div class="text-muted small mt-2">
+          Văn bản đã định dạng chuẩn Markdown sẵn sàng để gửi vào cuộc trò chuyện hoặc dán vào hệ
+          thống huấn luyện mô hình.
+        </div>
+      </div>
+      <!-- ========================================================================= -->
+      <!-- BẢNG LƯU TRỮ SIÊU THAM SỐ THUẬT TOÁN (ALGORITHM HYPERPARAMETERS TABLE) -->
+      <!-- ========================================================================= -->
+      <app-hyperparameter-history
+        [hyperparameterHistory]="hyperparameterHistory"
+        [isLoadingHyperparameters]="isLoadingHyperparameters"
+        (reload)="loadHyperparameters()"
+        (activate)="activateHyperparameter($event)"
+      />
+      <!-- MODAL XEM CHI TIẾT JSON & README CỦA PHIÊN BẢN ĐÃ CHỌN -->
     </div>
   </div>
+}
 
-  <div class="card-body p-4">
-    <!-- Banner thông báo copy thành công -->
-    <div *ngIf="copiedSuccess" class="alert alert-success d-flex align-items-center gap-2 py-2 px-3 mb-4 rounded-3 shadow-sm">
-      <span class="fs-5">🎉</span>
-      <span class="fw-bold">Đã sao chép toàn bộ kết luận và cấu hình tham số JSON vào bộ nhớ tạm (Clipboard)! Bạn có thể dán (Paste) để cập nhật thuật toán ngay.</span>
-    </div>
-
-    <!-- 4 Khối Chỉ số Hiệu Suất Tổng Quan -->
-    <div class="row g-3 mb-4 text-center">
-      <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
-          <div class="text-muted small fw-semibold">Tỉ lệ khớp trúng bóng</div>
-          <div class="fs-3 fw-bold" [ngClass]="tuningReport.hitRatePercent >= 30 ? 'text-success' : 'text-danger'">
-            {{ tuningReport.hitRatePercent }}%
-          </div>
-          <small class="text-secondary">
-            <strong>{{ tuningReport.totalMatched }}/{{ tuningReport.officialWinningCount || 6 }}</strong> bóng trúng duy nhất
-          </small>
-          <div *ngIf="tuningReport.uniqueMatchedNumbers?.length > 0" class="small text-success mt-1 fw-bold" style="font-size: 0.75rem;">
-            Khớp: [ {{ tuningReport.uniqueMatchedNumbers.join(', ') }} ]
-          </div>
-          <div *ngIf="tuningReport.duplicateMatchedCount > tuningReport.totalMatched" class="text-danger mt-1 fw-semibold" style="font-size: 0.7rem;">
-            ⚠️ Đã lọc trùng: {{ tuningReport.duplicateMatchedCount }} lượt trúng &rarr; Giữ {{ tuningReport.totalMatched }} số trúng độc nhất
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
-          <div class="text-muted small fw-semibold">Xếp hạng TB số trượt</div>
-          <div class="fs-3 fw-bold text-warning">
-            #{{ formatMetric(tuningReport.averageRank) }}
-          </div>
-          <small class="text-secondary">Trên tổng {{ category === 'POWER' ? 55 : 45 }} số</small>
-        </div>
-      </div>
-      <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
-          <div class="text-muted small fw-semibold">Tổng số vé đối soát</div>
-          <div class="fs-3 fw-bold text-primary">
-            {{ tuningReport.totalTickets }} vé
-          </div>
-          <small class="text-secondary">{{ tuningReport.uniqueUserNumbersCount }} bóng độc nhất đã chọn</small>
-          <div class="text-muted" style="font-size: 0.7rem;">{{ tuningReport.totalMissed }} bóng trượt</div>
-        </div>
-      </div>
-      <div class="col-md-3 col-6">
-        <div class="p-3 rounded-3 bg-light border h-100 d-flex flex-column justify-content-center">
-          <div class="text-muted small fw-semibold">Dãy trúng kỳ này</div>
-          <div class="fs-5 fw-bold text-dark text-truncate mt-1">
-            {{ analysisData?.oddEvenRatio || 'Cân bằng' }}
-          </div>
-          <small class="text-secondary">Tổng = {{ analysisData?.sum }}</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chi tiết chẩn đoán nguyên nhân -->
-    <div class="row g-4 mb-4">
-      <div class="col-lg-6">
-        <div class="p-3 rounded-3 border bg-light h-100">
-          <h6 class="fw-bold text-danger mb-3 d-flex align-items-center gap-2">
-            <span>🚨</span> Chẩn Đoán Nguyên Nhân Lệch Số:
-          </h6>
-          <ul class="list-unstyled mb-0">
-            <li *ngFor="let diag of tuningReport.keyDiagnoses" class="mb-2 d-flex align-items-start gap-2">
-              <span class="text-danger mt-1">●</span>
-              <span class="small text-dark" style="line-height: 1.5;">{{ diag }}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="col-lg-6">
-        <div class="p-3 rounded-3 border bg-light h-100">
-          <h6 class="fw-bold text-success mb-3 d-flex align-items-center gap-2">
-            <span>💡</span> Khuyến Nghị Điều Chỉnh Thuật Toán Kỳ Tới:
-          </h6>
-          <ul class="list-unstyled mb-0">
-            <li *ngFor="let rec of tuningReport.tuningRecommendations" class="mb-2 d-flex align-items-start gap-2">
-              <span class="text-success mt-1">✔</span>
-              <span class="small text-dark" style="line-height: 1.5;">{{ rec }}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Khối Code JSON tham số thuật toán -->
-    <div class="mb-3">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-        <span class="fw-bold text-dark small">⚙️ Cấu hình đang lưu và kết quả đối soát:</span>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <button class="btn btn-sm btn-outline-secondary py-1 px-3 rounded-pill fw-bold" (click)="copyConclusion()">
-            {{ copiedSuccess ? '✅ Đã Copy' : '📋 Copy JSON' }}
-          </button>
-          <button class="btn btn-sm btn-success py-1 px-3 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-1"
-                  (click)="updateAlgorithmAndSaveTable()"
-                  [disabled]="isUpdatingAlgorithm || !currentParameters">
-            <span *ngIf="isUpdatingAlgorithm" class="spinner-border spinner-border-sm me-1" role="status"></span>
-            <span>{{ isUpdatingAlgorithm ? 'Đang lưu vào bảng...' : 'Lưu cấu hình kèm kết quả đối soát' }}</span>
-          </button>
-        </div>
-      </div>
-      <div class="position-relative">
-        <pre class="p-3 rounded-3 text-success font-monospace mb-0 overflow-auto"
-             style="background-color: #0f172a; max-height: 280px; font-size: 0.85rem; border: 1px solid #334155;">{{ tuningReport.hyperparametersJson }}</pre>
-      </div>
-    </div>
-
-    <!-- Thông báo kết quả cập nhật thuật toán -->
-    <div *ngIf="algorithmUpdateMessage" class="alert alert-success border-0 shadow-sm rounded-3 py-2 px-3 mb-3 d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-2 small fw-bold">
-        <span>🎉</span>
-        <span>{{ algorithmUpdateMessage }}</span>
-      </div>
-      <button type="button" class="btn-close btn-sm" (click)="algorithmUpdateMessage = null"></button>
-    </div>
-
-    <!-- Nút Copy phía dưới cùng -->
-    <div class="text-center pt-2 pb-3">
-      <button class="btn btn-primary btn-lg fw-bold px-5 py-3 rounded-pill shadow d-inline-flex align-items-center gap-2"
-              (click)="copyConclusion()">
-        <span class="fs-5">📋</span>
-        <span>{{ copiedSuccess ? '✅ Đã Sao Chép Toàn Bộ Báo Cáo!' : 'Copy Toàn Bộ Báo Cáo & Khuyến Nghị Thuật Toán' }}</span>
-      </button>
-      <div class="text-muted small mt-2">
-        Văn bản đã định dạng chuẩn Markdown sẵn sàng để gửi vào cuộc trò chuyện hoặc dán vào hệ thống huấn luyện mô hình.
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- BẢNG LƯU TRỮ SIÊU THAM SỐ THUẬT TOÁN (ALGORITHM HYPERPARAMETERS TABLE) -->
-    <!-- ========================================================================= -->
-    <div class="card border-0 shadow-sm rounded-4 mt-3 bg-white overflow-hidden">
-      <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-2">
-          <span class="fs-5">📊</span>
-          <div>
-            <h6 class="mb-0 fw-bold text-white">Bảng Quản Lý Siêu Tham Số Thuật Toán (Hyperparameters Table)</h6>
-            <div class="text-light small opacity-75" style="font-size: 0.75rem;">
-              Lưu trữ mọi lần cập nhật thuật toán kèm Ngày (Date), Phiên bản (Version) & Cấu hình JSON đối chuẩn US Powerball/Mega Millions
-            </div>
-          </div>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <span class="badge bg-primary px-3 py-2 rounded-pill">
-            {{ hyperparameterHistory.length }} Phiên bản đã lưu
-          </span>
-          <button class="btn btn-sm btn-outline-light py-1 px-2 rounded-pill" (click)="loadHyperparameters()" title="Tải lại">
-            🔄
-          </button>
-        </div>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-3 py-3" style="width: 10%;">Phiên bản</th>
-              <th style="width: 10%;">Kỳ quay</th>
-              <th style="width: 8%;">Loại vé</th>
-              <th style="width: 20%;">Mô hình AI</th>
-              <th style="width: 18%;">Tài liệu README</th>
-              <th style="width: 13%;">Thời điểm lưu</th>
-              <th style="width: 12%;">Ghi chú</th>
-              <th class="text-center pe-3" style="width: 9%;">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="isLoadingHyperparameters">
-              <td colspan="8" class="text-center py-4 text-muted">
-                <span class="spinner-border spinner-border-sm me-2 text-primary" role="status"></span>
-                Đang tải dữ liệu bảng siêu tham số...
-              </td>
-            </tr>
-            <tr *ngIf="!isLoadingHyperparameters && hyperparameterHistory.length === 0">
-              <td colspan="8" class="text-center py-4 text-muted">
-                Chưa có phiên bản nào trong bảng. Hãy bấm "Cập Nhật Thuật Toán & Lưu Vào Bảng" ở trên.
-              </td>
-            </tr>
-            <tr *ngFor="let item of hyperparameterHistory; let idx = index" [class.table-active]="idx === 0">
-              <td class="ps-3 py-2">
-                <div class="d-flex align-items-center gap-1">
-                  <span class="badge bg-dark fw-bold">{{ item.version }}</span>
-                  <span *ngIf="idx === 0" class="badge bg-success" style="font-size: 0.65rem;">Đang dùng</span>
-                </div>
-              </td>
-              <td>
-                <span class="font-monospace fw-semibold">{{ item.drawDate }}</span>
-              </td>
-              <td>
-                <span class="badge" [ngClass]="item.category === 'POWER' ? 'bg-primary' : (item.category === 'MEGA' ? 'bg-danger' : 'bg-secondary')">
-                  {{ item.category }}
-                </span>
-              </td>
-              <td>
-                <div class="fw-semibold text-truncate" style="max-width: 200px;" [title]="item.model">
-                  {{ item.model || 'XGBoost Multi-Factor Optimization' }}
-                </div>
-              </td>
-              <td>
-                <div class="d-flex align-items-center gap-1">
-                  <button class="btn btn-sm btn-outline-info py-0 px-2 rounded-pill fw-bold"
-                          style="font-size: 0.72rem;"
-                          (click)="viewHyperparameterJson(item, 'readme')"
-                          title="Xem nội dung tài liệu README">
-                    📖 README
-                  </button>
-                  <span class="text-muted small text-truncate" style="max-width: 120px;" [title]="item.readmeContent || 'Tài liệu mô hình'">
-                    {{ (item.readmeContent || item.note || '').slice(0, 25) }}...
-                  </span>
-                </div>
-              </td>
-              <td class="text-muted small">
-                {{ item.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}
-              </td>
-              <td class="small text-truncate" style="max-width: 150px;" [title]="item.note">
-                {{ item.note || '-' }}
-              </td>
-              <td class="text-center pe-3">
-                <div class="d-flex justify-content-center gap-1">
-                  <button class="btn btn-sm btn-outline-primary py-0 px-2 rounded"
-                          (click)="viewHyperparameterJson(item, 'json')"
-                          title="Xem chi tiết JSON">
-                    ⚙️ JSON
-                  </button>
-                  <button *ngIf="idx !== 0"
-                          class="btn btn-sm btn-outline-success py-0 px-2 rounded"
-                          (click)="activateHyperparameter(item.id)"
-                          title="Kích hoạt lại phiên bản này">
-                    ⚡ Dùng
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- MODAL XEM CHI TIẾT JSON & README CỦA PHIÊN BẢN ĐÃ CHỌN -->
-    <div *ngIf="selectedHyperparameterForView"
-         class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-         style="background-color: rgba(0, 0, 0, 0.65); z-index: 1060;">
-      <div class="card shadow-lg border-0 rounded-4 w-75 overflow-hidden" style="max-width: 800px; max-height: 88vh;">
-        <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary fs-6">{{ selectedHyperparameterForView.version }}</span>
-            <span class="fw-bold">Chi Tiết Phiên Bản Siêu Tham Số (Kỳ: {{ selectedHyperparameterForView.drawDate }} - {{ selectedHyperparameterForView.category }})</span>
-          </div>
-          <button type="button" class="btn-close btn-close-white" (click)="closeHyperparameterModal()"></button>
-        </div>
-
-        <!-- TABS CHỌN GIỮA JSON VÀ README -->
-        <div class="bg-light border-bottom px-3 pt-2 d-flex gap-2">
-          <button class="btn btn-sm py-2 px-3 fw-bold border-bottom-0 rounded-top"
-                  [ngClass]="activeModalTab === 'json' ? 'btn-primary text-white' : 'btn-outline-secondary bg-white'"
-                  (click)="activeModalTab = 'json'">
-            ⚙️ JSON Siêu Tham Số
-          </button>
-          <button class="btn btn-sm py-2 px-3 fw-bold border-bottom-0 rounded-top"
-                  [ngClass]="activeModalTab === 'readme' ? 'btn-primary text-white' : 'btn-outline-secondary bg-white'"
-                  (click)="activeModalTab = 'readme'">
-            📖 Nội Dung README / Tài Liệu Mô Hình
-          </button>
-        </div>
-
-        <div class="card-body p-3 overflow-auto" style="max-height: calc(88vh - 170px);">
-          <div class="small text-muted mb-3 p-2 bg-light rounded border">
-            <div><strong>Mô hình AI:</strong> {{ selectedHyperparameterForView.model }}</div>
-            <div><strong>Ghi chú:</strong> {{ selectedHyperparameterForView.note || 'Không có ghi chú' }}</div>
-            <div><strong>Thời điểm lưu:</strong> {{ selectedHyperparameterForView.createdAt | date:'HH:mm:ss dd/MM/yyyy' }}</div>
-          </div>
-
-          <!-- TAB JSON -->
-          <div *ngIf="activeModalTab === 'json'">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="small fw-bold text-secondary">Mã cấu hình JSON:</span>
-            </div>
-            <pre class="p-3 rounded-3 text-success font-monospace mb-0"
-                 style="background-color: #0f172a; font-size: 0.82rem; border: 1px solid #334155; white-space: pre-wrap;">{{ selectedHyperparameterForView.hyperparametersJson || (selectedHyperparameterForView.hyperparameters | json) }}</pre>
-          </div>
-
-          <!-- TAB README -->
-          <div *ngIf="activeModalTab === 'readme'">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="small fw-bold text-secondary">Nội dung tệp README / Tài liệu thuyết minh thuật toán:</span>
-            </div>
-            <pre class="p-3 rounded-3 text-light font-monospace mb-0"
-                 style="background-color: #1e293b; font-size: 0.84rem; border: 1px solid #475569; white-space: pre-wrap; line-height: 1.6;">{{ selectedHyperparameterForView.readmeContent || 'Chưa có nội dung README cho phiên bản này.' }}</pre>
-          </div>
-        </div>
-
-        <div class="card-footer bg-light p-2 px-3 d-flex justify-content-end gap-2">
-          <button class="btn btn-secondary btn-sm rounded-pill px-4" (click)="closeHyperparameterModal()">Đóng</button>
-        </div>
-      </div>
-    </div>
+@if (analysisData?.selectionReasons) {
+  <div class="mt-4 mb-3">
+    <h4 class="fw-bold text-dark mb-1">🎯 Chi Tiết Kỹ Thuật 6 Quả Banh Mở Thưởng Kỳ Này</h4>
+    <p class="text-muted small mb-3">
+      Đối soát các tham số thuật toán AI đã ghi nhận cho các quả banh trúng thưởng trong kỳ quay
+      ngày {{ analysisData?.drawDate }}
+    </p>
   </div>
-</div>
-
-<div class="mt-4 mb-3" *ngIf="analysisData?.selectionReasons">
-  <h4 class="fw-bold text-dark mb-1">
-    🎯 Chi Tiết Kỹ Thuật 6 Quả Banh Mở Thưởng Kỳ Này
-  </h4>
-  <p class="text-muted small mb-3">
-    Đối soát các tham số thuật toán AI đã ghi nhận cho các quả banh trúng thưởng trong kỳ quay ngày {{ analysisData?.drawDate }}
-  </p>
-</div>
+}
 
 <!-- LƯỚI PHÂN TÍCH KỸ THUẬT TỪNG QUẢ BANH (Dựa trên ảnh của bạn) -->
-<div class="row g-4 mt-2 mb-5" *ngIf="analysisData?.selectionReasons">
-  <div class="col-lg-4 col-md-6" *ngFor="let item of analysisData.selectionReasons">
-    <div class="card card-analysis h-100 bg-white shadow-sm">
-      <div class="card-body p-4 d-flex flex-column">
-        
-        <!-- Header Card: Bóng số & Xếp hạng -->
-        <div class="d-flex justify-content-between align-items-start mb-3 border-bottom pb-3">
-          <div class="d-flex align-items-center gap-3">
-            <div class="ball-drawn text-white shadow-sm" [ngClass]="category === 'MEGA' ? 'ball-mega-style' : 'ball-power-style'">
-              {{ item.number < 10 ? '0' + item.number : item.number }}
+@if (analysisData?.selectionReasons) {
+  <div class="row g-4 mt-2 mb-5">
+    @for (item of analysisData.selectionReasons; track item) {
+      <div class="col-lg-4 col-md-6">
+        <div class="card card-analysis h-100 bg-white shadow-sm">
+          <div class="card-body p-4 d-flex flex-column">
+            <!-- Header Card: Bóng số & Xếp hạng -->
+            <div class="d-flex justify-content-between align-items-start mb-3 border-bottom pb-3">
+              <div class="d-flex align-items-center gap-3">
+                <div
+                  class="ball-drawn text-white shadow-sm"
+                  [ngClass]="category === 'MEGA' ? 'ball-mega-style' : 'ball-power-style'"
+                >
+                  {{ item.number < 10 ? '0' + item.number : item.number }}
+                </div>
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">
+                    Quả Banh {{ item.number < 10 ? '0' + item.number : item.number }}
+                  </h6>
+                  <span class="badge bg-secondary text-white" style="font-size: 0.7rem"
+                    ><i class="bi bi-bullseye"></i> Số Mở Thưởng</span
+                  >
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="fs-3 fw-bold text-primary" style="line-height: 1">
+                  {{ formatMetric(item.probabilityPercent, '%') }}
+                </div>
+                <div class="badge bg-light text-dark border mt-1">
+                  Hạng #{{ formatMetric(item.rank) }}/{{ category === 'MEGA' ? 45 : 55 }}
+                </div>
+              </div>
             </div>
-            <div>
-              <h6 class="fw-bold text-dark mb-1">Quả Banh {{ item.number < 10 ? '0' + item.number : item.number }}</h6>
-              <span class="badge bg-secondary text-white" style="font-size: 0.7rem;"><i class="bi bi-bullseye"></i> Số Mở Thưởng</span>
+            <!-- Tag & Tiêu đề -->
+            <div class="mb-4">
+              <span
+                class="badge border text-dark mb-2 px-2 py-1 fw-bold"
+                style="background-color: #f8f9fa"
+                >{{ item.tag }}</span
+              >
+              <h6 class="fw-bold text-dark" style="font-size: 0.95rem">{{ item.title }}</h6>
+            </div>
+            <!-- Thống kê 3 Cột (Đã về, Chu kỳ, Quán tính) -->
+            <div class="row text-center mb-4 g-2">
+              <div class="col-4">
+                <div class="text-muted" style="font-size: 0.75rem">Đã về</div>
+                <div class="fw-bold fs-5 text-dark">{{ formatMetric(item.frequency) }} lần</div>
+              </div>
+              <div class="col-4 border-start border-end">
+                <div class="text-muted" style="font-size: 0.75rem">Chu kỳ Gan</div>
+                <div class="fw-bold fs-5 text-success">{{ formatMetric(item.drawGap) }} kỳ</div>
+              </div>
+              <div class="col-4">
+                <div class="text-muted" style="font-size: 0.75rem">Quán tính</div>
+                <div class="fw-bold fs-5 text-primary">{{ formatMetric(item.momentum) }}</div>
+              </div>
+            </div>
+            <!-- Chỉ số Thuật toán (Markov, Poisson, Đồng hành) -->
+            <div
+              class="d-flex justify-content-between text-muted fw-bold mb-3 border-bottom pb-3"
+              style="font-size: 0.75rem"
+            >
+              <span>Markov: {{ formatMetric(item.markov, '%') }}</span>
+              <span>Poisson: {{ formatMetric(item.poisson, '%') }}</span>
+              <span>Đồng hành: {{ formatMetric(item.companion, '%') }}</span>
+            </div>
+            <!-- Nội dung lý do -->
+            <p class="text-secondary mb-4" style="font-size: 0.85rem; line-height: 1.6">
+              {{ item.reason }}
+            </p>
+            <!-- Footer Card -->
+            <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+              <a
+                href="javascript:void(0)"
+                class="text-decoration-none fw-bold text-primary"
+                style="font-size: 0.85rem"
+                >🔍 Nhấn để xem lịch sử 6 số &rarr;</a
+              >
+              <span class="text-muted" style="font-size: 0.8rem"
+                >Cặp: [{{ item.pairedNumbers }}]</span
+              >
             </div>
           </div>
-          <div class="text-end">
-            <div class="fs-3 fw-bold text-primary" style="line-height: 1;">{{ formatMetric(item.probabilityPercent, '%') }}</div>
-            <div class="badge bg-light text-dark border mt-1">Hạng #{{ formatMetric(item.rank) }}/{{ category === 'MEGA' ? 45 : 55 }}</div>
-          </div>
         </div>
-
-        <!-- Tag & Tiêu đề -->
-        <div class="mb-4">
-          <span class="badge border text-dark mb-2 px-2 py-1 fw-bold" style="background-color: #f8f9fa;">{{ item.tag }}</span>
-          <h6 class="fw-bold text-dark" style="font-size: 0.95rem;">{{ item.title }}</h6>
-        </div>
-
-        <!-- Thống kê 3 Cột (Đã về, Chu kỳ, Quán tính) -->
-        <div class="row text-center mb-4 g-2">
-          <div class="col-4">
-            <div class="text-muted" style="font-size: 0.75rem;">Đã về</div>
-            <div class="fw-bold fs-5 text-dark">{{ formatMetric(item.frequency) }} lần</div>
-          </div>
-          <div class="col-4 border-start border-end">
-            <div class="text-muted" style="font-size: 0.75rem;">Chu kỳ Gan</div>
-            <div class="fw-bold fs-5 text-success">{{ formatMetric(item.drawGap) }} kỳ</div>
-          </div>
-          <div class="col-4">
-            <div class="text-muted" style="font-size: 0.75rem;">Quán tính</div>
-            <div class="fw-bold fs-5 text-primary">{{ formatMetric(item.momentum) }}</div>
-          </div>
-        </div>
-
-        <!-- Chỉ số Thuật toán (Markov, Poisson, Đồng hành) -->
-        <div class="d-flex justify-content-between text-muted fw-bold mb-3 border-bottom pb-3" style="font-size: 0.75rem;">
-          <span>Markov: {{ formatMetric(item.markov, '%') }}</span>
-          <span>Poisson: {{ formatMetric(item.poisson, '%') }}</span>
-          <span>Đồng hành: {{ formatMetric(item.companion, '%') }}</span>
-        </div>
-
-        <!-- Nội dung lý do -->
-        <p class="text-secondary mb-4" style="font-size: 0.85rem; line-height: 1.6;">
-          {{ item.reason }}
-        </p>
-
-        <!-- Footer Card -->
-        <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
-          <a href="javascript:void(0)" class="text-decoration-none fw-bold text-primary" style="font-size: 0.85rem;">🔍 Nhấn để xem lịch sử 6 số &rarr;</a>
-          <span class="text-muted" style="font-size: 0.8rem;">Cặp: [{{ item.pairedNumbers }}]</span>
-        </div>
-
       </div>
-    </div>
+    }
   </div>
-</div>
+}

@@ -1,60 +1,203 @@
 <section class="lab">
   <header class="lab-header">
-    <div><span class="eyebrow">THỬ NGHIỆM TRƯỚC KHI ÁP DỤNG</span><h1>Phòng thử nghiệm AI</h1>
-      <p>Mỗi mô hình chốt 5 dãy sáu số cho mỗi kỳ. Tự đối soát khi có kết quả hợp lệ; giữ nguyên bản đã lưu.</p></div>
+    <div>
+      <span class="eyebrow">THỬ NGHIỆM TRƯỚC KHI ÁP DỤNG</span>
+      <h1>Phòng thử nghiệm AI</h1>
+      <p>
+        Mỗi mô hình chốt 5 dãy sáu số cho mỗi kỳ. Tự đối soát khi có kết quả hợp lệ; giữ nguyên bản
+        đã lưu.
+      </p>
+    </div>
     <div class="actions">
-      <button class="btn" [class.btn-primary]="category === 'MEGA'" [disabled]="mutating" (click)="select('MEGA')">MEGA 6/45</button>
-      <button class="btn" [class.btn-primary]="category === 'POWER'" [disabled]="mutating" (click)="select('POWER')">POWER 6/55</button>
+      <button
+        class="btn"
+        [class.btn-primary]="category() === 'MEGA'"
+        [disabled]="mutating()"
+        (click)="select('MEGA')"
+      >
+        MEGA 6/45
+      </button>
+      <button
+        class="btn"
+        [class.btn-primary]="category() === 'POWER'"
+        [disabled]="mutating()"
+        (click)="select('POWER')"
+      >
+        POWER 6/55
+      </button>
     </div>
   </header>
   <div class="protocol">
     <strong>Theo dõi dài hạn, so sánh cùng số vé</strong>
-    <p>Ngưỡng sàng lọc ban đầu: ít nhất 60 kỳ liên tiếp đã đối soát; mỗi nhóm 30 kỳ gần nhất có từ 50% kỳ đạt ít nhất một vé khớp ≥3 số, và cận dưới khoảng chênh lệch ghép cặp 95% xấp xỉ lớn hơn 0 với cả hai đối chứng.</p>
-    <p>Đây là tiêu chí thử nghiệm, chưa chứng minh lợi thế. Mô hình đạt ngưỡng chỉ được đánh dấu ứng viên để xác nhận trên các kỳ tương lai mới; không tự thay thuật toán đang dùng. Nhiều vé làm tăng khả năng có vé đạt, vì vậy đối chứng cũng có 5 vé/kỳ.</p>
-    <small>Chốt trước 18:00, nhận kết quả từ 18:30 giờ Việt Nam. Tự chạy mỗi phút khi backend hoạt động; trang cập nhật mỗi phút. Chỉ tính sáu số chính.</small>
+    <p>
+      Ngưỡng sàng lọc ban đầu: ít nhất 60 kỳ liên tiếp đã đối soát; mỗi nhóm 30 kỳ gần nhất có từ
+      50% kỳ đạt ít nhất một vé khớp ≥3 số, và cận dưới khoảng chênh lệch ghép cặp 95% xấp xỉ lớn
+      hơn 0 với cả hai đối chứng.
+    </p>
+    <p>
+      Đây là tiêu chí thử nghiệm, chưa chứng minh lợi thế. Mô hình đạt ngưỡng chỉ được đánh dấu ứng
+      viên để xác nhận trên các kỳ tương lai mới; không tự thay thuật toán đang dùng. Nhiều vé làm
+      tăng khả năng có vé đạt, vì vậy đối chứng cũng có 5 vé/kỳ.
+    </p>
+    <small
+      >Chốt trước 18:00, nhận kết quả từ 19:00 giờ Việt Nam. Tự chạy mỗi phút khi backend hoạt động;
+      trang cập nhật mỗi phút. Chỉ tính sáu số chính.</small
+    >
   </div>
   <div class="actions my-3">
-    <button class="btn btn-primary" [disabled]="busy || mutating" (click)="run()">{{ mutating ? 'Đang xử lý…' : 'Chốt kỳ tiếp theo & đối soát' }}</button>
-    <button class="btn btn-outline-secondary" [disabled]="busy || mutating" (click)="load()">{{ busy ? 'Đang tải…' : 'Tải lại' }}</button>
+    <button class="btn btn-primary" [disabled]="busy() || mutating()" (click)="run()">
+      {{ mutating() ? 'Đang xử lý…' : 'Chốt kỳ tiếp theo & đối soát' }}
+    </button>
+    <button class="btn btn-outline-secondary" [disabled]="busy() || mutating()" (click)="load()">
+      {{ busy() ? 'Đang tải…' : 'Tải lại' }}
+    </button>
   </div>
-  <p *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</p>
-  <p *ngIf="message" class="alert alert-info" role="status">{{ message }}</p>
-  <ng-container *ngIf="data as lab">
-    <p *ngIf="!lab.enabled" class="alert alert-warning">Đang tắt tạo dự đoán mới. Các bản cũ vẫn được đối soát.</p>
+  @if (error()) {
+    <p class="alert alert-danger" role="alert">{{ error() }}</p>
+  }
+  @if (message()) {
+    <p class="alert alert-info" role="status">{{ message() }}</p>
+  }
+  @if (data(); as lab) {
+    @if (!lab.enabled) {
+      <p class="alert alert-warning">Đang tắt tạo dự đoán mới. Các bản cũ vẫn được đối soát.</p>
+    }
     <div class="run-status" aria-live="polite">
-      Lượt chạy gần nhất: {{ lab.lastRun.checkedAt ? (lab.lastRun.checkedAt | date:'dd/MM/yyyy HH:mm:ss':'+0700') : 'Chưa chạy' }} · {{ lab.lastRun.status }}
-      <p *ngIf="lab.lastRun.message">{{ lab.lastRun.message }}</p>
-      <p *ngFor="let outcome of lab.lastRun.outcomes">{{ outcome.category }} · {{ outcome.model || '' }} · {{ outcome.status }} <span *ngIf="outcome.message">— {{ outcome.message }}</span></p>
+      Lượt chạy gần nhất:
+      {{
+        lab.lastRun.checkedAt
+          ? (lab.lastRun.checkedAt | date: 'dd/MM/yyyy HH:mm:ss' : '+0700')
+          : 'Chưa chạy'
+      }}
+      · {{ lab.lastRun.status }}
+      @if (lab.lastRun.message) {
+        <p>{{ lab.lastRun.message }}</p>
+      }
+      @for (outcome of lab.lastRun.outcomes; track outcome) {
+        <p>
+          {{ outcome.category }} · {{ outcome.model || '' }} · {{ outcome.status }}
+          @if (outcome.message) {
+            <span>— {{ outcome.message }}</span>
+          }
+        </p>
+      }
     </div>
     <div class="cohorts">
-      <article class="model-card" *ngFor="let group of lab.groups">
-        <span class="badge" [class.bg-success]="group.status === 'VALIDATION_CANDIDATE'" [class.bg-secondary]="group.status !== 'VALIDATION_CANDIDATE'">{{ group.status === 'VALIDATION_CANDIDATE' ? 'Ứng viên cần xác nhận tiếp' : 'Đang thu thập bằng chứng' }}</span>
-        <h2>{{ name(group.model) }}</h2>
-        <p>{{ group.modelVersion }} · {{ group.evaluatedDraws }}/{{ group.savedDraws }} kỳ đã đối soát</p>
-        <dl>
-          <div><dt>Kỳ có vé khớp ≥3</dt><dd>{{ percent(group.drawHit3Percent) }}</dd></div>
-          <div><dt>Từng vé khớp ≥3</dt><dd>{{ percent(group.ticketHit3Percent) }}</dd></div>
-          <div><dt>Đối chứng tần suất · 5 vé</dt><dd>{{ percent(group.frequencyHit3Percent) }}</dd></div>
-          <div><dt>Đối chứng ngẫu nhiên · 5 vé</dt><dd>{{ percent(group.randomHit3Percent) }}</dd></div>
-          <div><dt>30 kỳ gần nhất</dt><dd>{{ percent(group.recent30Percent) }}</dd></div>
-          <div><dt>30 kỳ trước đó</dt><dd>{{ percent(group.previous30Percent) }}</dd></div>
-        </dl>
-        <small>Đủ 60 kỳ liên tiếp: {{ group.continuous60 ? 'Có' : 'Chưa' }}. Tách riêng từng phiên bản mã và cấu hình.</small>
-        <details><summary>Nhận diện nhóm đánh giá</summary><code>{{ group.cohort }}</code></details>
-      </article>
+      @for (group of lab.groups; track group.cohort) {
+        <article class="model-card">
+          <span
+            class="badge"
+            [class.bg-success]="group.status === 'VALIDATION_CANDIDATE'"
+            [class.bg-secondary]="group.status !== 'VALIDATION_CANDIDATE'"
+            >{{
+              group.status === 'VALIDATION_CANDIDATE'
+                ? 'Ứng viên cần xác nhận tiếp'
+                : 'Đang thu thập bằng chứng'
+            }}</span
+          >
+          <h2>{{ name(group.model) }}</h2>
+          <p>
+            {{ group.modelVersion }} · {{ group.evaluatedDraws }}/{{ group.savedDraws }} kỳ đã đối
+            soát
+          </p>
+          <dl>
+            <div>
+              <dt>Kỳ có vé khớp ≥3</dt>
+              <dd>{{ percent(group.drawHit3Percent) }}</dd>
+            </div>
+            <div>
+              <dt>Từng vé khớp ≥3</dt>
+              <dd>{{ percent(group.ticketHit3Percent) }}</dd>
+            </div>
+            <div>
+              <dt>Đối chứng tần suất · 5 vé</dt>
+              <dd>{{ percent(group.frequencyHit3Percent) }}</dd>
+            </div>
+            <div>
+              <dt>Đối chứng ngẫu nhiên · 5 vé</dt>
+              <dd>{{ percent(group.randomHit3Percent) }}</dd>
+            </div>
+            <div>
+              <dt>30 kỳ gần nhất</dt>
+              <dd>{{ percent(group.recent30Percent) }}</dd>
+            </div>
+            <div>
+              <dt>30 kỳ trước đó</dt>
+              <dd>{{ percent(group.previous30Percent) }}</dd>
+            </div>
+          </dl>
+          <small
+            >Đủ 60 kỳ liên tiếp: {{ group.continuous60 ? 'Có' : 'Chưa' }}. Tách riêng từng phiên bản
+            mã và cấu hình.</small
+          >
+          <details>
+            <summary>Nhận diện nhóm đánh giá</summary>
+            <code>{{ group.cohort }}</code>
+          </details>
+        </article>
+      }
     </div>
-    <div *ngIf="!lab.groups.length" class="empty">Chưa có dự đoán đã lưu cho {{ category }}. Hệ thống cần ít nhất 10 kỳ hợp lệ và kỳ hoàn tất mới nhất để học và chốt bộ số.</div>
+    @if (!lab.groups.length) {
+      <div class="empty">
+        Chưa có dự đoán đã lưu cho {{ category() }}. Hệ thống cần ít nhất 10 kỳ hợp lệ và kỳ hoàn
+        tất mới nhất để học và chốt bộ số.
+      </div>
+    }
     <h2 class="mt-4">Các dãy số đã chốt</h2>
-    <p>{{ lab.totalRows }} vé · Trang {{ page + 1 }}/{{ pages }} · Màu xanh đánh dấu số chính khớp.</p>
+    <p>
+      {{ lab.totalRows }} vé · Trang {{ page() + 1 }}/{{ pages() }} · Màu xanh đánh dấu số chính
+      khớp.
+    </p>
     <div class="tickets">
-      <article class="ticket" *ngFor="let row of lab.rows">
-        <div class="ticket-head"><strong>{{ row.targetDate | date:'dd/MM/yyyy' }}</strong><span>{{ name(row.model) }}</span></div>
-        <div class="numbers"><span *ngFor="let n of row.numbers" [class.hit]="matched(row,n)" [attr.aria-label]="n + (matched(row,n) ? ' khớp' : '')">{{ n < 10 ? '0' + n : n }}</span></div>
-        <p *ngIf="row.settlement?.status === 'SETTLED'; else pending"><strong>{{ row.settlement.matched }}/6 số khớp</strong> · Kết quả: {{ row.settlement.actualNumbers.join(' – ') }}</p>
-        <ng-template #pending><p>{{ row.settlement?.status === 'RESULT_UNAVAILABLE' ? 'Kết quả cần xác minh lại' : 'Chờ kết quả hợp lệ' }}</p></ng-template>
-        <small>Lưu {{ row.createdAt | date:'dd/MM/yyyy HH:mm:ss':'+0700' }} giờ Việt Nam</small>
-      </article>
+      @for (row of lab.rows; track row.id) {
+        <article class="ticket">
+          <div class="ticket-head">
+            <strong>{{ row.targetDate | date: 'dd/MM/yyyy' }}</strong
+            ><span>{{ name(row.model) }}</span>
+          </div>
+          <div class="numbers">
+            @for (n of row.numbers; track n) {
+              <span
+                [class.hit]="matched(row, n)"
+                [attr.aria-label]="n + (matched(row, n) ? ' khớp' : '')"
+                >{{ n < 10 ? '0' + n : n }}</span
+              >
+            }
+          </div>
+          @if (row.settlement?.status === 'SETTLED') {
+            <p>
+              <strong>{{ row.settlement.matched }}/6 số khớp</strong> · Kết quả:
+              {{ row.settlement.actualNumbers?.join(' – ') }}
+            </p>
+          } @else {
+            <p>
+              {{
+                row.settlement?.status === 'RESULT_UNAVAILABLE'
+                  ? 'Kết quả cần xác minh lại'
+                  : 'Chờ kết quả hợp lệ'
+              }}
+            </p>
+          }
+          <small
+            >Lưu {{ row.createdAt | date: 'dd/MM/yyyy HH:mm:ss' : '+0700' }} giờ Việt Nam</small
+          >
+        </article>
+      }
     </div>
-    <div class="actions my-3"><button class="btn btn-outline-secondary" [disabled]="page === 0 || busy || mutating" (click)="changePage(-1)">Trang trước</button><button class="btn btn-outline-secondary" [disabled]="page + 1 >= pages || busy || mutating" (click)="changePage(1)">Trang sau</button></div>
-  </ng-container>
+    <div class="actions my-3">
+      <button
+        class="btn btn-outline-secondary"
+        [disabled]="page() === 0 || busy() || mutating()"
+        (click)="changePage(-1)"
+      >
+        Trang trước</button
+      ><button
+        class="btn btn-outline-secondary"
+        [disabled]="page() + 1 >= pages() || busy() || mutating()"
+        (click)="changePage(1)"
+      >
+        Trang sau
+      </button>
+    </div>
+  }
 </section>

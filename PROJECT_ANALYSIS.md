@@ -1,5 +1,36 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Cập nhật 27/10/2026 — Nhận kết quả từ 19:00
+
+Đổi mốc tiếp nhận kết quả ngày hiện tại, xác định kỳ hoàn tất mới nhất và đối soát snapshot từ 19:00 giờ Việt Nam. Trước 19:00, kết quả của hôm nay chưa được nhập từ feed hoặc đưa vào lịch sử huấn luyện/đối soát; đúng 19:00 mới đủ điều kiện nếu đã có kết quả hợp lệ. Áp dụng chung cho ledger dự đoán chính và AI lab qua ForecastProtocol. Giữ giờ quay và cutoff chốt dự đoán 18:00.
+
+Scheduler kết quả có thêm cron 19:00 theo Asia/Ho_Chi_Minh, đồng thời giữ lượt khởi động và chu kỳ thử lại 900 giây. Backend phải hoạt động và feed phải có dữ liệu; mốc này không bảo đảm nguồn bên ngoài trả kết quả ngay lập tức. Đã cập nhật nhãn giao diện và hướng dẫn hiện hành; không sửa báo cáo/migration lịch sử hoặc dữ liệu production.
+
+Kiểm chứng: 44 kiểm thử Java và 22 kiểm thử frontend đạt; production build và Maven install thành công; 20 asset Angular trong JAR khớp SHA-256. Kiểm thử xác nhận 18:59:59 chưa nhận/đối soát kết quả hôm nay, đúng 19:00 mới cho phép; kiểm tra cả MEGA/POWER và cùng thời điểm biểu diễn theo UTC. Chưa triển khai production.
+
+## Cập nhật 27/10/2026 — Tách component và style frontend
+
+- Tách 8 component con: PredictionChart, LinkageTimeline, GapPressure, SpacingDistribution, TicketMixer, DrawReconciliation, ReconciliationDetail và HyperparameterHistory. Mỗi component có TS/HTML/CSS riêng; trang cha giữ điều phối dự đoán, chẩn đoán và cập nhật cấu hình chung.
+- Template dự đoán giảm từ khoảng 2.373 xuống 1.434 dòng; template phân tích kỳ mới nhất từ khoảng 2.934 xuống 1.005 dòng. Các phần hiển thị chi tiết nhiều tab vẫn có template dài; chúng đã có phạm vi dữ liệu và trách nhiệm riêng, không đặt ngưỡng số dòng cứng cho mọi component.
+- Chuyển các thẻ style nhúng của Entry/LatestDrawAnalysis sang CSS riêng; thêm header stylesheet và chuyển style tĩnh của bộ ghép vé/hộp xem cấu hình. Style dùng chung theo feature được import trong stylesheet của component sở hữu DOM, giữ encapsulation.
+- Biểu đồ defer từng chế độ khi mở lần đầu và giữ trạng thái bộ lọc khi chuyển qua lại. Tab chi tiết đối soát dùng model để giữ lựa chọn trong lúc tải lại. Request lịch sử/đối soát/khuyến nghị hủy lượt cũ khi thay lựa chọn và hủy khi component bị destroy.
+- Bổ sung kiểm thử component cho lựa chọn/copy vé, xem và kích hoạt cấu hình, hủy request, sự kiện phiên bản, giữ bộ lọc khi đổi chế độ và style thực tế sau khi tách. Không thay thuật toán dự đoán hoặc dữ liệu production.
+
+Kiểm chứng: format:check/typecheck đạt; 22 kiểm thử ChromeHeadless đạt; production build thành công không có cảnh báo template. Backend `mvn clean install` đạt với 43 kiểm thử Java. Đối chiếu SHA-256 của 20 asset trong JAR/static fallback đều khớp, không còn asset cũ. Kiểm tra style qua computed style trong browser tests, chưa thực hiện kiểm tra ảnh chụp hoặc triển khai production.
+
+## Cập nhật 27/10/2026 — Chuẩn hóa Angular 22
+
+- Chạy migration chính thức của Angular cho control flow, `inject`, lazy routes và import standalone. Template dùng `@if/@for`, không còn `*ngIf/*ngFor`; bỏ constructor injection và quản lý Subscription/OnDestroy thủ công trong frontend. Component dùng OnPush rõ ràng.
+- Header/menu, lịch sử dự đoán và AI lab dùng signals; số liệu dẫn xuất dùng computed. CategoryService là nguồn MEGA/POWER duy nhất, giữ observable bridge tương thích cho phần phân tích/form cũ.
+- Thêm DTO thuật toán/lịch sử/AI lab, ForecastApiService; tách phép tính biểu đồ khỏi PredictionComponent thành hàm thuần có kiểm thử. Tách template/style inline của workspace và menu; chuẩn hóa format toàn frontend. Các DTO phân tích động và form cũ chưa được chuyển hết khỏi `any`/field thường.
+- Chuyển application/dev-server/Karma sang `@angular/build`; bỏ dependency builder Webpack, thêm Prettier và các lệnh format/typecheck/test:ci. Bật noUnusedLocals/noUnusedParameters và class-field semantics chuẩn; thay baseUrl bằng alias @app. Giữ Zone.js và FormsModule cho các luồng cũ, không thay thuật toán backend.
+- Giữ output `frontend/dist/analyzeproject` để Maven/Docker/CI tiếp tục đóng gói; build:sync dùng script Node thay lệnh rm/cp chỉ chạy trên Unix. Docker dùng Node 24 và npm ci theo lockfile. CI chạy toàn bộ frontend suite thay vì chỉ chọn vài file.
+- Runtime/compiler/CLI/builder Angular được chốt đồng bộ 22.2.0. Gói tải ban đầu trong lần build local cuối sau chuyển đổi khoảng 364 kB, trước đó khoảng 747 kB; phần còn lại tải qua lazy chunks. Đây là số liệu bundle build, không phải đo thời gian tải production.
+
+Quy ước và lệnh phát triển: [frontend/README.md](frontend/README.md).
+
+Kiểm chứng cuối đợt: format:check và typecheck đạt; toàn bộ 16 kiểm thử ChromeHeadless đạt; Angular production build không còn cảnh báo template/builder deprecated. `mvn clean install` đạt với 43 kiểm thử Java; đối chiếu SHA-256 đủ 16 asset (bao gồm lazy chunks) trong JAR và static fallback, không còn asset build cũ. Backend vẫn có cảnh báo unchecked Java có sẵn. Chưa chạy workflow trên GitHub, build Docker hoặc triển khai production trong đợt này.
+
 ## Cập nhật 27/10/2026 — Gỡ chức năng học tiếng Pháp
 
 Đã xóa component học tiếng Pháp (TS/HTML/CSS), controller, hai entity và hai repository Java; gỡ API tiếng Pháp khỏi service dùng chung, constructor/test fixture, route `/french`, liên kết header và khóa dịch riêng của chức năng. Route mặc định và route không xác định chuyển sang `/analyze`. Đồng bộ lại static assets của backend để loại bỏ bundle cũ chứa trang đã xóa.
@@ -13,7 +44,7 @@ Kiểm chứng sau khi gỡ: Angular production build và 12 kiểm thử Chrome
 - Thêm trang `/ai-lab` và menu **Phòng thử nghiệm AI**, độc lập với trang dự đoán chính. Mỗi loại có hai mô hình: Logistic Regression thực sự học trọng số từ nhãn quá khứ và tần suất suy giảm theo thời gian (phương pháp thống kê). Không dùng LLM hoặc API AI bên ngoài.
 - Mỗi mô hình chốt 5 vé khác nhau/kỳ, gồm vé đứng đầu và các vé lấy mẫu có trọng số với seed cố định. Đối chứng tần suất và ngẫu nhiên cùng có 5 vé, được lưu cùng thời điểm; hai mô hình dùng chung các vé đối chứng cho cùng loại/kỳ.
 - Logistic dùng frequency toàn lịch sử, recent10, decay có bán rã 10 kỳ quan sát, gap tối đa 30 kỳ; học full-batch 80 epoch, learning rate 0.2, L2 0.05. Đặc trưng huấn luyện được tính trước khi tiêu thụ kết quả kỳ tương ứng. Cần ít nhất 10 kỳ hợp lệ và kỳ hoàn tất mới nhất để chốt; dùng sáu số chính, không đánh giá số phụ POWER.
-- Scheduler chạy sau 20 giây rồi mỗi 60 giây khi backend hoạt động; kiểm tra lưu bản đầu tiên và đối soát. Cutoff 18:00, công bố kết quả 18:30 theo giờ Việt Nam. Không sinh bù quá khứ; bản cũ không bị ghi đè. Transaction lưu cả nhóm 5 vé và khóa đối soát dùng riêng cho phòng thử nghiệm.
+- Scheduler chạy sau 20 giây rồi mỗi 60 giây khi backend hoạt động; kiểm tra lưu bản đầu tiên và đối soát. Cutoff 18:00, công bố kết quả 19:00 theo giờ Việt Nam. Không sinh bù quá khứ; bản cũ không bị ghi đè. Transaction lưu cả nhóm 5 vé và khóa đối soát dùng riêng cho phòng thử nghiệm.
 - Migration mới `V12__add_ai_lab.sql` tạo `ai_lab_snapshots`, `ai_lab_settlements`, tách khỏi ledger chính. `AI_LAB_ENABLED=false` tắt tạo mới nhưng vẫn đối soát bản cũ. `FORECAST_ENABLED` điều khiển riêng trang dự đoán chính.
 - API `GET /api/ai-lab?category=MEGA&page=0` chỉ đọc, phân trang 50 vé; `POST /api/ai-lab/run` kiểm tra chốt hai loại và đối soát. Trang tự tải lại mỗi phút, hủy request cũ khi đổi loại/rời trang và chặn gửi POST trùng.
 - Báo cáo tách theo loại/mô hình/phiên bản mã/cấu hình, dùng settlement mới nhất; chỉ đo kỳ đủ 5 vé hợp lệ và đã đối soát toàn bộ. Hiển thị tỷ lệ từng vé đạt ≥3 và tỷ lệ kỳ có ít nhất một vé đạt ≥3, cùng hai đối chứng có cùng ngân sách vé.
@@ -62,7 +93,7 @@ Snapshot JSON sau làm sạch có 79 bản ghi: 39 MEGA hợp lệ, 39 POWER h�
 - Sửa số chính chỉ theo danh sách `reviewed_draw_corrections.json`; chỉ điền số phụ thiếu khi cả 6 số chính khớp. Không tự đổi ngày hoặc xóa xung đột.
 - `SOURCE_MATCHED` với feed cộng đồng không phải chứng nhận độc lập của Vietlott.
 
-Nguồn mặc định: `vietvudanh/vietlott-data`, không cần API key; `power645.jsonl` là MEGA, `power655.jsonl` là POWER. Scheduler chờ 10 giây sau khởi động, sau đó 900 giây giữa các lần hoàn tất; mặc định đối soát 90 ngày. Chỉ nhận ngày hiện tại sau 18:30 giờ Việt Nam, không nhận ngày tương lai. Có transaction/advisory lock và ghi audit; lỗi từng loại được xử lý độc lập.
+Nguồn mặc định: `vietvudanh/vietlott-data`, không cần API key; `power645.jsonl` là MEGA, `power655.jsonl` là POWER. Scheduler chờ 10 giây sau khởi động, sau đó 900 giây giữa các lần hoàn tất; mặc định đối soát 90 ngày. Chỉ nhận ngày hiện tại sau 19:00 giờ Việt Nam, không nhận ngày tương lai. Có transaction/advisory lock và ghi audit; lỗi từng loại được xử lý độc lập.
 
 `GET /api/lottery-sync/status` trả trạng thái trong bộ nhớ; `GET /api/lottery-sync/quality` trả chất lượng và audit đã lưu. Tăng `LOTTERY_SYNC_LOOKBACK_DAYS` khi cần lịch sử dài hơn. Ứng dụng phải chạy để scheduler hoạt động.
 
@@ -90,7 +121,7 @@ Mã chính nằm trong `backend/src/main/java/com/example/analyzeproject/`:
 - Lưu thời điểm, kỳ đích, phiên bản mô hình, dấu nhận diện mã, cấu hình dùng thực tế, lịch sử đầu vào và SHA-256. Không nhận ngày quá khứ/thời điểm tạo do client chỉ định để chèn hồi tố.
 - Cần ít nhất 5 kỳ hợp lệ và kỳ hoàn tất mới nhất theo lịch. Mốc chốt là 18:00 giờ Việt Nam; sau đó chọn kỳ tiếp theo. Lọc dữ liệu tương lai/kết quả chưa công bố.
 - Bộ đối chứng tần suất và ngẫu nhiên được lưu cùng thời điểm, không dùng kết quả đích để chọn seed.
-- Sau 18:30, đối soát với kết quả mới nhất hợp lệ. Các sự kiện `PENDING`, `SETTLED`, `RESULT_UNAVAILABLE` được ghi thêm, không sửa snapshot. Kết quả đổi/cách ly sẽ cập nhật thống kê theo sự kiện mới nhất; chạy lại cùng trạng thái không tạo trùng.
+- Sau 19:00, đối soát với kết quả mới nhất hợp lệ. Các sự kiện `PENDING`, `SETTLED`, `RESULT_UNAVAILABLE` được ghi thêm, không sửa snapshot. Kết quả đổi/cách ly sẽ cập nhật thống kê theo sự kiện mới nhất; chạy lại cùng trạng thái không tạo trùng.
 - Chỉ đo snapshot có thời gian/dấu dữ liệu hợp lệ và trạng thái mới nhất `SETTLED`. Tách nhóm theo loại, thuật toán, phiên bản mã/mô hình và cấu hình. Không dùng backtest hoặc snapshot chưa có kết quả làm mẫu đã đo.
 - Báo cáo số khớp TB, phân bố 0–6, tỷ lệ từ 3 số, hai đối chứng và chênh lệch ghép cặp với khoảng 95% xấp xỉ. Không tự chọn/tối ưu cấu hình từ nhóm này. Nhãn dưới 30 kỳ chỉ là quy ước mẫu nhỏ, không phải ngưỡng chứng minh hiệu quả.
 
@@ -141,7 +172,7 @@ mvn.cmd install
 
 | Ưu tiên | Việc cần làm | Mục đích |
 | --- | --- | --- |
-| P0 | Chạy backend thực tế qua các kỳ tương lai | Chốt trước 18:00, đối soát sau 18:30, tích lũy bằng chứng độc lập |
+| P0 | Chạy backend thực tế qua các kỳ tương lai | Chốt trước 18:00, đối soát sau 19:00, tích lũy bằng chứng độc lập |
 | P0 | Quy trình phát triển/chọn tham số/kiểm tra tách theo thời gian | Không chọn cấu hình thắng từ chính tập đánh giá độc lập |
 | P1 | Quyết định chuyển đổi dữ liệu archive khi cần | Đối chiếu PostgreSQL, giữ thời điểm và nguồn gốc snapshot; không nhập trùng/ghi đè |
 | P1 | Mở rộng lịch sử đã xác minh | Đo kỳ thiếu, đối chiếu nguồn và database; tránh thống kê trên mẫu ngắn |

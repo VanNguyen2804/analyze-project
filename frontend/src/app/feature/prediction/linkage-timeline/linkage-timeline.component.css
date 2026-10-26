@@ -1,0 +1,93 @@
+@import '../prediction-shared.css';
+:host {
+  display: block;
+}
+
+.timeline-flow-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.timeline-flow-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timeline-flow-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.flow-draw-card {
+  background: #ffffff;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  border-color: #e2e8f0 !important;
+}
+
+.flow-draw-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+}
+
+.flow-ball-item {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flow-ball-number {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.power-ball {
+  background: radial-gradient(circle at 10px 10px, #3b82f6, #1d4ed8);
+  border: 1.5px solid #1e40af;
+}
+
+.mega-ball {
+  background: radial-gradient(circle at 10px 10px, #ef4444, #b91c1c);
+  border: 1.5px solid #991b1b;
+}
+
+.special-power-ball {
+  background: radial-gradient(circle at 10px 10px, #f59e0b, #b45309);
+  border: 2px solid #78350f;
+  color: #ffffff;
+  font-size: 12px;
+}
+.flow-ball-item.highlighted-ball .flow-ball-number {
+  transform: scale(1.18);
+  box-shadow: 0 0 12px 3px rgba(245, 158, 11, 0.85);
+  border-color: #fbbf24 !important;
+  z-index: 5;
+}
+
+.flow-ball-item.active-hovered .flow-ball-number {
+  transform: scale(1.24);
+  box-shadow: 0 0 14px 4px rgba(16, 185, 129, 0.95);
+  border-color: #34d399 !important;
+  z-index: 6;
+}
+
+.connector-arrow {
+  opacity: 0.6;
+}
+
+.connector-bridge-box {
+  background-color: #f8fafc;
+  border-color: #e2e8f0 !important;
+}
+
+:host([hidden]) {
+  display: none;
+}

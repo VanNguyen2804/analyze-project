@@ -1,0 +1,15 @@
+@import '../analysis-shared.css';
+:host {
+  display: block;
+}
+
+.ball-power {
+  background: radial-gradient(circle at 10px 10px, #ff922b, #d9480f);
+  color: #ffffff;
+}
+
+.ball-special {
+  background: radial-gradient(circle at 10px 10px, #ffd43b, #f59f00);
+  color: #212529;
+  border: 2px solid #fab005;
+}

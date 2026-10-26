@@ -1,51 +1,32 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { NgClass, UpperCasePipe } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
-import { AnalyzeService } from '../../../core/services/analyze.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { LotteryCategory } from '../../../core/models/lottery-category.model';
 
 @Component({
   selector: 'app-header',
-  standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe],
-  templateUrl: './header.component.html'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgClass, UpperCasePipe, RouterLink, RouterLinkActive, TranslatePipe],
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.css',
 })
-export class HeaderComponent implements OnInit, OnDestroy {
-  currentCategory: string = 'MEGA';
-  currentLang: string = localStorage.getItem('appLang') || 'vi';
-  private catSub?: Subscription;
-
-  constructor(
-    private analyzeService: AnalyzeService,
-    public translate: TranslateService,
-    private cdr: ChangeDetectorRef
-  ) {}
+export class HeaderComponent implements OnInit {
+  private readonly categories = inject(CategoryService);
+  private readonly translate = inject(TranslateService);
+  readonly currentCategory = this.categories.category;
+  readonly currentLang = signal(localStorage.getItem('appLang') || 'vi');
 
   ngOnInit(): void {
-    this.translate.use(this.currentLang);
-    this.catSub = this.analyzeService.currentCategory$.subscribe(category => {
-      if (category && this.currentCategory !== category) {
-        this.currentCategory = category;
-        this.cdr.markForCheck();
-      }
-    });
+    this.translate.use(this.currentLang());
   }
-
-  ngOnDestroy(): void {
-    this.catSub?.unsubscribe();
+  selectCategory(category: LotteryCategory): void {
+    this.categories.setCategory(category);
   }
-
-  selectCategory(category: string) {
-    this.currentCategory = category;
-    this.analyzeService.setCategory(category);
-    this.cdr.markForCheck();
-  }
-
-  switchLanguage(lang: string) {
-    this.currentLang = lang;
-    this.translate.use(lang);
-    localStorage.setItem('appLang', lang);
-    this.cdr.markForCheck();
+  switchLanguage(language: string): void {
+    this.currentLang.set(language);
+    this.translate.use(language);
+    localStorage.setItem('appLang', language);
   }
 }

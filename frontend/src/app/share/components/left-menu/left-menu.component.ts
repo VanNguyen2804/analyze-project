@@ -1,136 +1,49 @@
-import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, of, switchMap } from 'rxjs';
 import { CategoryService } from '../../../core/services/category.service';
 import { AnalyzeService } from '../../../core/services/analyze.service';
 
 @Component({
   selector: 'app-left-menu',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './left-menu.component.html',
-  styles: [`
-    .left-menu {
-      width: 260px;
-      min-height: calc(100vh - 64px);
-      background: #ffffff;
-      border-right: 1px solid #e9ecef;
-    }
-    .menu-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 18px;
-      border-radius: 8px;
-      color: #495057;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      width: 100%;
-      text-align: left;
-    }
-    .menu-item:hover {
-      background-color: #f8f9fa;
-      color: #0d6efd;
-    }
-    .menu-item.active {
-      background-color: #e7f1ff;
-      color: #0d6efd;
-      font-weight: 600;
-    }
-    .category-btn {
-      transition: all 0.2s ease;
-      cursor: pointer;
-      border: 1px solid #dee2e6;
-      background: #ffffff;
-    }
-    .category-btn:hover {
-      transform: translateY(-1px);
-    }
-    .active-power {
-      background: #e7f1ff !important;
-      border-color: #0d6efd !important;
-    }
-    .active-mega {
-      background: #ffe3e3 !important;
-      border-color: #dc3545 !important;
-    }
-    @media (max-width: 767.98px) {
-      .left-menu {
-        width: 100%;
-        min-height: auto;
-        border-right: none;
-        border-bottom: 1px solid #e9ecef;
-      }
-    }
-  `]
+  styleUrl: './left-menu.component.css',
 })
-export class LeftMenuComponent implements OnInit, OnDestroy {
-  @Input() activeTab?: string;
-  @Output() tabChange = new EventEmitter<string>();
-
-  currentCategory: 'MEGA' | 'POWER' = 'MEGA';
-  latestDrawBadge: string = 'Kỳ mới nhất';
-  algorithmVersion: string = '';
-  private catSub?: Subscription;
-
-  constructor(
-    private categoryService: CategoryService,
-    private analyzeService: AnalyzeService,
-    private cdr: ChangeDetectorRef
-  ) {}
+export class LeftMenuComponent implements OnInit {
+  private readonly categories = inject(CategoryService);
+  private readonly analyze = inject(AnalyzeService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly latestDrawBadge = signal('K? m?i nh?t');
 
   ngOnInit(): void {
-    this.currentCategory = this.categoryService.currentCategory;
-    this.loadDynamicMenuData();
-    this.catSub = this.categoryService.category$.subscribe(cat => {
-      this.currentCategory = cat;
-      this.loadDynamicMenuData();
-      this.cdr.markForCheck();
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.catSub?.unsubscribe();
-  }
-
-  loadDynamicMenuData(): void {
-    const category = this.currentCategory;
-    this.analyzeService.getLatestHyperparameters(category).subscribe({
-      next: (hyp) => {
-        if (this.currentCategory === category) {
-          this.algorithmVersion = hyp?.version ?? '';
-          this.cdr.markForCheck();
-        }
-      },
-      error: () => { if (this.currentCategory === category) { this.algorithmVersion = ''; this.cdr.markForCheck(); } }
-    });
-
-    this.analyzeService.get5DrawsReconciliation(this.currentCategory, 'deep_stacking', 1).subscribe({
-      next: (res) => {
-        const latest = res?.draws?.[0];
-        if (this.currentCategory !== category) return;
-        if (latest && Array.isArray(latest.officialNumbers)) {
-          const nums = latest.officialNumbers;
-          if (latest.officialSpecial) {
-            this.latestDrawBadge = `${nums.length} số [${nums[0]}..${nums[nums.length - 1]}] + Phụ ${latest.officialSpecial}`;
-          } else {
-            this.latestDrawBadge = `${nums.length} số [${nums[0]}..${nums[nums.length - 1]}]`;
-          }
-          this.cdr.markForCheck();
-        } else { this.latestDrawBadge = 'Chưa có kết quả'; this.cdr.markForCheck(); }
-      },
-      error: () => {}
-    });
-  }
-
-  selectCategory(cat: 'MEGA' | 'POWER'): void {
-    this.currentCategory = cat;
-    this.categoryService.setCategory(cat);
-    this.cdr.markForCheck();
+    this.categories.category$
+      .pipe(
+        switchMap((category) =>
+          this.analyze
+            .get5DrawsReconciliation(category, 'deep_stacking', 1)
+            .pipe(catchError(() => of(null))),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((result) => {
+        const latest = result?.draws?.[0];
+        const numbers: number[] = latest?.officialNumbers ?? [];
+        const summary = numbers.length
+          ? numbers.length + ' s? [' + numbers[0] + '..' + numbers[numbers.length - 1] + ']'
+          : 'Ch?a c? k?t qu?';
+        this.latestDrawBadge.set(
+          latest?.officialSpecial ? summary + ' + Ph? ' + latest.officialSpecial : summary,
+        );
+      });
   }
 }

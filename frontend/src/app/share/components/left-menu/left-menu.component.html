@@ -1,36 +1,24 @@
 <nav class="left-menu p-3">
   <!-- Zone 1: Main navigation -->
-  <div class="text-uppercase text-muted fw-bold small px-2 mb-2">
-    Chức năng chính
-  </div>
+  <div class="text-uppercase text-muted fw-bold small px-2 mb-2">Chức năng chính</div>
   <div class="d-flex flex-column gap-1 mb-4">
     <a routerLink="/ai-lab" routerLinkActive="active" class="menu-item">
       <span class="fs-5">🧪</span><span>Phòng thử nghiệm AI</span>
     </a>
-    <a
-      routerLink="/analyze"
-      routerLinkActive="active"
-      class="menu-item"
-    >
+    <a routerLink="/analyze" routerLinkActive="active" class="menu-item">
       <span class="fs-5">⚡</span>
       <span>Dự đoán &amp; kết quả</span>
     </a>
-    <a
-      routerLink="/latest-analysis"
-      routerLinkActive="active"
-      class="menu-item"
-    >
+    <a routerLink="/latest-analysis" routerLinkActive="active" class="menu-item">
       <span class="fs-5">🎯</span>
       <div class="d-flex flex-column">
         <span>Phân tích Kỳ mới nhất</span>
-        <span class="badge bg-warning text-dark" style="font-size: 0.65rem; width: fit-content;">{{ latestDrawBadge }}</span>
+        <span class="badge bg-warning text-dark" style="font-size: 0.65rem; width: fit-content">{{
+          latestDrawBadge()
+        }}</span>
       </div>
     </a>
-    <a
-      routerLink="/entry"
-      routerLinkActive="active"
-      class="menu-item"
-    >
+    <a routerLink="/entry" routerLinkActive="active" class="menu-item">
       <span class="fs-5">📝</span>
       <span>Nhập dãy số theo ngày</span>
     </a>
@@ -40,19 +28,17 @@
 
   <!-- Zone 3: Schedule summary -->
   <div class="border-top pt-3 d-none d-md-block">
-    <div class="text-uppercase text-muted fw-bold small px-2 mb-2">
-      Lịch mở thưởng
-    </div>
+    <div class="text-uppercase text-muted fw-bold small px-2 mb-2">Lịch mở thưởng</div>
     <div class="small p-2 bg-light rounded border mb-2">
       <div class="fw-bold text-primary mb-1">🔵 Power 6/55</div>
-      <div class="text-muted" style="font-size: 0.75rem;">
+      <div class="text-muted" style="font-size: 0.75rem">
         Quay: Thứ 3, 5, 7<br />
         Jackpot 1 & Jackpot 2 (Số phụ)
       </div>
     </div>
     <div class="small p-2 bg-light rounded border">
       <div class="fw-bold text-danger mb-1">🔴 Mega 6/45</div>
-      <div class="text-muted" style="font-size: 0.75rem;">
+      <div class="text-muted" style="font-size: 0.75rem">
         Quay: Thứ 4, 6, Chủ nhật<br />
         Jackpot trúng 6/6 số chính
       </div>

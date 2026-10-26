@@ -12,11 +12,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideTranslateService({
       fallbackLang: 'vi',
-      lang: 'vi'
+      lang: 'vi',
     }),
     provideTranslateHttpLoader({
       prefix: './assets/i18n/',
-      suffix: '.json'
-    })
-  ]
+      suffix: '.json',
+    }),
+  ],
 };

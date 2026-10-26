@@ -1,19 +1,33 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  inject,
+  DestroyRef,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgClass, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { AnalyzeService } from 'src/app/core/services/analyze.service';
+import { distinctUntilChanged } from 'rxjs';
+import { AnalyzeService } from '@app/core/services/analyze.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-entry',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './entry.component.html'
+  imports: [FormsModule, DatePipe, NgClass],
+  templateUrl: './entry.component.html',
+  styleUrl: './entry.component.css',
 })
-export class EntryComponent implements OnInit, OnDestroy {
+export class EntryComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly analyzeService = inject(AnalyzeService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
   category: string = 'MEGA';
   drawDate: string = new Date().toISOString().split('T')[0];
-  
+
   // Dãy số kết quả Vietlott chính thức theo ngày
   officialNumbers: (number | null)[] = [null, null, null, null, null, null];
   officialSpecialNumber: number | null = null;
@@ -22,7 +36,7 @@ export class EntryComponent implements OnInit, OnDestroy {
   existingOfficialDraw: any = null;
 
   // Dãy số vé cá nhân để dò
-  userTickets: number[][] = [ [null as any, null as any, null as any, null as any, null as any, null as any] ];
+  userTickets: (number | null)[][] = [Array<number | null>(6).fill(null)];
 
   checkResult: any = null;
   isChecking = false;
@@ -37,31 +51,18 @@ export class EntryComponent implements OnInit, OnDestroy {
   editSpecialNumber: number | null = null;
   editingOfficialDrawId: number | null = null;
 
-  // Khai báo biến lưu trữ Subscription để hủy khi rời trang
-  private categorySub: Subscription | undefined;
-
-  constructor(
-    private analyzeService: AnalyzeService,
-    private cdr: ChangeDetectorRef
-  ) {}
-
   ngOnInit() {
     // Lắng nghe sự thay đổi Category từ Header
-    this.categorySub = this.analyzeService.currentCategory$.subscribe(newCategory => {
-      if (newCategory) {
-        this.category = newCategory;
-      }
-      this.loadHistory(); // Tự động tải lại bảng lịch sử Database
-    });
+    this.analyzeService.currentCategory$
+      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe((newCategory) => {
+        if (newCategory) {
+          this.category = newCategory;
+        }
+        this.loadHistory(); // Tự động tải lại bảng lịch sử Database
+      });
 
     this.loadUserHistory();
-  }
-
-  ngOnDestroy() {
-    // Tránh rò rỉ bộ nhớ khi chuyển sang trang khác
-    if (this.categorySub) {
-      this.categorySub.unsubscribe();
-    }
   }
 
   // Hàm đồng bộ ngược lên Header khi đổi Category tại Dropdown của trang này
@@ -101,20 +102,23 @@ export class EntryComponent implements OnInit, OnDestroy {
   loadHistory() {
     this.isLoadingHistory = true;
     this.cdr.markForCheck();
-    this.analyzeService.getHistory(this.category).subscribe({
-      next: (res) => {
-        this.isLoadingHistory = false;
-        this.recentDraws = Array.isArray(res) ? res : [];
-        this.checkExistingOfficialDraw();
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.isLoadingHistory = false;
-        console.error('Lỗi tải lịch sử database:', err);
-        this.recentDraws = [];
-        this.cdr.markForCheck();
-      }
-    });
+    this.analyzeService
+      .getHistory(this.category)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.isLoadingHistory = false;
+          this.recentDraws = Array.isArray(res) ? res : [];
+          this.checkExistingOfficialDraw();
+          this.cdr.markForCheck();
+        },
+        error: (_err) => {
+          this.isLoadingHistory = false;
+          console.error('Lỗi tải lịch sử database:', _err);
+          this.recentDraws = [];
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   checkExistingOfficialDraw() {
@@ -122,12 +126,12 @@ export class EntryComponent implements OnInit, OnDestroy {
       this.existingOfficialDraw = null;
       return;
     }
-    const existing = this.recentDraws.find(
-      (d: any) => d.drawDate === this.drawDate
-    );
+    const existing = this.recentDraws.find((d: any) => d.drawDate === this.drawDate);
     if (existing) {
       this.existingOfficialDraw = existing;
-      this.officialNumbers = existing.numbers ? [...existing.numbers] : [null, null, null, null, null, null];
+      this.officialNumbers = existing.numbers
+        ? [...existing.numbers]
+        : [null, null, null, null, null, null];
       this.officialSpecialNumber = existing.specialNumber ?? null;
     } else {
       this.existingOfficialDraw = null;
@@ -147,7 +151,7 @@ export class EntryComponent implements OnInit, OnDestroy {
     const maxLimit = this.category === 'POWER' ? 55 : 45;
 
     // Kiểm tra xem đã điền đủ 6 số chưa
-    const filledNums = this.officialNumbers.map(n => Number(n));
+    const filledNums = this.officialNumbers.map((n) => Number(n));
     for (let i = 0; i < 6; i++) {
       const val = filledNums[i];
       if (!val || isNaN(val) || val < 1 || val > maxLimit) {
@@ -166,7 +170,11 @@ export class EntryComponent implements OnInit, OnDestroy {
     // Nếu là Power 6/55, kiểm tra số phụ nếu có
     let specialNum: number | null = null;
     if (this.category === 'POWER') {
-      if (this.officialSpecialNumber !== null && this.officialSpecialNumber !== undefined && this.officialSpecialNumber !== ('' as any)) {
+      if (
+        this.officialSpecialNumber !== null &&
+        this.officialSpecialNumber !== undefined &&
+        this.officialSpecialNumber !== ('' as any)
+      ) {
         specialNum = Number(this.officialSpecialNumber);
         if (isNaN(specialNum) || specialNum < 1 || specialNum > 55) {
           alert('Banh phụ của Power 6/55 phải là số từ 1 đến 55!');
@@ -183,7 +191,7 @@ export class EntryComponent implements OnInit, OnDestroy {
       category: this.category,
       drawDate: this.drawDate,
       numbers: filledNums.sort((a, b) => a - b),
-      specialNumber: specialNum
+      specialNumber: specialNum,
     };
 
     this.isSavingOfficial = true;
@@ -191,54 +199,63 @@ export class EntryComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     if (this.editingOfficialDrawId) {
-      this.analyzeService.editOfficialResult(this.editingOfficialDrawId, payload).subscribe({
-        next: (msg) => {
-          this.isSavingOfficial = false;
-          this.saveOfficialMessage = `✅ Đã cập nhật thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
-          alert(`Thành công: Đã cập nhật kết quả Vietlott ngày ${this.drawDate} vào Database.`);
-          this.editingOfficialDrawId = null;
-          this.loadHistory();
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          this.isSavingOfficial = false;
-          alert('Cập nhật kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
-          this.cdr.markForCheck();
-        }
-      });
+      this.analyzeService
+        .editOfficialResult(this.editingOfficialDrawId, payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.isSavingOfficial = false;
+            this.saveOfficialMessage = `✅ Đã cập nhật thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
+            alert(`Thành công: Đã cập nhật kết quả Vietlott ngày ${this.drawDate} vào Database.`);
+            this.editingOfficialDrawId = null;
+            this.loadHistory();
+            this.cdr.markForCheck();
+          },
+          error: (_err) => {
+            this.isSavingOfficial = false;
+            alert('Cập nhật kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
+            this.cdr.markForCheck();
+          },
+        });
     } else {
-      this.analyzeService.addOfficialResult(payload).subscribe({
-        next: (msg) => {
-          this.isSavingOfficial = false;
-          this.saveOfficialMessage = `✅ Đã lưu thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
-          alert(`Thành công: Đã lưu kết quả Vietlott ngày ${this.drawDate} vào Database.`);
-          this.loadHistory();
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          this.isSavingOfficial = false;
-          alert('Lưu kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
-          this.cdr.markForCheck();
-        }
-      });
+      this.analyzeService
+        .addOfficialResult(payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.isSavingOfficial = false;
+            this.saveOfficialMessage = `✅ Đã lưu thành công kết quả Vietlott ${this.category === 'POWER' ? 'Power 6/55' : 'Mega 6/45'} ngày ${this.drawDate} vào Database!`;
+            alert(`Thành công: Đã lưu kết quả Vietlott ngày ${this.drawDate} vào Database.`);
+            this.loadHistory();
+            this.cdr.markForCheck();
+          },
+          error: (_err) => {
+            this.isSavingOfficial = false;
+            alert('Lưu kết quả thất bại! Vui lòng kiểm tra lại kết nối máy chủ.');
+            this.cdr.markForCheck();
+          },
+        });
     }
   }
 
   loadUserHistory() {
-    this.analyzeService.getUserHistory().subscribe({
-      next: (res) => {
-        this.userCheckHistory = Array.isArray(res) ? res : [];
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Lỗi tải lịch sử cá nhân từ DB:', err);
-        this.cdr.markForCheck();
-      }
-    });
+    this.analyzeService
+      .getUserHistory()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.userCheckHistory = Array.isArray(res) ? res : [];
+          this.cdr.markForCheck();
+        },
+        error: (_err) => {
+          console.error('Lỗi tải lịch sử cá nhân từ DB:', _err);
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   addTicketRow() {
-    this.userTickets.push([null as any, null as any, null as any, null as any, null as any, null as any]);
+    this.userTickets.push(Array<number | null>(6).fill(null));
     this.cdr.markForCheck();
   }
 
@@ -249,10 +266,6 @@ export class EntryComponent implements OnInit, OnDestroy {
     }
   }
 
-  trackByIndex(index: number, obj: any): any {
-    return index;
-  }
-
   submitCheck() {
     this.isChecking = true;
     this.checkResult = null;
@@ -260,45 +273,51 @@ export class EntryComponent implements OnInit, OnDestroy {
     const payload = {
       category: this.category,
       drawDate: this.drawDate,
-      tickets: this.userTickets.map(ticket => ticket.map(n => Number(n) || 0))
+      tickets: this.userTickets.map((ticket) => ticket.map((n) => Number(n) || 0)),
     };
 
-    this.analyzeService.checkTickets(payload).subscribe({
-      next: (res) => {
-        this.checkResult = res;
-        this.isChecking = false;
-        if (res.status === 'SUCCESS') {
-          this.loadUserHistory();
-        }
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        alert('Lỗi kết nối Server.');
-        this.isChecking = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.analyzeService
+      .checkTickets(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.checkResult = res;
+          this.isChecking = false;
+          if (res.status === 'SUCCESS') {
+            this.loadUserHistory();
+          }
+          this.cdr.markForCheck();
+        },
+        error: (_err) => {
+          alert('Lỗi kết nối Server.');
+          this.isChecking = false;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   clearUserHistory() {
-    if(confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử dò vé cá nhân trong Database?')) {
-      this.analyzeService.clearUserHistory().subscribe({
-        next: () => {
-          this.userCheckHistory = [];
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          console.error(err);
-          this.cdr.markForCheck();
-        }
-      });
+    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử dò vé cá nhân trong Database?')) {
+      this.analyzeService
+        .clearUserHistory()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.userCheckHistory = [];
+            this.cdr.markForCheck();
+          },
+          error: (_err) => {
+            console.error(_err);
+            this.cdr.markForCheck();
+          },
+        });
     }
   }
 
   startEdit(draw: any) {
     this.editingDrawId = draw.id;
     this.editDrawDate = draw.drawDate;
-    this.editNumbers = draw.numbers ? [...draw.numbers] : []; 
+    this.editNumbers = draw.numbers ? [...draw.numbers] : [];
     this.editSpecialNumber = draw.specialNumber ?? null;
     this.cdr.markForCheck();
   }
@@ -317,7 +336,7 @@ export class EntryComponent implements OnInit, OnDestroy {
       return;
     }
     const maxLimit = this.category === 'POWER' ? 55 : 45;
-    const filledNums = this.editNumbers.map(n => Number(n));
+    const filledNums = this.editNumbers.map((n) => Number(n));
     for (let i = 0; i < 6; i++) {
       const val = filledNums[i];
       if (!val || isNaN(val) || val < 1 || val > maxLimit) {
@@ -333,7 +352,11 @@ export class EntryComponent implements OnInit, OnDestroy {
 
     let specialNum: number | null = null;
     if (this.category === 'POWER') {
-      if (this.editSpecialNumber !== null && this.editSpecialNumber !== undefined && this.editSpecialNumber !== ('' as any)) {
+      if (
+        this.editSpecialNumber !== null &&
+        this.editSpecialNumber !== undefined &&
+        this.editSpecialNumber !== ('' as any)
+      ) {
         specialNum = Number(this.editSpecialNumber);
         if (isNaN(specialNum) || specialNum < 1 || specialNum > 55) {
           alert('Banh phụ của Power 6/55 phải là số từ 1 đến 55!');
@@ -349,21 +372,24 @@ export class EntryComponent implements OnInit, OnDestroy {
     const payload = {
       drawDate: this.editDrawDate.trim(),
       numbers: filledNums.sort((a, b) => a - b),
-      specialNumber: this.category === 'POWER' ? specialNum : null
+      specialNumber: this.category === 'POWER' ? specialNum : null,
     };
 
-    this.analyzeService.editOfficialResult(draw.id, payload).subscribe({
-      next: (msg) => {
-        alert(msg || 'Đã chỉnh sửa ngày và dãy số thành công!');
-        this.editingDrawId = null;
-        this.editDrawDate = '';
-        this.loadHistory(); 
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        alert('Có lỗi xảy ra khi cập nhật ngày và dãy số!');
-        this.cdr.markForCheck();
-      }
-    });
+    this.analyzeService
+      .editOfficialResult(draw.id, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (msg) => {
+          alert(msg || 'Đã chỉnh sửa ngày và dãy số thành công!');
+          this.editingDrawId = null;
+          this.editDrawDate = '';
+          this.loadHistory();
+          this.cdr.markForCheck();
+        },
+        error: (_err) => {
+          alert('Có lỗi xảy ra khi cập nhật ngày và dãy số!');
+          this.cdr.markForCheck();
+        },
+      });
   }
 }

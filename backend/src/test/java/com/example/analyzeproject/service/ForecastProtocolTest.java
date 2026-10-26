@@ -23,6 +23,19 @@ class ForecastProtocolTest {
         var rows = history(); rows.add(actual(List.of(10,11,12,13,14,15)));
         assertEquals(5,ForecastProtocol.training(rows,"MEGA",before).size());
     }
+    @Test void resultsAndTrainingWaitUntilNineteenVietnamTime() {
+        var beforeUpdate = Instant.parse("2026-10-25T11:59:59Z");
+        var updateTime = Instant.parse("2026-10-25T12:00:00Z");
+        var result = actual(List.of(1,3,5,20,21,22));
+        var rows = history(); rows.add(result);
+        assertEquals(LocalDate.of(2026,10,23),ForecastProtocol.expected("MEGA",beforeUpdate));
+        assertEquals(LocalDate.of(2026,10,25),ForecastProtocol.expected("MEGA",updateTime));
+        assertEquals(5,ForecastProtocol.training(rows,"MEGA",beforeUpdate).size());
+        assertEquals(6,ForecastProtocol.training(rows,"MEGA",updateTime).size());
+        assertEquals("PENDING",ForecastProtocol.settle(forecast("temporal_learning"),rows,beforeUpdate,null).get("status"));
+        assertEquals("SETTLED",ForecastProtocol.settle(forecast("temporal_learning"),rows,updateTime,null).get("status"));
+        assertEquals(LocalDate.of(2026,10,28),ForecastProtocol.target("MEGA",beforeUpdate));
+    }
     @Test void controlTicketsDoNotDependOnAlgorithmOrTargetResult() {
         var a = forecast("temporal_learning"); var b = forecast("bayesian_graph");
         assertEquals(List.of(1,2,3,4,5,6),a.get("frequencyNumbers"));

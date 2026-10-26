@@ -1,29 +1,36 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { NumberSelectionReason, PredictionPayload } from '../models/prediction-payload.model';
+import { Observable } from 'rxjs';
+import { CategoryService } from './category.service';
+import { AlgorithmOption } from '../models/algorithm.model';
+import { PredictionPayload } from '../models/prediction-payload.model';
 import { environment } from '../../../environments/environment'; // Import file environment của bạn
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AnalyzeService {
+  private readonly http = inject(HttpClient);
+
   private apiUrl = `${environment.apiUrl || ''}/api/analyze`;
 
-  private categorySource = new BehaviorSubject<string>('MEGA');
-  currentCategory$ = this.categorySource.asObservable();
-
-  constructor(private http: HttpClient) { }
+  private readonly categories = inject(CategoryService);
+  readonly currentCategory$ = this.categories.category$;
+  readonly category = this.categories.category;
 
   setCategory(category: string) {
-    this.categorySource.next(category);
+    this.categories.setCategory(category);
   }
 
   // ==========================================
   // API XỔ SỐ (PHÂN TÍCH & DỰ ĐOÁN)
   // ==========================================
 
-  getPrediction(category: string, algorithm: string, algorithm2?: string): Observable<PredictionPayload> {
+  getPrediction(
+    category: string,
+    algorithm: string,
+    algorithm2?: string,
+  ): Observable<PredictionPayload> {
     let url = `${this.apiUrl}/predict?category=${category}&algorithm=${algorithm}`;
     if (algorithm2 && algorithm2.trim() !== '') {
       url += `&algorithm2=${algorithm2.trim()}`;
@@ -31,11 +38,11 @@ export class AnalyzeService {
     return this.http.get<PredictionPayload>(url);
   }
 
-  getAlgorithms(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/algorithms`);
+  getAlgorithms(): Observable<AlgorithmOption[]> {
+    return this.http.get<AlgorithmOption[]>(`${this.apiUrl}/algorithms`);
   }
 
-// ĐÃ KHÔI PHỤC: Phân tích 6 số đã sổ (Trang Latest Draw) với 3 tham số
+  // ĐÃ KHÔI PHỤC: Phân tích 6 số đã sổ (Trang Latest Draw) với 3 tham số
   getOfficialDrawAnalysis(category: string, date: string, algorithm: string): Observable<any> {
     let url = `${this.apiUrl}/official-draw-analysis?category=${category}&algorithm=${algorithm}`;
     if (date && date.trim() !== '') {
@@ -53,11 +60,15 @@ export class AnalyzeService {
   }
 
   addOfficialResult(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/add-result`, payload, { responseType: 'text' as 'json' });
+    return this.http.post<any>(`${this.apiUrl}/add-result`, payload, {
+      responseType: 'text' as 'json',
+    });
   }
 
   editOfficialResult(id: number, payload: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/update-result/${id}`, payload, { responseType: 'text' as 'json' });
+    return this.http.put<any>(`${this.apiUrl}/update-result/${id}`, payload, {
+      responseType: 'text' as 'json',
+    });
   }
 
   getUserHistory(): Observable<any[]> {
@@ -71,7 +82,12 @@ export class AnalyzeService {
   // ==========================================
   // API ĐỐI SOÁT & KIỂM THỬ CÁC KỲ TRƯỚC (HISTORICAL BACKTEST)
   // ==========================================
-  get5DrawsReconciliation(category?: string, algorithm?: string, limit: number = 5, date?: string): Observable<any> {
+  get5DrawsReconciliation(
+    category?: string,
+    algorithm?: string,
+    limit: number = 5,
+    date?: string,
+  ): Observable<any> {
     const cat = category || 'POWER';
     const alg = algorithm || 'deep_stacking';
     let url = `${this.apiUrl}/reconcile-5-draws?category=${cat}&algorithm=${alg}&limit=${limit}`;
@@ -137,5 +153,4 @@ export class AnalyzeService {
   getCrossGameComparison(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/cross-game-comparison`);
   }
-
 }

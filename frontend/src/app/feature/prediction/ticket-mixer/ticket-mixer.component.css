@@ -1,0 +1,18 @@
+@import '../prediction-shared.css';
+:host {
+  display: block;
+}
+
+.mixer-caption {
+  font-size: 0.8rem;
+}
+.mixer-choice-ball {
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+}
+.mixer-selected-ball {
+  width: 42px;
+  height: 42px;
+  font-size: 16px;
+}

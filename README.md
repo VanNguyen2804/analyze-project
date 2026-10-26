@@ -30,7 +30,7 @@ Build frontend:
 
 ```powershell
 Set-Location frontend
-npm.cmd install
+npm.cmd ci
 npm.cmd run build
 ```
 
@@ -48,9 +48,11 @@ Build Angular trước Maven để profile `local-frontend-build` đóng gói gi
 
 Spring scheduler mặc định chạy sau khởi động 10 giây, sau đó mỗi 900 giây; đối soát 90 ngày gần nhất. Nguồn mặc định là feed cộng đồng `vietvudanh/vietlott-data`, không phải API chính thức. `power645.jsonl` là MEGA, `power655.jsonl` là POWER; phần tử thứ bảy của POWER là số phụ.
 
+Có thêm lượt đồng bộ lúc **19:00 giờ Việt Nam** mỗi ngày khi backend đang hoạt động. Chỉ nhận kết quả của ngày hiện tại từ mốc này; nếu nguồn chưa có kết quả, hệ thống thử lại theo chu kỳ trên. Giờ quay/chốt dự đoán 18:00 được giữ nguyên.
+
 Các biến chính: `LOTTERY_SYNC_ENABLED`, `LOTTERY_SYNC_INTERVAL_SECONDS`, `LOTTERY_SYNC_STARTUP_DELAY_SECONDS`, `LOTTERY_SYNC_LOOKBACK_DAYS`, `LOTTERY_SYNC_TIMEOUT_SECONDS`, `LOTTERY_SYNC_MEGA_URL`, `LOTTERY_SYNC_POWER_URL`.
 
-Chỉ nhập ngày hiện tại sau 18:30 giờ Việt Nam; không nhập ngày tương lai. Dự đoán chỉ sử dụng revision mới nhất có chất lượng hợp lệ. Xung đột được cách ly, sửa đổi có audit; `SOURCE_MATCHED` chỉ có nghĩa khớp nguồn đã cấu hình.
+Chỉ nhập ngày hiện tại sau 19:00 giờ Việt Nam; không nhập ngày tương lai. Dự đoán chỉ sử dụng revision mới nhất có chất lượng hợp lệ. Xung đột được cách ly, sửa đổi có audit; `SOURCE_MATCHED` chỉ có nghĩa khớp nguồn đã cấu hình.
 
 - `GET /api/lottery-sync/status`: trạng thái lần đồng bộ, lỗi và độ mới của nguồn.
 - `GET /api/lottery-sync/quality`: chất lượng dữ liệu và lịch sử đối soát.
@@ -59,7 +61,7 @@ Chỉ nhập ngày hiện tại sau 18:30 giờ Việt Nam; không nhập ngày 
 
 Mở `/analyze`, chọn tab **Lịch sử & đối soát** để xem các bộ số đã chốt và kết quả đo. Đường dẫn cũ `/forecasts` tự chuyển sang `/analyze/history`. Hệ thống kiểm tra sau khởi động 12 giây rồi mỗi 60 giây khi ứng dụng đang chạy; API dự đoán cũng thử lưu bộ chính đang hiển thị.
 
-Bản đầu tiên theo loại/kỳ/thuật toán được giữ nguyên, kèm cấu hình, phiên bản, lịch sử và dấu SHA-256. Chốt trước 18:00 giờ Việt Nam; đối soát sau 18:30 khi có kết quả hợp lệ. Không sinh bù dự đoán quá khứ. Chỉ đo bộ số đã lưu trước kỳ, tách nhóm theo phiên bản/cấu hình và so sánh với tần suất nền, ngẫu nhiên. Không tự lưu mọi vé biến thể hoặc vé kết hợp.
+Bản đầu tiên theo loại/kỳ/thuật toán được giữ nguyên, kèm cấu hình, phiên bản, lịch sử và dấu SHA-256. Chốt trước 18:00 giờ Việt Nam; đối soát sau 19:00 khi có kết quả hợp lệ. Không sinh bù dự đoán quá khứ. Chỉ đo bộ số đã lưu trước kỳ, tách nhóm theo phiên bản/cấu hình và so sánh với tần suất nền, ngẫu nhiên. Không tự lưu mọi vé biến thể hoặc vé kết hợp.
 
 | API | Chức năng |
 | --- | --- |

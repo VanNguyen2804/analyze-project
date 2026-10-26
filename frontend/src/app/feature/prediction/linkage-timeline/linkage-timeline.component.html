@@ -1,0 +1,196 @@
+@let chartData = linkageChartData();
+<div class="timeline-flow-view">
+  <!-- Filter toggles -->
+  <div
+    class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-2 bg-light rounded-3 border"
+  >
+    <div class="d-flex align-items-center gap-3 flex-wrap small fw-semibold">
+      <span class="text-secondary">Bộ lọc liên kết:</span>
+      <label class="form-check-label d-flex align-items-center gap-1 cursor-pointer">
+        <input type="checkbox" class="form-check-input" [(ngModel)]="showDriftLinks" />
+        <span class="badge bg-warning text-dark">● Lệch ±1 (Amber)</span>
+      </label>
+      <label class="form-check-label d-flex align-items-center gap-1 cursor-pointer">
+        <input type="checkbox" class="form-check-input" [(ngModel)]="showRepeatLinks" />
+        <span class="badge bg-success text-white">● Lặp số Δ=0 (Green)</span>
+      </label>
+      <label class="form-check-label d-flex align-items-center gap-1 cursor-pointer">
+        <input type="checkbox" class="form-check-input" [(ngModel)]="showSameTailLinks" />
+        <span class="badge bg-purple text-white" style="background-color: #8b5cf6"
+          >● Cùng đuôi (Purple)</span
+        >
+      </label>
+      @if (chartData?.category === 'POWER') {
+        <label class="form-check-label d-flex align-items-center gap-1 cursor-pointer">
+          <input type="checkbox" class="form-check-input" [(ngModel)]="showSpecialMigrationLinks" />
+          <span class="badge bg-danger text-white">★ Di cư bóng đặc biệt</span>
+        </label>
+      }
+    </div>
+    <span class="text-muted small fst-italic">
+      💡 Rê chuột vào từng quả bóng để xem đường dẫn liên kết với các kỳ trước/sau
+    </span>
+  </div>
+  <!-- Horizontal Scrollable Timeline of Consecutive Draws -->
+  <div class="timeline-flow-container overflow-auto pb-3">
+    <div class="d-flex align-items-stretch gap-3 min-w-max">
+      @for (draw of chartData?.recentDraws; track draw; let i = $index; let isLast = $last) {
+        <!-- THẺ 1 KỲ QUAY TRONG CSDL -->
+        <div
+          class="flow-draw-card card border shadow-xs rounded-4 flex-shrink-0"
+          style="width: 175px"
+        >
+          <div class="card-header bg-light border-bottom text-center py-2 px-2">
+            <span
+              class="badge mb-1 px-2 py-1"
+              [ngClass]="
+                i === (chartData?.recentDraws?.length || 1) - 1
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary bg-opacity-25 text-dark'
+              "
+            >
+              {{
+                i === (chartData?.recentDraws?.length || 1) - 1
+                  ? 'Kỳ Mới Nhất'
+                  : 'Kỳ -' + ((chartData?.recentDraws?.length || 1) - 1 - i)
+              }}
+            </span>
+            <div class="fw-bold small text-dark">{{ draw.drawDateFormatted }}</div>
+            <div class="text-muted text-xs" style="font-size: 0.72rem">
+              Tổng: <span class="fw-semibold">{{ draw.sum }}</span> •
+              {{ draw.oddEvenRatio }}
+            </div>
+          </div>
+          <div
+            class="card-body p-2 d-flex flex-column gap-2 align-items-center justify-content-center"
+          >
+            <!-- 6 bóng chính -->
+            <div class="d-flex flex-wrap justify-content-center gap-1">
+              @for (num of draw.numbers; track num) {
+                <div
+                  class="flow-ball-item cursor-pointer"
+                  [ngClass]="{
+                    'highlighted-ball': isBallHighlightedInChart(draw.drawDate, num),
+                    'active-hovered':
+                      hoveredChartBall?.drawDate === draw.drawDate && hoveredChartBall.num === num,
+                  }"
+                  (mouseenter)="onChartBallHover(draw.drawDate, num)"
+                  (mouseleave)="onChartBallHover(null, null)"
+                >
+                  <span
+                    class="flow-ball-number"
+                    [ngClass]="chartData?.category === 'POWER' ? 'power-ball' : 'mega-ball'"
+                  >
+                    {{ num < 10 ? '0' + num : num }}
+                  </span>
+                </div>
+              }
+            </div>
+            <!-- Bóng Jackpot 2 nếu là POWER 6/55 -->
+            @if (draw.specialNumber) {
+              <div class="mt-1 pt-1 border-top w-100 text-center">
+                <span class="badge bg-warning bg-opacity-25 text-dark text-xs mb-1"
+                  >Jackpot 2 (★)</span
+                >
+                <div class="d-flex justify-content-center">
+                  <div
+                    class="flow-ball-item cursor-pointer"
+                    [ngClass]="{
+                      'highlighted-ball': isBallHighlightedInChart(
+                        draw.drawDate,
+                        draw.specialNumber
+                      ),
+                      'active-hovered':
+                        hoveredChartBall?.drawDate === draw.drawDate &&
+                        hoveredChartBall.num === draw.specialNumber,
+                    }"
+                    (mouseenter)="onChartBallHover(draw.drawDate, draw.specialNumber)"
+                    (mouseleave)="onChartBallHover(null, null)"
+                  >
+                    <span class="flow-ball-number special-power-ball">
+                      ★{{ draw.specialNumber < 10 ? '0' + draw.specialNumber : draw.specialNumber }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        <!-- CẦU NỐI CHUYỂN DỊCH GIỮA 2 KỲ LIÊN TIẾP -->
+        @if (!isLast && chartData?.recentDraws; as rDraws) {
+          <div class="d-flex flex-column align-items-center justify-content-center px-1">
+            <div class="connector-arrow text-primary fs-5 mb-1">➔</div>
+            <div
+              class="connector-bridge-box p-1 text-center bg-light border rounded-3 shadow-xs"
+              style="width: 85px"
+            >
+              <div class="text-xs fw-bold text-muted mb-1" style="font-size: 0.65rem">LIÊN KẾT</div>
+              <!-- Thống kê các bước chuyển tiếp giữa kỳ i và kỳ i+1 -->
+              @if (getLinksForStep(draw.drawDate, rDraws[i + 1].drawDate); as stepLinks) {
+                <div class="d-flex flex-column gap-1">
+                  @for (link of stepLinks.slice(0, 3); track link) {
+                    <span
+                      class="badge text-xs p-1 text-truncate"
+                      [style.backgroundColor]="link.color"
+                      [style.color]="'#ffffff'"
+                      [title]="link.description"
+                    >
+                      {{ link.fromNumber < 10 ? '0' + link.fromNumber : link.fromNumber }}➔{{
+                        link.toNumber < 10 ? '0' + link.toNumber : link.toNumber
+                      }}
+                    </span>
+                  }
+                  @if (stepLinks.length > 3) {
+                    <span class="badge bg-secondary text-white text-xs p-1">
+                      +{{ stepLinks.length - 3 }} mối
+                    </span>
+                  }
+                  @if (stepLinks.length === 0) {
+                    <span class="text-muted text-xs"> Không trùng </span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+  <!-- HOVER DETAIL TOOLTIP BOX -->
+  @if (hoveredChartBall) {
+    <div
+      class="alert alert-secondary mt-3 mb-0 d-flex align-items-center gap-3 py-2 px-3 rounded-3 shadow-xs"
+    >
+      <span class="fs-4">🔍</span>
+      <div>
+        <span class="fw-bold text-dark">
+          Đang chọn bóng [{{
+            hoveredChartBall.num < 10 ? '0' + hoveredChartBall.num : hoveredChartBall.num
+          }}]
+        </span>
+        <span class="text-muted ms-1">(Kỳ {{ hoveredChartBall.drawDate }}):</span>
+        <div class="small text-secondary mt-0">
+          @if (getFilteredTransitionLinks(); as filteredLinks) {
+            <!-- Liệt kê các mối nối từ bóng này -->
+            @for (l of filteredLinks; track l) {
+              <span>
+                @if (
+                  (l.fromDrawDate === hoveredChartBall.drawDate &&
+                    l.fromNumber === hoveredChartBall.num) ||
+                  (l.toDrawDate === hoveredChartBall.drawDate &&
+                    l.toNumber === hoveredChartBall.num)
+                ) {
+                  <span>
+                    •
+                    <span class="fw-semibold" [style.color]="l.color">{{ l.typeLabel }}:</span>
+                    {{ l.description }}
+                  </span>
+                }
+              </span>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

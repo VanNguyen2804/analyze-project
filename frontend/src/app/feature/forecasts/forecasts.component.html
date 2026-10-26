@@ -1,75 +1,256 @@
-<section class="history-view" [attr.aria-busy]="busy">
+@let view = ledger();
+<section class="history-view" [attr.aria-busy]="busy()">
   <header class="history-heading">
-    <div><span class="section-label">THEO DÕI DỰ ĐOÁN THỰC TẾ</span><h2>Lịch sử & đối soát</h2>
-      <p>Bộ số đầu tiên đã lưu được giữ nguyên để so với kết quả kỳ quay.</p></div>
-    <div class="category-picker"><label for="forecast-category">Loại xổ số</label>
-      <select id="forecast-category" [(ngModel)]="category" (change)="categoryChanged()" [disabled]="mutating">
-        <option value="MEGA">MEGA 6/45</option><option value="POWER">POWER 6/55</option>
-      </select></div>
+    <div>
+      <span class="section-label">THEO DÕI DỰ ĐOÁN THỰC TẾ</span>
+      <h2>Lịch sử & đối soát</h2>
+      <p>Bộ số đầu tiên đã lưu được giữ nguyên để so với kết quả kỳ quay.</p>
+    </div>
+    <div class="category-picker">
+      <label for="forecast-category">Loại xổ số</label>
+      <select
+        id="forecast-category"
+        [(ngModel)]="category"
+        (change)="categoryChanged()"
+        [disabled]="mutating()"
+      >
+        <option value="MEGA">MEGA 6/45</option>
+        <option value="POWER">POWER 6/55</option>
+      </select>
+    </div>
   </header>
 
-  <div class="workflow-note"><span class="note-icon" aria-hidden="true">✓</span><div><strong>Chốt trước 18:00 · Đối soát từ 18:30</strong>
-    <span>Giờ Việt Nam. Cần có kết quả hợp lệ; bộ tính lại khác bản đầu tiên sẽ không thay thế bộ đã chốt.</span></div></div>
-
-  <div *ngIf="error" class="notice error" role="alert">{{ error }} <button (click)="load()" [disabled]="busy">Thử lại</button></div>
-  <div *ngIf="message" class="notice info" role="status">{{ message }}</div>
-  <div *ngIf="ledger && !ledger.enabled" class="notice warning">Tự động lưu đang tắt. Bạn vẫn có thể xem và đối soát các bản đã lưu.</div>
-  <div *ngIf="ledger?.evaluation?.excludedInvalidSnapshots" class="notice warning">Có {{ ledger.evaluation.excludedInvalidSnapshots }} bản không đủ điều kiện đánh giá. Các bản này không được tính vào thống kê.</div>
-
-  <div class="stat-grid" *ngIf="ledger">
-    <article class="stat-card"><span>Bộ đã lưu</span><strong>{{ totalRows }}</strong><small>{{ category === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}</small></article>
-    <article class="stat-card"><span>Đã đối soát</span><strong>{{ evaluatedCount }}</strong><small>Bộ có kết quả hợp lệ</small></article>
-    <article class="stat-card"><span>Chưa được đánh giá</span><strong>{{ pendingCount }}</strong><small>Chờ kết quả hoặc cần xác minh</small></article>
-    <article class="stat-card accent"><span>Khớp từ 3 số</span><strong>{{ hit3Count }}</strong><small>Trong các bộ đã đánh giá</small></article>
+  <div class="workflow-note">
+    <span class="note-icon" aria-hidden="true">✓</span>
+    <div>
+      <strong>Chốt trước 18:00 · Đối soát từ 19:00</strong>
+      <span
+        >Giờ Việt Nam. Cần có kết quả hợp lệ; bộ tính lại khác bản đầu tiên sẽ không thay thế bộ đã
+        chốt.</span
+      >
+    </div>
   </div>
 
-  <section class="panel">
-    <header class="panel-heading"><div><h3>Các bộ số đã chốt</h3><p *ngIf="ledger?.asOf">Dữ liệu lúc {{ ledger.asOf | date:'HH:mm:ss · dd/MM/yyyy':'+0700' }} (Việt Nam)</p></div>
-      <div class="actions">
-        <button class="action secondary" (click)="load()" [disabled]="busy">Tải lại</button>
-        <button class="action secondary" (click)="capture()" [disabled]="busy" title="Lưu bộ chính của các thuật toán cho kỳ tiếp theo">Lưu kỳ tiếp theo</button>
-        <button class="action primary" (click)="reconcile()" [disabled]="busy">Đối soát kết quả</button>
-      </div>
-    </header>
-    <div class="filter-bar" *ngIf="rows.length">
-      <label for="ticket-status">Lọc trong trang này</label>
-      <select id="ticket-status" [(ngModel)]="statusFilter">
-        <option value="ALL">Tất cả trạng thái</option><option value="PENDING">Chờ kết quả</option>
-        <option value="SETTLED">Đã đối soát</option><option value="RESULT_UNAVAILABLE">Cần xác minh lại</option>
-      </select><span>{{ filteredRows.length }} / {{ rows.length }} bộ</span>
+  @if (error()) {
+    <div class="notice error" role="alert">
+      {{ error() }} <button (click)="load()" [disabled]="busy()">Thử lại</button>
     </div>
-    <div *ngIf="busy" class="loading-state" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Đang cập nhật dữ liệu…</div>
-    <div *ngIf="!busy && !error && !rows.length" class="empty-state"><span class="empty-icon" aria-hidden="true">◎</span>
-      <h4>Chưa có bộ số đã chốt</h4><p>Vào tab Tạo dự đoán để xem bộ số, hoặc dùng “Lưu kỳ tiếp theo” để chốt các thuật toán.</p>
-      <p class="muted">Không tạo dự đoán hồi tố cho những kỳ đã quay.</p><a routerLink="/analyze">Tạo dự đoán →</a></div>
-    <p class="filtered-empty" *ngIf="!busy && rows.length && !filteredRows.length">Không có bộ nào thuộc trạng thái này trong trang hiện tại.</p>
-    <div class="ticket-grid">
-      <article class="ticket-card" *ngFor="let row of filteredRows; trackBy: trackTicket">
-        <header><div><span class="ticket-date">Kỳ {{ row.targetDate | date:'dd/MM/yyyy':'UTC' }}</span><h4>{{ algorithmName(row.algorithm) }}</h4></div>
-          <span class="status-chip" [class.settled]="row.settlement?.status === 'SETTLED'" [class.unavailable]="row.settlement?.status === 'RESULT_UNAVAILABLE'">{{ status(row.settlement?.status) }}</span></header>
-        <div class="ticket-balls" aria-label="Bộ 6 số đã chốt"><span *ngFor="let number of row.numbers" class="number-ball" [class.matched]="isMatched(row,number)" [attr.aria-label]="number + (isMatched(row,number) ? ' khớp kết quả' : '')">{{ number | number:'2.0-0' }}</span></div>
-        <div class="result-strip" *ngIf="row.settlement?.status === 'SETTLED'; else waiting">
-          <span>Kết quả <strong>{{ row.settlement.actualNumbers?.join(' · ') }}</strong></span><span class="hit-count">{{ row.settlement.matched }}/6 số khớp</span>
-        </div>
-        <ng-template #waiting><div class="result-strip muted">{{ row.settlement?.status === 'RESULT_UNAVAILABLE' ? 'Kết quả đang cần xác minh, chưa tính vào đánh giá.' : 'Chờ kết quả hợp lệ để tính số khớp.' }}</div></ng-template>
-        <footer><span>Lưu {{ row.createdAt | date:'HH:mm · dd/MM/yyyy':'+0700' }} (VN)</span><small>{{ row.modelVersion }}</small></footer>
+  }
+  @if (message()) {
+    <div class="notice info" role="status">{{ message() }}</div>
+  }
+  @if (view && !view.enabled) {
+    <div class="notice warning">
+      Tự động lưu đang tắt. Bạn vẫn có thể xem và đối soát các bản đã lưu.
+    </div>
+  }
+  @if (view?.evaluation?.excludedInvalidSnapshots) {
+    <div class="notice warning">
+      Có {{ view.evaluation.excludedInvalidSnapshots }} bản không đủ điều kiện đánh giá. Các bản này
+      không được tính vào thống kê.
+    </div>
+  }
+
+  @if (view) {
+    <div class="stat-grid">
+      <article class="stat-card">
+        <span>Bộ đã lưu</span><strong>{{ totalRows() }}</strong
+        ><small>{{ category() === 'POWER' ? 'POWER 6/55' : 'MEGA 6/45' }}</small>
+      </article>
+      <article class="stat-card">
+        <span>Đã đối soát</span><strong>{{ evaluatedCount() }}</strong
+        ><small>Bộ có kết quả hợp lệ</small>
+      </article>
+      <article class="stat-card">
+        <span>Chưa được đánh giá</span><strong>{{ pendingCount() }}</strong
+        ><small>Chờ kết quả hoặc cần xác minh</small>
+      </article>
+      <article class="stat-card accent">
+        <span>Khớp từ 3 số</span><strong>{{ hit3Count() }}</strong
+        ><small>Trong các bộ đã đánh giá</small>
       </article>
     </div>
-    <div class="pagination-bar" *ngIf="totalRows > 50"><span>Trang {{ page + 1 }} / {{ pageCount }} · {{ totalRows }} bộ</span><div class="actions">
-      <button class="action secondary" [disabled]="busy || page === 0" (click)="changePage(-1)">← Trang trước</button>
-      <button class="action secondary" [disabled]="busy || (page + 1) * 50 >= totalRows" (click)="changePage(1)">Trang sau →</button>
-    </div></div>
+  }
+
+  <section class="panel">
+    <header class="panel-heading">
+      <div>
+        <h3>Các bộ số đã chốt</h3>
+        @if (view?.asOf) {
+          <p>Dữ liệu lúc {{ view.asOf | date: 'HH:mm:ss · dd/MM/yyyy' : '+0700' }} (Việt Nam)</p>
+        }
+      </div>
+      <div class="actions">
+        <button class="action secondary" (click)="load()" [disabled]="busy()">Tải lại</button>
+        <button
+          class="action secondary"
+          (click)="capture()"
+          [disabled]="busy()"
+          title="Lưu bộ chính của các thuật toán cho kỳ tiếp theo"
+        >
+          Lưu kỳ tiếp theo
+        </button>
+        <button class="action primary" (click)="reconcile()" [disabled]="busy()">
+          Đối soát kết quả
+        </button>
+      </div>
+    </header>
+    @if (rows().length) {
+      <div class="filter-bar">
+        <label for="ticket-status">Lọc trong trang này</label>
+        <select id="ticket-status" [(ngModel)]="statusFilter">
+          <option value="ALL">Tất cả trạng thái</option>
+          <option value="PENDING">Chờ kết quả</option>
+          <option value="SETTLED">Đã đối soát</option>
+          <option value="RESULT_UNAVAILABLE">Cần xác minh lại</option></select
+        ><span>{{ filteredRows().length }} / {{ rows().length }} bộ</span>
+      </div>
+    }
+    @if (busy()) {
+      <div class="loading-state" role="status">
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Đang cập nhật dữ
+        liệu…
+      </div>
+    }
+    @if (!busy() && !error() && !rows().length) {
+      <div class="empty-state">
+        <span class="empty-icon" aria-hidden="true">◎</span>
+        <h4>Chưa có bộ số đã chốt</h4>
+        <p>
+          Vào tab Tạo dự đoán để xem bộ số, hoặc dùng “Lưu kỳ tiếp theo” để chốt các thuật toán.
+        </p>
+        <p class="muted">Không tạo dự đoán hồi tố cho những kỳ đã quay.</p>
+        <a routerLink="/analyze">Tạo dự đoán →</a>
+      </div>
+    }
+    @if (!busy() && rows().length && !filteredRows().length) {
+      <p class="filtered-empty">Không có bộ nào thuộc trạng thái này trong trang hiện tại.</p>
+    }
+    <div class="ticket-grid">
+      @for (row of filteredRows(); track row.id) {
+        <article class="ticket-card">
+          <header>
+            <div>
+              <span class="ticket-date">Kỳ {{ row.targetDate | date: 'dd/MM/yyyy' : 'UTC' }}</span>
+              <h4>{{ algorithmName(row.algorithm) }}</h4>
+            </div>
+            <span
+              class="status-chip"
+              [class.settled]="row.settlement?.status === 'SETTLED'"
+              [class.unavailable]="row.settlement?.status === 'RESULT_UNAVAILABLE'"
+              >{{ status(row.settlement?.status) }}</span
+            >
+          </header>
+          <div class="ticket-balls" aria-label="Bộ 6 số đã chốt">
+            @for (number of row.numbers; track number) {
+              <span
+                class="number-ball"
+                [class.matched]="isMatched(row, number)"
+                [attr.aria-label]="number + (isMatched(row, number) ? ' khớp kết quả' : '')"
+                >{{ number | number: '2.0-0' }}</span
+              >
+            }
+          </div>
+          @if (row.settlement?.status === 'SETTLED') {
+            <div class="result-strip">
+              <span
+                >Kết quả <strong>{{ row.settlement.actualNumbers?.join(' · ') }}</strong></span
+              ><span class="hit-count">{{ row.settlement.matched }}/6 số khớp</span>
+            </div>
+          } @else {
+            <div class="result-strip muted">
+              {{
+                row.settlement?.status === 'RESULT_UNAVAILABLE'
+                  ? 'Kết quả đang cần xác minh, chưa tính vào đánh giá.'
+                  : 'Chờ kết quả hợp lệ để tính số khớp.'
+              }}
+            </div>
+          }
+          <footer>
+            <span>Lưu {{ row.createdAt | date: 'HH:mm · dd/MM/yyyy' : '+0700' }} (VN)</span
+            ><small>{{ row.modelVersion }}</small>
+          </footer>
+        </article>
+      }
+    </div>
+    @if (totalRows() > 50) {
+      <div class="pagination-bar">
+        <span>Trang {{ page() + 1 }} / {{ pageCount() }} · {{ totalRows() }} bộ</span>
+        <div class="actions">
+          <button
+            class="action secondary"
+            [disabled]="busy() || page() === 0"
+            (click)="changePage(-1)"
+          >
+            ← Trang trước
+          </button>
+          <button
+            class="action secondary"
+            [disabled]="busy() || (page() + 1) * 50 >= totalRows()"
+            (click)="changePage(1)"
+          >
+            Trang sau →
+          </button>
+        </div>
+      </div>
+    }
   </section>
 
   <section class="panel comparison-panel">
-    <header class="panel-heading"><div><h3>Hiệu quả so với đối chứng</h3><p>Toàn bộ {{ category }} đã lưu, tách riêng từng phiên bản và cấu hình.</p></div><span class="comparison-badge">Chỉ đo bản lưu trước kỳ</span></header>
-    <div class="table-responsive" *ngIf="groups.length; else noEvaluation"><table class="comparison-table">
-      <thead><tr><th>Thuật toán</th><th>Đã đo / đã lưu</th><th>Khớp TB / bộ</th><th>Tần suất nền</th><th>Ngẫu nhiên</th><th>Khớp ≥3 số</th></tr></thead>
-      <tbody><tr *ngFor="let group of groups"><td><strong>{{ algorithmName(group.algorithm) }}</strong><small>{{ group.modelVersion }} · Cấu hình {{ group.configurationHash.slice(0,8) }}</small></td>
-        <td>{{ group.evaluatedDraws }} / {{ group.savedForecasts }}</td><td class="metric-emphasis">{{ metric(group.averageMatched) }}</td>
-        <td>{{ metric(group.frequencyAverageMatched) }}</td><td>{{ metric(group.randomAverageMatched) }}</td><td>{{ metric(group.hit3RatePercent) }}{{ group.hit3RatePercent == null ? '' : '%' }}</td></tr></tbody>
-    </table></div>
-    <ng-template #noEvaluation><p class="evaluation-empty">{{ busy ? 'Đang tải thống kê…' : 'Chưa có dữ liệu đánh giá. Chỉ số sẽ xuất hiện khi đã lưu dự đoán và có kết quả hợp lệ.' }}</p></ng-template>
-    <p class="evidence-note">N/A nghĩa là chưa đo được. Mẫu nhỏ và chênh lệch trung bình chưa chứng minh thuật toán dự đoán tốt hơn. Các bộ đối chứng được chốt cùng thời điểm với dự đoán.</p>
+    <header class="panel-heading">
+      <div>
+        <h3>Hiệu quả so với đối chứng</h3>
+        <p>Toàn bộ {{ category() }} đã lưu, tách riêng từng phiên bản và cấu hình.</p>
+      </div>
+      <span class="comparison-badge">Chỉ đo bản lưu trước kỳ</span>
+    </header>
+    @if (groups().length) {
+      <div class="table-responsive">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Thuật toán</th>
+              <th>Đã đo / đã lưu</th>
+              <th>Khớp TB / bộ</th>
+              <th>Tần suất nền</th>
+              <th>Ngẫu nhiên</th>
+              <th>Khớp ≥3 số</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (group of groups(); track group.cohort) {
+              <tr>
+                <td>
+                  <strong>{{ algorithmName(group.algorithm) }}</strong
+                  ><small
+                    >{{ group.modelVersion }} · Cấu hình
+                    {{ group.configurationHash.slice(0, 8) }}</small
+                  >
+                </td>
+                <td>{{ group.evaluatedDraws }} / {{ group.savedForecasts }}</td>
+                <td class="metric-emphasis">{{ metric(group.averageMatched) }}</td>
+                <td>{{ metric(group.frequencyAverageMatched) }}</td>
+                <td>{{ metric(group.randomAverageMatched) }}</td>
+                <td>
+                  {{ metric(group.hit3RatePercent) }}{{ group.hit3RatePercent == null ? '' : '%' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="evaluation-empty">
+        {{
+          busy()
+            ? 'Đang tải thống kê…'
+            : 'Chưa có dữ liệu đánh giá. Chỉ số sẽ xuất hiện khi đã lưu dự đoán và có kết quả hợp lệ.'
+        }}
+      </p>
+    }
+    <p class="evidence-note">
+      N/A nghĩa là chưa đo được. Mẫu nhỏ và chênh lệch trung bình chưa chứng minh thuật toán dự đoán
+      tốt hơn. Các bộ đối chứng được chốt cùng thời điểm với dự đoán.
+    </p>
   </section>
 </section>

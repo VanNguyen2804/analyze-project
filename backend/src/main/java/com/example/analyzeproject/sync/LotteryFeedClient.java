@@ -55,7 +55,7 @@ public class LotteryFeedClient {
             try { date = LocalDate.parse(row.path("date").asText()); }
             catch (RuntimeException ex) { throw new IOException("Invalid draw date", ex); }
             if (date.isBefore(from) || date.isAfter(localNow.toLocalDate())
-                    || (date.equals(localNow.toLocalDate()) && localNow.toLocalTime().isBefore(LocalTime.of(18, 30)))) continue;
+                    || (date.equals(localNow.toLocalDate()) && localNow.toLocalTime().isBefore(LocalTime.of(19, 0)))) continue;
             String id = row.path("id").asText();
             JsonNode balls = row.path("result");
             boolean power = "POWER".equals(category);
@@ -81,7 +81,7 @@ public class LotteryFeedClient {
 
     public static LocalDate latestExpected(String category, ZonedDateTime now) {
         var local = now.withZoneSameInstant(ZONE);
-        LocalDate date = local.toLocalTime().isBefore(LocalTime.of(18, 30)) ? local.toLocalDate().minusDays(1) : local.toLocalDate();
+        LocalDate date = local.toLocalTime().isBefore(LocalTime.of(19, 0)) ? local.toLocalDate().minusDays(1) : local.toLocalDate();
         Set<DayOfWeek> days = "POWER".equals(category)
                 ? Set.of(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.SATURDAY)
                 : Set.of(DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY, DayOfWeek.SUNDAY);

@@ -1,32 +1,21 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { AnalyzeService } from './analyze.service';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { BehaviorSubject } from 'rxjs';
+import { LotteryCategory, normalizeCategory } from '../models/lottery-category.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+/** One category source for the header, routes and prediction features. */
+@Injectable({ providedIn: 'root' })
 export class CategoryService {
-  private categorySubject = new BehaviorSubject<'MEGA' | 'POWER'>('MEGA');
-  public category$: Observable<'MEGA' | 'POWER'> = this.categorySubject.asObservable();
+  private readonly categorySubject = new BehaviorSubject<LotteryCategory>('MEGA');
+  readonly category$ = this.categorySubject.asObservable();
+  readonly category = toSignal(this.category$, { requireSync: true });
 
-  constructor(private analyzeService: AnalyzeService) {
-    this.analyzeService.currentCategory$.subscribe(cat => {
-      const normalized = (cat === 'POWER' ? 'POWER' : 'MEGA') as 'MEGA' | 'POWER';
-      if (this.categorySubject.value !== normalized) {
-        this.categorySubject.next(normalized);
-      }
-    });
+  get currentCategory(): LotteryCategory {
+    return this.category();
   }
 
-  get currentCategory(): 'MEGA' | 'POWER' {
-    return this.categorySubject.value;
-  }
-
-  setCategory(cat: 'MEGA' | 'POWER'): void {
-    if (this.categorySubject.value !== cat) {
-      this.categorySubject.next(cat);
-      this.analyzeService.setCategory(cat);
-    }
+  setCategory(value: string): void {
+    const category = normalizeCategory(value);
+    if (category !== this.category()) this.categorySubject.next(category);
   }
 }
-

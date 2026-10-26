@@ -41,11 +41,17 @@ class LotterySyncTest {
     @Test void vietnamCutoffAndFutureDates() throws Exception {
         String today = MEGA.replace("2026-10-23", "2026-10-25").replace("01579", "01580");
         assertEquals(1, client.parse(MEGA + "\n" + today, "MEGA", FROM, NOW).size());
-        var published = NOW.withHour(18).withMinute(30);
+        var beforeUpdate = NOW.withHour(18).withMinute(59).withSecond(59);
+        assertEquals(1, client.parse(MEGA + "\n" + today, "MEGA", FROM, beforeUpdate).size());
+        assertEquals(LocalDate.parse("2026-10-23"), LotteryFeedClient.latestExpected("MEGA", beforeUpdate));
+        var published = NOW.withHour(19).withMinute(0);
         assertEquals(2, client.parse(MEGA + "\n" + today, "MEGA", FROM, published).size());
         assertEquals(LocalDate.parse("2026-10-23"), LotteryFeedClient.latestExpected("MEGA", NOW));
         assertEquals(LocalDate.parse("2026-10-25"), LotteryFeedClient.latestExpected("MEGA", published));
         assertEquals(LocalDate.parse("2026-10-24"), LotteryFeedClient.latestExpected("POWER", published));
+        assertEquals(LocalDate.parse("2026-10-22"), LotteryFeedClient.latestExpected("POWER", beforeUpdate.minusDays(1)));
+        assertEquals(LocalDate.parse("2026-10-24"), LotteryFeedClient.latestExpected("POWER", published.minusDays(1)));
+        assertEquals(2, client.parse(MEGA + "\n" + today, "MEGA", FROM, published.withZoneSameInstant(ZoneOffset.UTC)).size());
     }
 
     @Test void importerIsIdempotentAndPreservesConflictingLocalResult() throws Exception {
