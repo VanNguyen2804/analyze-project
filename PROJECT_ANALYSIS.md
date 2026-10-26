@@ -150,3 +150,13 @@ Phát hiện từ mã: trang trước đây tải hai GET song song, cả hai g�
 - Angular hủy request cũ khi đổi loại/rời trang, chặn gửi POST trùng, phân trang và không tự retry 503. Nút tải lại chỉ đọc; nút đối soát mới chạy đối soát.
 
 Kiểm chứng: 34 kiểm thử Java đạt; 4 kiểm thử trang forecasts chạy bằng ChromeHeadless đạt; Angular production build đạt. Kiểm thử đồng thời bằng repository mock xác nhận 8 lượt đọc dùng chung một lần lấy ledger, không gọi truy vấn lịch sử hoặc đối soát. Đây không phải benchmark PostgreSQL/production; chưa khẳng định loại bỏ mọi nguyên nhân 503 như thiếu RAM, cold start hoặc giới hạn nền tảng hosting.
+
+## 11. Gộp giao diện dự đoán và đối soát thành hai tab (26/10/2026)
+
+Trang `/analyze` hiện là workspace chung với hai tab: **Tạo dự đoán** (`/analyze`) và **Lịch sử & đối soát** (`/analyze/history`). Route `/forecasts` chuyển hướng sang tab lịch sử; menu chỉ còn một mục Dự đoán & kết quả. Liên kết xem bộ đã chốt trên trang dự đoán đi thẳng đến tab lịch sử.
+
+Mỗi tab dùng route con, chỉ tạo component đang mở. Tab dự đoán không tải API lịch sử ở nền; khi rời tab lịch sử, các request đang chờ bị hủy. MEGA/POWER dùng trạng thái chung của AnalyzeService với header, đồng bộ lựa chọn khi đổi tab; không gọi lại history khi phát lại cùng một category.
+
+Tab lịch sử có thẻ tổng số bộ đã lưu/đã đối soát/chưa đánh giá/khớp từ 3 số; các số này lấy từ dữ liệu thực tế và không gán tỷ lệ preset. Thẻ bộ số hiển thị kỳ đích, thuật toán, thời điểm lưu, trạng thái, kết quả và số khớp; số khớp được tô màu kèm nhãn hỗ trợ truy cập. Có bộ lọc trạng thái trong trang hiện tại, phân trang 50 bộ và bảng đối chứng theo phiên bản/cấu hình. CSS hỗ trợ màn hình nhỏ; giữ riêng thao tác tải lại, lưu kỳ tiếp theo và đối soát. Không thay đổi cơ chế lưu snapshot hoặc thuật toán backend.
+
+Kiểm chứng: Angular production build thành công; 8 kiểm thử ChromeHeadless đạt cho HTTP, đồng bộ category, thống kê/tô số khớp, route chuyển hướng và việc chỉ mở component của tab đang chọn. Backend `mvn install` đạt với 34 kiểm thử Java. Chưa triển khai production; kiểm chứng giao diện qua DOM/browser tests, chưa kiểm tra bằng ảnh chụp trình duyệt riêng vì lệnh chụp bị hệ thống chặn.

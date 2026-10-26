@@ -4,7 +4,7 @@
 
 ## Cấu trúc
 
-- `frontend/`: Angular, giao diện dự đoán và trang `/forecasts`.
+- `frontend/`: Angular, giao diện `/analyze` gồm tab Tạo dự đoán và Lịch sử & đối soát.
 - `backend/`: Spring Boot Java 17, PostgreSQL, Flyway và kiểm thử Java.
 - `Dockerfile`, `render.yaml`: build/triển khai Angular cùng Spring Boot.
 - `.github/`: hướng dẫn agent và skills; `.vscode/`: cấu hình IDE.
@@ -49,7 +49,7 @@ Chỉ nhập ngày hiện tại sau 18:30 giờ Việt Nam; không nhập ngày 
 
 ## Lưu dự đoán và đánh giá
 
-Mở `/forecasts` để xem các bộ số đã chốt và kết quả đo. Hệ thống kiểm tra sau khởi động 12 giây rồi mỗi 60 giây khi ứng dụng đang chạy; API dự đoán cũng thử lưu bộ chính đang hiển thị.
+Mở `/analyze`, chọn tab **Lịch sử & đối soát** để xem các bộ số đã chốt và kết quả đo. Đường dẫn cũ `/forecasts` tự chuyển sang `/analyze/history`. Hệ thống kiểm tra sau khởi động 12 giây rồi mỗi 60 giây khi ứng dụng đang chạy; API dự đoán cũng thử lưu bộ chính đang hiển thị.
 
 Bản đầu tiên theo loại/kỳ/thuật toán được giữ nguyên, kèm cấu hình, phiên bản, lịch sử và dấu SHA-256. Chốt trước 18:00 giờ Việt Nam; đối soát sau 18:30 khi có kết quả hợp lệ. Không sinh bù dự đoán quá khứ. Chỉ đo bộ số đã lưu trước kỳ, tách nhóm theo phiên bản/cấu hình và so sánh với tần suất nền, ngẫu nhiên. Không tự lưu mọi vé biến thể hoặc vé kết hợp.
 

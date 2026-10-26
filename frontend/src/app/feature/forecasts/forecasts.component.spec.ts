@@ -3,6 +3,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ForecastsComponent } from './forecasts.component';
 import { environment } from '../../../environments/environment';
+import { provideRouter } from '@angular/router';
+import { AnalyzeService } from '../../core/services/analyze.service';
 
 describe('ForecastsComponent requests', () => {
   let fixture: ComponentFixture<ForecastsComponent>;
@@ -11,7 +13,7 @@ describe('ForecastsComponent requests', () => {
   const overview = (category = 'MEGA') => `${base}/overview?category=${category}&page=0&size=50`;
   const payload = { rows: [], totalRows: 0, evaluation: { groups: [] }, enabled: true };
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [ForecastsComponent], providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ imports: [ForecastsComponent], providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     fixture = TestBed.createComponent(ForecastsComponent);
     http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -46,5 +48,25 @@ describe('ForecastsComponent requests', () => {
     capture.flush({status: 'BUSY', message: 'Đang xử lý'});
     http.expectOne(overview()).flush(payload);
     expect(fixture.componentInstance.message).toBe('Đang xử lý');
+  });
+  it('uses the shared category and does not refetch when the same category is selected', () => {
+    http.expectOne(overview()).flush(payload);
+    const analyze = TestBed.inject(AnalyzeService);
+    analyze.setCategory('POWER');
+    http.expectOne(overview('POWER')).flush(payload);
+    expect(fixture.componentInstance.category).toBe('POWER');
+    analyze.setCategory('POWER'); http.expectNone(overview('POWER'));
+  });
+  it('derives summary and matched balls from measured results without counting pending tickets as hits', () => {
+    http.expectOne(overview()).flush({ ...payload, totalRows: 3, rows: [
+      {id:'a',targetDate:'2026-10-25',algorithm:'temporal_learning',numbers:[1,2,3,4,5,6],createdAt:'2026-10-24T12:00:00Z',settlement:{status:'SETTLED',actualNumbers:[1,2,3,7,8,9],matched:3}},
+      {id:'b',targetDate:'2026-10-28',algorithm:'temporal_learning',numbers:[1,2,3,4,5,6],createdAt:'2026-10-26T12:00:00Z'}
+    ], evaluation:{groups:[{algorithm:'temporal_learning',modelVersion:'v2',configurationHash:'test-config',savedForecasts:3,evaluatedDraws:1,pendingOrUnavailable:2,matchHistogram:[0,0,0,1,0,0,0]}]} });
+    const component = fixture.componentInstance;
+    expect(component.evaluatedCount).toBe(1); expect(component.pendingCount).toBe(2); expect(component.hit3Count).toBe(1);
+    expect(component.isMatched(component.rows[0],1)).toBeTrue(); expect(component.isMatched(component.rows[1],1)).toBeFalse();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.number-ball.matched').length).toBe(3);
+    component.statusFilter='PENDING'; expect(component.filteredRows.map(row=>row.id)).toEqual(['b']);
   });
 });

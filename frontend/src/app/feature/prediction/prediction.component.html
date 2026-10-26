@@ -6,7 +6,7 @@
       <span *ngIf="saved.sameAsDisplayed === false">Bộ số đang tính lại khác bản đầu tiên; hệ thống vẫn giữ bản đã chốt.</span>
     </ng-container>
     <ng-template #notSaved>Chưa lưu dự đoán cho lượt tính này. {{ saved.message || (saved.status === 'DISABLED' ? 'Chức năng lưu đang tắt.' : '') }}</ng-template>
-    <a routerLink="/forecasts" class="ms-2">Xem dự đoán đã lưu và đối soát</a>
+    <a routerLink="/analyze/history" class="ms-2">Xem bản đã chốt trong Lịch sử &amp; đối soát</a>
   </div>
   <!-- KHUNG TIÊU ĐỀ & KỲ DỰ ĐOÁN MỤC TIÊU TIẾP THEO -->
   <div class="card shadow-sm border-0 mb-4 mt-3">
