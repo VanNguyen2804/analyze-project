@@ -1,0 +1,206 @@
+<section class="number-section" aria-labelledby="number-heading">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">YOUR NEXT NUMBERS</span>
+      <h2 id="number-heading">Các bộ số dành cho kỳ tới <span>↗</span></h2>
+    </div>
+    <span class="section-note"
+      >6 số chính · {{ category() === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}</span
+    >
+  </div>
+  <div class="result-grid">
+    @for (model of models(); track $index; let i = $index) {
+      <article class="result-card" [class.secondary]="i === 1" [class.consensus]="i === 2">
+        <div class="result-header">
+          <span class="result-label"
+            ><i aria-hidden="true">{{ i === 2 ? '✳' : '0' + (i + 1) }}</i
+            >{{ label(i) }}</span
+          ><button
+            class="copy-button"
+            [disabled]="model.numbers.length !== 6"
+            (click)="copy(model)"
+            [attr.aria-label]="'Sao chép bộ số ' + label(i)"
+          >
+            Sao chép <span aria-hidden="true">⧉</span>
+          </button>
+        </div>
+        <h3>{{ model.name }}</h3>
+        <div class="result-numbers" [attr.aria-label]="'Sáu số chính của ' + label(i)">
+          @for (number of model.numbers; track number) {
+            <span>{{ format(number) }}</span>
+          }
+        </div>
+        <div class="result-bottom">
+          @if (category() === 'POWER' && model.specialNumber) {
+            <span class="special-number"
+              >Số phụ tham khảo <strong>{{ format(model.specialNumber) }}</strong></span
+            >
+          } @else {
+            <span>{{
+              i === 2 ? 'Hợp nhất hai bảng xếp hạng' : 'Bộ số theo xếp hạng mô hình'
+            }}</span>
+          }
+          <button
+            class="inspect-button"
+            (click)="selectModel(i)"
+            [attr.aria-pressed]="activeModel() === i"
+          >
+            {{ activeModel() === i ? 'Đang phân tích ↓' : 'Phân tích ↓' }}
+          </button>
+        </div>
+      </article>
+    }
+  </div>
+  <p class="prediction-note">
+    Bộ số tham khảo từ lịch sử. Chưa có bằng chứng về lợi thế dự đoán; điểm mô hình không phải xác
+    suất trúng.
+  </p>
+</section>
+
+<ng-content />
+
+<section class="visual-section" aria-labelledby="visual-heading">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">BEHIND THE NUMBERS</span>
+      <h2 id="visual-heading">Hiểu cách thuật toán chọn số</h2>
+    </div>
+    <span class="section-note">Dữ liệu thực từ {{ historyCount() }} kỳ</span>
+  </div>
+  <div class="visual-grid">
+    <article class="ranking-panel">
+      <div class="model-switch" role="group" aria-label="Mô hình cần phân tích">
+        @for (model of models(); track $index; let i = $index) {
+          <button
+            [class.active]="activeModel() === i"
+            [attr.aria-pressed]="activeModel() === i"
+            (click)="selectModel(i)"
+          >
+            {{ label(i) }}
+          </button>
+        }
+      </div>
+      <div class="chart-heading">
+        <div>
+          <h3>{{ activeResult().name }}</h3>
+          <p>Chọn một thanh để xem số liệu của từng số.</p>
+        </div>
+      </div>
+      <div class="metric-switch" role="group" aria-label="Chỉ số biểu đồ">
+        <button
+          [class.active]="metric() === 'probabilityPercent'"
+          [attr.aria-pressed]="metric() === 'probabilityPercent'"
+          (click)="metric.set('probabilityPercent')"
+        >
+          Điểm xếp hạng</button
+        ><button
+          [class.active]="metric() === 'frequency'"
+          [attr.aria-pressed]="metric() === 'frequency'"
+          (click)="metric.set('frequency')"
+        >
+          Tần suất</button
+        ><button
+          [class.active]="metric() === 'drawGap'"
+          [attr.aria-pressed]="metric() === 'drawGap'"
+          (click)="metric.set('drawGap')"
+        >
+          Khoảng cách kỳ
+        </button>
+      </div>
+      <div class="bar-chart" role="group" aria-label="Biểu đồ số liệu sáu số được chọn">
+        @for (row of rows(); track row.number) {
+          <button
+            class="chart-row"
+            [class.selected]="focusedDetail()?.number === row.number"
+            [attr.aria-pressed]="focusedDetail()?.number === row.number"
+            (click)="focusedNumber.set(row.number)"
+          >
+            <span class="chart-number">{{ format(row.number) }}</span
+            ><span class="bar-track"
+              ><span class="bar-fill" [style.width.%]="width(row[metric()])"></span></span
+            ><strong>{{ row[metric()] == null ? '—' : (row[metric()] | number: '1.0-1') }}</strong>
+          </button>
+        }
+        @if (!rows().length) {
+          <p class="chart-empty">Chưa có số liệu chi tiết cho mô hình này.</p>
+        }
+      </div>
+      <p class="chart-caption">
+        {{
+          metric() === 'probabilityPercent'
+            ? 'Thang điểm nội bộ 0–100, không phải xác suất trúng.'
+            : metric() === 'frequency'
+              ? 'Số lần xuất hiện trong lịch sử được dùng để phân tích.'
+              : 'Số kỳ quan sát kể từ lần xuất hiện gần nhất. Khoảng cách dài không có nghĩa số sắp xuất hiện.'
+        }}
+      </p>
+      @if (focusedDetail(); as detail) {
+        <div class="number-detail">
+          <span class="detail-number">{{ format(detail.number) }}</span>
+          <dl>
+            <div>
+              <dt>Điểm / 100</dt>
+              <dd>{{ detail.probabilityPercent | number: '1.0-1' }}</dd>
+            </div>
+            <div>
+              <dt>Xuất hiện</dt>
+              <dd>{{ detail.frequency ?? '—' }} <small>lần</small></dd>
+            </div>
+            <div>
+              <dt>Cách gần nhất</dt>
+              <dd>{{ detail.drawGap ?? '—' }} <small>kỳ</small></dd>
+            </div>
+          </dl>
+        </div>
+      }
+      <details class="formula-detail">
+        <summary>Cách xếp hạng của mô hình</summary>
+        <p>
+          {{
+            activeResult().formulaNote ||
+              'Tính xếp hạng từ lịch sử trước kỳ mục tiêu; chọn sáu số đứng đầu.'
+          }}
+        </p>
+        <p>
+          Các chỉ số trên mô tả dữ liệu và đầu ra mô hình, không phải tỷ lệ đóng góp nhân quả của
+          từng đặc trưng.
+        </p>
+      </details>
+    </article>
+    <aside class="overlap-panel">
+      <div class="overlap-heading">
+        <span class="overlap-icon" aria-hidden="true">◎</span
+        ><span class="eyebrow">MODEL CONSENSUS</span>
+      </div>
+      <h3>Hai mô hình<br />gặp nhau ở đâu?</h3>
+      <p>
+        <strong>{{ shared().length }} số chung</strong> giữa hai bộ gốc. Bộ kết hợp được tạo bằng
+        hợp nhất xếp hạng, có thể chọn cả số ngoài hai bộ gốc.
+      </p>
+      <div class="matrix">
+        <div class="matrix-head">
+          <span>Số</span><span>Mô hình 1</span><span>Mô hình 2</span><span>Kết hợp</span>
+        </div>
+        @for (number of union(); track number) {
+          <div class="matrix-row">
+            <strong>{{ format(number) }}</strong>
+            @for (model of models(); track $index; let i = $index) {
+              <span
+                class="matrix-cell"
+                [class.present]="model.numbers.includes(number)"
+                [class.combined-cell]="i === 2"
+                [attr.aria-label]="
+                  label(i) +
+                  (model.numbers.includes(number) ? ' có chọn số ' : ' không chọn số ') +
+                  format(number)
+                "
+                >{{ model.numbers.includes(number) ? '●' : '·' }}</span
+              >
+            }
+          </div>
+        }
+      </div>
+      <span class="matrix-caption">● Có trong bộ số được chọn</span>
+    </aside>
+  </div>
+</section>

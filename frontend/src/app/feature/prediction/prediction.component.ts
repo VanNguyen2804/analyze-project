@@ -1,4 +1,5 @@
 import { PredictionChartComponent } from './prediction-chart/prediction-chart.component';
+import { PredictionOverviewComponent } from './prediction-overview/prediction-overview.component';
 import { TicketMixerComponent } from './ticket-mixer/ticket-mixer.component';
 import { AlgorithmOption } from '../../core/models/algorithm.model';
 import {
@@ -23,6 +24,7 @@ import { AnalyzeService } from '@app/core/services/analyze.service';
   standalone: true,
   imports: [
     PredictionChartComponent,
+    PredictionOverviewComponent,
     TicketMixerComponent,
     FormsModule,
     RouterLink,
@@ -44,6 +46,12 @@ export class PredictionComponent implements OnInit {
   isSpinning = false;
   errorMessage: string | null = null;
   showAllReasons = false;
+  historyChartOpened = false;
+  advancedOpened = false;
+
+  selectCategory(category: string) {
+    this.analyzeService.setCategory(category);
+  }
 
   // --- BIẾN QUẢN LÝ BIỂU ĐỒ LIÊN KẾT DÃY SỐ CSDL (HISTORICAL SEQUENCE LINKAGE CHART) ---
 

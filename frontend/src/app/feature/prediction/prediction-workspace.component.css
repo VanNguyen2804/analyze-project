@@ -1,86 +1,80 @@
 .workspace {
   max-width: 1440px;
   margin: auto;
-  padding: 24px 12px;
+  padding: 0 4px 16px;
+  color: #2d493e;
+}
+.workspace-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  border-bottom: 1px solid #dfe7df;
+  padding-bottom: 17px;
+  margin-bottom: 23px;
 }
 .eyebrow {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.13em;
-  color: #54708f;
+  letter-spacing: 0.14em;
+  color: #758774;
 }
 h1 {
-  font-size: 28px;
-  color: #152e4a;
-  letter-spacing: -0.7px;
-  margin: 7px 0;
-}
-p {
-  color: #63758a;
-  margin-bottom: 20px;
-  font-size: 14px;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  margin: 5px 0 0;
+  color: #2a4339;
 }
 .workspace-tabs {
   display: flex;
-  gap: 8px;
-  padding: 6px;
-  background: #eaf0f6;
-  border: 1px solid #dfe7ef;
-  border-radius: 14px;
-  margin-bottom: 22px;
+  gap: 4px;
+  padding: 4px;
+  background: #eaf0e8;
+  border: 1px solid #dce5d9;
+  border-radius: 10px;
 }
 .workspace-tabs a {
-  flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: #5a6d83;
+  gap: 6px;
+  color: #6b7e66;
   text-decoration: none;
-  padding: 14px 18px;
-  border-radius: 10px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  font-size: 13px;
 }
 .workspace-tabs a.selected {
   background: white;
-  color: #174e93;
-  box-shadow: 0 2px 8px #203c5810;
-}
-.step {
-  font-weight: 750;
-  font-size: 13px;
-  border-radius: 9px;
-  background: #dce5ef;
-  padding: 8px;
-}
-.selected .step {
-  background: #e8f1ff;
-}
-.workspace-tabs strong,
-.workspace-tabs small {
-  display: block;
+  color: #31664b;
+  box-shadow: 0 2px 7px #284c2410;
 }
 .workspace-tabs strong {
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 11px;
 }
-.workspace-tabs small {
-  font-size: 12px;
-  margin-top: 3px;
-}
-a:focus-visible {
-  outline: 3px solid #6799df;
-  outline-offset: 2px;
+.workspace-tabs a:focus-visible {
+  outline: 3px solid #dfa687;
+  outline-offset: 3px;
 }
 @media (max-width: 600px) {
   .workspace {
-    padding: 16px 0;
+    padding: 0;
+  }
+  .workspace-heading {
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  .workspace-tabs {
+    width: 100%;
   }
   .workspace-tabs a {
-    padding: 12px 8px;
-    gap: 8px;
-  }
-  .workspace-tabs small {
-    display: none;
+    flex: 1;
+    justify-content: center;
   }
   h1 {
-    font-size: 24px;
+    font-size: 19px;
   }
 }

@@ -1,5 +1,13 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Cập nhật 27/10/2026 — Đơn giản hóa Dự đoán & kết quả
+
+Đưa ba bộ số (hai thuật toán và bộ kết hợp) lên đầu trang với nút sao chép riêng, kỳ mục tiêu, mốc quay/nhận kết quả và nguồn lịch sử. Tách `PredictionOverviewComponent` để hiển thị bộ số cùng biểu đồ tương tác: chọn mô hình, điểm xếp hạng/tần suất/khoảng cách kỳ, chọn từng số để xem chi tiết và ma trận giao nhau giữa ba bộ. Điểm được ghi rõ là thang nội bộ, không phải xác suất trúng; các thanh thể hiện dữ liệu thực trả về từ backend.
+
+Thông báo bản đầu tiên đã chốt nằm giữa bộ số và biểu đồ, giữ cảnh báo khi bộ đang hiển thị khác bản đã lưu. Bộ chọn thuật toán, biểu đồ lịch sử và phần chuyên sâu được thu gọn; hai phần lớn tải bằng `@defer` khi mở lần đầu. Giữ các chức năng biến thể, ghép vé và cấu hình trong phần mở rộng. Menu di động chuyển thành lưới hai cột để giảm chiều cao điều hướng. Không thay thuật toán hoặc API.
+
+Kiểm chứng: 27 kiểm thử frontend, typecheck, format:check và production build đạt; chỉ còn cảnh báo kích thước stylesheet AI lab đã có từ đợt trước. Kiểm tra Edge với dữ liệu GET từ ứng dụng đang chạy ở 1440 và 390 px: ba bộ số hiển thị, không tràn ngang; bộ số đầu nằm trong viewport 844 px trên di động. Kiểm tra đổi mô hình/chỉ số và mở biểu đồ lịch sử/phần ghép vé đều hoạt động. Chưa triển khai Render.
+
 ## Cập nhật 27/10/2026 — Làm mới giao diện phòng thử nghiệm AI
 
 Thiết kế lại `/ai-lab` với phần giới thiệu xanh đậm/mint, minh họa quỹ đạo bằng CSS, thẻ mô hình tím/cam, biểu đồ thanh từ số liệu thực, tiến độ đối soát và thẻ bộ số có đánh dấu số khớp. Chuyển hướng dẫn sang cột bên; tiêu chí sàng lọc và chi tiết phiên bản có thể mở rộng. Bổ sung trạng thái đang tải, danh sách trống, nút chọn MEGA/POWER có `aria-pressed`, nhãn trạng thái tiếng Việt và hỗ trợ giảm chuyển động. Giữ nguyên API, thuật toán, ngân sách vé và các thao tác chốt/đối soát/phân trang.
