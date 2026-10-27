@@ -1,16 +1,18 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { PredictionOverviewComponent } from './prediction-overview.component';
 import { AlgorithmResultItem } from '@app/core/models/prediction-payload.model';
 
 describe('Prediction overview interactions', () => {
   function setup() {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(PredictionOverviewComponent);
     const primary: AlgorithmResultItem = {
       name: 'Mô hình 1',
       numbers: [1, 2, 3, 4, 5, 6],
       specialNumber: 55,
       details: [
-        { number: 1, probabilityPercent: 20, frequency: 2, drawGap: 0 },
+        { number: 1, probabilityPercent: 99.9, frequency: 2, drawGap: 0 },
         { number: 2, probabilityPercent: 10, frequency: 8, drawGap: 3 },
       ],
     };
@@ -54,12 +56,14 @@ describe('Prediction overview interactions', () => {
     const { fixture } = setup();
     const host = fixture.nativeElement as HTMLElement;
     const component = fixture.componentInstance;
-    expect(component.rows()[0].number).toBe(1);
-    expect(component.width(20)).toBe(20);
+    expect(component.rows()[0].number).toBe(2);
+    expect(component.width(2)).toBe(25);
+    expect(host.textContent).not.toContain('99.9');
+    expect(host.textContent).not.toContain('Điểm xếp hạng');
     (host.querySelectorAll('.metric-switch button')[1] as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(component.rows()[0].number).toBe(2);
-    expect(component.width(2)).toBe(25);
+    expect(component.width(3)).toBe(100);
     (host.querySelectorAll('.chart-row')[1] as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(component.focusedDetail()?.number).toBe(1);

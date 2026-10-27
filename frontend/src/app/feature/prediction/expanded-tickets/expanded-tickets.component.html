@@ -1,0 +1,68 @@
+<div class="expanded-tickets">
+  <button
+    class="expand-button"
+    [attr.aria-expanded]="expanded()"
+    aria-controls="expanded-ticket-list"
+    (click)="expanded.set(!expanded())"
+  >
+    <span aria-hidden="true">{{ expanded() ? '−' : '＋' }}</span
+    >{{ expanded() ? 'Ẩn dãy số mở rộng' : 'Xem dãy số mở rộng'
+    }}<small>{{ tickets().length }} vé</small
+    ><span class="expand-arrow" aria-hidden="true">{{ expanded() ? '↑' : '↓' }}</span>
+  </button>
+  @if (expanded()) {
+    <section id="expanded-ticket-list" aria-label="Dãy số mở rộng" class="expanded-body">
+      <div class="list-heading">
+        <div>
+          <h3>Dãy số mở rộng</h3>
+          <p>Các vé ghép thêm từ xếp hạng hiện tại, khác với ba bộ số gốc phía trên.</p>
+        </div>
+        <label
+          >Hiển thị<select [value]="limit()" (change)="setLimit($event)">
+            @for (count of [3, 5, 10, 15, 20, 25]; track count) {
+              <option [value]="count" [selected]="count === limit()">{{ count }} vé</option>
+            }
+          </select></label
+        >
+      </div>
+      @if (experimental().length) {
+        <label class="experiment-option"
+          ><input
+            type="checkbox"
+            [checked]="useExperimental()"
+            (change)="useExperimental.set(!useExperimental())"
+          />
+          Thử nghiệm giảm trùng lặp giữa các vé</label
+        >
+      }
+      @if (useExperimental() && experimental().length) {
+        <p class="experiment-note">
+          Hai vé bất kỳ trùng tối đa 3 số. Chưa có bằng chứng cải thiện ổn định tỷ lệ trúng.
+        </p>
+      }
+      <div class="ticket-grid">
+        @for (ticket of displayed(); track $index; let i = $index) {
+          <article class="expanded-ticket">
+            <div class="ticket-label">
+              <span>VÉ {{ i + 1 < 10 ? '0' + (i + 1) : i + 1 }}</span
+              ><button (click)="copy(ticket)" [attr.aria-label]="'Sao chép vé mở rộng ' + (i + 1)">
+                Sao chép ⧉
+              </button>
+            </div>
+            <div class="ticket-numbers">
+              @for (n of ticket; track n) {
+                <span>{{ format(n) }}</span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+      @if (!chosen().length) {
+        <p class="empty-tickets">Chưa có dãy số mở rộng cho lượt tính này.</p>
+      }
+      <p class="coverage">
+        {{ displayed().length }} vé đang hiển thị · Phủ {{ coverage() }} số khác nhau
+      </p>
+    </section>
+  }
+</div>

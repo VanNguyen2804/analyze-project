@@ -184,12 +184,12 @@
   gap: 16px;
   flex-wrap: wrap;
   margin: 0 0 20px;
-  color: #244039;
+  color: #213f32;
 }
 .prediction-kicker {
   font-size: 9px;
   letter-spacing: 0.15em;
-  color: #698477;
+  color: #456955;
   font-weight: 750;
 }
 .prediction-kicker > span {
@@ -198,22 +198,12 @@
   vertical-align: middle;
   margin-left: 6px;
 }
-.prediction-heading h2 {
-  font-size: 27px;
-  letter-spacing: -0.045em;
-  font-weight: 750;
-  margin: 7px 0 0;
-  line-height: 1.35;
-}
-.mobile-break {
-  display: none;
-}
 .category-switch {
   display: flex;
   padding: 4px;
   gap: 3px;
-  background: #e9efe9;
-  border: 1px solid #dce5dc;
+  background: #dfece2;
+  border: 1px solid #c4d9cb;
   border-radius: 11px;
 }
 .category-switch button {
@@ -222,7 +212,7 @@
   border-radius: 8px;
   background: transparent;
   font-size: 11px;
-  color: #627768;
+  color: #405e4b;
   font-weight: 700;
 }
 .category-switch button.active {
@@ -241,7 +231,7 @@
   flex-wrap: wrap;
   gap: 12px;
   padding: 13px 17px;
-  background: #edf2e7;
+  background: #dfede3;
   border: 1px solid #dde6d7;
   border-radius: 13px;
   margin-bottom: 24px;
@@ -255,7 +245,7 @@
   font-size: 8px;
   letter-spacing: 0.1em;
   display: block;
-  color: #73896a;
+  color: #4a6854;
 }
 .draw-strip strong {
   font-size: 12px;
@@ -263,7 +253,7 @@
 }
 .draw-schedule {
   font-size: 10px;
-  color: #667a5d;
+  color: #49654f;
 }
 .draw-schedule > span {
   margin: 0 5px;
@@ -271,7 +261,7 @@
 .history-source {
   margin-left: auto;
   font-size: 10px;
-  color: #647b5a;
+  color: #45654d;
 }
 .history-source > span {
   font-size: 9px;

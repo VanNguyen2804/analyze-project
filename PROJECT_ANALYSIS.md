@@ -1,5 +1,19 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Cập nhật 27/10/2026 — Bỏ ma trận seed, đưa dãy mở rộng xuống dưới bộ số gốc
+
+Kiểm tra cho thấy ma trận biến số lấy từ `lottery_deviation_variables` qua repository/API, nhưng migration V3 và các migration lịch sử có chèn dữ liệu cố định; thuật toán không đọc bảng này để chấm điểm hay học. Bỏ section ma trận, các wrapper API frontend không còn dùng, request tải ma trận và các thao tác đồng bộ vốn đánh dấu thành công cả khi lỗi. Giữ nguyên database, migration và API backend để không mất lịch sử hoặc phá tương thích.
+
+Thêm `ExpandedTicketsComponent` ngay dưới ba bộ số gốc bằng content projection. Nút mở/đóng điều khiển danh sách mặc định ẩn; khi mở hiển thị 5 vé từ response hiện tại, có chọn số vé, sao chép và lựa chọn thử nghiệm giảm trùng lặp (tắt mặc định). Bỏ dàn vé trùng lặp ở khu vực chuyên sâu. Không đổi thuật toán và không tự tạo dữ liệu ma trận thay thế.
+
+Kiểm chứng: typecheck, format:check, kiểm thử giao diện và production build đạt; kiểm tra trình duyệt desktop/di động xác nhận mặc định ẩn, bấm mở thấy vé thật ngay sau bộ số gốc, không có ma trận và không tràn ngang. Chưa triển khai Render.
+
+## Cập nhật 27/10/2026 — Bỏ điểm heuristic khỏi trang dự đoán
+
+Theo yêu cầu người dùng, bỏ điểm xếp hạng /100 khỏi biểu đồ và popup số; bỏ điểm biến thể cùng các cột xác suất lệch/chuyển dịch chưa được hiệu chuẩn trong phần mở rộng. Biểu đồ mặc định hiển thị tần suất thực tế, có thể chuyển sang khoảng cách kỳ. Không thay thuật toán chọn số. Thêm liên kết tới lịch sử & đối soát để xem hiệu quả trên các dự đoán đã lưu trước kỳ; không thay điểm heuristic bằng tỷ lệ chính xác suy đoán hoặc thống kê từ việc tính lại trên kết quả đã biết.
+
+Kiểm chứng: 27 kiểm thử frontend và typecheck đạt; kiểm thử tương tác xác nhận điểm đầu vào 99,9 không xuất hiện trong giao diện, biểu đồ sử dụng số lần xuất hiện/khoảng cách thực. Production build thành công, còn cảnh báo stylesheet AI lab đã có. Chưa triển khai Render.
+
 ## Cập nhật 27/10/2026 — Đơn giản hóa Dự đoán & kết quả
 
 Đưa ba bộ số (hai thuật toán và bộ kết hợp) lên đầu trang với nút sao chép riêng, kỳ mục tiêu, mốc quay/nhận kết quả và nguồn lịch sử. Tách `PredictionOverviewComponent` để hiển thị bộ số cùng biểu đồ tương tác: chọn mô hình, điểm xếp hạng/tần suất/khoảng cách kỳ, chọn từng số để xem chi tiết và ma trận giao nhau giữa ba bộ. Điểm được ghi rõ là thang nội bộ, không phải xác suất trúng; các thanh thể hiện dữ liệu thực trả về từ backend.

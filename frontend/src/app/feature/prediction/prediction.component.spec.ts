@@ -4,34 +4,25 @@ import { PredictionComponent } from './prediction.component';
 import { AnalyzeService } from '@app/core/services/analyze.service';
 
 describe('Prediction request category isolation', () => {
-  it('keeps the existing portfolio by default and requires selecting the experimental mode', () => {
-    const existing = [[1, 2, 3, 4, 5, 6]];
-    const experimental = [[7, 8, 9, 10, 11, 12]];
+  it('does not request the legacy deviation matrix after predicting', () => {
+    const legacy = jasmine.createSpy('getDeviationVariables');
     TestBed.configureTestingModule({
       providers: [
         {
           provide: AnalyzeService,
           useValue: {
             getPrediction: () =>
-              of({
-                status: 'SUCCESS',
-                category: 'POWER',
-                tickets: existing,
-                recommendations: { diversifiedTickets: experimental },
-              }),
-            getDeviationVariables: () => of([]),
+              of({ status: 'SUCCESS', category: 'POWER', tickets: [[1, 2, 3, 4, 5, 6]] }),
+            getDeviationVariables: legacy,
           },
         },
       ],
     });
     const fixture = TestBed.createComponent(PredictionComponent);
-    const component = fixture.componentInstance;
-    component.category = 'POWER';
-    component.predict();
-    expect(component.displayedTickets).toEqual(existing);
-    component.useDiversifiedTickets = true;
-    expect(component.displayedTickets).toEqual(experimental);
-    expect(component.getTicketAffinityInfo(0)).toBeNull();
+    fixture.componentInstance.category = 'POWER';
+    fixture.componentInstance.predict();
+    expect(legacy).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.payload?.tickets).toEqual([[1, 2, 3, 4, 5, 6]]);
     fixture.destroy();
   });
   it('cancels an older request when changing lottery category', () => {

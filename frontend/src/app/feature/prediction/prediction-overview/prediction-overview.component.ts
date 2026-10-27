@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AlgorithmResultItem } from '@app/core/models/prediction-payload.model';
 
-type Metric = 'probabilityPercent' | 'frequency' | 'drawGap';
+type Metric = 'frequency' | 'drawGap';
 
 @Component({
   selector: 'app-prediction-overview',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, RouterLink],
   templateUrl: './prediction-overview.component.html',
   styleUrl: './prediction-overview.component.css',
 })
@@ -19,7 +20,7 @@ export class PredictionOverviewComponent {
   readonly historyCount = input(0);
   readonly copied = output<{ numbers: number[]; special?: number }>();
   readonly activeModel = signal(0);
-  readonly metric = signal<Metric>('probabilityPercent');
+  readonly metric = signal<Metric>('frequency');
   readonly focusedNumber = signal<number | null>(null);
   readonly models = computed(() => [this.primary(), this.secondary(), this.combined()]);
   readonly activeResult = computed(() => this.models()[this.activeModel()]);
@@ -29,9 +30,7 @@ export class PredictionOverviewComponent {
     ),
   );
   readonly maxValue = computed(() =>
-    this.metric() === 'probabilityPercent'
-      ? 100
-      : Math.max(1, ...this.rows().map((row) => row[this.metric()] ?? 0)),
+    Math.max(1, ...this.rows().map((row) => row[this.metric()] ?? 0)),
   );
   readonly focusedDetail = computed<
     NonNullable<AlgorithmResultItem['details']>[number] | undefined

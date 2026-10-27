@@ -1,5 +1,6 @@
 import { PredictionChartComponent } from './prediction-chart/prediction-chart.component';
 import { PredictionOverviewComponent } from './prediction-overview/prediction-overview.component';
+import { ExpandedTicketsComponent } from './expanded-tickets/expanded-tickets.component';
 import { TicketMixerComponent } from './ticket-mixer/ticket-mixer.component';
 import { AlgorithmOption } from '../../core/models/algorithm.model';
 import {
@@ -25,6 +26,7 @@ import { AnalyzeService } from '@app/core/services/analyze.service';
   imports: [
     PredictionChartComponent,
     PredictionOverviewComponent,
+    ExpandedTicketsComponent,
     TicketMixerComponent,
     FormsModule,
     RouterLink,
@@ -158,7 +160,6 @@ export class PredictionComponent implements OnInit {
     this.predictionCancelled.next();
     const requestedCategory = this.category;
     this.payload = null;
-    this.deviationVariablesList = [];
     this.isSpinning = true;
     this.errorMessage = null;
     this.closePopup();
@@ -188,7 +189,6 @@ export class PredictionComponent implements OnInit {
           }
           this.payload = res;
           this.isSpinning = false;
-          this.loadDeviationVariables();
           this.cdr.markForCheck();
         },
         error: (err) => {
@@ -545,73 +545,6 @@ export class PredictionComponent implements OnInit {
     return info.fullDisplay;
   }
 
-  activeMainTab: 'wheeling' | 'variables' = 'wheeling';
-
-  setActiveMainTab(tab: 'wheeling' | 'variables') {
-    this.activeMainTab = tab;
-    this.cdr.markForCheck();
-  }
-
-  ticketViewMode: 'table' | 'cards' = 'table';
-  useDiversifiedTickets = false;
-  displayedTicketsLimit: number = 10;
-  ticketLimitOptions: number[] = [5, 10, 15, 20, 25];
-  expandedTicketDetails: { [key: number]: boolean } = { 0: true };
-  showAffinityModal: boolean = false;
-
-  get displayedTickets(): number[][] {
-    const list = this.useDiversifiedTickets
-      ? this.recommendations?.diversifiedTickets
-      : this.payload?.tickets;
-    if (!Array.isArray(list)) return [];
-    return list.slice(0, this.displayedTicketsLimit);
-  }
-
-  toggleAffinityModal() {
-    this.showAffinityModal = !this.showAffinityModal;
-    this.cdr.markForCheck();
-  }
-
-  getTicketAffinityInfo(index: number): any {
-    if (this.useDiversifiedTickets) return null;
-    return this.payload?.numberRelationships?.ticketAffinityDetails?.[index] || null;
-  }
-
-  setTicketLimit(limit: number) {
-    this.displayedTicketsLimit = limit;
-    this.cdr.markForCheck();
-  }
-
-  toggleTicketLimit() {
-    this.displayedTicketsLimit = this.displayedTicketsLimit === 5 ? 10 : 5;
-    this.cdr.markForCheck();
-  }
-
-  getTicketStrategyBadge(index: number): { text: string; class: string } {
-    if (this.useDiversifiedTickets) return { text: 'Thử nghiệm', class: 'bg-secondary text-white' };
-    if (index === 0 && this.category === 'POWER') {
-      return { text: '🏆 Hạt Nhân Điểm Vàng', class: 'bg-success text-white' };
-    }
-    if (index < 5) {
-      return { text: '🎯 Top Xác Suất Cao', class: 'bg-primary text-white' };
-    }
-    if (index < 10) {
-      return { text: '🔗 Wheeling Cặp Đôi', class: 'bg-info text-dark' };
-    }
-    if (index < 15) {
-      return { text: '🌊 Điểm Rơi Poisson', class: 'bg-warning text-dark' };
-    }
-    if (index < 20) {
-      return { text: '⚖️ Cân Bằng Parity', class: 'bg-secondary text-white' };
-    }
-    return { text: '⚡ Phủ Rộng Đa Vùng', class: 'bg-dark text-white' };
-  }
-
-  toggleTicketDetail(index: number) {
-    this.expandedTicketDetails[index] = !this.expandedTicketDetails[index];
-    this.cdr.markForCheck();
-  }
-
   getTicketSum(ticket: number[]): number {
     if (!ticket) return 0;
     return ticket.reduce((a, b) => a + b, 0);
@@ -681,15 +614,6 @@ export class PredictionComponent implements OnInit {
     return `⚡ Hóa giải cụm nén dồn: Phân rã năng lượng từ cụm số dồn nén kỳ trước sang vị trí ${this.formatNumber(num)}, cân đối phương sai dải số toàn diện.`;
   }
 
-  getTicketAlgorithmReason(ticket: number[], index: number): string {
-    if (!ticket || ticket.length === 0) return '';
-    const sum = this.getTicketSum(ticket);
-    const parity = this.getTicketParity(ticket);
-    const reason = this.useDiversifiedTickets
-      ? `${index === 0 ? 'Sáu số đứng đầu bảng xếp hạng.' : 'Kết hợp xếp hạng và giảm lặp số giữa các vé.'} Hai vé bất kỳ trong dàn trùng tối đa ba số.`
-      : 'Ghép vé từ nhóm ứng viên xếp hạng theo cách hiện tại.';
-    return `Vé #${index + 1} (${parity} • Tổng = ${sum}): ${reason} Chưa có bằng chứng tăng tỷ lệ trúng.`;
-  }
   getNewBallsTransformationMatrix(): any[] {
     const list: number[] = this.payload?.numbers || [];
     const latestWinning: number[] =
@@ -774,60 +698,6 @@ export class PredictionComponent implements OnInit {
     return this.payload?.recommendations || this.payload?.aiRecommendation || null;
   }
 
-  // --- 6. QUẢN LÝ MỤC BIẾN SỐ CHUYỂN DỊCH AI (DEVIATION VARIABLES & DATABASE) ---
-  showDeviationSection: boolean = true;
-  deviationFilterType: string = 'ALL';
-  dbSaveStatusMap: Record<number | string, boolean> = {};
-  isSavingAllDevVars: boolean = false;
-  dbSaveToastMessage: string | null = null;
-  deviationVariablesList: any[] = [];
-
-  loadDeviationVariables(): void {
-    this.analyzeService
-      .getDeviationVariables(this.category)
-      .pipe(takeUntil(this.predictionCancelled), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (list) => {
-          if (list && list.length > 0) {
-            this.deviationVariablesList = list;
-            this.cdr.markForCheck();
-          }
-        },
-        error: (err) => console.error('Lỗi tải biến số từ endpoint:', err),
-      });
-  }
-
-  toggleDeviationSection(): void {
-    this.showDeviationSection = !this.showDeviationSection;
-    this.cdr.markForCheck();
-  }
-
-  setDeviationFilter(type: string): void {
-    this.deviationFilterType = type;
-    this.cdr.markForCheck();
-  }
-
-  get deviationVariables(): any[] {
-    if (this.payload?.deviationVariables && this.payload.deviationVariables.length > 0) {
-      return this.payload.deviationVariables;
-    }
-    if (
-      this.recommendations?.deviationVariables &&
-      this.recommendations.deviationVariables.length > 0
-    ) {
-      return this.recommendations.deviationVariables;
-    }
-    return this.deviationVariablesList || [];
-  }
-
-  get filteredDeviationVariables(): any[] {
-    const list = this.deviationVariables;
-    if (this.deviationFilterType === 'ALL') {
-      return list;
-    }
-    return list.filter((v: any) => v.variableType === this.deviationFilterType);
-  }
-
   getRecent5DrawDates(): string {
     if (!this.payload?.recentDraws || this.payload.recentDraws.length === 0) return '';
     return this.payload.recentDraws
@@ -844,93 +714,6 @@ export class PredictionComponent implements OnInit {
     const odd = nums.length - even;
     const special = this.recommendations?.megaDrawReconciliation?.specialNumber;
     return `Tổng = ${sum} • ${even} Chẵn / ${odd} Lẻ${special ? ` • Banh Phụ ⭐${special}` : ''}`;
-  }
-
-  saveDeviationVariableToDb(v: any): void {
-    const key = v.id || `${v.aiPredictedNumber}_${v.actualNumber}`;
-    this.analyzeService
-      .saveDeviationVariable(v)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (_res) => {
-          this.dbSaveStatusMap[key] = true;
-          this.dbSaveToastMessage = `Đã lưu biến số (${v.patternName}: ${v.transformationRule}) vào Database thành công!`;
-          this.cdr.markForCheck();
-          timer(4000)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
-              this.dbSaveToastMessage = null;
-              this.cdr.markForCheck();
-            });
-        },
-        error: (err) => {
-          console.error('Lỗi khi lưu biến số:', err);
-          // Ngay cả khi offline, đánh dấu thành công trên local
-          this.dbSaveStatusMap[key] = true;
-          this.dbSaveToastMessage = `Đã ghi nhận biến số vào Database thành công!`;
-          this.cdr.markForCheck();
-          timer(4000)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
-              this.dbSaveToastMessage = null;
-              this.cdr.markForCheck();
-            });
-        },
-      });
-  }
-
-  saveAllDeviationVariablesToDb(): void {
-    this.isSavingAllDevVars = true;
-    const list = this.deviationVariables;
-    let savedCount = 0;
-
-    list.forEach((v: any) => {
-      const key = v.id || `${v.aiPredictedNumber}_${v.actualNumber}`;
-      this.analyzeService
-        .saveDeviationVariable(v)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: () => {
-            this.dbSaveStatusMap[key] = true;
-            savedCount++;
-            if (savedCount >= list.length) {
-              this.isSavingAllDevVars = false;
-              this.dbSaveToastMessage = `Đã đồng bộ toàn bộ ${list.length} biến số vào Cơ sở dữ liệu thành công!`;
-              this.cdr.markForCheck();
-              timer(5000)
-                .pipe(takeUntilDestroyed(this.destroyRef))
-                .subscribe(() => {
-                  this.dbSaveToastMessage = null;
-                  this.cdr.markForCheck();
-                });
-            }
-          },
-          error: () => {
-            this.dbSaveStatusMap[key] = true;
-            savedCount++;
-            if (savedCount >= list.length) {
-              this.isSavingAllDevVars = false;
-              this.dbSaveToastMessage = `Đã đồng bộ các biến số vào Database thành công!`;
-              this.cdr.markForCheck();
-              timer(5000)
-                .pipe(takeUntilDestroyed(this.destroyRef))
-                .subscribe(() => {
-                  this.dbSaveToastMessage = null;
-                  this.cdr.markForCheck();
-                });
-            }
-          },
-        });
-    });
-  }
-
-  getDeviationBadgeClass(delta: number): string {
-    if (delta === 0) return 'badge bg-success text-white';
-    if (Math.abs(delta) === 1) return 'badge bg-warning text-dark';
-    if (Math.abs(delta) === 2) return 'badge bg-info text-dark';
-    if (Math.abs(delta) === 7) return 'badge bg-danger text-white';
-    if (Math.abs(delta) >= 10) return 'badge bg-primary text-white';
-    return 'badge bg-secondary text-white';
   }
 
   getNeighborDriftAnalysis(): any {

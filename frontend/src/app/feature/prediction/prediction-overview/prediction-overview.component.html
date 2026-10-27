@@ -51,9 +51,10 @@
       </article>
     }
   </div>
+  <ng-content select="[expanded-tickets]" />
   <p class="prediction-note">
-    Bộ số tham khảo từ lịch sử. Chưa có bằng chứng về lợi thế dự đoán; điểm mô hình không phải xác
-    suất trúng.
+    Bộ số tham khảo từ lịch sử. Chưa có bằng chứng về lợi thế dự đoán.
+    <a routerLink="/analyze/history">Xem hiệu quả trên các bộ đã chốt & đối soát ↗</a>
   </p>
 </section>
 
@@ -63,7 +64,7 @@
   <div class="section-heading">
     <div>
       <span class="eyebrow">BEHIND THE NUMBERS</span>
-      <h2 id="visual-heading">Hiểu cách thuật toán chọn số</h2>
+      <h2 id="visual-heading">Thống kê thực tế của các số được chọn</h2>
     </div>
     <span class="section-note">Dữ liệu thực từ {{ historyCount() }} kỳ</span>
   </div>
@@ -88,12 +89,6 @@
       </div>
       <div class="metric-switch" role="group" aria-label="Chỉ số biểu đồ">
         <button
-          [class.active]="metric() === 'probabilityPercent'"
-          [attr.aria-pressed]="metric() === 'probabilityPercent'"
-          (click)="metric.set('probabilityPercent')"
-        >
-          Điểm xếp hạng</button
-        ><button
           [class.active]="metric() === 'frequency'"
           [attr.aria-pressed]="metric() === 'frequency'"
           (click)="metric.set('frequency')"
@@ -127,21 +122,15 @@
       </div>
       <p class="chart-caption">
         {{
-          metric() === 'probabilityPercent'
-            ? 'Thang điểm nội bộ 0–100, không phải xác suất trúng.'
-            : metric() === 'frequency'
-              ? 'Số lần xuất hiện trong lịch sử được dùng để phân tích.'
-              : 'Số kỳ quan sát kể từ lần xuất hiện gần nhất. Khoảng cách dài không có nghĩa số sắp xuất hiện.'
+          metric() === 'frequency'
+            ? 'Số lần xuất hiện trong lịch sử được dùng để phân tích.'
+            : 'Số kỳ quan sát kể từ lần xuất hiện gần nhất. Khoảng cách dài không có nghĩa số sắp xuất hiện.'
         }}
       </p>
       @if (focusedDetail(); as detail) {
         <div class="number-detail">
           <span class="detail-number">{{ format(detail.number) }}</span>
           <dl>
-            <div>
-              <dt>Điểm / 100</dt>
-              <dd>{{ detail.probabilityPercent | number: '1.0-1' }}</dd>
-            </div>
             <div>
               <dt>Xuất hiện</dt>
               <dd>{{ detail.frequency ?? '—' }} <small>lần</small></dd>
@@ -162,8 +151,8 @@
           }}
         </p>
         <p>
-          Các chỉ số trên mô tả dữ liệu và đầu ra mô hình, không phải tỷ lệ đóng góp nhân quả của
-          từng đặc trưng.
+          Tần suất và khoảng cách là thống kê lịch sử, không đo độ chính xác dự đoán. Hiệu quả cần
+          được đối soát trên các bộ số đã lưu trước kỳ quay.
         </p>
       </details>
     </article>

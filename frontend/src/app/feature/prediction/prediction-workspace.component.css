@@ -1,8 +1,11 @@
 .workspace {
   max-width: 1440px;
   margin: auto;
-  padding: 0 4px 16px;
-  color: #2d493e;
+  padding: 24px;
+  color: #213f32;
+  background: #edf5ef;
+  border: 1px solid #d8e6dc;
+  border-radius: 20px;
 }
 .workspace-heading {
   display: flex;
@@ -10,36 +13,38 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
-  border-bottom: 1px solid #dfe7df;
-  padding-bottom: 17px;
-  margin-bottom: 23px;
+  background: #194b38;
+  border: 1px solid #194b38;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
 }
 .eyebrow {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: #758774;
+  color: #c0d9ca;
 }
 h1 {
   font-size: 20px;
   font-weight: 750;
   letter-spacing: -0.04em;
   margin: 5px 0 0;
-  color: #2a4339;
+  color: #ffffff;
 }
 .workspace-tabs {
   display: flex;
   gap: 4px;
   padding: 4px;
-  background: #eaf0e8;
-  border: 1px solid #dce5d9;
+  background: #255b46;
+  border: 1px solid #4b7963;
   border-radius: 10px;
 }
 .workspace-tabs a {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #6b7e66;
+  color: #e1eee5;
   text-decoration: none;
   padding: 9px 12px;
   border-radius: 7px;
@@ -47,7 +52,7 @@ h1 {
 }
 .workspace-tabs a.selected {
   background: white;
-  color: #31664b;
+  color: #194b38;
   box-shadow: 0 2px 7px #284c2410;
 }
 .workspace-tabs strong {
@@ -60,12 +65,13 @@ h1 {
 }
 @media (max-width: 600px) {
   .workspace {
-    padding: 0;
+    padding: 12px;
+    border-radius: 15px;
   }
   .workspace-heading {
     gap: 12px;
-    padding-bottom: 14px;
-    margin-bottom: 20px;
+    padding: 16px;
+    margin-bottom: 18px;
   }
   .workspace-tabs {
     width: 100%;

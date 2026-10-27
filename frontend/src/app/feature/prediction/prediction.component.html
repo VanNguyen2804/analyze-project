@@ -2,10 +2,6 @@
   <header class="prediction-heading">
     <div>
       <span class="prediction-kicker">PREDICTION STUDIO <span aria-hidden="true">✳</span></span>
-      <h2>
-        Bộ số trước mắt.<br class="mobile-break" />
-        Phân tích ngay bên dưới.
-      </h2>
     </div>
     <div class="category-switch" role="group" aria-label="Loại xổ số">
       <button
@@ -68,6 +64,14 @@
       [historyCount]="payload.totalDrawsAnalyzed ?? 0"
       (copied)="copyTicket($event.numbers, $event.special)"
     >
+      <app-expanded-tickets
+        expanded-tickets
+        [tickets]="payload.tickets ?? []"
+        [experimental]="recommendations?.diversifiedTickets ?? []"
+        [category]="category"
+        [specialNumber]="payload.specialNumber ?? null"
+        (copied)="copyTicket($event.numbers, $event.special)"
+      />
       @if (payload.forecastSnapshot; as saved) {
         <div class="saved-strip" [class.saved-warning]="saved.status !== 'SAVED'" role="status">
           <span aria-hidden="true">{{ saved.status === 'SAVED' ? '✓' : '◷' }}</span>
@@ -158,8 +162,8 @@
       <summary>
         <span class="explore-icon" aria-hidden="true">◈</span>
         <div>
-          <strong>Vé mở rộng & phân tích chuyên sâu</strong>
-          <p>Biến thể bộ số, ghép vé, thống kê liên kết và các cấu hình đang dùng.</p>
+          <strong>Phân tích chuyên sâu</strong>
+          <p>Biến thể bộ số, ghép vé và thống kê liên kết trong lịch sử.</p>
         </div>
         <span class="expand-symbol" aria-hidden="true">＋</span>
       </summary>
@@ -295,7 +299,6 @@
                           <th style="width: 50px">#</th>
                           <th style="width: 220px">Cụm Số Bọc Lót (Trái • Tâm • Phải)</th>
                           <th style="width: 150px">Hướng Lệch Ưu Thế</th>
-                          <th style="width: 140px">Xác Suất Lệch</th>
                           <th>Phân Tích Cơ Chế Chu Kỳ Lồng Cầu</th>
                         </tr>
                       </thead>
@@ -374,35 +377,7 @@
                                 }}
                               </span>
                             </td>
-                            <td>
-                              <div class="d-flex align-items-center gap-2">
-                                <div class="progress flex-grow-1" style="height: 6px">
-                                  <div
-                                    class="progress-bar"
-                                    [ngClass]="
-                                      item.riskScore >= 88
-                                        ? 'bg-danger'
-                                        : item.riskScore >= 82
-                                          ? 'bg-warning'
-                                          : 'bg-info'
-                                    "
-                                    [style.width.%]="item.riskScore"
-                                  ></div>
-                                </div>
-                                <span
-                                  class="fw-bold small"
-                                  [ngClass]="
-                                    item.riskScore >= 88
-                                      ? 'text-danger'
-                                      : item.riskScore >= 82
-                                        ? 'text-warning'
-                                        : 'text-secondary'
-                                  "
-                                >
-                                  {{ item.riskScore }}%
-                                </span>
-                              </div>
-                            </td>
+
                             <td class="small text-secondary">
                               {{ item.reason }}
                             </td>
@@ -758,15 +733,6 @@
                             <span class="badge bg-light text-dark border">
                               {{ seq.composition || getTicketParity(seq.numbers) }}
                             </span>
-                            <span
-                              class="badge bg-success-subtle text-success border border-success-subtle"
-                            >
-                              {{
-                                seq.confidence == null
-                                  ? 'Chưa đánh giá'
-                                  : 'Điểm ' + seq.confidence + '/100'
-                              }}
-                            </span>
                           </div>
                           <button
                             class="btn btn-outline-primary btn-sm rounded-pill fw-semibold d-flex align-items-center gap-1"
@@ -787,282 +753,6 @@
                 [category]="category === 'POWER' ? 'POWER' : 'MEGA'"
                 (copied)="copyTicket($event, category === 'POWER' ? payload.specialNumber : null)"
               />
-            </div>
-          </div>
-          <!-- ========================================================================================= -->
-          <!-- PHẦN 3: DÀN VÉ DỰ ĐOÁN MỞ RỘNG (WHEELING) & MA TRẬN BIẾN SỐ CSDL                          -->
-          <!-- ========================================================================================= -->
-          <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white border-bottom p-3">
-              <ul class="nav nav-pills card-header-pills gap-2">
-                <li class="nav-item">
-                  <button
-                    class="nav-link fw-bold px-3 py-2 rounded-pill"
-                    [class.active]="activeMainTab === 'wheeling'"
-                    (click)="setActiveMainTab('wheeling')"
-                  >
-                    🎟️ Dàn Vé Dự Đoán
-                  </button>
-                </li>
-                <li class="nav-item">
-                  <button
-                    class="nav-link fw-bold px-3 py-2 rounded-pill"
-                    [class.active]="activeMainTab === 'variables'"
-                    (click)="setActiveMainTab('variables')"
-                  >
-                    📊 Ma Trận Biến Số Ghi Nhận Trong CSDL
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div class="card-body p-3 p-md-4">
-              <!-- TAB 1: DÀN 10 VÉ WHEELING -->
-              @if (activeMainTab === 'wheeling') {
-                <div>
-                  <div
-                    class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"
-                  >
-                    <div>
-                      <h5 class="fw-bold text-dark mb-0">Dàn Vé Dự Đoán</h5>
-                      <label class="small d-block my-2">
-                        <input type="checkbox" [(ngModel)]="useDiversifiedTickets" />
-                        Thử nghiệm giảm trùng lặp giữa các vé
-                      </label>
-                      <p class="text-muted small mb-0">
-                        Chế độ thử nghiệm giữ vé đầu theo xếp hạng, các vé tiếp theo mở rộng độ phủ;
-                        hai vé bất kỳ trùng tối đa ba số. Đánh giá lịch sử chưa cho thấy cải thiện
-                        ổn định.
-                      </p>
-                      @if (
-                        useDiversifiedTickets && recommendations?.ticketPortfolio;
-                        as portfolio
-                      ) {
-                        <p class="text-muted small mb-0">
-                          Toàn dàn {{ portfolio.ticketCount }} vé phủ
-                          {{ portfolio.uniqueNumbers }} số khác nhau. Chọn số vé theo ngân sách của
-                          bạn.
-                        </p>
-                      }
-                    </div>
-                    <div class="small">
-                      <span class="badge bg-light text-secondary border"
-                        >Mục tiêu: Kỳ {{ getTargetDrawInfo().dayName }},
-                        {{ getTargetDrawInfo().drawDateFormatted }}</span
-                      >
-                    </div>
-                  </div>
-                  <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle mb-0">
-                      <thead class="table-light">
-                        <tr class="text-center small text-uppercase">
-                          <th style="width: 70px">Vé #</th>
-                          <th style="width: 150px">Chiến Lược</th>
-                          <th style="min-width: 280px">Dãy 6 Bóng Dự Đoán</th>
-                          <th style="width: 140px">Cơ Cấu</th>
-                          <th>Lý Do Thuật Toán & Biến Số</th>
-                          <th style="width: 100px">Thao Tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (ticket of displayedTickets; track ticket; let i = $index) {
-                          <tr>
-                            <td class="text-center fw-bold text-primary">#{{ i + 1 }}</td>
-                            <td>
-                              <span
-                                class="badge rounded-pill px-2 py-1 small"
-                                [ngClass]="getTicketStrategyBadge(i).class"
-                              >
-                                {{ getTicketStrategyBadge(i).text }}
-                              </span>
-                            </td>
-                            <td>
-                              <div
-                                class="d-flex align-items-center justify-content-center flex-wrap gap-1"
-                              >
-                                @for (n of ticket; track n) {
-                                  <div
-                                    class="ball ball-sm"
-                                    [ngClass]="[
-                                      category === 'POWER' ? 'ball-power' : 'ball-mega',
-                                      hoveredNumber === n ? 'ball-highlight' : '',
-                                    ]"
-                                    (mouseenter)="showPopup(n, $event)"
-                                    (mouseleave)="hidePopup()"
-                                    (click)="pinPopup(n, $event)"
-                                    style="
-                                      width: 34px;
-                                      height: 34px;
-                                      font-size: 13px;
-                                      cursor: pointer;
-                                    "
-                                  >
-                                    {{ formatNumber(n) }}
-                                  </div>
-                                }
-                                @if (category === 'POWER' && payload.specialNumber; as specNum) {
-                                  <span class="text-muted small fw-bold">+</span>
-                                  <div
-                                    class="ball ball-sm ball-special"
-                                    [ngClass]="hoveredNumber === specNum ? 'ball-highlight' : ''"
-                                    (mouseenter)="showPopup(specNum, $event)"
-                                    (mouseleave)="hidePopup()"
-                                    (click)="pinPopup(specNum, $event)"
-                                    style="
-                                      width: 34px;
-                                      height: 34px;
-                                      font-size: 13px;
-                                      cursor: pointer;
-                                    "
-                                  >
-                                    ⭐{{ formatNumber(specNum) }}
-                                  </div>
-                                }
-                              </div>
-                            </td>
-                            <td class="text-center small">
-                              <div>
-                                <strong>{{ getTicketParity(ticket) }}</strong>
-                              </div>
-                              <div class="text-muted">Tổng = {{ getTicketSum(ticket) }}</div>
-                            </td>
-                            <td class="small text-secondary">
-                              {{ getTicketAlgorithmReason(ticket, i) }}
-                            </td>
-                            <td class="text-center">
-                              <button
-                                class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1"
-                                (click)="
-                                  copyTicket(
-                                    ticket,
-                                    category === 'POWER' ? payload.specialNumber : null
-                                  )
-                                "
-                                title="Sao chép vé"
-                              >
-                                📋 Copy
-                              </button>
-                            </td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              }
-              <!-- TAB 2: MA TRẬN BIẾN SỐ TRONG CSDL -->
-              @if (activeMainTab === 'variables') {
-                <div>
-                  <div
-                    class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"
-                  >
-                    <div>
-                      <h5 class="fw-bold text-dark mb-0">
-                        Ma Trận Biến Số Chuyển Dịch Ghi Nhận Trong CSDL
-                      </h5>
-                      <p class="text-muted small mb-0">
-                        Minh chứng cơ chế: Từ số AI ban đầu, hệ thống tạo ra các biến số sai lệch có
-                        quy luật và lưu vết.
-                      </p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                      <button
-                        class="btn btn-success btn-sm rounded-pill fw-bold d-flex align-items-center gap-1 shadow-xs"
-                        (click)="saveAllDeviationVariablesToDb()"
-                        [disabled]="isSavingAllDevVars"
-                      >
-                        <span>💾</span>
-                        {{ isSavingAllDevVars ? 'Đang đồng bộ...' : 'Đồng Bộ Tất Cả Vào Database' }}
-                      </button>
-                    </div>
-                  </div>
-                  @if (dbSaveToastMessage) {
-                    <div
-                      class="alert alert-success alert-dismissible fade show py-2 px-3 small"
-                      role="alert"
-                    >
-                      {{ dbSaveToastMessage }}
-                    </div>
-                  }
-                  <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle mb-0">
-                      <thead class="table-light">
-                        <tr class="text-center small text-uppercase">
-                          <th>#</th>
-                          <th>Số Gốc AI</th>
-                          <th>Biến Số Delta</th>
-                          <th>Số Mới Sinh Ra</th>
-                          <th>Mô Thức & Công Thức</th>
-                          <th>Xác Suất Chuyển Dịch</th>
-                          <th>Hành Động CSDL</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (v of filteredDeviationVariables; track v; let i = $index) {
-                          <tr>
-                            <td class="text-center fw-bold text-muted">{{ i + 1 }}</td>
-                            <td class="text-center">
-                              <span
-                                class="badge bg-secondary text-white rounded-pill px-2 py-1 fs-6"
-                              >
-                                {{ formatNumber(v.aiPredictedNumber) }}
-                              </span>
-                            </td>
-                            <td class="text-center">
-                              <span
-                                [ngClass]="getDeviationBadgeClass(v.variableDelta)"
-                                class="px-2 py-1"
-                              >
-                                {{ v.variableDelta > 0 ? '+' + v.variableDelta : v.variableDelta }}
-                              </span>
-                            </td>
-                            <td class="text-center">
-                              <span class="badge bg-primary text-white rounded-pill px-2 py-1 fs-6">
-                                {{ formatNumber(v.actualNumber) }}
-                              </span>
-                            </td>
-                            <td>
-                              <div class="fw-bold text-dark small">{{ v.patternName }}</div>
-                              <div class="text-muted" style="font-size: 0.75rem">
-                                {{ v.transformationRule }}
-                              </div>
-                            </td>
-                            <td class="text-center">
-                              <span
-                                class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"
-                              >
-                                {{ v.probabilityShift == null ? 'N/A' : v.probabilityShift }}
-                              </span>
-                            </td>
-                            <td class="text-center">
-                              @if (
-                                !dbSaveStatusMap[v.id || v.aiPredictedNumber + '_' + v.actualNumber]
-                              ) {
-                                <button
-                                  class="btn btn-outline-success btn-sm rounded-pill px-2 py-0"
-                                  (click)="saveDeviationVariableToDb(v)"
-                                  style="font-size: 0.75rem"
-                                >
-                                  💾 Lưu DB
-                                </button>
-                              }
-                              @if (
-                                dbSaveStatusMap[v.id || v.aiPredictedNumber + '_' + v.actualNumber]
-                              ) {
-                                <span
-                                  class="badge bg-success text-white rounded-pill px-2 py-1"
-                                  style="font-size: 0.72rem"
-                                >
-                                  ✓ Đã Lưu CSDL
-                                </span>
-                              }
-                            </td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              }
             </div>
           </div>
         </div>
@@ -1110,7 +800,7 @@
             <div class="p-1 bg-light rounded border">
               <div class="text-muted" style="font-size: 0.65rem">Tần Suất</div>
               <strong class="text-primary"
-                >{{ getPureNumberDetail(hoveredNumber)?.frequency || 0 }} lần</strong
+                >{{ getPureNumberDetail(hoveredNumber)?.frequency ?? '—' }} lần</strong
               >
             </div>
           </div>
@@ -1118,15 +808,7 @@
             <div class="p-1 bg-light rounded border">
               <div class="text-muted" style="font-size: 0.65rem">Số Kỳ Gan</div>
               <strong class="text-danger"
-                >{{ getPureNumberDetail(hoveredNumber)?.drawGap || 0 }} kỳ</strong
-              >
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="p-1 bg-light rounded border">
-              <div class="text-muted" style="font-size: 0.65rem">Điểm xếp hạng</div>
-              <strong class="text-success"
-                >{{ getPureNumberDetail(hoveredNumber)?.probabilityPercent ?? 'N/A' }}/100</strong
+                >{{ getPureNumberDetail(hoveredNumber)?.drawGap ?? '—' }} kỳ</strong
               >
             </div>
           </div>
