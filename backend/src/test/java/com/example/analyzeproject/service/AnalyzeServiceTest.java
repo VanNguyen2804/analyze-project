@@ -43,6 +43,12 @@ class AnalyzeServiceTest {
             assertEquals("SUCCESS", response.getStatus());
             assertEquals(secondary.getPrimaryAlgorithmResult().get("numbers"), response.getSecondaryAlgorithmResult().get("numbers"));
             assertNotNull(response.getCombinedAlgorithmResult());
+            assertEquals(response.getNumbers().subList(0, 6), response.getTickets().get(0));
+            @SuppressWarnings("unchecked")
+            var experimental = (List<List<Integer>>) response.getRecommendations().get("diversifiedTickets");
+            assertEquals(25, experimental.size());
+            for (int i = 0; i < experimental.size(); i++)
+                for (int j = 0; j < i; j++) assertTrue(TicketPortfolio.overlap(experimental.get(i), experimental.get(j)) <= 3);
             for (Map<String, Object> card : List.of(response.getPrimaryAlgorithmResult(), response.getSecondaryAlgorithmResult(), response.getCombinedAlgorithmResult())) {
                 List<?> numbers = (List<?>) card.get("numbers");
                 assertEquals(6, numbers.size());

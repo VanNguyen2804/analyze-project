@@ -1,0 +1,1345 @@
+{
+  "groups" : [ {
+    "category" : "POWER",
+    "eligibleDraws" : 39,
+    "byDraw" : [ {
+      "date" : "2026-08-20",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-22",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-25",
+      "legacy" : {
+        "totalMatches" : 6,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 1
+      },
+      "portfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-27",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-29",
+      "legacy" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-01",
+      "legacy" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-03",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-05",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-08",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-10",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-12",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 14,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-15",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-17",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-19",
+      "legacy" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 1
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-22",
+      "legacy" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-24",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-26",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 14,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-29",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-01",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-03",
+      "legacy" : {
+        "totalMatches" : 7,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 1
+      },
+      "portfolio" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 1
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 1
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-06",
+      "legacy" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 14,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-08",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-10",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-13",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-15",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-17",
+      "legacy" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-20",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-22",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-24",
+      "legacy" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    } ],
+    "summaries" : {
+      "legacy" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 3.0,
+        "meanMatchesPerTicket" : 0.7816091954022989,
+        "meanUniqueNumbers" : 9.0
+      },
+      "portfolio" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 1.0,
+        "meanMatchesPerTicket" : 0.7816091954022989,
+        "meanUniqueNumbers" : 18.0
+      },
+      "frequencyPortfolio" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 1.0,
+        "meanMatchesPerTicket" : 0.7241379310344828,
+        "meanUniqueNumbers" : 17.896551724137932
+      },
+      "uniform" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 0.0,
+        "meanMatchesPerTicket" : 0.6436781609195402,
+        "meanUniqueNumbers" : 16.655172413793103
+      }
+    }
+  }, {
+    "category" : "MEGA",
+    "eligibleDraws" : 39,
+    "byDraw" : [ {
+      "date" : "2026-08-21",
+      "legacy" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-23",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 14,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-26",
+      "legacy" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-28",
+      "legacy" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 1
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-08-30",
+      "legacy" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 15,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-02",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 6,
+        "uniqueNumbers" : 14,
+        "anyTicketAtLeast3" : 1
+      }
+    }, {
+      "date" : "2026-09-04",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 15,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-06",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 1
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 14,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-09",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 1
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-11",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-13",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 1
+      }
+    }, {
+      "date" : "2026-09-16",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 1
+      }
+    }, {
+      "date" : "2026-09-18",
+      "legacy" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 15,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-20",
+      "legacy" : {
+        "totalMatches" : 6,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-23",
+      "legacy" : {
+        "totalMatches" : 7,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 1
+      },
+      "portfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 15,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-25",
+      "legacy" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-27",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 15,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-09-30",
+      "legacy" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 13,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-02",
+      "legacy" : {
+        "totalMatches" : 6,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-04",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 16,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-07",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-09",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-11",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 14,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-14",
+      "legacy" : {
+        "totalMatches" : 5,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-16",
+      "legacy" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 1
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-18",
+      "legacy" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 15,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-21",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 4,
+        "uniqueNumbers" : 15,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-23",
+      "legacy" : {
+        "totalMatches" : 0,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 2,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    }, {
+      "date" : "2026-10-25",
+      "legacy" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 9,
+        "anyTicketAtLeast3" : 0
+      },
+      "portfolio" : {
+        "totalMatches" : 3,
+        "uniqueNumbers" : 18,
+        "anyTicketAtLeast3" : 0
+      },
+      "frequencyPortfolio" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      },
+      "uniform" : {
+        "totalMatches" : 1,
+        "uniqueNumbers" : 17,
+        "anyTicketAtLeast3" : 0
+      }
+    } ],
+    "summaries" : {
+      "legacy" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 1.0,
+        "meanMatchesPerTicket" : 0.9425287356321839,
+        "meanUniqueNumbers" : 9.0
+      },
+      "portfolio" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 2.0,
+        "meanMatchesPerTicket" : 0.8390804597701149,
+        "meanUniqueNumbers" : 17.896551724137932
+      },
+      "frequencyPortfolio" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 2.0,
+        "meanMatchesPerTicket" : 0.8735632183908046,
+        "meanUniqueNumbers" : 17.82758620689655
+      },
+      "uniform" : {
+        "draws" : 29,
+        "drawsWithAtLeast3" : 3.0,
+        "meanMatchesPerTicket" : 0.7471264367816092,
+        "meanUniqueNumbers" : 15.793103448275861
+      }
+    }
+  } ],
+  "budget" : 3,
+  "warmupDraws" : 10,
+  "inputSha256" : "7c150902667ae0ca4e2b68bca3a78f9bdf88fa571bb9cef69163571d5ae4362d",
+  "version" : "rank-portfolio-v1",
+  "limitations" : "Development replay on previously inspected repository history; not an untouched test or proof of predictive advantage. No tuning on this report. Uniform baseline is one seeded portfolio per draw. Small sample; future validation required.",
+  "excludedFromEvaluation" : "2026-10-27 and later"
+}

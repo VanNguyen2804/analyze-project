@@ -1094,7 +1094,7 @@
                 [class.active]="activeMainTab === 'wheeling'"
                 (click)="setActiveMainTab('wheeling')"
               >
-                🎟️ Dàn 10 Vé Dự Đoán Wheeling
+                🎟️ Dàn Vé Dự Đoán
               </button>
             </li>
             <li class="nav-item">
@@ -1114,11 +1114,21 @@
             <div>
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                 <div>
-                  <h5 class="fw-bold text-dark mb-0">Dàn 10 Vé Dự Đoán Wheeling Tối Ưu</h5>
+                  <h5 class="fw-bold text-dark mb-0">Dàn Vé Dự Đoán</h5>
+                  <label class="small d-block my-2">
+                    <input type="checkbox" [(ngModel)]="useDiversifiedTickets" />
+                    Thử nghiệm giảm trùng lặp giữa các vé
+                  </label>
                   <p class="text-muted small mb-0">
-                    Trải rộng từ tập số ưu tú để bảo toàn tối đa xác suất trúng giải theo phương
-                    pháp Wheeling System.
+                    Chế độ thử nghiệm giữ vé đầu theo xếp hạng, các vé tiếp theo mở rộng độ phủ; hai
+                    vé bất kỳ trùng tối đa ba số. Đánh giá lịch sử chưa cho thấy cải thiện ổn định.
                   </p>
+                  @if (useDiversifiedTickets && recommendations?.ticketPortfolio; as portfolio) {
+                    <p class="text-muted small mb-0">
+                      Toàn dàn {{ portfolio.ticketCount }} vé phủ {{ portfolio.uniqueNumbers }} số
+                      khác nhau. Chọn số vé theo ngân sách của bạn.
+                    </p>
+                  }
                 </div>
                 <div class="small">
                   <span class="badge bg-light text-secondary border"

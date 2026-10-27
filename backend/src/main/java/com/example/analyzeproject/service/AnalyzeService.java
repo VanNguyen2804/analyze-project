@@ -639,6 +639,8 @@ public class AnalyzeService {
             }
         }
 
+        List<List<Integer>> diversifiedTickets = TicketPortfolio.select(candidateList.stream().map(s -> s.number).toList(), maxLimit, 25);
+
         // Phân tích mối liên hệ tương quan đồng xuất hiện giữa các số và cụm vé
         Map<String, Object> numberRelationships = buildNumberRelationships(
                 maxLimit,
@@ -1038,10 +1040,12 @@ public class AnalyzeService {
             item.put("numbers", ticket);
             item.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, ticket, primaryRanking));
             item.put("composition", PredictionSupport.composition(ticket));
-            item.put("strategyReason", "Generated from current ranked candidates and observed pair relationships.");
+            item.put("strategyReason", "Existing wheel from ranked candidates; no demonstrated predictive advantage.");
             goldenTickets.add(item);
         }
         recMap.put("goldenTicketsRecommendation", goldenTickets);
+        recMap.put("ticketPortfolio", TicketPortfolio.diagnostics(diversifiedTickets));
+        recMap.put("diversifiedTickets", diversifiedTickets);
 
         List<LotteryDeviationVariable> devVars = devVarRepo != null
             ? devVarRepo.findByCategoryOrderByCreatedAtDesc(category)
@@ -1225,11 +1229,11 @@ public class AnalyzeService {
 
         response.setNeighborDriftAnalysis(neighborDriftAnalysis);
 
-        String wheelingMsg = "Hệ thống đã chắt lọc 10 số ưu tú nhất dựa trên bộ quy tắc Lô Gan Trung Bình - Tránh số quá Hot - Ưu tiên cặp đi kèm.";
+        String wheelingMsg = "Giữ dàn vé hiện tại; có thêm lựa chọn thử nghiệm giảm trùng lặp. Chưa chứng minh tăng tỷ lệ trúng.";
         
         if ("POWER".equals(category)) {
             response.setAnalysisSummary(String.format(
-                    "Phân tích %d kỳ quay Power 6/55. %s Đề xuất Banh Phụ #%02d bảo hiểm Jackpot 2.",
+                    "Phân tích %d kỳ quay Power 6/55. %s Số phụ tham khảo #%02d.",
                     totalDraws, wheelingMsg, recommendedSpecialNumber != null ? recommendedSpecialNumber : 0));
         } else {
             response.setAnalysisSummary(String.format(
@@ -1945,9 +1949,9 @@ public class AnalyzeService {
             Map<Integer, Double> probMap) {
         
         Map<String, Object> res = new HashMap<>();
-        res.put("summary", "Phân tích mối liên hệ tương quan đồng xuất hiện & gom cụm số trúng (Anti-Scattering)");
-        res.put("algorithmName", "Affinity-Clustered Combinatorial Wheeling (Gom Cụm Tương Quan)");
-        res.put("antiScatteringGuarantee", "Đã kích hoạt thuật toán gom cụm liên kết: Tự động gom 3-4 số có lực hút tương quan đồng xuất hiện cao nhất vào cùng một dãy vé. Khắc phục triệt để hiện tượng 4 số trúng bị tản mạn sang nhiều vé khác nhau.");
+        res.put("summary", "Thống kê đồng xuất hiện và độ phủ dàn vé");
+        res.put("algorithmName", "Observed co-occurrence statistics");
+        res.put("antiScatteringGuarantee", "Giảm trùng lặp giữa các vé; không bảo đảm gom đủ số trúng vào cùng một vé.");
 
         // 1. Top Affinity Pairs
         List<Map<String, Object>> topPairs = new ArrayList<>();

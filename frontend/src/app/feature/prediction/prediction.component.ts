@@ -13,7 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass, NgStyle, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { distinctUntilChanged, timer } from 'rxjs';
+import { distinctUntilChanged, timer, Subject, takeUntil } from 'rxjs';
 import { PredictionPayload } from '@app/core/models/prediction-payload.model';
 import { AnalyzeService } from '@app/core/services/analyze.service';
 
@@ -38,6 +38,7 @@ export class PredictionComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly analyzeService = inject(AnalyzeService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly predictionCancelled = new Subject<void>();
 
   payload: PredictionPayload | null = null;
   isSpinning = false;
@@ -146,6 +147,10 @@ export class PredictionComponent implements OnInit {
   }
 
   predict() {
+    this.predictionCancelled.next();
+    const requestedCategory = this.category;
+    this.payload = null;
+    this.deviationVariablesList = [];
     this.isSpinning = true;
     this.errorMessage = null;
     this.closePopup();
@@ -153,9 +158,18 @@ export class PredictionComponent implements OnInit {
 
     this.analyzeService
       .getPrediction(this.category, this.selectedAlgorithm, this.selectedAlgorithm2)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntil(this.predictionCancelled), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
+          if (
+            requestedCategory !== this.category ||
+            (res.category && res.category !== requestedCategory)
+          ) {
+            this.isSpinning = false;
+            this.errorMessage = 'Kết quả không khớp loại xổ số đang chọn. Vui lòng tải lại.';
+            this.cdr.markForCheck();
+            return;
+          }
           if (res.status !== 'SUCCESS') {
             this.payload = null;
             this.errorMessage =
@@ -531,13 +545,16 @@ export class PredictionComponent implements OnInit {
   }
 
   ticketViewMode: 'table' | 'cards' = 'table';
+  useDiversifiedTickets = false;
   displayedTicketsLimit: number = 10;
   ticketLimitOptions: number[] = [5, 10, 15, 20, 25];
   expandedTicketDetails: { [key: number]: boolean } = { 0: true };
   showAffinityModal: boolean = false;
 
   get displayedTickets(): number[][] {
-    const list = this.payload?.tickets;
+    const list = this.useDiversifiedTickets
+      ? this.recommendations?.diversifiedTickets
+      : this.payload?.tickets;
     if (!Array.isArray(list)) return [];
     return list.slice(0, this.displayedTicketsLimit);
   }
@@ -548,6 +565,7 @@ export class PredictionComponent implements OnInit {
   }
 
   getTicketAffinityInfo(index: number): any {
+    if (this.useDiversifiedTickets) return null;
     return this.payload?.numberRelationships?.ticketAffinityDetails?.[index] || null;
   }
 
@@ -562,6 +580,7 @@ export class PredictionComponent implements OnInit {
   }
 
   getTicketStrategyBadge(index: number): { text: string; class: string } {
+    if (this.useDiversifiedTickets) return { text: 'Thử nghiệm', class: 'bg-secondary text-white' };
     if (index === 0 && this.category === 'POWER') {
       return { text: '🏆 Hạt Nhân Điểm Vàng', class: 'bg-success text-white' };
     }
@@ -658,60 +677,11 @@ export class PredictionComponent implements OnInit {
     if (!ticket || ticket.length === 0) return '';
     const sum = this.getTicketSum(ticket);
     const parity = this.getTicketParity(ticket);
-    const latestWinning: number[] =
-      this.recommendations?.megaDrawReconciliation?.officialWinningNumbers || [];
-    const latestSpecial: number | null =
-      this.recommendations?.megaDrawReconciliation?.specialNumber ?? null;
-
-    const repeats = ticket.filter((n) => latestWinning.includes(n));
-    const neighborDetails: string[] = [];
-    ticket.forEach((n) => {
-      if (!latestWinning.includes(n)) {
-        const parent = latestWinning.find((w: number) => Math.abs(w - n) === 1);
-        if (parent !== undefined) {
-          neighborDetails.push(
-            `${this.formatNumber(n)} (từ ${this.formatNumber(parent)} ${n > parent ? '+1' : '-1'})`,
-          );
-        }
-      }
-    });
-
-    const hasSpecialMig = latestSpecial && ticket.includes(latestSpecial);
-
-    // Tìm cặp cùng đuôi mod 10
-    const tailPairs: string[] = [];
-    for (let i = 0; i < ticket.length; i++) {
-      for (let j = i + 1; j < ticket.length; j++) {
-        if (ticket[i] % 10 === ticket[j] % 10) {
-          tailPairs.push(`{${this.formatNumber(ticket[i])}, ${this.formatNumber(ticket[j])}}`);
-        }
-      }
-    }
-
-    // Các thành phần logic
-    const logicPoints: string[] = [];
-    if (repeats.length > 0) {
-      logicPoints.push(
-        `Quán tính lặp ${repeats.length} số [${repeats.map((n) => this.formatNumber(n)).join(', ')}] từ kỳ trước`,
-      );
-    }
-    if (neighborDetails.length > 0) {
-      logicPoints.push(`Lệch biên lân cận ±1: ${neighborDetails.join(', ')}`);
-    }
-    if (hasSpecialMig) {
-      logicPoints.push(`Chuyển vị banh phụ ⭐${this.formatNumber(latestSpecial)} sang banh chính`);
-    }
-    if (tailPairs.length > 0) {
-      logicPoints.push(`Đồng dư đuôi mod 10: ${tailPairs.slice(0, 2).join(' & ')}`);
-    }
-    const logicSummary =
-      logicPoints.length > 0
-        ? logicPoints.join(' • ')
-        : 'Tối ưu phân phối xác suất XGBoost & cân bằng đa phân vùng';
-
-    return `Vé #${index + 1} (${parity} • Tổng = ${sum}): ${logicSummary}.`;
+    const reason = this.useDiversifiedTickets
+      ? `${index === 0 ? 'Sáu số đứng đầu bảng xếp hạng.' : 'Kết hợp xếp hạng và giảm lặp số giữa các vé.'} Hai vé bất kỳ trong dàn trùng tối đa ba số.`
+      : 'Ghép vé từ nhóm ứng viên xếp hạng theo cách hiện tại.';
+    return `Vé #${index + 1} (${parity} • Tổng = ${sum}): ${reason} Chưa có bằng chứng tăng tỷ lệ trúng.`;
   }
-
   getNewBallsTransformationMatrix(): any[] {
     const list: number[] = this.payload?.numbers || [];
     const latestWinning: number[] =
@@ -807,7 +777,7 @@ export class PredictionComponent implements OnInit {
   loadDeviationVariables(): void {
     this.analyzeService
       .getDeviationVariables(this.category)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntil(this.predictionCancelled), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (list) => {
           if (list && list.length > 0) {

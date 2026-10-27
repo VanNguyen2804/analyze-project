@@ -1,5 +1,19 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Cập nhật 27/10/2026 — Làm mới giao diện phòng thử nghiệm AI
+
+Thiết kế lại `/ai-lab` với phần giới thiệu xanh đậm/mint, minh họa quỹ đạo bằng CSS, thẻ mô hình tím/cam, biểu đồ thanh từ số liệu thực, tiến độ đối soát và thẻ bộ số có đánh dấu số khớp. Chuyển hướng dẫn sang cột bên; tiêu chí sàng lọc và chi tiết phiên bản có thể mở rộng. Bổ sung trạng thái đang tải, danh sách trống, nút chọn MEGA/POWER có `aria-pressed`, nhãn trạng thái tiếng Việt và hỗ trợ giảm chuyển động. Giữ nguyên API, thuật toán, ngân sách vé và các thao tác chốt/đối soát/phân trang.
+
+Kiểm chứng: typecheck và 25 kiểm thử frontend đạt; production build thành công. Có cảnh báo stylesheet AI lab khoảng 14,35 kB vượt mốc khuyến nghị 10 kB, vẫn dưới ngưỡng lỗi 20 kB. Kiểm tra trực quan bằng Edge headless với dữ liệu GET từ production ở viewport 1440 và 390 px; không có tràn ngang. Chưa triển khai Render.
+
+## Cập nhật 27/10/2026 — Thử nghiệm giảm trùng lặp vé
+
+Thêm lựa chọn thử nghiệm `rank-portfolio-v1` trong trang dự đoán: giữ vé top 6, các vé sau giảm lặp số; mỗi cặp vé trùng tối đa 3 số. Giữ bộ tạo vé cũ làm mặc định vì phát lại trên 29 kỳ POWER trước ngày 27/10 cho số kỳ có vé khớp ≥3 giảm từ 3 xuống 1, dù độ phủ 3 vé tăng từ 9 lên 18 số. MEGA có kết quả trái chiều: số kỳ ≥3 tăng từ 1 lên 2 nhưng số khớp trung bình giảm. Không có bằng chứng cải thiện ổn định; không chỉnh trọng số theo báo cáo này.
+
+Sửa request dự đoán chồng lấn khi đổi MEGA/POWER/thuật toán: hủy lượt cũ, xóa payload đang hiển thị và từ chối response sai category; hủy request biến lệch cùng lượt. Chưa xác định lỗi này có gây ra ba vé người dùng nhập kỳ 27/10 hay không.
+
+Phương pháp, giới hạn và cách tái lập: [báo cáo phát triển](backend/docs/reports/portfolio-development-2026-10-27.md). Chưa triển khai production. Vé thử nghiệm chưa có ledger tương lai riêng và không được gộp vào bằng chứng dự đoán đã chốt.
+
 ## Cập nhật 27/10/2026 — Nhận kết quả từ 19:00
 
 Đổi mốc tiếp nhận kết quả ngày hiện tại, xác định kỳ hoàn tất mới nhất và đối soát snapshot từ 19:00 giờ Việt Nam. Trước 19:00, kết quả của hôm nay chưa được nhập từ feed hoặc đưa vào lịch sử huấn luyện/đối soát; đúng 19:00 mới đủ điều kiện nếu đã có kết quả hợp lệ. Áp dụng chung cho ledger dự đoán chính và AI lab qua ForecastProtocol. Giữ giờ quay và cutoff chốt dự đoán 18:00.

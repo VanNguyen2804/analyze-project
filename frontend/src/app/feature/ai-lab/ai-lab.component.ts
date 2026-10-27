@@ -118,6 +118,28 @@ export class AiLabComponent implements OnInit {
   percent(value: number | null | undefined) {
     return value == null ? 'Chưa có' : `${value.toFixed(1)}%`;
   }
+  progress(value: number | null | undefined) {
+    return Math.min(100, Math.max(0, value ?? 0));
+  }
+  statusName(status: string) {
+    return (
+      (
+        {
+          NOT_RUN: 'Chưa chạy',
+          COMPLETED: 'Đã hoàn tất',
+          SUCCESS: 'Thành công',
+          BUSY: 'Đang xử lý',
+          ERROR: 'Có lỗi',
+          FAILED: 'Chưa hoàn tất',
+          SAVED: 'Đã lưu',
+          CAPTURED: 'Đã chốt',
+          SETTLED: 'Đã đối soát',
+          SKIPPED: 'Đã bỏ qua',
+          DISABLED: 'Đã tắt',
+        } as Record<string, string>
+      )[status] ?? status
+    );
+  }
   matched(row: LabTicket, number: number) {
     return (
       row.settlement?.status === 'SETTLED' && (row.settlement.actualNumbers ?? []).includes(number)

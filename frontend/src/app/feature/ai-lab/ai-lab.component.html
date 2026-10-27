@@ -1,203 +1,356 @@
-<section class="lab">
+<section class="lab" [attr.aria-busy]="busy()">
   <header class="lab-header">
-    <div>
-      <span class="eyebrow">THỬ NGHIỆM TRƯỚC KHI ÁP DỤNG</span>
-      <h1>Phòng thử nghiệm AI</h1>
-      <p>
-        Mỗi mô hình chốt 5 dãy sáu số cho mỗi kỳ. Tự đối soát khi có kết quả hợp lệ; giữ nguyên bản
-        đã lưu.
+    <div class="hero-copy">
+      <div class="eyebrow">
+        <span class="spark" aria-hidden="true">✳</span> AI LAB
+        <span class="eyebrow-line"></span> KHÔNG GIAN THỬ NGHIỆM
+      </div>
+      <h1>Ý tưởng mới.<br /><span>Bằng chứng thật.</span></h1>
+      <p class="hero-description">
+        Để mô hình học, thử nghiệm và đối chiếu. Theo dõi từng bộ số đã chốt, khám phá hiệu quả qua
+        từng kỳ quay.
       </p>
+      <div class="hero-tags">
+        <span>Học từ lịch sử</span><span>Chốt trước kỳ quay</span><span>So sánh công bằng</span>
+      </div>
     </div>
-    <div class="actions">
+    <div class="hero-art" aria-hidden="true">
+      <div class="orbit orbit-one"></div>
+      <div class="orbit orbit-two"></div>
+      <div class="art-core">AI<span>LAB</span></div>
+      <span class="orbit-node node-one">01</span><span class="orbit-node node-two">06</span
+      ><span class="orbit-node node-three">55</span> <span class="art-spark">✳</span
+      ><span class="art-caption">QUAN SÁT. ĐO LƯỜNG. HỌC HỎI.</span>
+    </div>
+  </header>
+
+  <div class="lab-toolbar">
+    <div class="category-control" role="group" aria-label="Chọn loại xổ số">
       <button
-        class="btn"
-        [class.btn-primary]="category() === 'MEGA'"
+        [class.active]="category() === 'MEGA'"
+        [attr.aria-pressed]="category() === 'MEGA'"
         [disabled]="mutating()"
         (click)="select('MEGA')"
       >
-        MEGA 6/45
+        MEGA <span>6/45</span>
       </button>
       <button
-        class="btn"
-        [class.btn-primary]="category() === 'POWER'"
+        [class.active]="category() === 'POWER'"
+        [attr.aria-pressed]="category() === 'POWER'"
         [disabled]="mutating()"
         (click)="select('POWER')"
       >
-        POWER 6/55
+        POWER <span>6/55</span>
       </button>
     </div>
-  </header>
-  <div class="protocol">
-    <strong>Theo dõi dài hạn, so sánh cùng số vé</strong>
-    <p>
-      Ngưỡng sàng lọc ban đầu: ít nhất 60 kỳ liên tiếp đã đối soát; mỗi nhóm 30 kỳ gần nhất có từ
-      50% kỳ đạt ít nhất một vé khớp ≥3 số, và cận dưới khoảng chênh lệch ghép cặp 95% xấp xỉ lớn
-      hơn 0 với cả hai đối chứng.
-    </p>
-    <p>
-      Đây là tiêu chí thử nghiệm, chưa chứng minh lợi thế. Mô hình đạt ngưỡng chỉ được đánh dấu ứng
-      viên để xác nhận trên các kỳ tương lai mới; không tự thay thuật toán đang dùng. Nhiều vé làm
-      tăng khả năng có vé đạt, vì vậy đối chứng cũng có 5 vé/kỳ.
-    </p>
-    <small
-      >Chốt trước 18:00, nhận kết quả từ 19:00 giờ Việt Nam. Tự chạy mỗi phút khi backend hoạt động;
-      trang cập nhật mỗi phút. Chỉ tính sáu số chính.</small
-    >
+    <div class="actions">
+      <button class="refresh-button" [disabled]="busy() || mutating()" (click)="load()">
+        <span aria-hidden="true">↻</span> {{ busy() ? 'Đang tải…' : 'Tải lại' }}
+      </button>
+      <button class="run-button" [disabled]="busy() || mutating()" (click)="run()">
+        <span aria-hidden="true">↗</span> {{ mutating() ? 'Đang xử lý…' : 'Chốt kỳ & đối soát' }}
+      </button>
+    </div>
   </div>
-  <div class="actions my-3">
-    <button class="btn btn-primary" [disabled]="busy() || mutating()" (click)="run()">
-      {{ mutating() ? 'Đang xử lý…' : 'Chốt kỳ tiếp theo & đối soát' }}
-    </button>
-    <button class="btn btn-outline-secondary" [disabled]="busy() || mutating()" (click)="load()">
-      {{ busy() ? 'Đang tải…' : 'Tải lại' }}
-    </button>
-  </div>
+
   @if (error()) {
-    <p class="alert alert-danger" role="alert">{{ error() }}</p>
+    <p class="notice notice-error" role="alert">{{ error() }}</p>
   }
   @if (message()) {
-    <p class="alert alert-info" role="status">{{ message() }}</p>
+    <p class="notice notice-info" role="status">{{ message() }}</p>
   }
-  @if (data(); as lab) {
-    @if (!lab.enabled) {
-      <p class="alert alert-warning">Đang tắt tạo dự đoán mới. Các bản cũ vẫn được đối soát.</p>
-    }
-    <div class="run-status" aria-live="polite">
-      Lượt chạy gần nhất:
-      {{
-        lab.lastRun.checkedAt
-          ? (lab.lastRun.checkedAt | date: 'dd/MM/yyyy HH:mm:ss' : '+0700')
-          : 'Chưa chạy'
-      }}
-      · {{ lab.lastRun.status }}
-      @if (lab.lastRun.message) {
-        <p>{{ lab.lastRun.message }}</p>
-      }
-      @for (outcome of lab.lastRun.outcomes; track outcome) {
-        <p>
-          {{ outcome.category }} · {{ outcome.model || '' }} · {{ outcome.status }}
-          @if (outcome.message) {
-            <span>— {{ outcome.message }}</span>
-          }
-        </p>
-      }
+  @if (busy() && !data()) {
+    <div class="loading-state" role="status">
+      <span class="loading-dot"></span> Đang kết nối phòng thử nghiệm…
     </div>
-    <div class="cohorts">
-      @for (group of lab.groups; track group.cohort) {
-        <article class="model-card">
-          <span
-            class="badge"
-            [class.bg-success]="group.status === 'VALIDATION_CANDIDATE'"
-            [class.bg-secondary]="group.status !== 'VALIDATION_CANDIDATE'"
-            >{{
-              group.status === 'VALIDATION_CANDIDATE'
-                ? 'Ứng viên cần xác nhận tiếp'
-                : 'Đang thu thập bằng chứng'
-            }}</span
-          >
-          <h2>{{ name(group.model) }}</h2>
-          <p>
-            {{ group.modelVersion }} · {{ group.evaluatedDraws }}/{{ group.savedDraws }} kỳ đã đối
-            soát
-          </p>
-          <dl>
-            <div>
-              <dt>Kỳ có vé khớp ≥3</dt>
-              <dd>{{ percent(group.drawHit3Percent) }}</dd>
-            </div>
-            <div>
-              <dt>Từng vé khớp ≥3</dt>
-              <dd>{{ percent(group.ticketHit3Percent) }}</dd>
-            </div>
-            <div>
-              <dt>Đối chứng tần suất · 5 vé</dt>
-              <dd>{{ percent(group.frequencyHit3Percent) }}</dd>
-            </div>
-            <div>
-              <dt>Đối chứng ngẫu nhiên · 5 vé</dt>
-              <dd>{{ percent(group.randomHit3Percent) }}</dd>
-            </div>
-            <div>
-              <dt>30 kỳ gần nhất</dt>
-              <dd>{{ percent(group.recent30Percent) }}</dd>
-            </div>
-            <div>
-              <dt>30 kỳ trước đó</dt>
-              <dd>{{ percent(group.previous30Percent) }}</dd>
-            </div>
-          </dl>
-          <small
-            >Đủ 60 kỳ liên tiếp: {{ group.continuous60 ? 'Có' : 'Chưa' }}. Tách riêng từng phiên bản
-            mã và cấu hình.</small
-          >
-          <details>
-            <summary>Nhận diện nhóm đánh giá</summary>
-            <code>{{ group.cohort }}</code>
-          </details>
-        </article>
-      }
-    </div>
-    @if (!lab.groups.length) {
-      <div class="empty">
-        Chưa có dự đoán đã lưu cho {{ category() }}. Hệ thống cần ít nhất 10 kỳ hợp lệ và kỳ hoàn
-        tất mới nhất để học và chốt bộ số.
+  }
+
+  <div class="lab-layout">
+    <div class="lab-main">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker">MODEL STUDIO</span>
+          <h2>Các mô hình đang học</h2>
+        </div>
+        <span class="section-note">{{ category() === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}</span>
       </div>
-    }
-    <h2 class="mt-4">Các dãy số đã chốt</h2>
-    <p>
-      {{ lab.totalRows }} vé · Trang {{ page() + 1 }}/{{ pages() }} · Màu xanh đánh dấu số chính
-      khớp.
-    </p>
-    <div class="tickets">
-      @for (row of lab.rows; track row.id) {
-        <article class="ticket">
-          <div class="ticket-head">
-            <strong>{{ row.targetDate | date: 'dd/MM/yyyy' }}</strong
-            ><span>{{ name(row.model) }}</span>
-          </div>
-          <div class="numbers">
-            @for (n of row.numbers; track n) {
-              <span
-                [class.hit]="matched(row, n)"
-                [attr.aria-label]="n + (matched(row, n) ? ' khớp' : '')"
-                >{{ n < 10 ? '0' + n : n }}</span
-              >
-            }
-          </div>
-          @if (row.settlement?.status === 'SETTLED') {
-            <p>
-              <strong>{{ row.settlement.matched }}/6 số khớp</strong> · Kết quả:
-              {{ row.settlement.actualNumbers?.join(' – ') }}
-            </p>
-          } @else {
-            <p>
-              {{
-                row.settlement?.status === 'RESULT_UNAVAILABLE'
-                  ? 'Kết quả cần xác minh lại'
-                  : 'Chờ kết quả hợp lệ'
-              }}
-            </p>
+      @if (data(); as lab) {
+        @if (!lab.enabled) {
+          <p class="notice notice-warning">
+            Đang tắt tạo dự đoán mới. Các bản cũ vẫn được đối soát.
+          </p>
+        }
+        <div class="cohorts">
+          @for (group of lab.groups; track group.cohort) {
+            <article class="model-card" [class.recency-card]="group.model !== 'logistic'">
+              <div class="model-topline">
+                <span class="model-icon" aria-hidden="true">{{
+                  group.model === 'logistic' ? '✳' : '◷'
+                }}</span
+                ><span
+                  class="model-state"
+                  [class.candidate]="group.status === 'VALIDATION_CANDIDATE'"
+                  ><span></span
+                  >{{
+                    group.status === 'VALIDATION_CANDIDATE'
+                      ? 'Ứng viên cần xác nhận'
+                      : 'Đang thu thập'
+                  }}</span
+                >
+              </div>
+              <span class="model-type">{{
+                group.model === 'logistic' ? 'MÔ HÌNH HỌC MÁY' : 'MÔ HÌNH THỐNG KÊ'
+              }}</span>
+              <h3>
+                {{ group.model === 'logistic' ? 'Logistic Regression' : 'Tần suất theo thời gian' }}
+              </h3>
+              <p class="model-description">
+                {{
+                  group.model === 'logistic'
+                    ? 'Học trọng số từ các đặc trưng của những kỳ trước.'
+                    : 'Ưu tiên dữ liệu gần đây với trọng số giảm dần theo thời gian.'
+                }}
+              </p>
+              <div class="model-score">
+                <strong>{{ percent(group.drawHit3Percent) }}</strong
+                ><span>kỳ có ít nhất một vé<br />khớp từ 3 số</span>
+              </div>
+              <div class="comparison" aria-label="So sánh tỷ lệ kỳ có vé khớp từ ba số">
+                <div class="comparison-row">
+                  <span>Mô hình</span>
+                  <div class="bar-track">
+                    <div
+                      class="bar-fill model-bar"
+                      [style.width.%]="progress(group.drawHit3Percent)"
+                    ></div>
+                  </div>
+                  <strong>{{ percent(group.drawHit3Percent) }}</strong>
+                </div>
+                <div class="comparison-row">
+                  <span>Tần suất</span>
+                  <div class="bar-track">
+                    <div
+                      class="bar-fill frequency-bar"
+                      [style.width.%]="progress(group.frequencyHit3Percent)"
+                    ></div>
+                  </div>
+                  <strong>{{ percent(group.frequencyHit3Percent) }}</strong>
+                </div>
+                <div class="comparison-row">
+                  <span>Ngẫu nhiên</span>
+                  <div class="bar-track">
+                    <div
+                      class="bar-fill random-bar"
+                      [style.width.%]="progress(group.randomHit3Percent)"
+                    ></div>
+                  </div>
+                  <strong>{{ percent(group.randomHit3Percent) }}</strong>
+                </div>
+              </div>
+              <p class="comparison-caption">Cùng ngân sách {{ lab.budget }} vé / mô hình / kỳ</p>
+              <div class="collection-progress">
+                <div>
+                  <span>Tiến độ đối soát</span
+                  ><strong>{{ group.evaluatedDraws }} / {{ group.savedDraws }} kỳ đã lưu</strong>
+                </div>
+                <div class="progress-track">
+                  <span [style.width.%]="progress((group.evaluatedDraws / 60) * 100)"></span>
+                </div>
+                <small
+                  >Mốc tham khảo: 60 kỳ · Liên tiếp:
+                  {{ group.continuous60 ? 'Đủ' : 'Chưa đủ' }}</small
+                >
+              </div>
+              <details class="model-details">
+                <summary>Chi tiết đánh giá <span aria-hidden="true">＋</span></summary>
+                <dl>
+                  <div>
+                    <dt>Từng vé khớp ≥3</dt>
+                    <dd>{{ percent(group.ticketHit3Percent) }}</dd>
+                  </div>
+                  <div>
+                    <dt>30 kỳ gần nhất</dt>
+                    <dd>{{ percent(group.recent30Percent) }}</dd>
+                  </div>
+                  <div>
+                    <dt>30 kỳ trước đó</dt>
+                    <dd>{{ percent(group.previous30Percent) }}</dd>
+                  </div>
+                </dl>
+                <p class="version">{{ group.modelVersion }}</p>
+                <span class="detail-label">Nhóm đánh giá</span><code>{{ group.cohort }}</code>
+              </details>
+            </article>
           }
-          <small
-            >Lưu {{ row.createdAt | date: 'dd/MM/yyyy HH:mm:ss' : '+0700' }} giờ Việt Nam</small
-          >
-        </article>
+        </div>
+        @if (!lab.groups.length) {
+          <div class="empty">
+            <span class="empty-icon" aria-hidden="true">✳</span>
+            <h3>Mọi thử nghiệm đều có điểm bắt đầu.</h3>
+            <p>
+              Chưa có dự đoán đã lưu cho {{ category() }}. Cần ít nhất 10 kỳ hợp lệ và kỳ hoàn tất
+              mới nhất để học và chốt bộ số.
+            </p>
+            <span class="empty-caption">Các mô hình sẽ xuất hiện khi có dữ liệu đủ điều kiện.</span>
+          </div>
+        }
       }
     </div>
-    <div class="actions my-3">
-      <button
-        class="btn btn-outline-secondary"
-        [disabled]="page() === 0 || busy() || mutating()"
-        (click)="changePage(-1)"
-      >
-        Trang trước</button
-      ><button
-        class="btn btn-outline-secondary"
-        [disabled]="page() + 1 >= pages() || busy() || mutating()"
-        (click)="changePage(1)"
-      >
-        Trang sau
-      </button>
-    </div>
+
+    <aside class="lab-sidebar">
+      <div class="protocol-card">
+        <span class="section-kicker">CÁCH PHÒNG LAB HOẠT ĐỘNG</span>
+        <h2>Một thử nghiệm.<br />Ba bước rõ ràng.</h2>
+        <ol class="steps">
+          <li>
+            <span>01</span>
+            <div>
+              <strong>Học & chốt</strong>
+              <p>Mỗi mô hình lưu 5 bộ sáu số trước 18:00.</p>
+            </div>
+          </li>
+          <li>
+            <span>02</span>
+            <div>
+              <strong>Đối soát thực tế</strong>
+              <p>Nhận kết quả hợp lệ từ 19:00, chỉ tính sáu số chính.</p>
+            </div>
+          </li>
+          <li>
+            <span>03</span>
+            <div>
+              <strong>Đo trên cùng ngân sách</strong>
+              <p>So với tần suất và ngẫu nhiên, cùng 5 vé mỗi kỳ.</p>
+            </div>
+          </li>
+        </ol>
+        <div class="auto-refresh">
+          <span></span> Tự kiểm tra mỗi phút khi backend hoạt động.<br /><small
+            >Giờ Việt Nam · Giữ nguyên các bộ đã chốt.</small
+          >
+        </div>
+      </div>
+      <details class="protocol">
+        <summary><span aria-hidden="true">↗</span> Khi nào một mô hình đủ bằng chứng?</summary>
+        <p>
+          Ngưỡng sàng lọc: ít nhất 60 kỳ liên tiếp đã đối soát; mỗi nhóm 30 kỳ gần nhất có từ 50% kỳ
+          đạt ít nhất một vé khớp ≥3 số, và cận dưới khoảng chênh lệch ghép cặp 95% xấp xỉ lớn hơn 0
+          với cả hai đối chứng.
+        </p>
+        <p>
+          Đây là tiêu chí thử nghiệm, chưa chứng minh lợi thế. Mô hình đạt ngưỡng chỉ là ứng viên
+          cần xác nhận trên các kỳ tương lai mới; không tự thay thuật toán đang dùng. Tách riêng
+          từng phiên bản mã và cấu hình.
+        </p>
+      </details>
+    </aside>
+  </div>
+
+  @if (data(); as lab) {
+    <section class="history-section" aria-labelledby="ticket-heading">
+      <div class="section-heading">
+        <div>
+          <span class="section-kicker">EXPERIMENT LOG</span>
+          <h2 id="ticket-heading">
+            Các dãy số đã chốt <span class="count-badge">{{ lab.totalRows }}</span>
+          </h2>
+        </div>
+        <span class="match-legend"><i aria-hidden="true"></i> Số chính khớp kết quả</span>
+      </div>
+      <div class="tickets">
+        @for (row of lab.rows; track row.id) {
+          <article class="ticket" [class.ticket-settled]="row.settlement?.status === 'SETTLED'">
+            <div class="ticket-head">
+              <span class="ticket-model">{{
+                row.model === 'logistic' ? '✳ Logistic' : '◷ Tần suất'
+              }}</span
+              ><strong>{{ row.targetDate | date: 'dd/MM/yyyy' }}</strong>
+            </div>
+            <div class="numbers">
+              @for (n of row.numbers; track n) {
+                <span
+                  [class.hit]="matched(row, n)"
+                  [attr.aria-label]="n + (matched(row, n) ? ' khớp' : '')"
+                  >{{ n < 10 ? '0' + n : n }}</span
+                >
+              }
+            </div>
+            @if (row.settlement?.status === 'SETTLED') {
+              <div class="ticket-result">
+                <strong>{{ row.settlement.matched }}/6 số khớp</strong><span>Đã đối soát</span>
+              </div>
+              <p class="actual-numbers">Kết quả: {{ row.settlement.actualNumbers?.join(' – ') }}</p>
+            } @else {
+              <div class="ticket-result pending">
+                <span class="pending-indicator"></span
+                >{{
+                  row.settlement?.status === 'RESULT_UNAVAILABLE'
+                    ? 'Kết quả cần xác minh lại'
+                    : 'Chờ kết quả hợp lệ'
+                }}
+              </div>
+            }
+            <div class="ticket-footer">
+              Đã lưu {{ row.createdAt | date: 'dd/MM · HH:mm:ss' : '+0700' }} <span>GMT+7</span>
+            </div>
+          </article>
+        }
+      </div>
+      @if (!lab.rows.length) {
+        <div class="empty-history">
+          <span aria-hidden="true">◎</span>
+          <div>
+            <strong>Chưa có bộ số nào được chốt</strong>
+            <p>Các bộ số và kết quả đối soát sẽ được lưu lại tại đây.</p>
+          </div>
+        </div>
+      }
+      <div class="history-footer">
+        <span
+          >Trang <strong>{{ page() + 1 }}</strong> / {{ pages() }}
+          <span class="pagination-total">· {{ lab.totalRows }} vé</span></span
+        >
+        <nav class="pagination-actions" aria-label="Phân trang bộ số">
+          <button [disabled]="page() === 0 || busy() || mutating()" (click)="changePage(-1)">
+            <span aria-hidden="true">←</span> Trang trước</button
+          ><button
+            [disabled]="page() + 1 >= pages() || busy() || mutating()"
+            (click)="changePage(1)"
+          >
+            Trang sau <span aria-hidden="true">→</span>
+          </button>
+        </nav>
+      </div>
+    </section>
+    <details class="run-status">
+      <summary>
+        <span class="status-dot"></span> Hoạt động gần nhất
+        <span class="run-time">{{
+          lab.lastRun.checkedAt
+            ? (lab.lastRun.checkedAt | date: 'dd/MM/yyyy HH:mm:ss' : '+0700')
+            : 'Chưa chạy'
+        }}</span
+        ><span class="run-state">{{ statusName(lab.lastRun.status) }}</span>
+      </summary>
+      <div class="run-body">
+        @if (lab.lastRun.message) {
+          <p>{{ lab.lastRun.message }}</p>
+        }
+        @for (outcome of lab.lastRun.outcomes; track outcome) {
+          <p>
+            <strong>{{ outcome.category }}</strong> ·
+            {{ outcome.model ? name(outcome.model) : '' }} · {{ statusName(outcome.status) }}
+            @if (outcome.message) {
+              <span>— {{ outcome.message }}</span>
+            }
+          </p>
+        }
+      </div>
+    </details>
   }
+  <footer class="lab-footer">
+    <span class="footer-mark" aria-hidden="true">✳</span
+    ><span>Thử nghiệm có kiểm chứng. Chưa có bằng chứng về lợi thế dự đoán.</span
+    ><span class="footer-label">AI LAB / {{ category() }}</span>
+  </footer>
 </section>
