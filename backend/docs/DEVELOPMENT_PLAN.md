@@ -1,5 +1,9 @@
 # Kế hoạch phát triển hướng tới mục tiêu dự đoán
 
+## Điều chỉnh ưu tiên ngày 28/10/2026
+
+Trang dự đoán chuyển sang luồng người dùng chọn/chỉnh/chốt vé; AI Lab cung cấp thêm 3–5 gợi ý qua kênh chỉ đọc, giữ ledger và đánh giá độc lập. Kế hoạch đã rà soát, các lỗ hổng và tiêu chí nghiệm thu: [Prediction Workspace](PREDICTION_WORKSPACE_PLAN.md). Đã triển khai bản đầu trong workspace, gồm migration V13, giao diện chọn/chỉnh/chốt, kiểm thử PostgreSQL và báo cáo phát lại phát triển; chưa deploy. Thứ tự trong kế hoạch mới thay cho ưu tiên cũ đối với trang dự đoán.
+
 ## Điều chỉnh ưu tiên ngày 27/10/2026
 
 Theo yêu cầu mới, tập trung vào thuật toán/học máy và phòng thử nghiệm `/ai-lab`. Tạm gác mở rộng kiểm thử PostgreSQL; thứ tự giai đoạn cũ bên dưới là tham khảo, không còn là thứ tự triển khai bắt buộc.

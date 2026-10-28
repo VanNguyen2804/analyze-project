@@ -1,0 +1,167 @@
+{
+  "draws": {
+    "MEGA": {
+      "rawRows": 40,
+      "uniqueDates": 40,
+      "eligibleLatest": 40,
+      "firstDate": "2026-07-29",
+      "lastDate": "2026-10-28",
+      "missingScheduledDates": [],
+      "quality": {
+        "SOURCE_MATCHED": 40
+      }
+    },
+    "POWER": {
+      "rawRows": 41,
+      "uniqueDates": 41,
+      "eligibleLatest": 40,
+      "firstDate": "2026-07-28",
+      "lastDate": "2026-10-27",
+      "missingScheduledDates": [],
+      "quality": {
+        "SOURCE_MATCHED": 40,
+        "QUARANTINED": 1
+      }
+    }
+  },
+  "tickets": {
+    "MEGA": {
+      "rows": 13,
+      "uniqueTickets": 13,
+      "duplicateRows": 0,
+      "distinctDrawDates": 4,
+      "dates": [
+        "2026-10-11",
+        "2026-10-21",
+        "2026-10-23",
+        "2026-10-25"
+      ],
+      "invalidTicketIds": [],
+      "missingResultTicketIds": [],
+      "fields": [
+        "category",
+        "checkedAt",
+        "drawDate",
+        "id",
+        "numbers",
+        "prize"
+      ],
+      "validTickets": 13,
+      "matchHistogramValid": {
+        "0": 7,
+        "1": 4,
+        "2": 2
+      }
+    },
+    "POWER": {
+      "rows": 19,
+      "uniqueTickets": 19,
+      "duplicateRows": 0,
+      "distinctDrawDates": 5,
+      "dates": [
+        "2026-10-13",
+        "2026-10-15",
+        "2026-10-22",
+        "2026-10-24",
+        "2026-10-27"
+      ],
+      "invalidTicketIds": [
+        36,
+        29
+      ],
+      "missingResultTicketIds": [],
+      "fields": [
+        "category",
+        "checkedAt",
+        "drawDate",
+        "id",
+        "numbers",
+        "prize"
+      ],
+      "validTickets": 17,
+      "matchHistogramValid": {
+        "0": 9,
+        "1": 6,
+        "2": 1,
+        "3": 1
+      }
+    }
+  },
+  "ticketsAtLeast3": [
+    {
+      "id": 39,
+      "category": "POWER",
+      "drawDate": "2026-10-24",
+      "numbers": [
+        6,
+        7,
+        11,
+        13,
+        18,
+        25
+      ],
+      "prize": "GIáº¢I BA",
+      "checkedAt": "2026-10-24T15:16:40.204174",
+      "actualNumbers": [
+        6,
+        7,
+        18,
+        41,
+        44,
+        50
+      ],
+      "matchedNumbers": [
+        6,
+        7,
+        18
+      ],
+      "matched": 3
+    }
+  ],
+  "invalidDraws": [
+    {
+      "id": 42,
+      "category": "POWER",
+      "date": "2026-09-28",
+      "quality": "QUARANTINED"
+    }
+  ],
+  "sources": [
+    {
+      "endpoint": "/api/numbers",
+      "sha256": "6de21c942ded6353d938616d34d334a65cce8ec3638e8e1226f10f25f7fbe916"
+    },
+    {
+      "endpoint": "/api/analyze/user-history",
+      "sha256": "fee8ab26c8dce0782b7f03b1d475fc38a7ed7a115c1740155578d089e891b946"
+    }
+  ],
+  "scope": "Read-only API export of production data; no direct SQL inspection or database mutations.",
+  "limitations": [
+    "UserTicket has checkedAt only; no pre-draw capture timestamp, model/source, configuration or forecast id.",
+    "SOURCE_MATCHED means matched configured community feed, not official-source verification."
+  ],
+  "clarificationMega20261021": {
+    "ticketIds": [
+      26,
+      27
+    ],
+    "matchedNumbersByTicket": [
+      [
+        10,
+        22
+      ],
+      [
+        14,
+        25
+      ]
+    ],
+    "distinctCoverage": [
+      10,
+      14,
+      22,
+      25
+    ],
+    "interpretation": "User clarified four refers to union coverage of two tickets, not four matches on a single combined ticket. Algorithm origin is user-reported and absent from legacy ticket metadata."
+  }
+}

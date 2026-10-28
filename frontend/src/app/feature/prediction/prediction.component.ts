@@ -1,3 +1,5 @@
+import { UserDeskComponent } from './user-desk/user-desk.component';
+import { WorkspaceSuggestion } from '@app/core/models/workspace.model';
 import { PredictionChartComponent } from './prediction-chart/prediction-chart.component';
 import { PredictionOverviewComponent } from './prediction-overview/prediction-overview.component';
 import { ExpandedTicketsComponent } from './expanded-tickets/expanded-tickets.component';
@@ -24,6 +26,7 @@ import { AnalyzeService } from '@app/core/services/analyze.service';
   selector: 'app-prediction',
   standalone: true,
   imports: [
+    UserDeskComponent,
     PredictionChartComponent,
     PredictionOverviewComponent,
     ExpandedTicketsComponent,
@@ -179,7 +182,7 @@ export class PredictionComponent implements OnInit {
             this.cdr.markForCheck();
             return;
           }
-          if (res.status !== 'SUCCESS') {
+          if (res.status !== 'SUCCESS' && res.status !== 'WAITING') {
             this.payload = null;
             this.errorMessage =
               res.message ?? res.analysisSummary ?? 'Chưa có lịch sử hợp lệ để phân tích.';
@@ -201,6 +204,37 @@ export class PredictionComponent implements OnInit {
   }
 
   // --- TRẢ VỀ 3 KẾT QUẢ DỰ ĐOÁN (THUẬT TOÁN 1, THUẬT TOÁN 2, KẾT HỢP 2 THUẬT TOÁN) ---
+  workspaceChanged(view: WorkspaceSuggestion) {
+    if (!this.payload || view.category !== this.category) return;
+    const sameHistory = this.payload.workspace?.historyHash === view.historyHash;
+    this.payload.workspace = view;
+    this.payload.baseDrawDate = view.trainingThrough;
+    this.payload.baseDrawDateFormatted = view.trainingThrough?.split('-').reverse().join('/');
+    this.payload.totalDrawsAnalyzed = view.historyCount ?? this.payload.totalDrawsAnalyzed;
+    this.selectedAlgorithm = view.primaryAlgorithm;
+    this.selectedAlgorithm2 = view.secondaryAlgorithm;
+    for (const [id, field] of [
+      ['primary', 'primaryAlgorithmResult'],
+      ['secondary', 'secondaryAlgorithmResult'],
+      ['combined', 'combinedAlgorithmResult'],
+    ] as const) {
+      const ticket = view.tickets.find((t) => t.id === id);
+      if (ticket) {
+        const old = this.payload[field];
+        this.payload[field] = {
+          ...old,
+          id,
+          name: ticket.label,
+          numbers: ticket.numbers,
+          details: sameHistory
+            ? (old?.details ?? []).filter((d) => ticket.numbers.includes(d.number))
+            : [],
+        };
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
   getPrimaryResult(): any {
     if (this.payload?.primaryAlgorithmResult) {
       return this.payload.primaryAlgorithmResult;

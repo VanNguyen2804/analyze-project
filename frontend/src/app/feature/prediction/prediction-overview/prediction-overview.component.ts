@@ -13,6 +13,7 @@ type Metric = 'frequency' | 'drawGap';
   styleUrl: './prediction-overview.component.css',
 })
 export class PredictionOverviewComponent {
+  readonly showTickets = input(true);
   readonly primary = input.required<AlgorithmResultItem>();
   readonly secondary = input.required<AlgorithmResultItem>();
   readonly combined = input.required<AlgorithmResultItem>();

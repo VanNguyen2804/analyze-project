@@ -891,6 +891,7 @@ public class AnalyzeService {
         }
         primaryResult.putIfAbsent("hitRate", "N/A");
         primaryResult.put("numbers", pureNumbers);
+        primaryResult.put("ranking", primaryRanking);
         primaryResult.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, pureNumbers, primaryRanking));
         primaryResult.put("formulaNote", response.getAlgorithmDesc());
         primaryResult.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d",
@@ -927,6 +928,7 @@ public class AnalyzeService {
         secondaryResult.put("accuracyScore", null);
         secondaryResult.put("hitRate", "N/A");
         secondaryResult.put("numbers", pureNumbers2);
+        secondaryResult.put("ranking", secondaryRanking);
         secondaryResult.put("specialNumber", PredictionSupport.specialFor(recommendedSpecialNumber, pureNumbers2, secondaryRanking));
         secondaryResult.put("formulaNote", alg2Desc);
         secondaryResult.put("composition", String.format("%d Chẵn / %d Lẻ • Tổng = %d",
@@ -1280,6 +1282,11 @@ public class AnalyzeService {
     }
 
     public TicketCheckResponseDto checkMyTickets(TicketCheckRequestDto request) {
+        if (request == null) throw new IllegalArgumentException("Thiếu thông tin vé.");
+        WorkspaceProtocol.category(request.getCategory());
+        try { java.time.LocalDate.parse(request.getDrawDate()); } catch(Exception e) { throw new IllegalArgumentException("Ngày kỳ quay không hợp lệ."); }
+        if(request.getTickets()==null || request.getTickets().isEmpty() || request.getTickets().size()>25) throw new IllegalArgumentException("Cần từ 1 đến 25 vé.");
+        request.getTickets().forEach(t -> WorkspaceProtocol.numbers(request.getCategory(), t));
         TicketCheckResponseDto response = new TicketCheckResponseDto();
         
         Optional<LotteryNumber> officialDrawOpt = eligibleHistory(request.getCategory())

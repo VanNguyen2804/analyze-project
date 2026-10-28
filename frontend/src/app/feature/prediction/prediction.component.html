@@ -41,7 +41,10 @@
       }}<button (click)="copyTicketSuccessMsg = null" aria-label="Đóng thông báo">×</button>
     </div>
   }
-  @if (!isSpinning && payload) {
+  @if (!isSpinning && payload?.workspace; as workspace) {
+    <app-user-desk [suggestion]="workspace" (changed)="workspaceChanged($event)" />
+  }
+  @if (!isSpinning && payload && payload.status === 'SUCCESS') {
     <div class="draw-strip">
       <span class="draw-icon" aria-hidden="true">◷</span>
       <div>
@@ -57,6 +60,7 @@
       >
     </div>
     <app-prediction-overview
+      [showTickets]="!payload.workspace"
       [primary]="getPrimaryResult()"
       [secondary]="getSecondaryResult()"
       [combined]="getCombinedResult()"
@@ -139,8 +143,8 @@
         {{ isSpinning ? 'Đang tính…' : 'Tính lại ↗' }}
       </button>
       <p>
-        Hai thuật toán tạo hai bảng xếp hạng độc lập; bộ kết hợp hợp nhất hai xếp hạng. Kết quả tính
-        lại không ghi đè bản đầu tiên đã chốt.
+        Hai thuật toán chấm điểm trên cùng lịch sử; bộ kết hợp hợp nhất hai xếp hạng. Bạn chọn và
+        chốt vé ở khu vực phía trên; tính lại giữ lịch sử các bản đã chốt.
       </p>
     </div>
   </details>

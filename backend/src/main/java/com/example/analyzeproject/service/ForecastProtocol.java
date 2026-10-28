@@ -49,6 +49,11 @@ public final class ForecastProtocol {
         while (!scheduled(date, category)) date = date.plusDays(1);
         return date;
     }
+    public static LocalDate previous(String category, LocalDate target) {
+        LocalDate date=target.minusDays(1);
+        while(!scheduled(date,category)) date=date.minusDays(1);
+        return date;
+    }
     public static List<LotteryNumber> training(List<LotteryNumber> rows, String category, Instant now) {
         return DrawQuality.history(rows).stream().filter(r -> category.equals(r.getCategory()) && !r.getDrawDate().isAfter(expected(category, now)))
                 .sorted(Comparator.comparing(LotteryNumber::getDrawDate)).toList();
@@ -63,6 +68,8 @@ public final class ForecastProtocol {
         if (numbers == null || numbers.size() != 6 || new HashSet<>(numbers).size() != 6 || numbers.stream().anyMatch(n -> n == null || n < 1 || n > max))
             throw new IllegalArgumentException("Invalid six-number forecast");
         LocalDate target = target(category, now);
+        if (!history.get(history.size()-1).getDrawDate().equals(previous(category,target)))
+            throw new IllegalStateException("HISTORY_NOT_READY: đang chờ kết quả kỳ liền trước kỳ mục tiêu");
         if (history.stream().anyMatch(r -> !r.getDrawDate().isBefore(target))) throw new IllegalArgumentException("Future training data");
         int[] frequency = new int[max + 1];
         for (var row : history) for (int n : row.getNumbers()) frequency[n]++;

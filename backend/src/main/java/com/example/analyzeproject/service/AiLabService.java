@@ -19,12 +19,7 @@ public class AiLabService {
     private final String codeVersion;
     public AiLabService(AiLabStore store,LotteryNumberRepository draws,@Value("${ai-lab.enabled:true}") boolean enabled) {
         this.store=store; this.draws=draws; this.enabled=enabled;
-        try {
-            List<String> fingerprints=new ArrayList<>(List.of(ForecastProtocol.codeVersion()));
-            for(Class<?> type:List.of(AiLabModel.class,AiLabService.class,DrawQuality.class))
-                try(var input=type.getResourceAsStream(type.getSimpleName()+".class")) { fingerprints.add(HexFormat.of().formatHex(input.readAllBytes())); }
-            codeVersion=ForecastProtocol.hash(fingerprints);
-        } catch(Exception e) { throw new IllegalStateException(e); }
+        codeVersion=WorkspaceProtocol.fingerprint(AiLabModel.class,AiLabService.class,ForecastProtocol.class,DrawQuality.class);
     }
     public Map<String,Object> run() {
         if(!lock.tryLock()) return map("status","BUSY");

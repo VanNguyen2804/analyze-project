@@ -16,6 +16,21 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: workspace_test
+          POSTGRES_DB: workspace_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U workspace_test -d workspace_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      WORKSPACE_TEST_JDBC: jdbc:postgresql://localhost:5432/workspace_test
+      WORKSPACE_TEST_USER: workspace_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

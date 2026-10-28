@@ -1,5 +1,28 @@
 # Analyze Project
 
+## Trang dự đoán có người dùng chọn vé
+
+Trong `/analyze`, xem hai dãy thuật toán và bộ kết hợp; chỉnh trọng số/giữ/bỏ số trước khi chọn vé. Khu vực AI Lab có thể hiển thị 3–5 dãy đã lưu cho đúng loại/kỳ, theo quy tắc luân phiên mô hình; đây không phải thứ hạng xác suất trúng. Chọn gợi ý hoặc tự nhập, sửa sáu số rồi chốt danh sách trước 18:00 giờ Việt Nam. Tối đa 25 vé khác nhau mỗi bản chốt. Chốt là lưu lựa chọn trong ứng dụng, không phải mua vé.
+
+Bản nháp lưu riêng theo loại trong trình duyệt; nếu đang giữ vé nháp cũ, bấm **Dùng gợi ý mới, bỏ nháp** để chuyển nguồn. Sau khi chốt vẫn có thể chỉnh và chốt revision mới trước cutoff; bản cuối có hiệu lực và các bản cũ còn lịch sử. Khu vực bên dưới hiển thị kết quả từng vé, vé tốt nhất, độ phủ các số khác nhau và đối chứng cùng ngân sách vé; có nút tải lại và đối soát. Tab lịch sử tự động cũ và trang AI Lab vẫn có ledger riêng.
+
+Khi triển khai, Flyway chạy V13 tạo `prediction_suggestions`, `prediction_user_batches`, `prediction_user_settlements`. Không chuyển lịch sử dò vé cũ thành vé đã chốt trước kỳ. Backend kiểm tra độ mới của lịch sử khi chốt gợi ý; khoảng chờ 18:00–19:00 không đóng băng dự đoán kỳ sau bằng lịch sử thiếu kỳ liền trước. Vé tự nhập có thể chốt trước cutoff dù mô hình đang chờ.
+
+| API mới | Công dụng |
+| --- | --- |
+| `POST /api/prediction-workspace/suggestions` | Tạo bản gợi ý bất biến cho category/algorithm/algorithm2 |
+| `POST /api/prediction-workspace/suggestions/{id}/combine` | Tạo biến thể theo primaryWeight, keep, exclude trên cùng ranking |
+| `GET /api/prediction-workspace/lab-suggestions?category=MEGA&targetDate=YYYY-MM-DD` | Đọc tối đa năm gợi ý Lab đúng kỳ, không sinh vé |
+| `POST /api/prediction-workspace/commit` | Chốt danh sách với suggestionId, category, targetDate, expectedRevision, requestKey, labCount và tickets (sourceId/numbers) |
+| `GET /api/prediction-workspace/history?category=MEGA` | Đọc các revision và đối soát vé người dùng |
+| `POST /api/prediction-workspace/reconcile` | Đối soát; scheduler cũng kiểm tra mỗi phút |
+
+Giữ nguyên requestKey và payload khi gửi lại sau lỗi mạng. HTTP 409 yêu cầu kiểm tra nguồn/kỳ/revision trước khi chốt lại; không tự đổi targetDate. Vé sửa vẫn liên kết về sourceId của bản gợi ý đang chốt. Chọn số dãy Lab 3–5 chỉ đổi số lựa chọn hiển thị; việc chọn/sửa không ghi ngược mô hình hoặc ledger Lab.
+
+Kiểm thử PostgreSQL thật có thể bật bằng `WORKSPACE_TEST_JDBC` và `WORKSPACE_TEST_USER`, dùng database kiểm thử với tài khoản được tạo/xóa schema. Test tự tạo schema ngẫu nhiên, áp dụng V13 và dọn riêng schema đó. Không cấu hình bằng kết nối production. Nếu JDBC URL có query parameters, cấu hình một URL kiểm thử không có query trước khi chạy test. CI dùng PostgreSQL 16 tạm riêng.
+
+Kế hoạch và báo cáo phát triển: [workspace](backend/docs/PREDICTION_WORKSPACE_PLAN.md), [so sánh cách kết hợp](backend/docs/reports/workspace-development-2026-10-28.md).
+
 ## Phòng thử nghiệm AI
 
 Mở `/ai-lab` từ menu để theo dõi nhiều dãy dự đoán trước kỳ: Logistic Regression và tần suất suy giảm theo thời gian, mỗi mô hình 5 vé/kỳ. Backend tự chốt và đối soát mỗi phút khi đang chạy; trang tự cập nhật mỗi phút. Chỉ học trên kết quả hợp lệ trước kỳ đích, cần ít nhất 10 kỳ và kỳ hoàn tất mới nhất.

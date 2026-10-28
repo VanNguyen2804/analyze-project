@@ -3,6 +3,9 @@ package com.example.analyzeproject.dto;
 import java.util.List;
 
 public class PredictionResponseDto {
+    private java.util.Map<String,Object> workspace;
+    public java.util.Map<String,Object> getWorkspace() { return workspace; }
+    public void setWorkspace(java.util.Map<String,Object> value) { workspace=value; }
     private java.util.Map<String,Object> forecastSnapshot;
     public java.util.Map<String,Object> getForecastSnapshot() { return forecastSnapshot; }
     public void setForecastSnapshot(java.util.Map<String,Object> value) { forecastSnapshot = value; }

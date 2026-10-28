@@ -1,5 +1,33 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Triển khai 28/10/2026 — Trang dự đoán có người dùng chọn và chốt vé
+
+Thêm `WorkspaceService`, `WorkspaceProtocol`, `WorkspaceStore` và `/api/prediction-workspace`. Migration V13 tạo bảng gợi ý bất biến, các revision vé người dùng và sự kiện đối soát; giữ riêng ledger tự động cũ và AI Lab. Trang dự đoán tạo gợi ý qua API mới, không gọi luồng tự lưu vé chính của `ForecastService.predict` khi mở trang.
+
+Giao diện giữ hai thuật toán và bộ kết hợp, cho chỉnh trọng số/giữ/bỏ số trước khi chọn vé; thêm 3–5 gợi ý AI Lab đúng loại/kỳ theo chính sách luân phiên mô hình/slot có phiên bản. Vé trùng từ nhiều mô hình giữ đủ nguồn. Chỉ nhận batch đầy đủ, cùng phiên bản/cấu hình và lịch sử đủ mới; thiếu Lab không chặn tự nhập. Bản nháp lưu trong trình duyệt theo loại, giữ bản gợi ý gốc khi tải lại. Đổi bộ gợi ý dùng thao tác bỏ nháp rõ ràng để tránh gán nguồn mới cho vé đã chọn.
+
+Người dùng sửa hoặc tự nhập tối đa 25 vé; backend kiểm tra sáu số nguyên khác nhau trong miền hợp lệ và loại vé trùng. Chốt danh sách nguyên khối trước 18:00 giờ Việt Nam, chống request trùng bằng request key, dùng revision kỳ vọng để phát hiện hai tab chỉnh đồng thời. Các lần sửa trước cutoff tạo revision mới; bản mới nhất có hiệu lực, bản cũ vẫn giữ audit. Mỗi vé giữ nguồn, số gốc, số cuối và dấu đã chỉnh; chốt trong ứng dụng không chứng minh mua vé.
+
+Đối soát riêng vé người dùng, vé gốc tương ứng và gợi ý thuật toán/Lab. Đối chứng tần suất và ngẫu nhiên dùng cùng số vé người dùng chốt, seed cố định theo loại/ngày/ngân sách. Độ phủ dùng hợp các số khớp, không cộng trùng giữa vé. Kết quả được sửa/cách ly sẽ tạo sự kiện đối soát mới hoặc vô hiệu hóa; GET lịch sử chỉ đọc. Giao diện hiển thị các bản chốt và kết quả ngay trong khu vực chọn vé; tab lịch sử cũ tiếp tục phục vụ ledger tự động.
+
+Chặn chốt gợi ý cho kỳ tiếp theo nếu chưa có kết quả kỳ liền trước, gồm khoảng 18:00–19:00; giữ cutoff hiện hành. Tách fingerprint AI Lab khỏi class scoring của trang dự đoán. Dò vé cũ cũng chặn input sai trước khi ghi; dữ liệu cũ không bị sửa/xóa.
+
+Phát lại phát triển trên bản xuất API ngày 28/10 có 40 kỳ hợp lệ mỗi loại, khởi tạo 10 và đo 30 kỳ. Thử trọng số kết hợp 0,25/0,5/0,75 với đối chứng cùng ngân sách thực tế; chưa có lợi thế ổn định, không tự đổi trọng số mặc định. Phương pháp và giới hạn tại [báo cáo workspace](backend/docs/reports/workspace-development-2026-10-28.md). Đây không phải tái hiện cấu hình production lịch sử hoặc đánh giá quyết định người dùng trước kỳ.
+
+Kiểm chứng: typecheck/format và 35 kiểm thử frontend qua Edge headless đạt; kiểm tra tương tác và chiều rộng 390 px không tràn. Production build frontend và `mvn clean install` thành công; 57 kiểm thử Java chạy thành công, một kiểm thử báo cáo portfolio cũ được bỏ qua theo điều kiện. PostgreSQL tạm riêng xác nhận migration V13, cạnh tranh/retry, xung đột revision, rollback, đọc dữ liệu đã lưu và hiệu lực settlement. 22 assets Angular trong JAR/static fallback khớp byte; JAR có migration V13. CI đã thêm service PostgreSQL để chạy kiểm tra này, chưa xác nhận workflow trên GitHub. Còn cảnh báo kích thước CSS AI Lab đã có và unchecked Java. Chưa triển khai Render hoặc thay đổi database production.
+
+Smoke test JAR trên cluster PostgreSQL tạm riêng chạy migration đến V13 và khởi động thành công; API thật xác nhận trạng thái chờ dữ liệu, chốt vé tự nhập, retry trả cùng id và lịch sử đọc đúng bản có hiệu lực. Format check frontend thực hiện với line ending LF; sau kiểm tra trả các file không đổi về CRLF của working copy Windows để tránh diff ngoài phạm vi.
+
+## Kiểm tra 28/10/2026 — Dữ liệu kết quả và vé người dùng
+
+Đọc API production: 40 kỳ MEGA hợp lệ và 40 kỳ POWER hợp lệ, không thiếu kỳ theo lịch trong khoảng cuối tháng 7 đến 28/10; một bản ghi POWER 28/09 đang cách ly. 32 vé đã dò gồm 30 vé hợp lệ trên chín cặp loại/ngày; hai vé POWER chứa 113 hoặc toàn số 0. Luồng dò vé chưa chặn đầy đủ input sai. Chưa sửa dữ liệu hoặc code ứng dụng.
+
+Vé người dùng chưa có nguồn thuật toán, snapshot hay thời điểm chốt trước kỳ; `checkedAt` là thời điểm dò sau khi có kết quả. Vì vậy chưa dùng chúng làm bằng chứng dự đoán trước kỳ hoặc huấn luyện có giám sát theo nguồn vé. Người dùng làm rõ trường hợp MEGA 21/10 là hai vé khớp 2 + 2, phủ bốn số khác nhau (10, 14, 22, 25); không phải một vé khớp bốn số. Bộ kết hợp chưa có ledger riêng, không đồng nhất với thuật toán `deep_stacking`.
+
+Số liệu, giới hạn và hướng cải thiện: [kiểm tra dữ liệu dự đoán](backend/docs/reports/prediction-data-audit-2026-10-28.md). Đây là kiểm tra qua API và đối chiếu code, không phải kiểm thử SQL/PostgreSQL hoặc bằng chứng thuật toán cải thiện.
+
+Kế hoạch hiện hành: [trang dự đoán có người dùng can thiệp và gợi ý AI Lab](backend/docs/PREDICTION_WORKSPACE_PLAN.md). Rà soát phát hiện đường đi có thể chốt kỳ tiếp theo lúc 18:00–19:00 khi chưa có kết quả kỳ vừa quay, và fingerprint AI Lab phụ thuộc code scoring của trang dự đoán. Đây là phát hiện từ code, chưa tái hiện production hoặc sửa ứng dụng trong đợt lập kế hoạch.
+
 ## Cập nhật 27/10/2026 — Bỏ ma trận seed, đưa dãy mở rộng xuống dưới bộ số gốc
 
 Kiểm tra cho thấy ma trận biến số lấy từ `lottery_deviation_variables` qua repository/API, nhưng migration V3 và các migration lịch sử có chèn dữ liệu cố định; thuật toán không đọc bảng này để chấm điểm hay học. Bỏ section ma trận, các wrapper API frontend không còn dùng, request tải ma trận và các thao tác đồng bộ vốn đánh dấu thành công cả khi lỗi. Giữ nguyên database, migration và API backend để không mất lịch sử hoặc phá tương thích.

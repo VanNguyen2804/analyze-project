@@ -31,11 +31,14 @@ export class AnalyzeService {
     algorithm: string,
     algorithm2?: string,
   ): Observable<PredictionPayload> {
-    let url = `${this.apiUrl}/predict?category=${category}&algorithm=${algorithm}`;
-    if (algorithm2 && algorithm2.trim() !== '') {
-      url += `&algorithm2=${algorithm2.trim()}`;
-    }
-    return this.http.get<PredictionPayload>(url);
+    return this.http.post<PredictionPayload>(
+      `${environment.apiUrl || ''}/api/prediction-workspace/suggestions`,
+      {
+        category,
+        algorithm,
+        algorithm2: algorithm2 || 'bayesian_graph',
+      },
+    );
   }
 
   getAlgorithms(): Observable<AlgorithmOption[]> {

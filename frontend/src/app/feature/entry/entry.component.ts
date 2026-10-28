@@ -267,13 +267,29 @@ export class EntryComponent implements OnInit {
   }
 
   submitCheck() {
+    const max = this.category === 'MEGA' ? 45 : 55;
+    if (
+      !this.userTickets.length ||
+      this.userTickets.length > 25 ||
+      this.userTickets.some(
+        (ticket) =>
+          ticket.length !== 6 ||
+          new Set(ticket).size !== 6 ||
+          ticket.some(
+            (n) => n == null || !Number.isInteger(Number(n)) || Number(n) < 1 || Number(n) > max,
+          ),
+      )
+    ) {
+      alert('Mỗi vé cần sáu số khác nhau trong miền hợp lệ; tối đa 25 vé.');
+      return;
+    }
     this.isChecking = true;
     this.checkResult = null;
     this.cdr.markForCheck();
     const payload = {
       category: this.category,
       drawDate: this.drawDate,
-      tickets: this.userTickets.map((ticket) => ticket.map((n) => Number(n) || 0)),
+      tickets: this.userTickets.map((ticket) => ticket.map((n) => Number(n))),
     };
 
     this.analyzeService

@@ -1,3 +1,4 @@
+import { WorkspaceSuggestion } from './workspace.model';
 export interface FocusNumberDetail {
   number: number;
   probabilityPercent: number;
@@ -146,6 +147,7 @@ export interface AlgorithmResultItem {
 }
 
 export interface PredictionPayload {
+  workspace?: WorkspaceSuggestion;
   forecastSnapshot?: {
     status: string;
     id?: string;

@@ -30,6 +30,9 @@ public class AnalyzeController {
         this.forecasts = forecasts;
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> invalid(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
+
     @GetMapping("/algorithms")
     public List<Map<String, Object>> algorithms() {
         return analyzeService.getAlgorithmCatalog();

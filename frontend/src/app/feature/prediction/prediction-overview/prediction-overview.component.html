@@ -1,63 +1,65 @@
-<section class="number-section" aria-labelledby="number-heading">
-  <div class="section-heading">
-    <div>
-      <span class="eyebrow">YOUR NEXT NUMBERS</span>
-      <h2 id="number-heading">Các bộ số dành cho kỳ tới <span>↗</span></h2>
+@if (showTickets()) {
+  <section class="number-section" aria-labelledby="number-heading">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">YOUR NEXT NUMBERS</span>
+        <h2 id="number-heading">Các bộ số dành cho kỳ tới <span>↗</span></h2>
+      </div>
+      <span class="section-note"
+        >6 số chính · {{ category() === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}</span
+      >
     </div>
-    <span class="section-note"
-      >6 số chính · {{ category() === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }}</span
-    >
-  </div>
-  <div class="result-grid">
-    @for (model of models(); track $index; let i = $index) {
-      <article class="result-card" [class.secondary]="i === 1" [class.consensus]="i === 2">
-        <div class="result-header">
-          <span class="result-label"
-            ><i aria-hidden="true">{{ i === 2 ? '✳' : '0' + (i + 1) }}</i
-            >{{ label(i) }}</span
-          ><button
-            class="copy-button"
-            [disabled]="model.numbers.length !== 6"
-            (click)="copy(model)"
-            [attr.aria-label]="'Sao chép bộ số ' + label(i)"
-          >
-            Sao chép <span aria-hidden="true">⧉</span>
-          </button>
-        </div>
-        <h3>{{ model.name }}</h3>
-        <div class="result-numbers" [attr.aria-label]="'Sáu số chính của ' + label(i)">
-          @for (number of model.numbers; track number) {
-            <span>{{ format(number) }}</span>
-          }
-        </div>
-        <div class="result-bottom">
-          @if (category() === 'POWER' && model.specialNumber) {
-            <span class="special-number"
-              >Số phụ tham khảo <strong>{{ format(model.specialNumber) }}</strong></span
+    <div class="result-grid">
+      @for (model of models(); track $index; let i = $index) {
+        <article class="result-card" [class.secondary]="i === 1" [class.consensus]="i === 2">
+          <div class="result-header">
+            <span class="result-label"
+              ><i aria-hidden="true">{{ i === 2 ? '✳' : '0' + (i + 1) }}</i
+              >{{ label(i) }}</span
+            ><button
+              class="copy-button"
+              [disabled]="model.numbers.length !== 6"
+              (click)="copy(model)"
+              [attr.aria-label]="'Sao chép bộ số ' + label(i)"
             >
-          } @else {
-            <span>{{
-              i === 2 ? 'Hợp nhất hai bảng xếp hạng' : 'Bộ số theo xếp hạng mô hình'
-            }}</span>
-          }
-          <button
-            class="inspect-button"
-            (click)="selectModel(i)"
-            [attr.aria-pressed]="activeModel() === i"
-          >
-            {{ activeModel() === i ? 'Đang phân tích ↓' : 'Phân tích ↓' }}
-          </button>
-        </div>
-      </article>
-    }
-  </div>
-  <ng-content select="[expanded-tickets]" />
-  <p class="prediction-note">
-    Bộ số tham khảo từ lịch sử. Chưa có bằng chứng về lợi thế dự đoán.
-    <a routerLink="/analyze/history">Xem hiệu quả trên các bộ đã chốt & đối soát ↗</a>
-  </p>
-</section>
+              Sao chép <span aria-hidden="true">⧉</span>
+            </button>
+          </div>
+          <h3>{{ model.name }}</h3>
+          <div class="result-numbers" [attr.aria-label]="'Sáu số chính của ' + label(i)">
+            @for (number of model.numbers; track number) {
+              <span>{{ format(number) }}</span>
+            }
+          </div>
+          <div class="result-bottom">
+            @if (category() === 'POWER' && model.specialNumber) {
+              <span class="special-number"
+                >Số phụ tham khảo <strong>{{ format(model.specialNumber) }}</strong></span
+              >
+            } @else {
+              <span>{{
+                i === 2 ? 'Hợp nhất hai bảng xếp hạng' : 'Bộ số theo xếp hạng mô hình'
+              }}</span>
+            }
+            <button
+              class="inspect-button"
+              (click)="selectModel(i)"
+              [attr.aria-pressed]="activeModel() === i"
+            >
+              {{ activeModel() === i ? 'Đang phân tích ↓' : 'Phân tích ↓' }}
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+    <p class="prediction-note">
+      Bộ số tham khảo từ lịch sử. Chưa có bằng chứng về lợi thế dự đoán.
+      <a routerLink="/analyze/history">Xem hiệu quả trên các bộ đã chốt & đối soát ↗</a>
+    </p>
+  </section>
+}
 
+<ng-content select="[expanded-tickets]" />
 <ng-content />
 
 <section class="visual-section" aria-labelledby="visual-heading">
