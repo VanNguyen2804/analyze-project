@@ -1,0 +1,137 @@
+@let g = group();
+@let p = g.portfolio;
+<section class="ticket-group" [attr.aria-label]="g.label">
+  <div class="group-heading">
+    <h3>{{ g.label }}</h3>
+    <span class="source-label">
+      @switch (g.timing) {
+        @case ('COMMITTED_BEFORE_DRAW') {
+          Đã chốt trước kỳ
+        }
+        @case ('SAVED_BEFORE_DRAW') {
+          Gợi ý đã lưu trước kỳ
+        }
+        @default {
+          Dò sau kỳ · chưa xác định nguồn dự đoán
+        }
+      }
+    </span>
+  </div>
+  @if (g.invalidTicketCount) {
+    <p class="notice">
+      {{ g.invalidTicketCount }} vé sai định dạng đã được loại khỏi thống kê; dữ liệu gốc được giữ
+      nguyên.
+    </p>
+  }
+  @if (p.duplicateTicketCount) {
+    <p class="notice">
+      Có {{ p.duplicateTicketCount }} vé trùng. Thống kê nhóm tính trên {{ p.ticketCount }} vé khác
+      nhau.
+    </p>
+  }
+  <div class="summary" aria-label="Thống kê nhóm vé">
+    <div>
+      <strong>{{ p.ticketCount }}</strong
+      ><span>vé khác nhau</span>
+    </div>
+    <div>
+      <strong>{{ p.uniqueNumberCount }}</strong
+      ><span>số đã chọn</span>
+    </div>
+    <div>
+      <strong>{{ p.bestMatched ?? 'N/A' }}/6</strong><span>vé tốt nhất</span>
+    </div>
+    <div>
+      <strong>{{ p.coverageCount }}/6</strong><span>độ phủ kết quả</span>
+    </div>
+  </div>
+  <p>
+    {{ p.rawMatchedOccurrences }} lượt khớp, phủ {{ p.coverageCount }} số kết quả khác nhau:
+    <strong>{{ p.coverage.join(' · ') || 'Không có' }}</strong
+    >.
+  </p>
+  <div class="tickets">
+    @for (ticket of g.tickets; track ticket.id; let index = $index) {
+      <article class="ticket">
+        <span class="ticket-label">#{{ index + 1 }} · {{ ticket.label }}</span>
+        <div class="balls" [attr.aria-label]="ticket.numbers.join(', ')">
+          @for (n of ticket.numbers; track n) {
+            <span
+              class="ball"
+              [class.matched]="ticket.matchedNumbers.includes(n)"
+              [attr.title]="
+                ticket.matchedNumbers.includes(n) ? 'Khớp số chính' : 'Không khớp số chính'
+              "
+              >{{ formatNumber(n) }}</span
+            >
+          }
+        </div>
+        <strong>{{ ticket.matchedCount }}/6 · {{ ticket.prize }}</strong>
+        @if (ticket.matchedSpecial) {
+          <small>Có số phụ của kết quả trong sáu số trên vé.</small>
+        }
+        @if (ticket.edited && ticket.originalNumbers) {
+          <small>Đã sửa từ: {{ ticket.originalNumbers.join(' · ') }}</small>
+        }
+      </article>
+    } @empty {
+      <p>Chưa có vé hợp lệ trong nhóm này.</p>
+    }
+  </div>
+  @if (p.ticketCount > 1) {
+    <details class="overlap">
+      <summary>Mức trùng giữa các vé và phân bố số khớp</summary>
+      <p>
+        Hàng/cột theo thứ tự vé khác nhau. Trùng nhiều là mức tập trung của nhóm vé, chưa chứng minh
+        nguyên nhân không trúng.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <caption>
+            Số chính trùng nhau giữa từng cặp vé
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Vé</th>
+              @for (row of p.overlaps; track $index) {
+                <th scope="col">#{{ $index + 1 }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of p.overlaps; track $index; let i = $index) {
+              <tr>
+                <th scope="row">#{{ i + 1 }}</th>
+                @for (count of row; track $index) {
+                  <td>{{ count }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p>Số vé khớp 0–6 số: {{ p.matchHistogram.join(' · ') }}.</p>
+      <p>
+        Số lần dùng mỗi số:
+        @for (item of p.numberUsage | keyvalue; track item.key) {
+          <span class="usage">{{ item.key }}: {{ item.value }}</span>
+        }
+      </p>
+    </details>
+  }
+  @if (g.frequency && g.random) {
+    <p class="controls">
+      Đối chứng đã lưu cùng {{ p.ticketCount }} vé: tần suất khớp TB
+      {{ g.frequency.averageMatched | number: '1.2-2' }}/vé; ngẫu nhiên
+      {{ g.random.averageMatched | number: '1.2-2' }}/vé. Đây là kết quả của một kỳ.
+    </p>
+  }
+  @if (g.comparison; as pair) {
+    <p class="controls">
+      Đối chiếu {{ pair.pairedTicketCount }} cặp vé có nguồn gốc: bản gốc khớp TB
+      {{ pair.originalAverageMatched | number: '1.2-2' }}/vé; bản cuối
+      {{ pair.finalAverageMatched | number: '1.2-2' }}/vé. Vé hoàn toàn tự nhập không nằm trong cặp
+      này; khác biệt chưa chứng minh tác động của việc sửa vé.
+    </p>
+  }
+</section>

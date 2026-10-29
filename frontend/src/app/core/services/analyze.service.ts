@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { CategoryService } from './category.service';
 import { AlgorithmOption } from '../models/algorithm.model';
 import { PredictionPayload } from '../models/prediction-payload.model';
+import { DrawReport, AnalyzedTicketGroup } from '../models/draw-report.model';
 import { environment } from '../../../environments/environment'; // Import file environment của bạn
 
 @Injectable({
@@ -43,6 +44,42 @@ export class AnalyzeService {
 
   getAlgorithms(): Observable<AlgorithmOption[]> {
     return this.http.get<AlgorithmOption[]>(`${this.apiUrl}/algorithms`);
+  }
+  getLatestDraw(
+    category: string,
+  ): Observable<{ drawDate: string; numbers: number[]; specialNumber: number | null }> {
+    return this.http.get<{ drawDate: string; numbers: number[]; specialNumber: number | null }>(
+      `${this.apiUrl}/latest-draw`,
+      { params: { category } },
+    );
+  }
+
+  getDrawReport(
+    category: string,
+    date: string,
+    algorithm: string,
+    evidenceId = '',
+  ): Observable<DrawReport> {
+    return this.http.get<DrawReport>(`${this.apiUrl}/draw-report`, {
+      params: {
+        category,
+        algorithm,
+        ...(date ? { date } : {}),
+        ...(evidenceId ? { evidenceId } : {}),
+      },
+    });
+  }
+
+  evaluateTickets(
+    category: string,
+    date: string,
+    tickets: number[][],
+  ): Observable<AnalyzedTicketGroup> {
+    return this.http.post<AnalyzedTicketGroup>(`${this.apiUrl}/evaluate-tickets`, {
+      category,
+      date,
+      tickets,
+    });
   }
 
   // ĐÃ KHÔI PHỤC: Phân tích 6 số đã sổ (Trang Latest Draw) với 3 tham số

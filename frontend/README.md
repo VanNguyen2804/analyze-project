@@ -15,7 +15,7 @@ npm.cmd run build
 
 API do Spring Boot trong `../backend/` cung cấp. Cấu hình địa chỉ API ở `src/environments/environment.ts` và `environment.prod.ts`; giá trị rỗng gọi API cùng origin. Khi chạy Angular dev server riêng, cấu hình địa chỉ backend tương ứng.
 
-Trang `/analyze` tạo dự đoán; `/analyze/history` xem bản đã chốt và đối soát; `/forecasts` chuyển hướng sang lịch sử. `/ai-lab` theo dõi các mô hình thử nghiệm. Không suy ra xác suất trúng từ điểm xếp hạng heuristic.
+Trang `/analyze` tạo dự đoán; `/analyze/history` xem ledger tự động; `/analyze/review` phân tích kỳ và nhóm vé. `/forecasts` chuyển hướng sang lịch sử, `/latest-analysis` sang tab phân tích kỳ. `/ai-lab` theo dõi các mô hình thử nghiệm. Không suy ra xác suất trúng từ điểm xếp hạng heuristic.
 
 ## Quy ước frontend
 
@@ -25,7 +25,7 @@ Trang `/analyze` tạo dự đoán; `/analyze/history` xem bản đã chốt và
 - Tách theo trách nhiệm và trạng thái độc lập, không chỉ theo số dòng. Truyền dữ liệu bằng `input`/`model`, phát hành động bằng `output`; không truyền nguyên instance component cha xuống con.
 - `prediction-chart/` quản lý tải/cache lịch sử và chế độ biểu đồ; `linkage-timeline/`, `gap-pressure/`, `spacing-distribution/` sở hữu phần hiển thị/tương tác tương ứng. Các chế độ được defer khi mở lần đầu và giữ bộ lọc sau khi đã mở.
 - `ticket-mixer/` quản lý lựa chọn sáu số và phát sự kiện copy cho trang dự đoán.
-- `draw-reconciliation/` quản lý request, kỳ/ngày/thuật toán đối soát; `reconciliation-detail/` quản lý các tab chi tiết, dùng model để giữ tab khi tải lại dữ liệu. Các thông báo cập nhật và phiên bản được phát về trang cha.
+- `latest-draw-analysis/` đọc DTO `DrawReport`, quản lý context đã áp dụng và hủy request bằng `switchMap`. `ticket-group/` trình bày từng vé và thống kê nhóm; `evidence-details/` lọc chi tiết số của snapshot đã chọn; `draw-reconciliation/` chỉ nhận và trình bày đánh giá nhiều kỳ, không gọi prediction hoặc cập nhật cấu hình. Các component chi tiết đối soát/cấu hình cũ chưa còn được route này sử dụng.
 - `hyperparameter-history/` quản lý bảng và hộp xem JSON/README; phát reload/activate để trang cha điều phối cập nhật cấu hình.
 - Style dùng chung trong mỗi feature nằm ở `prediction-shared.css` và `analysis-shared.css`; style riêng nằm cạnh component sở hữu DOM. Giữ encapsulation, không dùng `::ng-deep` hoặc chuyển toàn bộ CSS ra global để né ranh giới component.
 

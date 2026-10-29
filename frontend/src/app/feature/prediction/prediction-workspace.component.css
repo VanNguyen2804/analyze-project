@@ -34,6 +34,7 @@ h1 {
 }
 .workspace-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 4px;
   background: #255b46;

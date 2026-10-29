@@ -20,6 +20,13 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
       {
+        path: 'review',
+        loadComponent: () =>
+          import('./feature/latest-draw-analysis/latest-draw-analysis.component').then(
+            (m) => m.LatestDrawAnalysisComponent,
+          ),
+      },
+      {
         path: 'history',
         loadComponent: () =>
           import('./feature/forecasts/forecasts.component').then((m) => m.ForecastsComponent),
@@ -28,10 +35,8 @@ export const routes: Routes = [
   },
   {
     path: 'latest-analysis',
-    loadComponent: () =>
-      import('./feature/latest-draw-analysis/latest-draw-analysis.component').then(
-        (m) => m.LatestDrawAnalysisComponent,
-      ),
+    redirectTo: '/analyze/review',
+    pathMatch: 'full',
   },
   {
     path: 'entry',

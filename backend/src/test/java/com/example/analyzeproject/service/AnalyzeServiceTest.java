@@ -113,19 +113,14 @@ class AnalyzeServiceTest {
         assertEquals(Collections.emptyList(), prediction.get("top10Numbers"));
     }
 
-    @Test void officialDrawFeaturesAreReproducible() {
-        List<LotteryNumber> draws = history("MEGA", 0);
-        Collections.reverse(draws);
-        when(repository.findByCategoryOrderByDrawDateDescCreatedAtDesc("MEGA")).thenReturn(draws);
-        Map<String, Object> first = service.analyzeOfficialDraw("MEGA", null, "bayesian_graph");
-        Map<String, Object> second = service.analyzeOfficialDraw("MEGA", null, "bayesian_graph");
-        List<?> a = (List<?>) first.get("selectionReasons"), b = (List<?>) second.get("selectionReasons");
-        for (int i = 0; i < a.size(); i++) {
-            var x = (com.example.analyzeproject.dto.NumberSelectionReasonDto) a.get(i);
-            var y = (com.example.analyzeproject.dto.NumberSelectionReasonDto) b.get(i);
-            assertEquals(x.getMarkov(), y.getMarkov());
-            assertEquals(x.getPoisson(), y.getPoisson());
-            assertEquals(x.getCompanion(), y.getCompanion());
-        }
+    @Test void frozenExplanationContainsEveryRankWithoutChangingSelectedTicket() {
+        var response = service.analyzeAndPredict("MEGA", "bayesian_graph", history("MEGA", 0));
+        var card = response.getPrimaryAlgorithmResult();
+        var explanation = PredictionExplanation.fromResult(card);
+        assertEquals(45, ((List<?>)explanation.get("ranking")).size());
+        assertEquals(45, ((List<?>)explanation.get("details")).size());
+        assertFalse(((Map<?,?>)((Map<?,?>)((List<?>)explanation.get("details")).get(0)).get("features")).isEmpty());
+        assertEquals(card.get("numbers"), ((List<Integer>)explanation.get("ranking")).stream().limit(6).sorted().toList());
+        assertEquals(explanation, PredictionExplanation.fromResult(service.analyzeAndPredict("MEGA", "bayesian_graph", history("MEGA", 0)).getPrimaryAlgorithmResult()));
     }
 }

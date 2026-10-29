@@ -53,6 +53,15 @@ public class WorkspaceService {
                 "codeVersion",WorkspaceProtocol.codeVersion(),"primaryAlgorithm",request.algorithm(),"secondaryAlgorithm",request.algorithm2(),
                 "primaryRanking",ready?response.getPrimaryAlgorithmResult().get("ranking"):List.of(),"secondaryRanking",ready?response.getSecondaryAlgorithmResult().get("ranking"):List.of(),
                 "primaryWeight",0.5,"keep",List.of(),"exclude",List.of(),"labPolicy",LAB_POLICY,"labStatus",labs.get("status"),"tickets",tickets);
+        if(ready) {
+            suggestion.put("primaryExplanation",PredictionExplanation.fromResult(response.getPrimaryAlgorithmResult()));
+            suggestion.put("secondaryExplanation",PredictionExplanation.fromResult(response.getSecondaryAlgorithmResult()));
+            suggestion.put("combinedExplanation",response.getCombinedAlgorithmResult().get("explanation"));
+            suggestion.put("modelVersion",response.getModelVersion());
+            suggestion.put("primaryModelVersion",response.getModelVersion());
+            suggestion.put("secondaryModelVersion","temporal_learning".equals(request.algorithm2())?"temporal-links-v2":(active==null?"History-based heuristic":active.getModel()));
+            suggestion.put("combinedModelVersion","reciprocal-rank-fusion-v1");
+        }
         store.saveSuggestion(suggestion);
         response.setStatus(ready?"SUCCESS":"WAITING"); response.setCategory(category); response.setTargetDrawDate(target.toString());
         response.setWorkspace(publicView(suggestion)); return response;
@@ -64,7 +73,7 @@ public class WorkspaceService {
         return history.stream().map(r->map("category",r.getCategory(),"drawDate",r.getDrawDate().toString(),"numbers",r.getNumbers(),"specialNumber",r.getSpecialNumber(),"quality",r.getQuality())).toList();
     }
     public Map<String,Object> publicView(Map<String,Object> source) {
-        var copy=new LinkedHashMap<>(source); for(String key:List.of("history","configuration","primaryRanking","secondaryRanking")) copy.remove(key);
+        var copy=new LinkedHashMap<>(source); for(String key:List.of("history","configuration","primaryRanking","secondaryRanking","primaryExplanation","secondaryExplanation","combinedExplanation")) copy.remove(key);
         copy.put("expectedRevision",store.revision((String)source.get("category"),(String)source.get("targetDate"))); return copy;
     }
     @SuppressWarnings("unchecked")
@@ -75,6 +84,9 @@ public class WorkspaceService {
         var variant=new LinkedHashMap<>(original); variant.put("id",UUID.randomUUID().toString()); variant.put("parentId",id); variant.put("createdAt",clock.instant().toString());
         variant.put("sourceCodeVersion",original.get("codeVersion")); variant.put("codeVersion",WorkspaceProtocol.codeVersion());
         variant.put("primaryWeight",request.primaryWeight()); variant.put("keep",request.keep()==null?List.of():request.keep()); variant.put("exclude",request.exclude()==null?List.of():request.exclude());
+        var explanation=PredictionExplanation.combined((List<Integer>)original.get("primaryRanking"),(List<Integer>)original.get("secondaryRanking"),request.primaryWeight());
+        explanation.put("keep",variant.get("keep")); explanation.put("exclude",variant.get("exclude"));
+        variant.put("combinedExplanation",explanation);
         var tickets=((List<Map<String,Object>>)original.get("tickets")).stream().map(t->{ var copy=new LinkedHashMap<>(t); if("combined".equals(t.get("id"))) copy.put("numbers",numbers); return (Map<String,Object>)copy; }).toList();
         variant.put("tickets",tickets); store.saveSuggestion(variant); return publicView(variant);
     }

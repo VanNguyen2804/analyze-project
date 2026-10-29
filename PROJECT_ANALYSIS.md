@@ -1,5 +1,33 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Triển khai 29/10/2026 — Báo cáo theo snapshot và dò vé thống nhất
+
+Thêm `DrawAnalysisService`, DTO `DrawReport` Java/TypeScript, GET `/api/analyze/draw-report` và POST `/api/analyze/evaluate-tickets` chỉ tính, không lưu. Báo cáo không phụ thuộc dịch vụ scoring hoặc cấu hình active; chỉ đọc kết quả đủ chất lượng/đúng mốc 19:00, snapshot trước cutoff 18:00, đúng loại/kỳ/thuật toán và lịch sử đến kỳ liền trước. Snapshot cũ không có điểm/ranking giữ trạng thái thiếu; không dựng lại bằng code hiện tại. API `official-draw-analysis` giữ adapter và công thức giải thích chung cũ đã bị bỏ.
+
+`TicketAnalysis` thống nhất số khớp/giải/độ phủ, loại vé trùng khi tính nhóm và giữ vé sai cũ để audit. POWER xét số phụ trong sáu số trên vé, không dựa vào một số phụ do người dùng đoán riêng. Báo cáo giữ tách nhóm vé đã dò, batch chốt có hiệu lực và gợi ý; đối chiếu bản gốc–bản cuối chỉ trên các cặp có nguồn. Thống kê nhiều kỳ dùng snapshot đủ điều kiện hoặc batch user có hiệu lực, tách ngân sách/phiên bản và đối chứng ghép cặp cùng số vé; Lab cần đủ năm slot hợp lệ, không chọn vé tốt nhất sau kỳ.
+
+Snapshot mới của ledger/workspace/Lab lưu chi tiết từ chính scoring: toàn ranking, score, thành phần đầu vào có sẵn, trọng số expert/Logistic khi có, chính sách lấy mẫu và cấu hình giữ/bỏ của bộ kết hợp. Không thay số được chọn hoặc thuật toán, không backfill snapshot cũ. Payload JSON mở rộng không cần migration mới; các cohort/code version cũ không bị viết lại. API cập nhật tham số chặn báo cáo/khóa không được scorer đọc và merge patch hợp lệ vào cấu hình hiện có.
+
+Sửa routing theo code thực tế: `/analyze` vẫn chọn vé; thêm tab `/analyze/review`, chuyển `/latest-analysis` sang tab mới. Component mới đồng bộ context và hủy request cũ; dò thử không ghi, xuất báo cáo không kích hoạt cấu hình, chi tiết số giải thích theo snapshot được chọn. Trang chọn vé hiển thị số khác nhau và mức trùng lớn nhất trước khi chốt. Badge menu chuyển từ backtest sang API kết quả đơn thuần. Giữ layout shell và không hiển thị thông tin database trên giao diện.
+
+Kiểm chứng: typecheck/Prettier cho các file thay đổi, 42 kiểm thử Edge headless và build Angular đạt. Maven `clean install` rồi `install` với bản cuối đạt; 70 kiểm thử Java được phát hiện, 68 chạy đạt và hai báo cáo phát triển có điều kiện không chạy. Hai kiểm tra PostgreSQL thực tế chạy trên schema tạm, gồm đọc JSON cũ/mới, luồng chỉ đọc không tạo bản ghi, revision/retry/rollback. 23 assets Angular trong JAR và static fallback khớp byte. Còn cảnh báo CSS AI Lab vượt mức khuyến nghị đã có và unchecked Java.
+
+Smoke trên JAR và PostgreSQL tạm xác nhận số liệu năm vé 29/10, trình duyệt 1440/390 px không tràn ngang, không lỗi runtime và dò thử qua endpoint không ghi. Fixture lấy từ bản xuất API cục bộ; các snapshot dùng để kiểm tra tích hợp được gắn code version `synthetic-local-smoke-fixture`, không được coi là phục hồi bằng chứng production. Lượt đo cục bộ 20 request/endpoint: badge backtest cũ median/P95 282,65/335,26 ms, API kết quả thay thế 62,06/81,10 ms, báo cáo mới 101,81/114,27 ms. Đây không phải benchmark Render hoặc bằng chứng tăng khả năng trúng.
+
+Chưa triển khai Render, chưa thay dữ liệu/cấu hình production. Theo dõi lợi thế mô hình/giảm trùng vẫn cần kỳ tương lai theo chính sách chốt trước; không chuyển mô hình hoặc trọng số mặc định dựa vào kỳ 29/10. Tham chiếu: [kế hoạch sửa](backend/docs/ANALYZE_REPAIR_PLAN.md).
+
+Kiểm tra lại bản JAR cuối: các request từ trình duyệt chỉ gồm catalog, kết quả, báo cáo và POST dò thử; không có backtest hoặc tạo suggestion khi chỉ xem trang. Số bản ghi snapshot/batch/vé/cấu hình không đổi sau đọc và dò thử. Một request tạo gợi ý chủ động riêng trên schema tạm cho kỳ 31/10 trả bộ chính `07 11 14 18 25 27`; JDBC xác nhận lưu đủ 55 chi tiết mỗi thuật toán, chín thành phần expert và chín trọng số. API thật trả 400 cho vé thập phân. Các xác nhận này không tác động database production và không backfill kỳ 29/10.
+
+## Kế hoạch 29/10/2026 — Sửa tính đúng đắn của trang /analyze
+
+Đã lập [kế hoạch sửa /analyze](backend/docs/ANALYZE_REPAIR_PLAN.md), chưa triển khai code. Ưu tiên luồng đọc không ghi, truy đúng snapshot/kỳ/thuật toán, giải thích từ dữ liệu đã lưu và thống kê từng vé/nhóm thống nhất; sau đó đồng bộ state Angular, tách báo cáo khỏi áp dụng cấu hình và đánh giá cùng ngân sách trên kỳ tương lai. Rà code bổ sung thấy `loadRecommendations` gọi POST tạo suggestion khi đọc trang; component đối soát chỉ reload theo category và luồng cha chưa hủy request theo context. Nguy cơ response cũ ghi đè chưa được tái hiện bằng browser trong lần lập plan. Không suy từ việc sửa trang ra tăng xác suất trúng, không thay mặc định thuật toán.
+
+## Kiểm tra POWER 29/10/2026 — Vé tập trung và giải thích chưa bám thuật toán
+
+Đọc API production: năm vé mới khớp lần lượt 0, 1, 0, 1, 2 số; phủ ba số kết quả khác nhau trên 19 số đã chọn. Ba vé đầu chỉ phủ chín số, hai vé trùng 5/6. Snapshot trước kỳ của `bayesian_graph` và `deep_stacking` trùng nhau; vé tốt nhất trùng Logistic AI Lab đã lưu từ 27/10, chưa đủ bằng chứng chọn mô hình thắng. Workspace POWER chưa có batch chốt.
+
+Xác nhận bằng API và code: `official-draw-analysis` trả cùng điểm/lý do cho ba thuật toán, chỉ đổi tên; công thức giải thích độc lập với ranking/snapshot dự đoán. API thiếu `allNumberDetails` mà frontend dùng cho số trượt. Kết quả mới đã đồng bộ từ feed cộng đồng; xung đột scheduler thuộc bản ghi cũ 28/09 cách ly. Chưa sửa ứng dụng, cấu hình hoặc production. Chi tiết và dấu vết kiểm chứng tại [đối chiếu POWER 29/10](backend/docs/reports/power-review-2026-10-29.md).
+
 ## Triển khai 28/10/2026 — Trang dự đoán có người dùng chọn và chốt vé
 
 Thêm `WorkspaceService`, `WorkspaceProtocol`, `WorkspaceStore` và `/api/prediction-workspace`. Migration V13 tạo bảng gợi ý bất biến, các revision vé người dùng và sự kiện đối soát; giữ riêng ledger tự động cũ và AI Lab. Trang dự đoán tạo gợi ý qua API mới, không gọi luồng tự lưu vé chính của `ForecastService.predict` khi mở trang.

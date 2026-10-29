@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, of, switchMap } from 'rxjs';
+import { catchError, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { CategoryService } from '../../../core/services/category.service';
 import { AnalyzeService } from '../../../core/services/analyze.service';
 
@@ -23,26 +23,25 @@ export class LeftMenuComponent implements OnInit {
   private readonly categories = inject(CategoryService);
   private readonly analyze = inject(AnalyzeService);
   private readonly destroyRef = inject(DestroyRef);
-  readonly latestDrawBadge = signal('K? m?i nh?t');
+  readonly latestDrawBadge = signal('Kỳ mới nhất');
 
   ngOnInit(): void {
     this.categories.category$
       .pipe(
+        distinctUntilChanged(),
         switchMap((category) =>
-          this.analyze
-            .get5DrawsReconciliation(category, 'deep_stacking', 1)
-            .pipe(catchError(() => of(null))),
+          this.analyze.getLatestDraw(category).pipe(catchError(() => of(null))),
         ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((result) => {
-        const latest = result?.draws?.[0];
-        const numbers: number[] = latest?.officialNumbers ?? [];
+        const latest = result;
+        const numbers = latest?.numbers ?? [];
         const summary = numbers.length
-          ? numbers.length + ' s? [' + numbers[0] + '..' + numbers[numbers.length - 1] + ']'
-          : 'Ch?a c? k?t qu?';
+          ? numbers.length + ' số [' + numbers[0] + '..' + numbers[numbers.length - 1] + ']'
+          : 'Chưa có kết quả';
         this.latestDrawBadge.set(
-          latest?.officialSpecial ? summary + ' + Ph? ' + latest.officialSpecial : summary,
+          latest?.specialNumber ? summary + ' + Phụ ' + latest.specialNumber : summary,
         );
       });
   }

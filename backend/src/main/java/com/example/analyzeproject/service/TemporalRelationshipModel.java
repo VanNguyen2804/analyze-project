@@ -9,7 +9,18 @@ import java.util.stream.Collectors;
 final class TemporalRelationshipModel {
     private static final String[] IDS = {"frequency", "lag1", "lag2", "repeat", "neighbor", "same_tail", "special_to_main", "recent5", "recent15"};
     private static final String[] NAMES = {"Tần suất nền", "Chuyển tiếp một kỳ", "Chuyển tiếp hai kỳ", "Lặp số", "Lân cận ±1", "Cùng đuôi", "Số phụ sang số chính", "Tần suất bán rã 5 kỳ", "Tần suất bán rã 15 kỳ"};
-    record Result(double[] scores, Map<String, Object> analysis) {}
+    record Result(double[] scores, Map<String, Object> analysis, double[][] expertScores) {}
+    static Map<String,Double> expertValues(Result result,int number) {
+        Map<String,Double> values=new LinkedHashMap<>();
+        for(int i=0;i<IDS.length;i++) if(i==0 || !"frequency_fallback".equals(result.analysis().get("forecastPolicy"))) values.put(IDS[i],result.expertScores()[i][number]);
+        return values;
+    }
+    static Map<String,Double> expertWeights(Result result) {
+        if("frequency_fallback".equals(result.analysis().get("forecastPolicy"))) return Map.of("frequency",1.0);
+        Map<String,Double> values=new LinkedHashMap<>();
+        for(var p:(List<Map<String,Object>>)result.analysis().get("patterns")) values.put((String)p.get("id"),((Number)p.get("weightPercent")).doubleValue()/100);
+        return values;
+    }
 
     private final int max;
     private final String category;
@@ -211,7 +222,7 @@ final class TemporalRelationshipModel {
                         "baselineAverageMatched", evaluated == 0 ? null : (double) baselineMatched / evaluated,
                         "hit3RatePercent", evaluated == 0 ? null : 100.0 * hit3 / evaluated,
                         "brierScore", evaluated == 0 ? null : modelBrier / evaluated,
-                        "baselineBrierScore", evaluated == 0 ? null : baselineBrier / evaluated)));
+                        "baselineBrierScore", evaluated == 0 ? null : baselineBrier / evaluated)),finalExperts);
     }
 
     private static Map<String, Object> map(Object... entries) {

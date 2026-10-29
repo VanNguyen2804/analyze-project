@@ -98,3 +98,14 @@ Bản đầu tiên theo loại/kỳ/thuật toán được giữ nguyên, kèm c
 Xem [hiện trạng và công việc tiếp theo](PROJECT_ANALYSIS.md) và [hướng dẫn triển khai](DEPLOY_RENDER.md).
 
 Trang `/forecasts` dùng `GET /api/forecasts/overview?category=MEGA&page=0&size=50` để tải một trang gọn cùng thống kê. Các GET chỉ đọc, cache tối đa 10 giây; nút **Đối soát kết quả** hoặc scheduler mới chạy đối soát. Khi có tác vụ lưu/đối soát đang chạy, POST có thể trả `status: BUSY`; giao diện không tự gửi lại liên tục. Lịch sử đầu vào đầy đủ vẫn truy cập qua GET ledger để audit.
+
+## Phân tích kỳ quay
+
+Tab **Phân tích kỳ quay** tại `/analyze/review` đối chiếu vé đã chốt, vé đã dò và snapshot thuật toán/AI Lab. `/latest-analysis` chuyển tới tab này. Mở trang và đổi bộ lọc không tạo gợi ý dự đoán hoặc thay cấu hình; badge menu dùng API kết quả, không chạy backtest.
+
+- `GET /api/analyze/draw-report?category=POWER&date=2026-10-29&algorithm=temporal_learning`: kết quả đủ chất lượng, bằng chứng trước kỳ, chi tiết số, các nhóm vé và đánh giá cùng ngân sách. Bỏ ngày để lấy kỳ mới nhất đủ điều kiện; `evidenceId` chọn đúng snapshot trong cùng loại/kỳ/thuật toán.
+- Thuật toán gồm ba id trong catalog, `combined_ensemble`, `lab-logistic`, `lab-recency`. Snapshot cũ thiếu rank/score giữ trạng thái thiếu; không dựng lại bằng cấu hình hiện tại. Điểm mới lưu là điểm nội bộ, không phải xác suất trúng đã hiệu chuẩn.
+- `POST /api/analyze/evaluate-tickets` với `{ "category": "POWER", "date": "2026-10-29", "tickets": [[8,15,29,33,43,49]] }`: chỉ dò từ 1–25 vé, không lưu. Mỗi vé đúng sáu số nguyên khác nhau; số phụ POWER được xét trong chính sáu số đó.
+- `/official-draw-analysis` giữ adapter chỉ đọc cho client cũ. Xuất báo cáo không gọi `/update-algorithm`. API cập nhật cấu hình chỉ nhận patch các khóa scorer thực sự đọc, kiểm tra miền hợp lệ và giữ các phần cấu hình không thay đổi; báo cáo đối soát không được nhận làm tham số mô hình.
+
+Snapshot mới lưu ranking/score từ chính lượt scoring đã tạo vé. Workspace giữ hai ranking, trọng số và giữ/bỏ số; Lab ghi rõ vé top sáu hay lấy mẫu có seed. Không sửa các snapshot cũ hoặc tạo lịch sử dự đoán bù. Xem [kế hoạch và giới hạn](backend/docs/ANALYZE_REPAIR_PLAN.md).

@@ -1,0 +1,128 @@
+:host {
+  display: block;
+}
+.ticket-group {
+  padding: 1rem;
+  border: 1px solid #334155;
+  border-radius: 1rem;
+  background: #111e32;
+  color: #e2e8f0;
+  margin: 1rem 0;
+}
+.group-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+.source-label,
+small {
+  color: #b8c8dd;
+  font-size: 0.82rem;
+}
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+.summary div {
+  padding: 0.65rem;
+  background: #1d2d46;
+  border-radius: 0.6rem;
+}
+.summary strong,
+.summary span {
+  display: block;
+}
+.summary strong {
+  color: #93c5fd;
+  font-size: 1.4rem;
+}
+.summary span {
+  font-size: 0.8rem;
+}
+.tickets {
+  display: grid;
+  gap: 0.6rem;
+}
+.ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  border-top: 1px solid #334155;
+  padding-top: 0.7rem;
+}
+.ticket-label {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.ball {
+  display: inline-grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: #334155;
+  color: #f8fafc;
+  font-weight: 700;
+}
+.matched {
+  background: #a7f3d0;
+  color: #064e3b;
+  border: 2px solid #34d399;
+}
+.notice {
+  color: #fde68a;
+}
+.overlap {
+  margin-top: 1rem;
+}
+summary {
+  cursor: pointer;
+  padding: 0.4rem 0;
+}
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+table {
+  border-collapse: collapse;
+  min-width: 12rem;
+}
+th,
+td {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #475569;
+  text-align: center;
+}
+caption {
+  color: #cbd5e1;
+}
+.usage {
+  display: inline-block;
+  margin-right: 0.7rem;
+}
+.controls {
+  padding-top: 0.8rem;
+  border-top: 1px solid #475569;
+  color: #bfdbfe;
+}
+@media (max-width: 550px) {
+  .summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ticket-group {
+    padding: 0.8rem;
+  }
+}

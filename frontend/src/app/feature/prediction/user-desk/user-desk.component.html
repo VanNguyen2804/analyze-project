@@ -122,6 +122,13 @@
       Nhập sáu số cách nhau bằng dấu cách hoặc dấu phẩy. Sửa vé vẫn giữ nguồn gợi ý để đối chiếu với
       bản gốc.
     </p>
+    @if (concentration().validTickets > 1) {
+      <p class="notice" aria-live="polite">
+        {{ concentration().validTickets }} vé hợp lệ dùng {{ concentration().uniqueNumbers }} số
+        khác nhau. Cặp vé trùng nhiều nhất: {{ concentration().largestOverlap }}/6 số. Đây là mức
+        tập trung của nhóm vé, chưa phải xác suất trúng.
+      </p>
+    }
     @for (row of rows(); track row.key; let index = $index) {
       <div class="draft-row">
         <label [for]="row.key"

@@ -1,0 +1,136 @@
+@let e = evidence();
+<section class="evidence">
+  <h3>Giải thích từ bản đã lưu</h3>
+  <p>
+    {{ e.algorithm }} ·
+    {{
+      e.source === 'WORKSPACE_SUGGESTION'
+        ? 'Gợi ý trong trang dự đoán'
+        : e.source === 'AI_LAB'
+          ? 'AI Lab'
+          : 'Ledger thuật toán'
+    }}
+  </p>
+  <dl>
+    <dt>Tạo lúc</dt>
+    <dd>{{ e.createdAt | date: 'dd/MM/yyyy HH:mm:ss' : '+0700' }}</dd>
+    <dt>Lịch sử đến</dt>
+    <dd>{{ e.trainingThrough }} · {{ e.historyCount }} kỳ</dd>
+    <dt>Phiên bản mô hình</dt>
+    <dd>{{ e.modelVersion || 'Chưa lưu' }}</dd>
+    <dt>Trạng thái chi tiết</dt>
+    <dd>
+      {{
+        e.explanationStatus === 'AVAILABLE'
+          ? 'Có xếp hạng và điểm đã lưu'
+          : e.explanationStatus === 'RANKING_ONLY'
+            ? 'Chỉ lưu xếp hạng, chưa lưu điểm'
+            : 'Chưa lưu xếp hạng và điểm'
+      }}
+    </dd>
+    <dt>Cách chọn vé</dt>
+    <dd>
+      {{
+        e.selectionPolicy === 'seeded_weighted_sample'
+          ? 'Lấy mẫu có trọng số và seed; không phải sáu số đầu bảng'
+          : e.selectionPolicy === 'constrained_rank_fusion'
+            ? 'Kết hợp thứ hạng, có giữ/bỏ số theo bản đã lưu'
+            : 'Sáu số đầu bảng xếp hạng'
+      }}
+    </dd>
+  </dl>
+  @if (e.selectionConstraints.primaryWeight !== null) {
+    <p>
+      Trọng số thuật toán đầu: {{ e.selectionConstraints.primaryWeight }}; giữ:
+      {{ e.selectionConstraints.keep.join(', ') || 'Không' }}; bỏ:
+      {{ e.selectionConstraints.exclude.join(', ') || 'Không' }}. Hạng và điểm kết hợp thể hiện
+      trước bước áp dụng giữ/bỏ.
+    </p>
+  }
+  <p class="notice">
+    Điểm nội bộ không phải xác suất trúng. Tần suất và khoảng cách chỉ mô tả lịch sử đầu vào; không
+    giải thích chắc chắn vì sao số ra hoặc không ra.
+  </p>
+  <label
+    >Lọc chi tiết
+    <select [ngModel]="filter()" (ngModelChange)="filter.set($event)">
+      <option value="all">Tất cả số</option>
+      <option value="missed">Đã chọn nhưng không ra</option>
+      <option value="omitted">Đã ra nhưng không được chọn</option>
+    </select>
+  </label>
+  <div class="table-scroll">
+    <table>
+      <caption>
+        Xếp hạng của đúng bản dự đoán trước kỳ
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Số</th>
+          <th scope="col">Hạng</th>
+          <th scope="col">Điểm nội bộ</th>
+          <th scope="col">Tần suất</th>
+          <th scope="col">Khoảng cách kỳ</th>
+          <th scope="col">Đối chiếu</th>
+          <th scope="col">Thành phần điểm</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of rows(); track d.number) {
+          <tr>
+            <th scope="row">{{ formatNumber(d.number) }}</th>
+            <td>{{ d.rank ?? 'Chưa lưu' }}</td>
+            <td>{{ d.score === null ? 'Chưa lưu' : (d.score | number: '1.2-5') }}</td>
+            <td>{{ d.frequency ?? 'Chưa lưu' }}</td>
+            <td>
+              {{ d.drawGap ?? (d.frequency === 0 ? 'Chưa xuất hiện trong mẫu' : 'Chưa lưu') }}
+            </td>
+            <td>
+              <details>
+                <summary>Giá trị đã lưu</summary>
+                @for (feature of d.features | keyvalue; track feature.key) {
+                  <div>{{ feature.key }}: {{ feature.value | number: '1.2-5' }}</div>
+                } @empty {
+                  <span>Chưa lưu các thành phần điểm.</span>
+                }
+              </details>
+            </td>
+            <td>
+              {{ e.numbers.includes(d.number) ? 'Đã chọn' : 'Không chọn' }} ·
+              {{ actual().includes(d.number) ? 'Đã ra' : 'Không ra' }}
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">Không có số thuộc nhóm này.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <details>
+    <summary>Chính sách scoring và trọng số đã lưu</summary>
+    <p>
+      {{ e.scoringPolicy || 'Chưa lưu chính sách scoring chi tiết' }}. Các giá trị thành phần dùng
+      để tính điểm, không phải bằng chứng nhân quả của kết quả quay.
+    </p>
+    @for (weight of e.modelWeights | keyvalue; track weight.key) {
+      <div>{{ weight.key }}: {{ weight.value | number: '1.2-5' }}</div>
+    } @empty {
+      <p>Chưa có trọng số được lưu hoặc mô hình dùng công thức heuristic.</p>
+    }
+  </details>
+  <details>
+    <summary>Thông tin truy vết</summary>
+    <dl class="trace">
+      <dt>Snapshot</dt>
+      <dd>{{ e.id }}</dd>
+      <dt>Mã phiên bản</dt>
+      <dd>{{ e.codeVersion || 'Chưa lưu' }}</dd>
+      <dt>Cấu hình</dt>
+      <dd>{{ e.configurationHash || 'Chưa lưu' }}</dd>
+      <dt>Lịch sử</dt>
+      <dd>{{ e.historyHash }}</dd>
+    </dl>
+  </details>
+</section>

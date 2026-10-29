@@ -58,4 +58,33 @@ describe('Prediction workspace routing', () => {
       .flush({ rows: [], totalRows: 0, evaluation: { groups: [] }, enabled: true });
     expect(harness.routeNativeElement!.querySelector('.history-view')).not.toBeNull();
   });
+  it('opens the old analysis link in the read-only review tab', async () => {
+    const harness = await RouterTestingHarness.create('/latest-analysis');
+    expect(TestBed.inject(Router).url).toBe('/analyze/review');
+    http.expectOne((r) => r.url.endsWith('/algorithms')).flush([]);
+    http
+      .expectOne((r) => r.url.endsWith('/draw-report'))
+      .flush({
+        schemaVersion: 'draw-report-v1',
+        context: {
+          category: 'MEGA',
+          drawDate: null,
+          algorithm: 'temporal_learning',
+          generatedAt: '2026-10-29T14:00:00Z',
+        },
+        status: 'NO_HISTORY',
+        message: 'Chưa có dữ liệu',
+        draw: null,
+        evidence: [],
+        selectedEvidenceId: null,
+        numberDetails: [],
+        ticketGroups: [],
+        evaluation: [],
+        warnings: [],
+      });
+    expect(
+      harness.routeNativeElement!.querySelector('.workspace-tabs a[href="/analyze/review"]'),
+    ).not.toBeNull();
+    http.expectNone((r) => r.method === 'POST');
+  });
 });

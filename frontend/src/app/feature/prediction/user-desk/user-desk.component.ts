@@ -7,6 +7,7 @@ import {
   input,
   output,
   signal,
+  computed,
 } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -52,6 +53,35 @@ export class UserDeskComponent implements OnChanges {
   readonly busy = signal(false);
   readonly historyError = signal('');
   readonly labCount = signal(5);
+  readonly concentration = computed(() => {
+    const max = this.view()?.category === 'POWER' ? 55 : 45;
+    const valid: number[][] = [];
+    for (const row of this.rows()) {
+      try {
+        const numbers = this.parse(row.text);
+        if (
+          numbers.length === 6 &&
+          new Set(numbers).size === 6 &&
+          numbers.every((n) => Number.isInteger(n) && n >= 1 && n <= max)
+        )
+          valid.push(numbers);
+      } catch {
+        /* Incomplete rows are validated when the user commits. */
+      }
+    }
+    let largestOverlap = 0;
+    for (let i = 0; i < valid.length; i++)
+      for (let j = 0; j < i; j++)
+        largestOverlap = Math.max(
+          largestOverlap,
+          valid[i].filter((n) => valid[j].includes(n)).length,
+        );
+    return {
+      validTickets: valid.length,
+      uniqueNumbers: new Set(valid.flat()).size,
+      largestOverlap,
+    };
+  });
   weight = 50;
   keep = '';
   exclude = '';
@@ -199,7 +229,7 @@ export class UserDeskComponent implements OnChanges {
   }
   parse(text: string): number[] {
     if (!text.trim()) return [];
-    const parts = text.trim().split(/[\s,;–-]+/);
+    const parts = text.trim().split(/[\s,;]+/);
     if (parts.some((part) => !/^\d+$/.test(part)))
       throw new Error('Chỉ nhập số nguyên, cách nhau bằng dấu cách hoặc dấu phẩy.');
     return parts.map(Number);

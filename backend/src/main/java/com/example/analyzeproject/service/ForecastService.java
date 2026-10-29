@@ -57,6 +57,7 @@ public class ForecastService {
             @SuppressWarnings("unchecked")
             var numbers = (List<Integer>) prediction.getPrimaryAlgorithmResult().get("numbers");
             var snapshot = ForecastProtocol.prepare(history,category,prediction.getAlgorithm(),prediction.getModelVersion(),codeVersion,configuration,numbers,Instant.now());
+            snapshot.put("explanation", PredictionExplanation.fromResult(prediction.getPrimaryAlgorithmResult()));
             if (!snapshot.get("targetDate").equals(prediction.getTargetDrawDate())) throw new IllegalStateException("TARGET_CHANGED_DURING_PREDICTION");
             var saved = store.capture(snapshot);
             invalidateView();

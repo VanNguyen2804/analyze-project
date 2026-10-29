@@ -23,11 +23,14 @@ public class AnalyzeController {
 
     private final AnalyzeService analyzeService;
     private final com.example.analyzeproject.service.ForecastService forecasts;
+    private final com.example.analyzeproject.service.DrawAnalysisService drawAnalysis;
 
     @Autowired
-    public AnalyzeController(AnalyzeService analyzeService, com.example.analyzeproject.service.ForecastService forecasts) {
+    public AnalyzeController(AnalyzeService analyzeService, com.example.analyzeproject.service.ForecastService forecasts,
+                             com.example.analyzeproject.service.DrawAnalysisService drawAnalysis) {
         this.analyzeService = analyzeService;
         this.forecasts = forecasts;
+        this.drawAnalysis = drawAnalysis;
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -82,13 +85,22 @@ public class AnalyzeController {
     public ResponseEntity<?> getOfficialDrawAnalysis(
             @RequestParam(value = "category", defaultValue = "MEGA") String category,
             @RequestParam(value = "date", required = false) String date,
-            @RequestParam(value = "algorithm", defaultValue = "XGBoost") String algorithm) {
-        try {
-            Map<String, Object> result = analyzeService.analyzeOfficialDraw(category, date, algorithm);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+            @RequestParam(value = "algorithm", defaultValue = "temporal_learning") String algorithm) {
+        var report=drawAnalysis.report(category,date,algorithm,null);
+        var result=new java.util.LinkedHashMap<String,Object>();
+        result.put("status",report.status()); result.put("message",report.message());
+        result.put("drawDate",report.context().drawDate()); result.put("algorithmName",algorithm);
+        result.put("numbers",report.draw()==null?null:report.draw().numbers());
+        result.put("specialNumber",report.draw()==null?null:report.draw().specialNumber());
+        result.put("sum",report.draw()==null?null:report.draw().numbers().stream().mapToInt(Integer::intValue).sum());
+        if(report.draw()!=null) {
+            long even=report.draw().numbers().stream().filter(n->n%2==0).count();
+            result.put("oddEvenRatio",even+" Chẵn / "+(6-even)+" Lẻ");
         }
+        result.put("selectionReasons",report.draw()==null?List.of():report.numberDetails().stream().filter(n->report.draw().numbers().contains(n.number())).toList());
+        result.put("allNumberDetails",report.numberDetails().stream().collect(java.util.stream.Collectors.toMap(n->n.number(),n->n)));
+        result.put("evidence",report.evidence()); result.put("scoreSemantics","internal_score_not_probability");
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/latest-draw")

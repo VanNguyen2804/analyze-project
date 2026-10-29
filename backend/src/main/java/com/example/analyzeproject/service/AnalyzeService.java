@@ -40,151 +40,6 @@ public class AnalyzeService {
         this.devVarRepo = devVarRepo;
     }
 
-    public Map<String, Object> analyzeOfficialDraw(String categoryInput, String date, String algorithm) {
-        String category = (categoryInput != null && "POWER".equalsIgnoreCase(categoryInput.trim())) ? "POWER" : "MEGA";
-        int maxLimit = "POWER".equals(category) ? 55 : 45;
-
-        List<LotteryNumber> records = eligibleHistory(category);
-        if (records.isEmpty()) {
-            throw new RuntimeException("Chưa có dữ liệu xổ số trong Database.");
-        }
-
-        LotteryNumber targetDraw = records.get(0);
-        if (date != null && !date.trim().isEmpty()) {
-            targetDraw = records.stream()
-                .filter(r -> r.getDrawDate() != null && r.getDrawDate().toString().equals(date.trim()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy kết quả cho ngày " + date));
-        }
-
-        List<Integer> winningNumbers = targetDraw.getNumbers();
-        Integer specialNumber = targetDraw.getSpecialNumber();
-        
-        int targetIndex = records.indexOf(targetDraw);
-        List<LotteryNumber> pastRecords = new ArrayList<>(records.subList(targetIndex + 1, records.size()));
-        Collections.reverse(pastRecords);
-        int totalDraws = pastRecords.size();
-
-        int[] frequency = new int[maxLimit + 1];
-        int[] drawGap = new int[maxLimit + 1];
-        double[] momentum = new double[maxLimit + 1];
-        int[][] pairMatrix = new int[maxLimit + 1][maxLimit + 1];
-        
-        Arrays.fill(drawGap, totalDraws);
-
-        for (int t = 0; t < totalDraws; t++) {
-            List<Integer> nums = pastRecords.get(t).getNumbers();
-            if (nums == null) continue;
-            // UPDATE: Hệ số suy giảm quán tính chuỗi (Momentum Decay Rate λ) tăng lên 0.16
-            double weight = Math.exp(-0.16 * (totalDraws - 1 - t));
-
-            for (int i = 0; i < nums.size(); i++) {
-                int n = nums.get(i);
-                if (n < 1 || n > maxLimit) continue;
-                frequency[n]++;
-                momentum[n] += weight;
-                drawGap[n] = (totalDraws - 1) - t; 
-
-                for (int j = i + 1; j < nums.size(); j++) {
-                    int n2 = nums.get(j);
-                    if (n2 >= 1 && n2 <= maxLimit) {
-                        pairMatrix[n][n2]++;
-                        pairMatrix[n2][n]++;
-                    }
-                }
-            }
-        }
-
-        double maxMom = Arrays.stream(momentum).max().orElse(1.0);
-        if (maxMom == 0) maxMom = 1.0;
-
-        List<ScoredNumber> allScored = new ArrayList<>();
-        for (int i = 1; i <= maxLimit; i++) {
-            double normFreq = totalDraws > 0 ? ((double) frequency[i] / totalDraws) : 0.2;
-            double normMom = momentum[i] / maxMom;
-            double z = (normMom * 1.5) + (normFreq * 1.2) - 1.0;
-            double prob = 1.0 / (1.0 + Math.exp(-z));
-            allScored.add(new ScoredNumber(i, prob, frequency[i], drawGap[i]));
-        }
-        allScored.sort((a, b) -> Double.compare(b.probability, a.probability));
-
-        List<NumberSelectionReasonDto> selectionReasons = new ArrayList<>();
-        
-        for (int wNum : winningNumbers) {
-            if (wNum < 1 || wNum > maxLimit) continue;
-            
-            int rank = 1;
-            double prob = 0.0;
-            for (int i = 0; i < allScored.size(); i++) {
-                if (allScored.get(i).number == wNum) {
-                    rank = i + 1;
-                    prob = allScored.get(i).probability;
-                    break;
-                }
-            }
-            
-            List<PairOccur> pairs = new ArrayList<>();
-            for (int j = 1; j <= maxLimit; j++) {
-                if (pairMatrix[wNum][j] > 0) pairs.add(new PairOccur(wNum, j, pairMatrix[wNum][j]));
-            }
-            pairs.sort((a, b) -> Integer.compare(b.count, a.count));
-            String pairedStr = pairs.stream().limit(3).map(p -> String.valueOf(p.n2)).collect(Collectors.joining(", "));
-
-            NumberSelectionReasonDto dto = new NumberSelectionReasonDto();
-            dto.setNumber(wNum);
-            dto.setRole("main");
-            dto.setProbabilityPercent(Math.round(prob * 1000.0) / 10.0);
-            dto.setRank(rank);
-            dto.setFrequency(frequency[wNum]);
-            dto.setDrawGap(drawGap[wNum]);
-            dto.setMomentum(Math.round((momentum[wNum] / maxMom) * 100.0) / 100.0);
-            int transitions = 0, matches = 0;
-            List<Integer> previousNumbers = totalDraws > 0 ? pastRecords.get(totalDraws - 1).getNumbers() : Collections.emptyList();
-            for (int t = 1; t < totalDraws; t++) {
-                List<Integer> previous = pastRecords.get(t - 1).getNumbers();
-                List<Integer> next = pastRecords.get(t).getNumbers();
-                if (previous == null || next == null) continue;
-                for (int seed : previousNumbers) {
-                    if (previous.contains(seed)) {
-                        transitions++;
-                        if (next.contains(wNum)) matches++;
-                    }
-                }
-            }
-            dto.setMarkov(transitions == 0 ? 0 : (int) Math.round(100.0 * matches / transitions));
-            dto.setPoisson((int) Math.round(100 * (1 - Math.pow(1 - 6.0 / maxLimit, drawGap[wNum]))));
-            dto.setCompanion(frequency[wNum] == 0 || pairs.isEmpty() ? 0
-                    : (int) Math.round(100.0 * pairs.get(0).count / frequency[wNum]));
-            dto.setPairedNumbers(pairedStr.isEmpty() ? "N/A" : pairedStr);
-
-            if (drawGap[wNum] > 10) {
-                dto.setTag("CẦU NỐI PHÂN VÙNG");
-                dto.setTitle("Điểm Rơi Chu Kỳ & Nhịp Dao Động Điều Hòa");
-                dto.setReason("Số " + wNum + " giữ vai trò bù lấp khoảng trống phân vùng, với nhịp dao động điều hòa sau chu kỳ gan dài.");
-            } else {
-                dto.setTag("SỐ NÓNG TRỰC TÂM");
-                dto.setTitle("Hạt Nhân Chu Kỳ Ngắn & Tần Suất Ổn Định");
-                dto.setReason("Số " + wNum + " là hạt nhân tần suất với lực quán tính mạnh, duy trì điểm rơi cực tốt trong khoảng gap = " + drawGap[wNum] + " kỳ.");
-            }
-            selectionReasons.add(dto);
-        }
-
-        int sum = winningNumbers.stream().mapToInt(Integer::intValue).sum();
-        int oddCount = (int) winningNumbers.stream().filter(n -> n % 2 != 0).count();
-        int evenCount = winningNumbers.size() - oddCount;
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("drawDate", targetDraw.getDrawDate().toString());
-        response.put("numbers", winningNumbers);
-        response.put("specialNumber", specialNumber);
-        response.put("sum", sum);
-        response.put("oddEvenRatio", evenCount + " Chẵn / " + oddCount + " Lẻ");
-        response.put("algorithmName", "AI " + algorithm + " Analysis");
-        response.put("selectionReasons", selectionReasons);
-        
-        return response;
-    }
-
     // =========================================================================================
     // 2. CHỨC NĂNG DỰ ĐOÁN (XGBOOST + WHEELING)
     // =========================================================================================
@@ -899,6 +754,11 @@ public class AnalyzeService {
                 (int) pureNumbers.stream().filter(n -> n % 2 != 0).count(),
                 pureNumbers.stream().mapToInt(Integer::intValue).sum()));
         primaryResult.put("details", pureDetails);
+        primaryResult.put("allDetails", predictionDetails(primaryRanking, candidateList));
+        if("temporal_learning".equalsIgnoreCase(algorithm)) {
+            primaryResult.put("scoringPolicy",learned.analysis().get("forecastPolicy"));
+            primaryResult.put("modelWeights",TemporalRelationshipModel.expertWeights(learned));
+        }
 
         // THUẬT TOÁN THỨ HAI
         String resolvedAlg2 = (algorithm2 != null && !algorithm2.trim().isEmpty())
@@ -936,6 +796,11 @@ public class AnalyzeService {
                 (int) pureNumbers2.stream().filter(n -> n % 2 != 0).count(),
                 pureNumbers2.stream().mapToInt(Integer::intValue).sum()));
         secondaryResult.put("details", pureDetails2);
+        secondaryResult.put("allDetails", predictionDetails(secondaryRanking, secondaryCandidates));
+        if("temporal_learning".equalsIgnoreCase(resolvedAlg2)) {
+            secondaryResult.put("scoringPolicy",learned.analysis().get("forecastPolicy"));
+            secondaryResult.put("modelWeights",TemporalRelationshipModel.expertWeights(learned));
+        }
 
         // KẾT HỢP 2 THUẬT TOÁN (ENSEMBLE CONSENSUS)
         List<Integer> sharedNumbers = pureNumbers.stream().filter(pureNumbers2::contains).collect(Collectors.toList());
@@ -978,6 +843,7 @@ public class AnalyzeService {
                 (int) combinedNumbers.stream().filter(n -> n % 2 != 0).count(),
                 combinedNumbers.stream().mapToInt(Integer::intValue).sum()));
         combinedResult.put("details", combinedDetails);
+        combinedResult.put("explanation", PredictionExplanation.combined(primaryRanking, secondaryRanking, 0.5));
 
         response.setPureAlgorithmTicket(primaryResult);
         response.setPrimaryAlgorithmResult(primaryResult);
@@ -1339,12 +1205,7 @@ public class AnalyzeService {
     }
 
     private String determinePrize(int matchCount, boolean matchSpecial, String category) {
-        if (matchCount == 6) return "JACKPOT 1";
-        if ("POWER".equals(category) && matchCount == 5 && matchSpecial) return "JACKPOT 2";
-        if (matchCount == 5) return "GIẢI NHẤT";
-        if (matchCount == 4) return "GIẢI NHÌ";
-        if (matchCount == 3) return "GIẢI BA";
-        return "KHÔNG TRÚNG";
+        return TicketAnalysis.prize(category, matchCount, matchSpecial);
     }
 
     public void addNewDrawResult(LotteryNumber newDraw) {
@@ -1410,6 +1271,9 @@ public class AnalyzeService {
     }
 
     public AlgorithmHyperparameter updateAlgorithm(String hyperparametersJson, String category, String drawDate, String readmeContent, String note) {
+        WorkspaceProtocol.category(category);
+        var current=getLatestHyperparameter(category);
+        hyperparametersJson=PredictionParameters.merge(current==null?null:current.getHyperparametersJson(),hyperparametersJson);
         long count = hyperparameterRepo.count();
         String newVersion = "v1." + (count + 1) + ".0";
         String effectiveDate = (drawDate != null && !drawDate.trim().isEmpty()) ? drawDate : java.time.LocalDate.now().toString();
@@ -1454,55 +1318,14 @@ public class AnalyzeService {
     }
 
     private Map<String, Object> evaluateTicket(List<Integer> ticketNumbers, List<Integer> officialNumbers, Integer officialSpecial, String category) {
-        Set<Integer> officialSet = new HashSet<>(officialNumbers != null ? officialNumbers : Collections.emptyList());
-        List<Integer> matched = (ticketNumbers != null) ? ticketNumbers.stream().filter(officialSet::contains).sorted().collect(Collectors.toList()) : Collections.emptyList();
-        int matchedCount = matched.size();
-        boolean matchedSpecial = "POWER".equalsIgnoreCase(category) && officialSpecial != null && ticketNumbers != null && ticketNumbers.contains(officialSpecial);
-
-        String prize = "KHÔNG TRÚNG";
-        String prizeAmount = "0 đ";
-
-        if ("POWER".equalsIgnoreCase(category)) {
-            if (matchedCount == 6) {
-                prize = "JACKPOT 1";
-                prizeAmount = "Ước tính > 30.000.000.000 đ";
-            } else if (matchedCount == 5 && matchedSpecial) {
-                prize = "JACKPOT 2";
-                prizeAmount = "Ước tính > 3.500.000.000 đ";
-            } else if (matchedCount == 5) {
-                prize = "GIẢI NHẤT";
-                prizeAmount = "40.000.000 đ";
-            } else if (matchedCount == 4) {
-                prize = "GIẢI NHÌ";
-                prizeAmount = "500.000 đ";
-            } else if (matchedCount == 3) {
-                prize = "GIẢI BA";
-                prizeAmount = "50.000 đ";
-            }
-        } else {
-            // MEGA 6/45
-            if (matchedCount == 6) {
-                prize = "JACKPOT";
-                prizeAmount = "Ước tính > 12.000.000.000 đ";
-            } else if (matchedCount == 5) {
-                prize = "GIẢI NHẤT";
-                prizeAmount = "10.000.000 đ";
-            } else if (matchedCount == 4) {
-                prize = "GIẢI NHÌ";
-                prizeAmount = "300.000 đ";
-            } else if (matchedCount == 3) {
-                prize = "GIẢI BA";
-                prizeAmount = "30.000 đ";
-            }
-        }
-
-        Map<String, Object> res = new HashMap<>();
-        res.put("matchedNumbers", matched);
-        res.put("matchedCount", matchedCount);
-        res.put("matchedSpecial", matchedSpecial);
-        res.put("prize", prize);
-        res.put("prizeAmount", prizeAmount);
-        return res;
+        var result = TicketAnalysis.legacy(ticketNumbers, officialNumbers, officialSpecial, category);
+        result.put("prizeAmount", switch ((String)result.get("prize")) {
+            case "GIẢI NHẤT" -> "POWER".equals(category) ? "40.000.000 đ" : "10.000.000 đ";
+            case "GIẢI NHÌ" -> "POWER".equals(category) ? "500.000 đ" : "300.000 đ";
+            case "GIẢI BA" -> "POWER".equals(category) ? "50.000 đ" : "30.000 đ";
+            default -> "KHÔNG TRÚNG".equals(result.get("prize")) ? "0 đ" : "Theo kết quả công bố";
+        });
+        return result;
     }
 
     // =========================================================================================
@@ -1849,6 +1672,7 @@ public class AnalyzeService {
     // CÁC LỚP PHỤ TRỢ (HELPERS)
     // =========================================================================================
     private static class ScoredNumber {
+        Map<String,Double> features = Map.of();
         int number;
         double probability;
         int frequency;
@@ -2278,6 +2102,8 @@ public class AnalyzeService {
         for (int number : numbers) {
             ScoredNumber candidate = byNumber.get(number);
             details.add(Map.of("number", number,
+                    "score", candidate.probability, "rank", candidates.indexOf(candidate) + 1,
+                    "features", candidate.features,
                     "probabilityPercent", Math.round(candidate.probability * 1000.0) / 10.0,
                     "frequency", candidate.frequency, "drawGap", candidate.drawGap,
                     "scoreType", "heuristic", "tag", "History-based score"));
@@ -2325,6 +2151,7 @@ public class AnalyzeService {
 
         double weightedTotal = Arrays.stream(mainMomentum).sum() / 6.0;
         for (int i = 1; i <= maxLimit; i++) {
+            Map<String,Double> features = new LinkedHashMap<>();
             double z;
             if (isBayes && totalDraws > 0) {
                 double weightedSuccesses = mainMomentum[i];
@@ -2363,6 +2190,7 @@ public class AnalyzeService {
                 double rebound = (gapVal > avgCycle * 1.8) ? Math.min(0.85, 0.45 + (gapVal - avgCycle * 1.8) * 0.08) : 0.0;
 
                 z = (bayesMean * 7.5) + (normGraph * 1.8) + (resonance * 1.4) + migBonus + repeatAdj + neighborBonus + decompBonus + rebound - 2.50;
+                features.putAll(Map.of("bayesMean",bayesMean,"pairGraph",normGraph,"resonance",resonance,"specialMigration",migBonus,"repeatAdjustment",repeatAdj,"neighbor",neighborBonus,"decomposition",decompBonus,"rebound",rebound));
             } else if (isStack && totalDraws > 0) {
                 double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
                 double normMom = mainMomentum[i] / maxMainMom;
@@ -2402,6 +2230,7 @@ public class AnalyzeService {
                 );
 
                 z = (metaScore - 0.78) * 3.1;
+                features.putAll(Map.of("frequencyMomentum",sXGB,"bayesMean",sBayes,"copula",sCopula,"gapScore",sZGap,"markov2",markov2Score[i],"specialMigration",specialMigrationScore[i],"repeatAdjustment",repeatMod));
             } else if (totalDraws >= 3) {
                 double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
                 double normMom = mainMomentum[i] / maxMainMom;
@@ -2441,12 +2270,14 @@ public class AnalyzeService {
                     (pairScore * coOccurrenceWeight) +
                     (normFreq * 0.6) +
                     specMigrationBonus - 1.15;
+                features.putAll(Map.of("momentum",normMom,"gapScore",gapScore,"pairScore",pairScore,"frequency",normFreq,"specialMigration",specMigrationBonus));
             } else {
                 z = Math.log(6.0 / (maxLimit - 6.0));
             }
 
             double probability = "temporal_learning".equalsIgnoreCase(alg) ? learned.scores()[i] : 1.0 / (1.0 + Math.exp(-z));
-            list.add(new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]));
+            if("temporal_learning".equalsIgnoreCase(alg)) features=TemporalRelationshipModel.expertValues(learned,i);
+            var candidate=new ScoredNumber(i, probability, mainFrequency[i], drawGap[i]);candidate.features=features;list.add(candidate);
         }
 
         list.sort((a, b) -> Double.compare(b.probability, a.probability));

@@ -10,7 +10,11 @@ public final class AiLabModel {
     public static final int BUDGET = 5;
     public static final List<String> MODELS = List.of("logistic", "recency");
     private AiLabModel() {}
+    public record Fit(double[] scores, double[][] features, double[] weights) {}
     public static double[] scores(List<LotteryNumber> input, String category, String model) {
+        return fit(input,category,model).scores();
+    }
+    public static Fit fit(List<LotteryNumber> input, String category, String model) {
         var rows = DrawQuality.history(input).stream().filter(r -> category.equals(r.getCategory()))
                 .sorted(Comparator.comparing(LotteryNumber::getDrawDate)).toList();
         int max = "POWER".equals(category) ? 55 : 45;
@@ -49,7 +53,7 @@ public final class AiLabModel {
             double[] x = current[n];
             scores[n] = "logistic".equals(model) ? sigmoid(dot(weights,x)) : "frequency".equals(model) ? x[1]+0.01 : "random".equals(model) ? 1 : x[3]+0.01;
         }
-        return scores;
+        return new Fit(scores,current,weights);
     }
     private static double dot(double[] a,double[] b) { double v=0; for(int i=0;i<a.length;i++) v+=a[i]*b[i]; return v; }
     private static double sigmoid(double x) { return 1/(1+Math.exp(-Math.max(-30,Math.min(30,x)))); }

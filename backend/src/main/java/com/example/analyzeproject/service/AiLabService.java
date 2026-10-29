@@ -40,7 +40,8 @@ public class AiLabService {
                         // Validate freshness before fitting; do not capture a partially trained or stale batch.
                         ForecastProtocol.prepare(history,category,"validation",AiLabModel.VERSION,codeVersion,config,List.of(1,2,3,4,5,6),now);
                         String seed=AiLabModel.VERSION+":"+category+":"+target;
-                        var tickets=AiLabModel.tickets(AiLabModel.scores(history,category,model),seed+":"+model);
+                        var fit=AiLabModel.fit(history,category,model);var modelScores=fit.scores();
+                        var tickets=AiLabModel.tickets(modelScores,seed+":"+model);
                         var frequency=AiLabModel.tickets(AiLabModel.scores(history,category,"frequency"),seed+":frequency");
                         var random=AiLabModel.tickets(AiLabModel.scores(history,category,"random"),seed+":random");
                         Instant capturedAt=Instant.now();
@@ -48,6 +49,9 @@ public class AiLabService {
                         List<Map<String,Object>> batch=new ArrayList<>();
                         for(int slot=0;slot<AiLabModel.BUDGET;slot++) {
                             var f=ForecastProtocol.prepare(history,category,"lab-"+model+"-"+slot,AiLabModel.VERSION,codeVersion,config,tickets.get(slot),capturedAt);
+                            var explanation=PredictionExplanation.lab(fit,model);
+                            explanation.put("selectionPolicy",slot==0?"top_six":"seeded_weighted_sample");
+                            f.put("explanation",explanation);
                             f.put("labModel",model); f.put("slot",slot); f.put("frequencyNumbers",frequency.get(slot)); f.put("randomNumbers",random.get(slot)); batch.add(f);
                         }
                         if(!ForecastProtocol.target(category,Instant.now()).toString().equals(target)) throw new IllegalStateException("CUTOFF_CHANGED");

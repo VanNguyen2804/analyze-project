@@ -155,4 +155,19 @@ describe('User prediction desk', () => {
     expect(fixture.componentInstance.rows()).toEqual([]);
     fixture.destroy();
   });
+  it('shows the concentration of selected tickets before committing and rejects negative input', () => {
+    const fixture = mount();
+    const c = fixture.componentInstance;
+    c.add();
+    c.edit(c.rows()[0].key, '7 9 18 27 31 40');
+    c.add();
+    c.edit(c.rows()[1].key, '7 14 18 27 31 40');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('7 số khác nhau');
+    expect(fixture.nativeElement.textContent).toContain('5/6 số');
+    c.edit(c.rows()[1].key, '7 14 18 27 31 -40');
+    c.commit();
+    expect(api.commit).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
 });

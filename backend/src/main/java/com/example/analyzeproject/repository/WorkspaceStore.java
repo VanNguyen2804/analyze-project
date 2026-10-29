@@ -29,6 +29,10 @@ public class WorkspaceStore {
         return jdbc.query("SELECT suggestion_json FROM prediction_suggestions WHERE id=?",(r,i)->decode(r.getString(1)),id).stream().findFirst()
                 .orElseThrow(()->new IllegalArgumentException("Không tìm thấy bản gợi ý."));
     }
+    public List<Map<String,Object>> suggestionsForDraw(String category, String date) {
+        return jdbc.query("SELECT suggestion_json FROM prediction_suggestions WHERE category=? AND target_date=CAST(? AS DATE) ORDER BY id",
+                (r,i)->decode(r.getString(1)),category,date);
+    }
     public int revision(String category,String date) {
         return jdbc.queryForObject("SELECT COALESCE(MAX(revision),0) FROM prediction_user_batches WHERE category=? AND target_date=CAST(? AS DATE)",Integer.class,category,date);
     }
