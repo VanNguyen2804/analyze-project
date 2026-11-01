@@ -3,6 +3,7 @@ import { WorkspaceSuggestion } from '@app/core/models/workspace.model';
 import { PredictionChartComponent } from './prediction-chart/prediction-chart.component';
 import { PredictionOverviewComponent } from './prediction-overview/prediction-overview.component';
 import { ExpandedTicketsComponent } from './expanded-tickets/expanded-tickets.component';
+import { MegaPortfolioComponent } from './mega-portfolio/mega-portfolio.component';
 import { TicketMixerComponent } from './ticket-mixer/ticket-mixer.component';
 import { AlgorithmOption } from '../../core/models/algorithm.model';
 import {
@@ -30,6 +31,7 @@ import { AnalyzeService } from '@app/core/services/analyze.service';
     PredictionChartComponent,
     PredictionOverviewComponent,
     ExpandedTicketsComponent,
+    MegaPortfolioComponent,
     TicketMixerComponent,
     FormsModule,
     RouterLink,

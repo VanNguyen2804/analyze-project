@@ -106,6 +106,9 @@
       }
     </app-prediction-overview>
   }
+  @if (category === 'MEGA') {
+    <app-mega-portfolio (copied)="copyTicket($event)" />
+  }
   <details class="studio-settings">
     <summary>
       <span><span aria-hidden="true">⌘</span> Tùy chỉnh thuật toán</span

@@ -1,0 +1,220 @@
+<section class="mega-trial" aria-labelledby="mega-trial-title" [attr.aria-busy]="busy()">
+  <header class="trial-heading">
+    <div>
+      <span class="trial-eyebrow">MEGA 6/45 · THỬ NGHIỆM TƯƠNG LAI</span>
+      <h2 id="mega-trial-title">Giảm trùng vé</h2>
+      <p>3 vé mỗi kỳ, hai vé bất kỳ trùng tối đa 3 số. Chốt riêng và giữ nguyên để đo hiệu quả.</p>
+    </div>
+    <span class="trial-badge">Đang thử nghiệm</span>
+  </header>
+  <p class="trial-context">
+    Phát lại 29 kỳ MEGA: số kỳ có vé khớp từ 3 số tăng từ 1 lên 2, nhưng số khớp trung bình giảm.
+    Kết quả này cần được xác nhận trên các kỳ mới.
+  </p>
+  <div class="trial-actions">
+    <button (click)="load()" [disabled]="busy() || mutating()">Tải lại</button>
+    <button class="primary-action" (click)="run()" [disabled]="busy() || mutating()">
+      {{ mutating() ? 'Đang xử lý…' : 'Chốt kỳ mới & đối soát' }}
+    </button>
+    <span>Tự kiểm tra mỗi phút · Chốt trước 18:00 · Nhận kết quả từ 19:00, giờ Việt Nam</span>
+  </div>
+  @if (error()) {
+    <p class="trial-error" role="alert">{{ error() }}</p>
+  }
+  @if (message()) {
+    <p class="trial-message" role="status">{{ message() }}</p>
+  }
+  @if (data(); as overview) {
+    @if (!overview.enabled) {
+      <p class="trial-message">Tự chốt đang tắt. Các bộ đã lưu vẫn được đối soát.</p>
+    }
+    @if (overview.current; as current) {
+      <div class="trial-draw">
+        <strong>Kỳ {{ current.targetDate | date: 'dd/MM/yyyy' }}</strong>
+        <span>Đã chốt {{ current.createdAt | date: 'dd/MM HH:mm' : '+0700' }}</span>
+        <span>Lịch sử đến {{ current.trainingThrough | date: 'dd/MM/yyyy' }}</span>
+      </div>
+      @if (trial(); as candidate) {
+        <div class="trial-tickets">
+          @for (ticket of candidate.tickets; track $index; let i = $index) {
+            <article class="trial-ticket">
+              <div class="ticket-heading">
+                <span>VÉ THỬ NGHIỆM {{ i + 1 }}</span>
+                <button
+                  (click)="copied.emit(ticket)"
+                  [attr.aria-label]="'Sao chép vé thử nghiệm ' + (i + 1)"
+                >
+                  Sao chép
+                </button>
+              </div>
+              <div class="number-row">
+                @for (number of ticket; track number) {
+                  <span>{{ format(number) }}</span>
+                }
+              </div>
+            </article>
+          }
+        </div>
+        <p class="trial-diagnostic">
+          Phủ {{ candidate.uniqueNumbers }} số khác nhau · Trùng nhiều nhất
+          {{ candidate.maxPairOverlap }} số giữa hai vé.
+        </p>
+      }
+      <details class="trial-details">
+        <summary>Xem các nhóm đối chứng đã chốt cùng kỳ</summary>
+        <div class="control-grid">
+          @for (arm of current.arms; track arm.id) {
+            @if (arm.id !== 'portfolio') {
+              <article>
+                <h3>{{ arm.label }}</h3>
+                @for (ticket of arm.tickets; track $index) {
+                  <p class="control-ticket">{{ ticket.join(' · ') }}</p>
+                }
+                <small>3 vé · {{ arm.uniqueNumbers }} số khác nhau</small>
+              </article>
+            }
+          }
+        </div>
+      </details>
+    } @else {
+      <div class="trial-empty" role="status">
+        <strong
+          >Chưa chốt bộ thử nghiệm cho kỳ {{ overview.targetDate | date: 'dd/MM/yyyy' }}.</strong
+        >
+        <p>{{ statusName(overview.lastRun.status) }}</p>
+        <p>
+          Cần tối thiểu 10 kỳ hợp lệ và kết quả kỳ liền trước. Chỉ lưu kỳ mới, giữ bản đầu tiên.
+        </p>
+      </div>
+    }
+    <div class="evaluation-heading">
+      <h3>Theo dõi hiệu quả trên kỳ mới</h3>
+      <p>Mỗi nhóm có cùng 3 vé/kỳ. Tỷ lệ bên dưới tính theo kỳ có ít nhất một vé khớp từ 3 số.</p>
+    </div>
+    @for (group of overview.groups; track group.cohort) {
+      <div class="cohort-heading">
+        <strong
+          >{{ group.evaluatedDraws }} kỳ đã đối soát / {{ group.savedDraws }} kỳ đã lưu</strong
+        >
+        <span
+          >{{ group.firstTargetDate | date: 'dd/MM/yyyy' }} –
+          {{ group.lastTargetDate | date: 'dd/MM/yyyy' }} · Phiên bản
+          {{ group.codeVersion.slice(0, 8) }}</span
+        >
+      </div>
+      <div
+        class="table-scroll"
+        tabindex="0"
+        role="region"
+        aria-label="So sánh thử nghiệm MEGA cùng ngân sách vé"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Nhóm</th>
+              <th>Kỳ có vé ≥3 số</th>
+              <th>Tỷ lệ theo kỳ</th>
+              <th>Số khớp TB/vé</th>
+              <th>Phủ TB số kết quả</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (arm of group.arms; track arm.id) {
+              <tr [class.candidate-row]="arm.id === 'portfolio'">
+                <th scope="row">{{ arm.label }}</th>
+                <td>{{ arm.hit3Draws }}/{{ group.evaluatedDraws }}</td>
+                <td>
+                  {{
+                    arm.hit3Percent == null ? 'Chưa có' : (arm.hit3Percent | number: '1.1-1') + '%'
+                  }}
+                </td>
+                <td>
+                  {{
+                    arm.averageMatched == null ? 'Chưa có' : (arm.averageMatched | number: '1.2-2')
+                  }}
+                </td>
+                <td>
+                  {{
+                    arm.averageResultCoverage == null
+                      ? 'Chưa có'
+                      : (arm.averageResultCoverage | number: '1.2-2')
+                  }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @empty {
+      <p class="trial-empty">Chưa có dữ liệu thử nghiệm tương lai. Không tính bù các kỳ đã quay.</p>
+    }
+    <p class="trial-note">
+      Đang thu thập dữ liệu, chưa kết luận tăng khả năng trúng. Các phiên bản được đánh giá riêng;
+      thử nghiệm không tự thay thuật toán chính.
+    </p>
+    @if (overview.rows.length) {
+      <details class="trial-details history-details">
+        <summary>Lịch sử bộ vé và kết quả từng kỳ ({{ overview.totalRows }} kỳ)</summary>
+        @for (row of overview.rows; track row.id) {
+          <article class="history-row">
+            <header>
+              <strong>{{ row.targetDate | date: 'dd/MM/yyyy' }}</strong
+              ><span>{{ statusName(row.status) }}</span>
+            </header>
+            <p class="history-meta">
+              Chốt {{ row.createdAt | date: 'dd/MM HH:mm' : '+0700' }} · Lịch sử đến
+              {{ row.trainingThrough | date: 'dd/MM/yyyy' }}
+            </p>
+            @if (row.actualNumbers) {
+              <p>
+                Kết quả: <strong>{{ row.actualNumbers.join(' · ') }}</strong>
+              </p>
+            }
+            <div class="history-arms">
+              @for (arm of row.arms; track arm.id) {
+                <div>
+                  <h4>{{ arm.label }}</h4>
+                  @for (ticket of arm.tickets; track $index; let i = $index) {
+                    <p class="history-ticket">
+                      @for (number of ticket; track number) {
+                        <span
+                          [class.matched]="
+                            row.status === 'SETTLED' && row.actualNumbers?.includes(number)
+                          "
+                          >{{ format(number) }}</span
+                        >
+                      }
+                      @if (arm.metrics; as metrics) {
+                        <small>{{ metrics.matches[i] }}/6</small>
+                      }
+                    </p>
+                  }
+                  @if (arm.metrics; as metrics) {
+                    <small
+                      >Tốt nhất {{ metrics.bestMatched }}/6 · Phủ {{ metrics.coverageCount }}/6 số
+                      kết quả</small
+                    >
+                  }
+                </div>
+              }
+            </div>
+          </article>
+        }
+        <nav class="trial-pagination" aria-label="Phân trang thử nghiệm MEGA">
+          <button (click)="changePage(-1)" [disabled]="page() === 0 || busy() || mutating()">
+            Trước
+          </button>
+          <span>Trang {{ page() + 1 }}/{{ pages() }}</span>
+          <button
+            (click)="changePage(1)"
+            [disabled]="page() + 1 >= pages() || busy() || mutating()"
+          >
+            Sau
+          </button>
+        </nav>
+      </details>
+    }
+  } @else if (busy()) {
+    <p class="trial-empty" role="status">Đang tải các bộ vé đã chốt…</p>
+  }
+</section>

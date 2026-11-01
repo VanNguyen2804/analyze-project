@@ -23,6 +23,16 @@ Kiểm thử PostgreSQL thật có thể bật bằng `WORKSPACE_TEST_JDBC` và 
 
 Kế hoạch và báo cáo phát triển: [workspace](backend/docs/PREDICTION_WORKSPACE_PLAN.md), [so sánh cách kết hợp](backend/docs/reports/workspace-development-2026-10-28.md).
 
+## Thử nghiệm MEGA giảm trùng vé
+
+Trang `/analyze` có vùng **Giảm trùng vé** khi chọn MEGA. Thử nghiệm `mega-portfolio-v1` cố định ba vé mỗi kỳ, giữ vé top sáu và giới hạn hai vé bất kỳ trùng tối đa ba số. Dùng `temporal_learning` với tham số mặc định đóng băng theo phiên bản code, độc lập với bộ thuật toán/trọng số người dùng đang chọn. Đây là ứng viên từ báo cáo phát triển 27/10, chưa được chứng minh tốt hơn trên kỳ mới.
+
+Mỗi kỳ chốt nguyên khối bốn nhóm, mỗi nhóm ba vé: giảm trùng, ba vé đầu của cách ghép cũ trên cùng ranking, tần suất + giảm trùng, và ngẫu nhiên đều có seed cố định theo phiên bản/loại/kỳ. Snapshot giữ ranking, cấu hình, toàn bộ lịch sử đầu vào và bộ vé của mọi nhóm. Scheduler kiểm tra mỗi phút, cần ít nhất mười kỳ hợp lệ và kết quả kỳ liền trước; chốt trước 18:00 và đối soát từ 19:00 giờ Việt Nam. Retry và nhiều instance cùng chốt vẫn giữ bản đầu tiên. Không sinh bù các kỳ đã quay.
+
+`GET /api/mega-portfolio?page=0` chỉ đọc; `POST /api/mega-portfolio/run` chủ động kiểm tra chốt kỳ mới và đối soát. UI mở trang chỉ GET, có nút chạy riêng và lịch sử phân trang mười kỳ. Thống kê theo phiên bản gồm số kỳ có vé khớp ≥3, số khớp TB/vé và độ phủ số kết quả khác nhau, với cùng tập kỳ/cùng ngân sách cho mọi nhóm. Kết quả sửa/cách ly được đối soát lại và loại khỏi thống kê khi chưa hợp lệ. Chưa có kết quả dùng trạng thái thiếu dữ liệu; không tự áp dụng thử nghiệm vào thuật toán chính.
+
+Flyway V14 tạo `mega_portfolio_snapshots` và `mega_portfolio_settlements`, tách khỏi AI Lab và vé người dùng. `MEGA_PORTFOLIO_ENABLED=false` tắt chốt mới nhưng vẫn đối soát bản cũ. Kiểm thử PostgreSQL thật dùng cùng biến `WORKSPACE_TEST_JDBC` / `WORKSPACE_TEST_USER`, tạo schema riêng và chỉ áp dụng V14. Chỉ các kỳ được chốt sau khi triển khai mới tạo dữ liệu thử nghiệm tương lai.
+
 ## Phòng thử nghiệm AI
 
 Mở `/ai-lab` từ menu để theo dõi nhiều dãy dự đoán trước kỳ: Logistic Regression và tần suất suy giảm theo thời gian, mỗi mô hình 5 vé/kỳ. Backend tự chốt và đối soát mỗi phút khi đang chạy; trang tự cập nhật mỗi phút. Chỉ học trên kết quả hợp lệ trước kỳ đích, cần ít nhất 10 kỳ và kỳ hoàn tất mới nhất.
