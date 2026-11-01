@@ -3,13 +3,13 @@
     <div>
       <span class="trial-eyebrow">MEGA 6/45 · THỬ NGHIỆM TƯƠNG LAI</span>
       <h2 id="mega-trial-title">Giảm trùng vé</h2>
-      <p>3 vé mỗi kỳ, hai vé bất kỳ trùng tối đa 3 số. Chốt riêng và giữ nguyên để đo hiệu quả.</p>
+      <p>Tối đa 3 vé bổ sung không trùng bộ gốc; hai vé thử nghiệm trùng tối đa 3 số.</p>
     </div>
     <span class="trial-badge">Đang thử nghiệm</span>
   </header>
   <p class="trial-context">
-    Phát lại 29 kỳ MEGA: số kỳ có vé khớp từ 3 số tăng từ 1 lên 2, nhưng số khớp trung bình giảm.
-    Kết quả này cần được xác nhận trên các kỳ mới.
+    Phiên bản mới loại các bộ số đã có trong gợi ý gốc và vé mô hình đã lưu cùng kỳ. Chốt riêng để
+    theo dõi; chưa có bằng chứng tăng khả năng trúng.
   </p>
   <div class="trial-actions">
     <button (click)="load()" [disabled]="busy() || mutating()">Tải lại</button>
@@ -33,31 +33,48 @@
         <strong>Kỳ {{ current.targetDate | date: 'dd/MM/yyyy' }}</strong>
         <span>Đã chốt {{ current.createdAt | date: 'dd/MM HH:mm' : '+0700' }}</span>
         <span>Lịch sử đến {{ current.trainingThrough | date: 'dd/MM/yyyy' }}</span>
+        <span>{{ current.modelVersion || overview.version }}</span>
       </div>
-      @if (trial(); as candidate) {
+      @if (trial()) {
+        @if (!contextReady()) {
+          <p class="trial-message" role="status">
+            Đang chờ gợi ý gốc đúng kỳ để kiểm tra vé trùng.
+          </p>
+        }
+        @if (hiddenDuplicates()) {
+          <p class="trial-message" role="status">
+            Đã ẩn {{ hiddenDuplicates() }} bộ trùng gợi ý khác trên trang. Bản chốt đầy đủ vẫn có
+            trong lịch sử.
+          </p>
+        }
         <div class="trial-tickets">
-          @for (ticket of candidate.tickets; track $index; let i = $index) {
+          @for (ticket of visibleTickets(); track ticket.slot) {
             <article class="trial-ticket">
               <div class="ticket-heading">
-                <span>VÉ THỬ NGHIỆM {{ i + 1 }}</span>
+                <span>VÉ THỬ NGHIỆM {{ ticket.slot }}</span>
                 <button
-                  (click)="copied.emit(ticket)"
-                  [attr.aria-label]="'Sao chép vé thử nghiệm ' + (i + 1)"
+                  (click)="copy(ticket.numbers)"
+                  [attr.aria-label]="'Sao chép vé thử nghiệm ' + ticket.slot"
                 >
                   Sao chép
                 </button>
               </div>
               <div class="number-row">
-                @for (number of ticket; track number) {
+                @for (number of ticket.numbers; track number) {
                   <span>{{ format(number) }}</span>
                 }
               </div>
             </article>
+          } @empty {
+            @if (contextReady()) {
+              <p class="trial-message">Chưa có vé bổ sung khác với các gợi ý đang hiển thị.</p>
+            }
           }
         </div>
         <p class="trial-diagnostic">
-          Phủ {{ candidate.uniqueNumbers }} số khác nhau · Trùng nhiều nhất
-          {{ candidate.maxPairOverlap }} số giữa hai vé.
+          {{ visibleDiagnostics().count }} vé bổ sung đang hiển thị · Phủ
+          {{ visibleDiagnostics().unique }} số khác nhau · Trùng nhiều nhất
+          {{ visibleDiagnostics().overlap }} số giữa hai vé.
         </p>
       }
       <details class="trial-details">
@@ -99,7 +116,7 @@
         <span
           >{{ group.firstTargetDate | date: 'dd/MM/yyyy' }} –
           {{ group.lastTargetDate | date: 'dd/MM/yyyy' }} · Phiên bản
-          {{ group.codeVersion.slice(0, 8) }}</span
+          {{ group.codeVersion.slice(0, 8) }} · {{ group.modelVersion || 'v1' }}</span
         >
       </div>
       <div
@@ -163,7 +180,7 @@
             </header>
             <p class="history-meta">
               Chốt {{ row.createdAt | date: 'dd/MM HH:mm' : '+0700' }} · Lịch sử đến
-              {{ row.trainingThrough | date: 'dd/MM/yyyy' }}
+              {{ row.trainingThrough | date: 'dd/MM/yyyy' }} · {{ row.modelVersion || 'v1' }}
             </p>
             @if (row.actualNumbers) {
               <p>

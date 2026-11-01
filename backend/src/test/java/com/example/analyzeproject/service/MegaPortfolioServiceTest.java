@@ -55,4 +55,20 @@ class MegaPortfolioServiceTest {
         assertEquals("NOT_SAVED",service.run().get("status"));
         verify(store,never()).capture(anyMap());verify(store).reconcile(eq(history),any());
     }
+    @Test @SuppressWarnings("unchecked") void captureExcludesSavedForecastAndLabTicketsForTheSameDraw() {
+        var history=MegaPortfolioProtocolTest.history();when(draws.findAllByOrderByDrawDateDescCreatedAtDesc()).thenReturn(history);
+        when(store.find(any())).thenReturn(null);
+        when(analyze.analyzeAndPredictWithConfiguration("MEGA","temporal_learning",null,history,null)).thenReturn(MegaPortfolioProtocolTest.prediction());
+        var source=mock(ForecastStore.class);var lab=mock(AiLabStore.class);
+        var candidates=TicketPortfolio.select(java.util.stream.IntStream.rangeClosed(1,45).boxed().toList(),45,25);
+        var frozen=ForecastProtocol.prepare(history,"MEGA","source","model","code",Map.of(),candidates.get(1),MegaPortfolioProtocolTest.BEFORE);
+        var frozenLab=ForecastProtocol.prepare(history,"MEGA","lab","model","code",Map.of(),candidates.get(2),MegaPortfolioProtocolTest.BEFORE);
+        when(source.forecasts()).thenReturn(List.of(frozen));when(lab.snapshots()).thenReturn(List.of(frozenLab));
+        var service=new MegaPortfolioService(analyze,draws,store,true,Clock.fixed(MegaPortfolioProtocolTest.BEFORE,ZoneOffset.UTC),source,lab);
+        assertEquals("SAVED",service.run().get("status"));
+        verify(store).capture(argThat(f -> {
+            var tickets=((Map<String,List<List<Integer>>>)f.get("arms")).get("portfolio");
+            return !tickets.contains(candidates.get(1)) && !tickets.contains(candidates.get(2));
+        }));
+    }
 }

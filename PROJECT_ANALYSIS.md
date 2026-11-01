@@ -1,5 +1,25 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Sửa 01/11/2026 — Vé thử nghiệm là vé bổ sung, không lặp bộ gốc
+
+Nguyên nhân trùng bộ `09 15 22 27 40 41`: v1 chủ động giữ vé top sáu làm vé thử nghiệm đầu tiên. Theo yêu cầu người dùng, đổi chính sách sang `mega-portfolio-v2`: lấy ba vé từ danh mục giảm trùng sau khi loại ba gợi ý gốc của scorer và vé forecast/AI Lab hợp lệ đã chốt cho cùng MEGA/kỳ. So sánh bộ sáu số đã chuẩn hóa, độc lập thứ tự nhập; giữ tối đa ba số trùng giữa hai vé thử nghiệm. Danh sách bộ bị loại được lưu và kiểm tra hash cùng snapshot. Không sửa ranking/scoring hoặc chọn tham số/seed theo kết quả kỳ 01/11.
+
+Migration mới V15 cho phép một bản chốt mỗi kỳ/phiên bản. V1 được giữ nguyên byte JSON, đọc/đối soát và thống kê riêng; v2 có thể chốt cho kỳ tương lai đã có v1, vẫn phải đủ lịch sử và trước cutoff. Không sinh bù v2 cho kỳ đã quay. API chỉ chọn v2 cho bộ bổ sung hiện tại; lịch sử giữ mọi phiên bản và trả nhãn phiên bản rõ ràng.
+
+UI nhận context từ chính gợi ý đang hiển thị, gồm hai thuật toán, bộ kết hợp đã chỉnh và Lab. Chưa có context đúng kỳ thì chờ; nếu bộ thử nghiệm trùng gợi ý hiện tại, ẩn và chặn sao chép kể cả trước lượt render kế tiếp. Không tự tạo vé thay thế hoặc sửa bộ đã chốt; thông báo số bộ bị ẩn, tính số vé/độ phủ theo phần đang hiển thị, còn bảng đánh giá và lịch sử dùng đủ bộ đã lưu. Vì người dùng có thể đổi bộ kết hợp sau khi chốt, số vé bổ sung hiển thị có thể ít hơn ba.
+
+Kiểm chứng: format/typecheck đạt; 46 kiểm thử Edge headless đạt. Angular production build và Maven `clean install` đạt; 83 kiểm thử Java được phát hiện, 81 chạy đạt, hai báo cáo phát triển có điều kiện không chạy. Kiểm thử PostgreSQL thật xác nhận nâng V14 → V15 giữ JSON v1, hai phiên bản cùng kỳ, cạnh tranh/retry, rollback và đối soát sửa/cách ly. 23 assets Angular khớp byte trong JAR và có migration V15. Còn cảnh báo CSS AI Lab/unchecked Java đã có.
+
+Smoke JAR/schema tạm dùng bản sao 84 kết quả đủ điều kiện từ bản xuất production ngày 01/11. V2 chốt ba vé cho 04/11, không trùng bất kỳ bộ nào trong 13 snapshot mô hình/Lab MEGA cùng kỳ đã tạo cục bộ. Browser 1440/390 px xác nhận vé đúng snapshot, không tràn ngang trên di động; ép bộ kết hợp trùng một vé thử nghiệm thì UI còn hai vé và thông báo, bỏ chỉnh sửa hiện lại ba vé, snapshot không đổi, đổi POWER ẩn vùng thử nghiệm. Đây là kiểm chứng cục bộ; chưa triển khai bản sửa lên Render hoặc thay dữ liệu production.
+
+## Đối chiếu kết quả MEGA 01/11/2026 — Thử nghiệm chưa cải thiện kỳ đầu
+
+Đọc chỉ đọc production xác nhận kết quả `05 09 17 18 34 36` đã đồng bộ và `mega-portfolio-v1` hiện đã được triển khai, chốt kỳ 01/11 lúc 17:43 giờ Việt Nam. Ba vé thử nghiệm khớp `1, 1, 0`; cách ghép cũ cùng ba vé khớp `1, 2, 1`; tần suất + giảm trùng `0, 1, 1`; ngẫu nhiên `0, 0, 1`. Thử nghiệm phủ 18 số đã chọn nhưng chỉ có hai số kết quả, bằng độ phủ kết quả của wheel cũ dùng chín số. Kỳ này giảm trùng kém wheel về TB/vé và vé tốt nhất; chưa có cơ sở kết luận dài hạn từ một kỳ.
+
+Bảy lượt dò mới id 90–96 gồm sáu bộ khác nhau vì id 90/94 trùng nhau; chưa xác định mua trùng hay dò lại. Toàn bộ dùng 22 số khác nhau, chỉ phủ `09 36`, không có vé từ ba số. Snapshot mô hình gốc trước kỳ xếp `05/17/18/34` ở hạng `41/35/34/40`; đây là quan sát, không suy ra nên ưu tiên số gan. Giảm trùng chỉ đổi cách phân bổ, chưa nâng chất lượng ranking. AI Lab kỳ này cũng không có vé từ ba số ở cả hai nhóm năm vé.
+
+Giữ nguyên thuật toán và cấu hình; đánh giá có thể tiếp tục tự động bằng snapshot, không cần người dùng mua vé để kiểm chứng. Phương pháp, bảy bộ số, đối chứng và dấu kiểm chứng tại [đối chiếu MEGA 01/11](backend/docs/reports/mega-review-2026-11-01.md). Chỉ bổ sung tài liệu, không sửa production hoặc chạy build ứng dụng.
+
 ## Triển khai mã 01/11/2026 — Thử nghiệm MEGA giảm trùng vé trên kỳ tương lai
 
 Theo yêu cầu người dùng, thêm vùng **Giảm trùng vé** riêng trong `/analyze`, chỉ hiện khi chọn MEGA. `MegaPortfolioService` / `MegaPortfolioProtocol` dùng ranking `temporal_learning` với tham số mặc định cố định, cùng cách chọn `rank-portfolio-v1` đã phát lại ngày 27/10. Mỗi kỳ chốt ba vé thử nghiệm; mỗi cặp trùng tối đa ba số. Ba nhóm đối chứng cùng ngân sách gồm ba vé đầu của wheel cũ từ cùng ranking, tần suất + giảm trùng và ngẫu nhiên đều có seed cố định theo phiên bản/loại/kỳ. Không đổi scoring, trọng số mặc định hoặc mô hình AI Lab hiện có.

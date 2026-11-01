@@ -9,7 +9,8 @@ import static com.example.analyzeproject.service.ForecastProtocol.map;
 
 /** Frozen three-ticket, MEGA-only experiment. Never reconstructs past predictions. */
 public final class MegaPortfolioProtocol {
-    public static final String VERSION = "mega-portfolio-v1";
+    public static final String VERSION = "mega-portfolio-v2";
+    public static final String LEGACY_VERSION = "mega-portfolio-v1";
     public static final int BUDGET = 3;
     public static final List<String> ARMS = List.of("portfolio", "wheel", "frequency", "random");
     private MegaPortfolioProtocol() {}
@@ -26,6 +27,12 @@ public final class MegaPortfolioProtocol {
 
     @SuppressWarnings("unchecked")
     public static Map<String,Object> prepare(List<LotteryNumber> history, PredictionResponseDto prediction, String codeVersion, Instant now) {
+        return prepare(history,prediction,codeVersion,now,List.of());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String,Object> prepare(List<LotteryNumber> history, PredictionResponseDto prediction, String codeVersion, Instant now,
+            List<List<Integer>> existingTickets) {
         history = ForecastProtocol.training(history,"MEGA",now);
         if (!"SUCCESS".equals(prediction.getStatus()) || !"MEGA".equals(prediction.getCategory()))
             throw new IllegalStateException("Chưa có xếp hạng MEGA hợp lệ.");
@@ -34,6 +41,7 @@ public final class MegaPortfolioProtocol {
         String target = ForecastProtocol.target("MEGA", now).toString();
         var configuration = map("experiment", VERSION, "algorithm", "temporal_learning", "scoring", "fixed_defaults",
                 "budget", BUDGET, "selection", TicketPortfolio.VERSION, "warmupDraws", 10,
+                "duplicatePolicy", "exclude_originals_and_saved_models-v2", "candidateBudget", 25,
                 "primaryMetric", "draw_with_ticket_matching_at_least_three", "randomSeed", VERSION+":MEGA:"+target);
         var snapshot = ForecastProtocol.prepare(history, "MEGA", VERSION, VERSION, codeVersion, configuration,
                 ranking.subList(0,6), now);
@@ -49,12 +57,22 @@ public final class MegaPortfolioProtocol {
             Collections.shuffle(pool,random);
             randomTickets.add(pool.subList(0,6).stream().sorted().toList());
         }
-        var arms = map("portfolio", TicketPortfolio.select(ranking,45,BUDGET),
+        Set<List<Integer>> blocked = new HashSet<>();
+        existingTickets.forEach(t -> blocked.add(WorkspaceProtocol.numbers("MEGA",t)));
+        blocked.add(ranking.subList(0,6).stream().sorted().toList());
+        for (var result:List.of(prediction.getPrimaryAlgorithmResult(),prediction.getSecondaryAlgorithmResult(),prediction.getCombinedAlgorithmResult()))
+            blocked.add(WorkspaceProtocol.numbers("MEGA",(List<Integer>)result.get("numbers")));
+        var exclusions=blocked.stream().sorted(Comparator.comparing(Object::toString)).toList();
+        var additional=TicketPortfolio.select(ranking,45,25).stream().filter(t -> !blocked.contains(t)).limit(BUDGET).toList();
+        if (additional.size()!=BUDGET) throw new IllegalStateException("Chưa đủ ba vé bổ sung không trùng gợi ý gốc.");
+        var arms = map("portfolio", additional,
                 "wheel", prediction.getTickets().subList(0,BUDGET),
                 "frequency", TicketPortfolio.select(frequencyRanking,45,BUDGET), "random", new ArrayList<>(randomTickets));
+        snapshot.put("numbers",additional.get(0));
         snapshot.put("ranking",ranking);
         snapshot.put("arms",arms);
-        snapshot.put("payloadHash",ForecastProtocol.hash(map("ranking",ranking,"arms",arms)));
+        snapshot.put("excludedTickets",exclusions);
+        snapshot.put("payloadHash",payloadHash(snapshot));
         if (!valid(snapshot)) throw new IllegalStateException("Bộ vé thử nghiệm không hợp lệ.");
         return snapshot;
     }
@@ -67,12 +85,11 @@ public final class MegaPortfolioProtocol {
     @SuppressWarnings("unchecked")
     public static boolean valid(Map<String,Object> snapshot) {
         try {
-            if (!"MEGA".equals(snapshot.get("category")) || !VERSION.equals(snapshot.get("modelVersion"))
+            if (!"MEGA".equals(snapshot.get("category")) || !Set.of(VERSION,LEGACY_VERSION).contains(snapshot.get("modelVersion"))
                     || !ForecastProtocol.isProspective(snapshot)) return false;
             if (((List<?>)snapshot.get("history")).size()<10) return false;
             var ranking = ((List<Number>)snapshot.get("ranking")).stream().map(Number::intValue).toList();
             validateRanking(ranking);
-            if (!ranking.subList(0,6).stream().sorted().toList().equals(snapshot.get("numbers"))) return false;
             var arms = (Map<String,List<List<Integer>>>)snapshot.get("arms");
             if (!arms.keySet().equals(new HashSet<>(ARMS))) return false;
             for (String arm:ARMS) {
@@ -81,8 +98,22 @@ public final class MegaPortfolioProtocol {
                 var normalized=tickets.stream().map(t -> WorkspaceProtocol.numbers("MEGA",t)).toList();
                 if (new HashSet<>(normalized).size()!=BUDGET) return false;
             }
-            return ForecastProtocol.hash(map("ranking",snapshot.get("ranking"),"arms",arms)).equals(snapshot.get("payloadHash"));
+            if (LEGACY_VERSION.equals(snapshot.get("modelVersion"))) {
+                if (!ranking.subList(0,6).stream().sorted().toList().equals(snapshot.get("numbers"))) return false;
+            } else {
+                var blocked=((List<List<Integer>>)snapshot.get("excludedTickets")).stream().map(t -> WorkspaceProtocol.numbers("MEGA",t)).toList();
+                if (!blocked.contains(ranking.subList(0,6).stream().sorted().toList())
+                        || arms.get("portfolio").stream().anyMatch(blocked::contains)
+                        || !arms.get("portfolio").get(0).equals(snapshot.get("numbers"))) return false;
+            }
+            return payloadHash(snapshot).equals(snapshot.get("payloadHash"));
         } catch (RuntimeException e) { return false; }
+    }
+
+    private static String payloadHash(Map<String,Object> snapshot) {
+        var payload=map("ranking",snapshot.get("ranking"),"arms",snapshot.get("arms"));
+        if (VERSION.equals(snapshot.get("modelVersion"))) payload.put("excludedTickets",snapshot.get("excludedTickets"));
+        return ForecastProtocol.hash(payload);
     }
 
     @SuppressWarnings("unchecked")
@@ -110,7 +141,7 @@ public final class MegaPortfolioProtocol {
         var arms=(Map<String,List<List<Integer>>>)snapshot.get("arms");
         var metrics=settlement==null?Map.<String,Object>of():(Map<String,Object>)settlement.get("arms");
         return map("id",snapshot.get("id"),"targetDate",snapshot.get("targetDate"),"createdAt",snapshot.get("createdAt"),
-                "trainingThrough",snapshot.get("trainingThrough"),"codeVersion",snapshot.get("codeVersion"),
+                "trainingThrough",snapshot.get("trainingThrough"),"codeVersion",snapshot.get("codeVersion"),"modelVersion",snapshot.get("modelVersion"),
                 "status",settlement==null?"PENDING":settlement.get("status"),"actualNumbers",settlement==null?null:settlement.get("actualNumbers"),
                 "arms",ARMS.stream().map(arm -> {
                     var diagnostic=TicketPortfolio.diagnostics(arms.get(arm));
@@ -133,7 +164,7 @@ public final class MegaPortfolioProtocol {
                 return map("id",arm,"label",label(arm),"hit3Draws",hits,"hit3Percent",metrics.isEmpty()?null:100.0*hits/metrics.size(),
                         "averageMatched",average(metrics,"averageMatched"),"averageResultCoverage",average(metrics,"coverageCount"));
             }).toList();
-            return map("cohort",group.getKey(),"codeVersion",entries.get(0).get("codeVersion"),"savedDraws",entries.size(),"evaluatedDraws",measured.size(),
+            return map("cohort",group.getKey(),"codeVersion",entries.get(0).get("codeVersion"),"modelVersion",entries.get(0).get("modelVersion"),"savedDraws",entries.size(),"evaluatedDraws",measured.size(),
                     "firstTargetDate",entries.stream().map(f -> (String)f.get("targetDate")).min(String::compareTo).orElseThrow(),
                     "lastTargetDate",entries.stream().map(f -> (String)f.get("targetDate")).max(String::compareTo).orElseThrow(),
                     "arms",summaries,"status","COLLECTING");

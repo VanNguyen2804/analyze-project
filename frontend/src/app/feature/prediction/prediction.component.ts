@@ -4,6 +4,7 @@ import { PredictionChartComponent } from './prediction-chart/prediction-chart.co
 import { PredictionOverviewComponent } from './prediction-overview/prediction-overview.component';
 import { ExpandedTicketsComponent } from './expanded-tickets/expanded-tickets.component';
 import { MegaPortfolioComponent } from './mega-portfolio/mega-portfolio.component';
+import { MegaPortfolioContext } from '@app/core/models/mega-portfolio.model';
 import { TicketMixerComponent } from './ticket-mixer/ticket-mixer.component';
 import { AlgorithmOption } from '../../core/models/algorithm.model';
 import {
@@ -206,6 +207,20 @@ export class PredictionComponent implements OnInit {
   }
 
   // --- TRẢ VỀ 3 KẾT QUẢ DỰ ĐOÁN (THUẬT TOÁN 1, THUẬT TOÁN 2, KẾT HỢP 2 THUẬT TOÁN) ---
+  getMegaPortfolioContext(): MegaPortfolioContext | null {
+    const payload = this.payload;
+    if (this.isSpinning || this.category !== 'MEGA' || payload?.category !== 'MEGA') return null;
+    const targetDate = payload.workspace?.targetDate || payload.targetDrawDate;
+    if (!targetDate) return null;
+    const tickets = [
+      ...(payload.workspace?.tickets.map((ticket) => ticket.numbers) ?? []),
+      payload.primaryAlgorithmResult?.numbers,
+      payload.secondaryAlgorithmResult?.numbers,
+      payload.combinedAlgorithmResult?.numbers,
+    ].filter((numbers): numbers is number[] => Array.isArray(numbers) && numbers.length === 6);
+    return { targetDate, tickets };
+  }
+
   workspaceChanged(view: WorkspaceSuggestion) {
     if (!this.payload || view.category !== this.category) return;
     const sameHistory = this.payload.workspace?.historyHash === view.historyHash;

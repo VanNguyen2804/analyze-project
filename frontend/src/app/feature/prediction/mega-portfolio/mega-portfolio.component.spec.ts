@@ -9,7 +9,7 @@ describe('MEGA prospective portfolio experiment', () => {
   let http: HttpTestingController;
   const url = `${environment.apiUrl || ''}/api/mega-portfolio`;
   const empty = (): MegaPortfolioOverview => ({
-    version: 'mega-portfolio-v1',
+    version: 'mega-portfolio-v2',
     category: 'MEGA',
     budget: 3,
     enabled: true,
@@ -45,6 +45,7 @@ describe('MEGA prospective portfolio experiment', () => {
 
   it('displays saved tickets, emits the exact copied ticket and keeps pending metrics absent', () => {
     const fixture = TestBed.createComponent(MegaPortfolioComponent);
+    fixture.componentRef.setInput('context', { targetDate: '2026-11-04', tickets: [] });
     fixture.detectChanges();
     const data = empty();
     const tickets = [
@@ -102,6 +103,27 @@ describe('MEGA prospective portfolio experiment', () => {
     fixture.componentInstance.copied.subscribe(copied);
     (host.querySelector('.trial-ticket button') as HTMLButtonElement).click();
     expect(copied).toHaveBeenCalledWith(tickets[0]);
+    copied.calls.reset();
+    fixture.componentRef.setInput('context', {
+      targetDate: '2026-11-04',
+      tickets: [[6, 5, 4, 3, 2, 1], tickets[1]],
+    });
+    // The copy guard follows inputs immediately, even before the next DOM render.
+    fixture.componentInstance.copy(tickets[0]);
+    expect(copied).not.toHaveBeenCalled();
+    fixture.detectChanges();
+    expect(host.querySelectorAll('.trial-ticket').length).toBe(1);
+    expect(host.textContent).toContain('Đã ẩn 2 bộ trùng');
+    expect(host.textContent).toContain('1 vé bổ sung đang hiển thị');
+    (host.querySelector('.trial-ticket button') as HTMLButtonElement).click();
+    expect(copied).toHaveBeenCalledWith(tickets[2]);
+    expect(fixture.componentInstance.data()?.current?.arms[0].tickets).toEqual(tickets);
+    fixture.componentRef.setInput('context', null);
+    fixture.detectChanges();
+    expect(host.querySelectorAll('.trial-ticket').length).toBe(0);
+    fixture.componentRef.setInput('context', { targetDate: '2026-11-06', tickets: [] });
+    fixture.detectChanges();
+    expect(host.querySelectorAll('.trial-ticket').length).toBe(0);
     fixture.destroy();
   });
 

@@ -32,6 +32,10 @@ class MegaPortfolioStorePostgresTest {
         var context=new AnnotationConfigApplicationContext();
         try {
             new ResourceDatabasePopulator(new ClassPathResource("db/migration/V14__add_mega_portfolio_experiment.sql")).execute(ds);
+            var initialJdbc=new JdbcTemplate(ds);var legacy=MegaPortfolioProtocolTest.legacySnapshot();
+            String legacyJson=new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(legacy);
+            initialJdbc.update("INSERT INTO mega_portfolio_snapshots(id,target_date,snapshot_json) VALUES (?,CAST(? AS DATE),?)",legacy.get("id"),legacy.get("targetDate"),legacyJson);
+            new ResourceDatabasePopulator(new ClassPathResource("db/migration/V15__version_mega_portfolio_batches.sql")).execute(ds);
             context.registerBean(DataSource.class,()->ds);context.register(Config.class);context.refresh();
             var store=context.getBean(MegaPortfolioStore.class);var jdbc=context.getBean(JdbcTemplate.class);
             var first=MegaPortfolioProtocolTest.snapshot();var alternative=new LinkedHashMap<>(first);alternative.put("codeVersion","another-version");
@@ -41,20 +45,22 @@ class MegaPortfolioStorePostgresTest {
                 var a=pool.submit(()->store.capture(first));var b=pool.submit(()->store.capture(alternative));
                 saved=a.get(10,TimeUnit.SECONDS);assertEquals(saved,b.get(10,TimeUnit.SECONDS));
             } finally { pool.shutdownNow(); }
-            assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM mega_portfolio_snapshots",Integer.class));
+            assertEquals(2,jdbc.queryForObject("SELECT COUNT(*) FROM mega_portfolio_snapshots",Integer.class));
+            assertEquals(legacyJson,jdbc.queryForObject("SELECT snapshot_json FROM mega_portfolio_snapshots WHERE id=?",String.class,legacy.get("id")));
+            assertEquals(legacy,store.find(LocalDate.of(2026,10,25),MegaPortfolioProtocol.LEGACY_VERSION));
             assertTrue(MegaPortfolioProtocol.valid(saved));
             assertEquals(saved,store.capture(alternative));
             var before=store.ledger();assertEquals(before,store.ledger());
             assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM mega_portfolio_settlements",Integer.class));
             var actual=MegaPortfolioProtocolTest.actual(List.of(1,2,7,8,11,12));var at=Instant.parse("2026-10-25T12:00:00Z");
             store.reconcile(List.of(actual),at);store.reconcile(List.of(actual),at.plusSeconds(60));
-            assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM mega_portfolio_settlements",Integer.class));
+            assertEquals(2,jdbc.queryForObject("SELECT COUNT(*) FROM mega_portfolio_settlements",Integer.class));
             actual.setNumbers(List.of(30,31,32,33,34,35));store.reconcile(List.of(actual),at);
             var ledger=store.ledger();var events=(List<Map<String,Object>>)ledger.get("settlements");
             assertEquals("RESULT_UNAVAILABLE",events.get(events.size()-1).get("status"));
             TestDraws.verified(actual);store.reconcile(List.of(actual),at);
             events=(List<Map<String,Object>>)store.ledger().get("settlements");
-            assertEquals(3,events.size());assertEquals("SETTLED",events.get(2).get("status"));
+            assertEquals(6,events.size());assertEquals("SETTLED",events.get(events.size()-1).get("status"));
             assertEquals(store.ledger(),new MegaPortfolioStore(jdbc).ledger());
             var rows=new ArrayList<>(MegaPortfolioProtocolTest.history());rows.add(actual);
             var conflict=MegaPortfolioProtocol.prepare(rows,MegaPortfolioProtocolTest.prediction(),"code",Instant.parse("2026-10-26T00:00:00Z"));
@@ -63,7 +69,7 @@ class MegaPortfolioStorePostgresTest {
             assertNull(store.find(LocalDate.of(2026,10,28)));
             var invalid=new LinkedHashMap<>(first);invalid.put("payloadHash","tampered");
             assertThrows(IllegalArgumentException.class,()->store.capture(invalid));
-            assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM mega_portfolio_snapshots",Integer.class));
+            assertEquals(2,jdbc.queryForObject("SELECT COUNT(*) FROM mega_portfolio_snapshots",Integer.class));
         } finally { context.close();admin.execute("DROP SCHEMA "+schema+" CASCADE"); }
     }
 }

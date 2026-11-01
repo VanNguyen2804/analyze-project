@@ -18,7 +18,10 @@ public class MegaPortfolioStore {
     private String encode(Object value) { try { return json.writeValueAsString(value); } catch(Exception e) { throw new IllegalStateException(e); } }
     private Map<String,Object> decode(String value) { try { return json.readValue(value,new TypeReference<>() {}); } catch(Exception e) { throw new IllegalStateException(e); } }
     public Map<String,Object> find(LocalDate target) {
-        var rows=jdbc.query("SELECT snapshot_json FROM mega_portfolio_snapshots WHERE target_date=?",(r,i)->decode(r.getString(1)),target);
+        return find(target,MegaPortfolioProtocol.VERSION);
+    }
+    public Map<String,Object> find(LocalDate target,String version) {
+        var rows=jdbc.query("SELECT snapshot_json FROM mega_portfolio_snapshots WHERE target_date=? AND experiment_version=?",(r,i)->decode(r.getString(1)),target,version);
         return rows.isEmpty()?null:rows.get(0);
     }
     @Transactional
@@ -26,11 +29,12 @@ public class MegaPortfolioStore {
         if (!MegaPortfolioProtocol.valid(snapshot)) throw new IllegalArgumentException("Invalid MEGA experiment snapshot");
         var target=LocalDate.parse((String)snapshot.get("targetDate"));
         jdbc.execute("SELECT pg_advisory_xact_lock(60452614)");
-        var existing=find(target);
+        String version=(String)snapshot.get("modelVersion");
+        var existing=find(target,version);
         if (existing!=null) return existing;
-        jdbc.update("INSERT INTO mega_portfolio_snapshots(id,target_date,snapshot_json) VALUES (?,?,?) ON CONFLICT (target_date) DO NOTHING",
-                snapshot.get("id"),target,encode(snapshot));
-        return find(target);
+        jdbc.update("INSERT INTO mega_portfolio_snapshots(id,target_date,experiment_version,snapshot_json) VALUES (?,?,?,?)",
+                snapshot.get("id"),target,version,encode(snapshot));
+        return find(target,version);
     }
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public Map<String,Object> ledger() {

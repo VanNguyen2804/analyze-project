@@ -29,7 +29,7 @@ Trang `/analyze` tạo dự đoán; `/analyze/history` xem ledger tự động; 
 - `hyperparameter-history/` quản lý bảng và hộp xem JSON/README; phát reload/activate để trang cha điều phối cập nhật cấu hình.
 - Style dùng chung trong mỗi feature nằm ở `prediction-shared.css` và `analysis-shared.css`; style riêng nằm cạnh component sở hữu DOM. Giữ encapsulation, không dùng `::ng-deep` hoặc chuyển toàn bộ CSS ra global để né ranh giới component.
 
-Vùng `prediction/mega-portfolio/` hiển thị thử nghiệm MEGA ba vé và các đối chứng đã chốt từ `/api/mega-portfolio`. Component tự quản lý tải/phân trang/timer, hủy request khi bị tháo khỏi trang; chỉ hiện khi MEGA được chọn. DTO/HTTP nằm ở `core/models/mega-portfolio.model.ts` và `core/services/mega-portfolio-api.service.ts`. Mở trang chỉ đọc, nút chốt/đối soát gọi POST riêng; sao chép vé dùng output gửi đúng bộ số đã lưu về component cha.
+Vùng `prediction/mega-portfolio/` hiển thị thử nghiệm MEGA và các đối chứng đã chốt từ `/api/mega-portfolio`. Component tự quản lý tải/phân trang/timer, hủy request khi bị tháo khỏi trang; chỉ hiện khi MEGA được chọn. Input `context` từ cha chứa kỳ và bộ số gốc/Lab thực đang hiển thị: chưa đúng kỳ thì chờ, trùng bộ số bất kể thứ tự thì ẩn và chặn sao chép, không sửa dữ liệu lịch sử hoặc tạo vé thay thế. Số vé/độ phủ hiển thị tính từ các vé còn lại; thống kê và lịch sử dùng đủ bộ đã chốt, tách v1/v2. DTO/HTTP nằm ở `core/models/mega-portfolio.model.ts` và `core/services/mega-portfolio-api.service.ts`. Mở trang chỉ đọc, nút chốt/đối soát gọi POST riêng; sao chép vé dùng output gửi đúng bộ số đã lưu về component cha.
 
 ### Angular và kiểm chứng
 

@@ -4,6 +4,44 @@ import { PredictionComponent } from './prediction.component';
 import { AnalyzeService } from '@app/core/services/analyze.service';
 
 describe('Prediction request category isolation', () => {
+  it('passes original and Lab tickets for the current target to experimental deduplication', () => {
+    TestBed.configureTestingModule({ providers: [{ provide: AnalyzeService, useValue: {} }] });
+    const fixture = TestBed.createComponent(PredictionComponent);
+    const component = fixture.componentInstance;
+    component.payload = {
+      category: 'MEGA',
+      status: 'SUCCESS',
+      targetDrawDate: '2026-11-04',
+      primaryAlgorithmResult: { name: 'Primary', numbers: [1, 2, 3, 4, 5, 6] },
+      secondaryAlgorithmResult: { name: 'Secondary', numbers: [7, 8, 9, 10, 11, 12] },
+      combinedAlgorithmResult: { name: 'Combined', numbers: [1, 2, 7, 8, 9, 10] },
+      workspace: {
+        id: 'suggestion',
+        category: 'MEGA',
+        targetDate: '2026-11-04',
+        createdAt: '2026-11-01T12:00:00Z',
+        status: 'READY',
+        expectedRevision: 0,
+        primaryAlgorithm: 'temporal_learning',
+        secondaryAlgorithm: 'bayesian_graph',
+        primaryWeight: 0.5,
+        keep: [],
+        exclude: [],
+        labStatus: 'READY',
+        labPolicy: 'test',
+        tickets: [{ id: 'lab', source: 'AI_LAB', label: 'Lab', numbers: [13, 14, 15, 16, 17, 18] }],
+      },
+    };
+    const context = component.getMegaPortfolioContext();
+    expect(context?.targetDate).toBe('2026-11-04');
+    expect(context?.tickets.length).toBe(4);
+    component.isSpinning = true;
+    expect(component.getMegaPortfolioContext()).toBeNull();
+    component.isSpinning = false;
+    component.category = 'POWER';
+    expect(component.getMegaPortfolioContext()).toBeNull();
+    fixture.destroy();
+  });
   it('does not request the legacy deviation matrix after predicting', () => {
     const legacy = jasmine.createSpy('getDeviationVariables');
     TestBed.configureTestingModule({

@@ -1,5 +1,10 @@
 export type MegaPortfolioArmId = 'portfolio' | 'wheel' | 'frequency' | 'random';
 
+export interface MegaPortfolioContext {
+  targetDate: string;
+  tickets: number[][];
+}
+
 export interface MegaPortfolioMetrics {
   ticketCount: number;
   matches: number[];
@@ -27,6 +32,7 @@ export interface MegaPortfolioRow {
   createdAt: string;
   trainingThrough: string;
   codeVersion: string;
+  modelVersion?: string;
   status: 'PENDING' | 'SETTLED' | 'RESULT_UNAVAILABLE';
   actualNumbers: number[] | null;
   arms: MegaPortfolioArm[];
@@ -35,6 +41,7 @@ export interface MegaPortfolioRow {
 export interface MegaPortfolioGroup {
   cohort: string;
   codeVersion: string;
+  modelVersion?: string;
   savedDraws: number;
   evaluatedDraws: number;
   firstTargetDate: string;

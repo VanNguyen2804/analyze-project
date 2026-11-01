@@ -107,7 +107,7 @@
     </app-prediction-overview>
   }
   @if (category === 'MEGA') {
-    <app-mega-portfolio (copied)="copyTicket($event)" />
+    <app-mega-portfolio [context]="getMegaPortfolioContext()" (copied)="copyTicket($event)" />
   }
   <details class="studio-settings">
     <summary>

@@ -14,6 +14,8 @@ public class MegaPortfolioService {
     private final AnalyzeService analyze;
     private final LotteryNumberRepository draws;
     private final MegaPortfolioStore store;
+    private final ForecastStore forecasts;
+    private final AiLabStore lab;
     private final boolean enabled;
     private final Clock clock;
     private final ReentrantLock lock=new ReentrantLock();
@@ -21,12 +23,24 @@ public class MegaPortfolioService {
             AnalyzeService.class,TemporalRelationshipModel.class,PredictionSupport.class,ForecastProtocol.class,DrawQuality.class,WorkspaceProtocol.class);
     private volatile Map<String,Object> lastRun=map("status","NOT_RUN");
     @Autowired
-    public MegaPortfolioService(AnalyzeService analyze,LotteryNumberRepository draws,MegaPortfolioStore store,
+    public MegaPortfolioService(AnalyzeService analyze,LotteryNumberRepository draws,MegaPortfolioStore store,ForecastStore forecasts,AiLabStore lab,
             @Value("${mega-portfolio.enabled:true}") boolean enabled) {
-        this(analyze,draws,store,enabled,Clock.systemUTC());
+        this(analyze,draws,store,enabled,Clock.systemUTC(),forecasts,lab);
     }
     public MegaPortfolioService(AnalyzeService analyze,LotteryNumberRepository draws,MegaPortfolioStore store,boolean enabled,Clock clock) {
+        this(analyze,draws,store,enabled,clock,null,null);
+    }
+    public MegaPortfolioService(AnalyzeService analyze,LotteryNumberRepository draws,MegaPortfolioStore store,boolean enabled,Clock clock,ForecastStore forecasts,AiLabStore lab) {
         this.analyze=analyze; this.draws=draws; this.store=store; this.enabled=enabled; this.clock=clock;
+        this.forecasts=forecasts;this.lab=lab;
+    }
+    @SuppressWarnings("unchecked")
+    private List<List<Integer>> existingTickets(String target) {
+        var saved=new ArrayList<Map<String,Object>>();
+        if (forecasts!=null) saved.addAll(forecasts.forecasts());
+        if (lab!=null) saved.addAll(lab.snapshots());
+        return saved.stream().filter(f -> "MEGA".equals(f.get("category")) && target.equals(f.get("targetDate")) && ForecastProtocol.isProspective(f))
+                .map(f -> WorkspaceProtocol.numbers("MEGA",(List<Integer>)f.get("numbers"))).distinct().toList();
     }
     public Map<String,Object> run() {
         if (!lock.tryLock()) return map("status","BUSY");
@@ -43,7 +57,7 @@ public class MegaPortfolioService {
                     var prediction=analyze.analyzeAndPredictWithConfiguration("MEGA","temporal_learning",null,history,null);
                     Instant captured=clock.instant();
                     if (!target.equals(ForecastProtocol.target("MEGA",captured))) throw new IllegalStateException("Kỳ mục tiêu đã thay đổi; sẽ thử lại.");
-                    var snapshot=MegaPortfolioProtocol.prepare(history,prediction,codeVersion,captured);
+                    var snapshot=MegaPortfolioProtocol.prepare(history,prediction,codeVersion,captured,existingTickets(target.toString()));
                     Instant completed=clock.instant();
                     if (!target.equals(ForecastProtocol.target("MEGA",completed))) throw new IllegalStateException("Đã hết giờ chốt; sẽ chờ kỳ mới đủ dữ liệu.");
                     snapshot.put("createdAt",completed.toString());
@@ -65,7 +79,7 @@ public class MegaPortfolioService {
         Map<Object,Map<String,Object>> latest=new HashMap<>();
         ((List<Map<String,Object>>)ledger.get("settlements")).forEach(e -> latest.put(e.get("forecastId"),e));
         String target=ForecastProtocol.target("MEGA",clock.instant()).toString();
-        var current=snapshots.stream().filter(f -> target.equals(f.get("targetDate"))).findFirst().orElse(null);
+        var current=snapshots.stream().filter(f -> target.equals(f.get("targetDate")) && MegaPortfolioProtocol.VERSION.equals(f.get("modelVersion"))).findFirst().orElse(null);
         return map("version",MegaPortfolioProtocol.VERSION,"category","MEGA","budget",MegaPortfolioProtocol.BUDGET,"enabled",enabled,
                 "targetDate",target,"lastRun",lastRun,"current",current==null?null:MegaPortfolioProtocol.row(current,latest.get(current.get("id"))),
                 "page",page,"totalRows",snapshots.size(),"excludedInvalidSnapshots",all.size()-snapshots.size(),
