@@ -1,5 +1,15 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Refactor 02/11/2026 — Backend theo Onion Architecture
+
+Tách backend thành `domain`, `application`, `infrastructure`, `presentation`. Domain chứa mô hình thuần Java và các quy tắc chọn lịch sử, quan hệ theo thời gian, rank fusion/danh mục vé; không phụ thuộc Spring/JPA/Jackson. Application điều phối use case qua repository/store ports thuần Java, không phụ thuộc implementation database hoặc HTTP. JPA entities được tách riêng và ánh xạ hai chiều, giữ ID/timestamp, thứ tự số và toàn bộ audit JSON; collection được sao chép để tránh sửa entity qua domain. Spring Data và JDBC implements các ports; cấu hình lắp ghép tại `infrastructure/config/ApplicationConfig.java`.
+
+Scheduler, cấu hình database, HTTP feed và transaction nằm ở infrastructure. Decorator nhập kết quả giữ advisory lock trong cùng transaction; decorator báo cáo giữ `REPEATABLE_READ`/read-only. `ConflictException` ở application được controller workspace chuyển thành HTTP 409 với `message` cũ. Trạng thái đồng bộ được đọc qua input port, controller không phụ thuộc scheduler cụ thể. API, thuật toán, migration và snapshot lịch sử giữ nguyên. Package mới làm đổi fingerprint bytecode của các snapshot tạo sau refactor; cohort phiên bản tiếp tục tách riêng, không sửa hoặc sinh bù dữ liệu cũ.
+
+Kiểm thử bổ sung kiểm tra phụ thuộc trên bytecode, roundtrip mọi trường domain/entity cùng audit lồng nhau, HTTP 409 và wiring/transaction với PostgreSQL thật. Kiểm tra database tạo schema ngẫu nhiên từ DDL cũ, không nhập seed và dùng Hibernate `validate`; kiểm tra bốn JPA adapters, nhập idempotent và rollback. Bản đồ package, quy tắc mở rộng và cách chạy tại [kiến trúc backend](backend/docs/ONION_ARCHITECTURE.md).
+
+Kiểm chứng: Angular production build đạt với Node 24.15.0; Maven `clean install` đạt, phát hiện 88 kiểm thử, 86 chạy đạt và hai báo cáo phát triển có điều kiện được bỏ qua. Cả bốn kiểm thử PostgreSQL đã chạy trên PostgreSQL 16.4 tạm, lắng nghe riêng localhost; các schema test đã được dọn và server tạm đã tắt. 23 assets Angular khớp SHA-256 trong JAR, không còn package backend cũ trong artifact. Còn cảnh báo CSS AI Lab vượt budget khuyến nghị và unchecked Java đã có. Không thay dependency ứng dụng hoặc dữ liệu production.
+
 ## Sửa 01/11/2026 — Vé thử nghiệm là vé bổ sung, không lặp bộ gốc
 
 Nguyên nhân trùng bộ `09 15 22 27 40 41`: v1 chủ động giữ vé top sáu làm vé thử nghiệm đầu tiên. Theo yêu cầu người dùng, đổi chính sách sang `mega-portfolio-v2`: lấy ba vé từ danh mục giảm trùng sau khi loại ba gợi ý gốc của scorer và vé forecast/AI Lab hợp lệ đã chốt cho cùng MEGA/kỳ. So sánh bộ sáu số đã chuẩn hóa, độc lập thứ tự nhập; giữ tối đa ba số trùng giữa hai vé thử nghiệm. Danh sách bộ bị loại được lưu và kiểm tra hash cùng snapshot. Không sửa ranking/scoring hoặc chọn tham số/seed theo kết quả kỳ 01/11.

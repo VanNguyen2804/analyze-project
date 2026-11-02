@@ -49,6 +49,7 @@ Trang so sánh tỷ lệ khớp từ ba số của từng vé và từng kỳ v�
 
 - `frontend/`: Angular, giao diện `/analyze` gồm tab Tạo dự đoán và Lịch sử & đối soát.
 - `backend/`: Spring Boot Java 17, PostgreSQL, Flyway và kiểm thử Java.
+- Backend tổ chức theo Onion Architecture: `presentation → application → domain`, `infrastructure → application`; xem [bản đồ và quy tắc phụ thuộc](backend/docs/ONION_ARCHITECTURE.md).
 - `Dockerfile`, `render.yaml`: build/triển khai Angular cùng Spring Boot.
 - `.github/`: hướng dẫn agent và skills; `.vscode/`: cấu hình IDE.
 - `.env.example`: mẫu biến môi trường; `metadata.json`: metadata AI Studio được giữ lại.
