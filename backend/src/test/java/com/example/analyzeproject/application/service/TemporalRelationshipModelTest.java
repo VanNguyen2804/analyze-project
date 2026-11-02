@@ -12,6 +12,27 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class TemporalRelationshipModelTest {
+    @Test void megaHasEightExpertsAndNeverAllocatesOrExplainsSpecialMigration() {
+        List<LotteryNumber> draws=new ArrayList<>();
+        LocalDate day=LocalDate.of(2026,7,29);
+        for(var row:alternating(22)) {
+            draws.add(TestDraws.verified(new LotteryNumber(day,"MEGA",row.getNumbers(),null,null)));
+            day=TemporalRelationshipModel.scheduledAfter(day,"MEGA");
+        }
+        var result=TemporalRelationshipModel.fit(draws,"MEGA");
+        List<Map<String,Object>> patterns=(List<Map<String,Object>>)result.analysis().get("patterns");
+        assertEquals(TemporalRelationshipModel.VERSION,result.analysis().get("modelVersion"));
+        assertEquals(8,patterns.size());
+        assertEquals(100,patterns.stream().mapToDouble(p->((Number)p.get("weightPercent")).doubleValue()).sum(),1e-10);
+        assertTrue(patterns.stream().noneMatch(p->"special_to_main".equals(p.get("id"))));
+        assertFalse(TemporalRelationshipModel.expertValues(result,1).containsKey("special_to_main"));
+        assertFalse(TemporalRelationshipModel.expertWeights(result).containsKey("special_to_main"));
+        var empty=TemporalRelationshipModel.fit(List.of(),"MEGA");
+        assertEquals(8,((List<?>)empty.analysis().get("patterns")).size());
+        assertTrue(Arrays.stream(empty.scores()).skip(1).allMatch(Double::isFinite));
+        assertEquals(9,((List<?>)TemporalRelationshipModel.fit(alternating(22),"POWER").analysis().get("patterns")).size());
+    }
+
     private List<LotteryNumber> alternating(int count) {
         List<LotteryNumber> draws = new ArrayList<>();
         LocalDate date = LocalDate.of(2026, 8, 1);

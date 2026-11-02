@@ -17,6 +17,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AnalyzeService {
+    public static final String BAYES_VERSION = "bayesian-pair-excess-v2";
+    public static final String STACK_VERSION = "copula-scheduled-v2";
+
+    public static String modelVersionFor(String algorithm) {
+        if ("temporal_learning".equalsIgnoreCase(algorithm)) return TemporalRelationshipModel.VERSION;
+        String id = Objects.toString(algorithm, "deep_stacking").toLowerCase(Locale.ROOT);
+        if (id.contains("bayes") || id.contains("graph") || id.contains("begn")) return BAYES_VERSION;
+        if (id.contains("deep") || id.contains("stack") || id.equals("dse_copula")) return STACK_VERSION;
+        return "history-heuristic-pair-excess-v2";
+    }
 
     private static final int[][] WHEEL_TEMPLATE_10_TO_6 = {
         {0, 1, 2, 3, 4, 5}, {0, 1, 2, 6, 7, 8}, {0, 3, 4, 6, 7, 9}, {0, 3, 5, 6, 8, 9},
@@ -69,10 +79,9 @@ public class AnalyzeService {
 
         AlgorithmHyperparameter latestHyp = capturedConfiguration;
         double decayRate = 0.16;
-        double gapMinRatio = 0.8;
-        double gapMaxRatio = 2.2;
         double coOccurrenceWeight = 0.85;
-        double repeatExhaustionPenalty = -0.45;
+        double pairGraphPrior = PairRelationshipModel.DEFAULT_PRIOR_STRENGTH;
+        double pairGraphMinimum = PairRelationshipModel.DEFAULT_MIN_SUPPORT;
         double extremeGanBonus = 0.85;
         double specialMigrationWeight = 0.75;
         double adaptiveRepeatWeight = 0.65;
@@ -82,10 +91,9 @@ public class AnalyzeService {
         if (latestHyp != null && latestHyp.getHyperparametersJson() != null) {
             String json = latestHyp.getHyperparametersJson();
             decayRate = parseDoubleFromJson(json, "momentumDecayRate", decayRate);
-            gapMinRatio = parseDoubleFromJson(json, "poissonGapMinRatio", gapMinRatio);
-            gapMaxRatio = parseDoubleFromJson(json, "poissonGapMaxRatio", gapMaxRatio);
             coOccurrenceWeight = parseDoubleFromJson(json, "coOccurrenceWeight", coOccurrenceWeight);
-            repeatExhaustionPenalty = parseDoubleFromJson(json, "repeatExhaustionPenalty", repeatExhaustionPenalty);
+            pairGraphPrior = parseDoubleFromJson(json, "pairGraphPriorStrength", pairGraphPrior);
+            pairGraphMinimum = parseDoubleFromJson(json, "pairGraphMinSupport", pairGraphMinimum);
             extremeGanBonus = parseDoubleFromJson(json, "extremeGanReboundBonus", extremeGanBonus);
             specialMigrationWeight = parseDoubleFromJson(json, "specialToMainMigrationWeight", specialMigrationWeight);
             adaptiveRepeatWeight = parseDoubleFromJson(json, "adaptiveRepeatWeight", adaptiveRepeatWeight);
@@ -136,7 +144,6 @@ public class AnalyzeService {
 
         int[][] pairMatrix = new int[maxLimit + 1][maxLimit + 1];
         int[][] specialPairMatrix = new int[maxLimit + 1][maxLimit + 1];
-        int[][] transitionMatrix = new int[maxLimit + 1][maxLimit + 1];
 
         List<List<Integer>> empiricalGaps = new ArrayList<>();
         for (int i = 0; i <= maxLimit; i++) empiricalGaps.add(new ArrayList<>());
@@ -179,22 +186,6 @@ public class AnalyzeService {
                     int n2 = validNums.get(j);
                     pairMatrix[n1][n2]++;
                     pairMatrix[n2][n1]++;
-                }
-            }
-
-            // Chuyển dịch Markov giữa các kỳ liên tiếp t và t + 1
-            if (t < totalDraws - 1) {
-                LotteryNumber nextDraw = chronologicalRecords.get(t + 1);
-                if (nextDraw != null && nextDraw.getNumbers() != null) {
-                    List<Integer> nextValid = nextDraw.getNumbers().stream()
-                            .filter(n -> n != null && n >= 1 && n <= maxLimit)
-                            .distinct()
-                            .collect(Collectors.toList());
-                    for (int currN : validNums) {
-                        for (int nextN : nextValid) {
-                            transitionMatrix[currN][nextN]++;
-                        }
-                    }
                 }
             }
 
@@ -277,24 +268,12 @@ public class AnalyzeService {
 
         List<Integer> drawT1 = (totalDraws >= 1 && chronologicalRecords.get(totalDraws - 1).getNumbers() != null)
                 ? chronologicalRecords.get(totalDraws - 1).getNumbers() : Collections.emptyList();
-        List<Integer> drawT2 = (totalDraws >= 2 && chronologicalRecords.get(totalDraws - 2).getNumbers() != null)
-                ? chronologicalRecords.get(totalDraws - 2).getNumbers() : Collections.emptyList();
-        double[] markov2Score = new double[maxLimit + 1];
-        for (int i = 1; i <= maxLimit; i++) {
-            double t1Sum = 0;
-            for (int prev : drawT1) {
-                if (prev >= 1 && prev <= maxLimit) {
-                    t1Sum += (double) transitionMatrix[prev][i] / Math.max(1, mainFrequency[prev]);
-                }
-            }
-            double t2Sum = 0;
-            for (int prev : drawT2) {
-                if (prev >= 1 && prev <= maxLimit) {
-                    t2Sum += (double) transitionMatrix[prev][i] / Math.max(1, mainFrequency[prev]);
-                }
-            }
-            markov2Score[i] = t1Sum * 0.70 + t2Sum * 0.30;
-        }
+        DrawTransitionModel.Result transitions = DrawTransitionModel.fit(chronologicalRecords, category);
+        double[] markov2Score = transitions.scores();
+        int pairMinimum = pairGraphMinimum == Math.rint(pairGraphMinimum) && pairGraphMinimum >= 1 && pairGraphMinimum <= 1000
+                ? (int)pairGraphMinimum : PairRelationshipModel.DEFAULT_MIN_SUPPORT;
+        PairRelationshipModel.Result pairGraph = PairRelationshipModel.score(maxLimit, totalDraws, mainFrequency,
+                pairMatrix, drawT1, pairGraphPrior, pairMinimum);
 
         double[] specialMigrationScore = new double[maxLimit + 1];
         if ("POWER".equalsIgnoreCase(category)) {
@@ -312,7 +291,7 @@ public class AnalyzeService {
                 mainFrequency, freqLast5, freqLast10, mainMomentum, drawGap, pairMatrix,
                 lastSeenSpecial, avgCycle, maxMainMom, extremeGanBonus, specialMigrationWeight,
                 adaptiveRepeatWeight, coOccurrenceWeight, markov2Score, specialMigrationScore,
-                empiricalMeanGap, empiricalStdGap, copulaCentrality, maxCopula, drawT1, learned
+                empiricalMeanGap, empiricalStdGap, copulaCentrality, maxCopula, drawT1, learned, pairGraph
         );
 
         // 1. STRATIFIED MULTI-PILLAR CANDIDATE SELECTION
@@ -675,7 +654,7 @@ public class AnalyzeService {
             response.setAlgorithmDesc("Phân tích thuật toán " + algorithm);
         }
 
-        response.setModelVersion("temporal_learning".equalsIgnoreCase(algorithm) ? "temporal-links-v2" : (latestHyp != null ? latestHyp.getModel() : "History-based heuristic"));
+        response.setModelVersion(modelVersionFor(algorithm));
         response.setHyperparameterVersion(latestHyp != null ? latestHyp.getVersion() : "v1.1.0");
 
         if (!records.isEmpty() && records.get(0).getDrawDate() != null) {
@@ -732,6 +711,10 @@ public class AnalyzeService {
 
         Map<String, Object> primaryResult = new HashMap<>();
         primaryResult.put("id", response.getAlgorithm());
+        primaryResult.put("modelVersion", response.getModelVersion());
+        primaryResult.put("scoringPolicy", modelVersionFor(algorithm));
+        if (isDeepStacking) primaryResult.put("scoringDiagnostics", ForecastProtocol.map("learnedTransitions",transitions.learnedTransitions(),
+                "skippedGapTransitions",transitions.skippedGapTransitions(),"transitionPolicy",DrawTransitionModel.VERSION));
         primaryResult.put("name", response.getAlgorithmName());
         primaryResult.put("badge", "Thuật Toán 1");
         primaryResult.put("rankBadge", "History-based ranking");
@@ -771,7 +754,7 @@ public class AnalyzeService {
                 mainFrequency, freqLast5, freqLast10, mainMomentum, drawGap, pairMatrix,
                 lastSeenSpecial, avgCycle, maxMainMom, extremeGanBonus, specialMigrationWeight,
                 adaptiveRepeatWeight, coOccurrenceWeight, markov2Score, specialMigrationScore,
-                empiricalMeanGap, empiricalStdGap, copulaCentrality, maxCopula, drawT1, learned);
+                empiricalMeanGap, empiricalStdGap, copulaCentrality, maxCopula, drawT1, learned, pairGraph);
         List<Integer> secondaryRanking = secondaryCandidates.stream().map(c -> c.number).collect(Collectors.toList());
         List<Integer> pureNumbers2 = secondaryRanking.stream().limit(6).sorted().collect(Collectors.toList());
         String alg2Name = isAlg2Bayes ? "Bayesian graph heuristic" : (isAlg2Stack ? "Copula ensemble heuristic" : resolvedAlg2);
@@ -780,6 +763,10 @@ public class AnalyzeService {
 
         Map<String, Object> secondaryResult = new HashMap<>();
         secondaryResult.put("id", resolvedAlg2);
+        secondaryResult.put("modelVersion", modelVersionFor(resolvedAlg2));
+        secondaryResult.put("scoringPolicy", modelVersionFor(resolvedAlg2));
+        if (isAlg2Stack) secondaryResult.put("scoringDiagnostics", ForecastProtocol.map("learnedTransitions",transitions.learnedTransitions(),
+                "skippedGapTransitions",transitions.skippedGapTransitions(),"transitionPolicy",DrawTransitionModel.VERSION));
         secondaryResult.put("name", alg2Name);
         secondaryResult.put("badge", "Thuật Toán 2");
         secondaryResult.put("rankBadge", "History-based ranking");
@@ -2142,7 +2129,8 @@ public class AnalyzeService {
             double[] copulaCentrality,
             double maxCopula,
             List<Integer> drawT1,
-            TemporalRelationshipModel.Result learned
+            TemporalRelationshipModel.Result learned,
+            PairRelationshipModel.Result pairGraph
     ) {
         List<ScoredNumber> list = new ArrayList<>();
         boolean isBayes = (alg != null && (alg.toLowerCase().contains("bayes") || alg.toLowerCase().contains("graph") || alg.toLowerCase().contains("begn")));
@@ -2157,11 +2145,7 @@ public class AnalyzeService {
                 double weightedFailures = Math.max(0.0, weightedTotal - weightedSuccesses);
                 double bayesMean = (1.0 + weightedSuccesses) / (1.0 + ((maxLimit - 6.0) / 6.0) + weightedSuccesses + weightedFailures);
 
-                int coOccurSum = 0;
-                for (int j = 1; j <= maxLimit; j++) {
-                    if (i != j && pairMatrix[i][j] > 0) coOccurSum += pairMatrix[i][j];
-                }
-                double normGraph = Math.min(2.5, (double) coOccurSum / 12.0);
+                double normGraph = pairGraph.scores()[i];
 
                 double avgHarmonicPeriod = avgCycle;
                 double gapVal = drawGap[i];
@@ -2188,8 +2172,9 @@ public class AnalyzeService {
                 double decompBonus = (hasTriplet && i >= 20 && i <= 50 && !drawT1.contains(i)) ? 0.65 : 0.0;
                 double rebound = (gapVal > avgCycle * 1.8) ? Math.min(0.85, 0.45 + (gapVal - avgCycle * 1.8) * 0.08) : 0.0;
 
-                z = (bayesMean * 7.5) + (normGraph * 1.8) + (resonance * 1.4) + migBonus + repeatAdj + neighborBonus + decompBonus + rebound - 2.50;
+                z = (bayesMean * 7.5) + (normGraph * 1.8 * coOccurrenceWeight) + (resonance * 1.4) + migBonus + repeatAdj + neighborBonus + decompBonus + rebound - 2.50;
                 features.putAll(Map.of("bayesMean",bayesMean,"pairGraph",normGraph,"resonance",resonance,"specialMigration",migBonus,"repeatAdjustment",repeatAdj,"neighbor",neighborBonus,"decomposition",decompBonus,"rebound",rebound));
+                features.put("pairGraphSupportedPairs",(double)pairGraph.supportedPairs()[i]);
             } else if (isStack && totalDraws > 0) {
                 double normFreq = totalDraws > 0 ? ((double) mainFrequency[i] / totalDraws) : 0.2;
                 double normMom = mainMomentum[i] / maxMainMom;
@@ -2250,14 +2235,7 @@ public class AnalyzeService {
                     gapScore = 0.50;
                 }
 
-                int coOccurrenceSum = 0;
-                for (int j = 1; j <= maxLimit; j++) {
-                    if (i != j && pairMatrix[i][j] > 0) {
-                        coOccurrenceSum += pairMatrix[i][j];
-                    }
-                }
-                
-                double pairScore = Math.min(1.0, coOccurrenceSum / 10.0);
+                double pairScore = pairGraph.scores()[i];
 
                 double specMigrationBonus = 0.0;
                 if ("POWER".equalsIgnoreCase(category) && lastSeenSpecial[i] >= totalDraws - 2 && lastSeenSpecial[i] != -1) {

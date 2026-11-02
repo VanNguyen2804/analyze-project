@@ -56,7 +56,7 @@ public class WorkspaceService {
             suggestion.put("combinedExplanation",response.getCombinedAlgorithmResult().get("explanation"));
             suggestion.put("modelVersion",response.getModelVersion());
             suggestion.put("primaryModelVersion",response.getModelVersion());
-            suggestion.put("secondaryModelVersion","temporal_learning".equals(request.algorithm2())?"temporal-links-v2":(active==null?"History-based heuristic":active.getModel()));
+            suggestion.put("secondaryModelVersion",AnalyzeService.modelVersionFor(request.algorithm2()));
             suggestion.put("combinedModelVersion","reciprocal-rank-fusion-v1");
         }
         store.saveSuggestion(suggestion);

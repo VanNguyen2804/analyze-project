@@ -29,7 +29,8 @@ public final class ForecastProtocol {
     public static String codeVersion() {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            for (Class<?> type : List.of(AnalyzeService.class, TemporalRelationshipModel.class, PredictionSupport.class, ForecastProtocol.class)) {
+            for (Class<?> type : List.of(AnalyzeService.class, TemporalRelationshipModel.class, PredictionSupport.class,
+                    PairRelationshipModel.class, DrawTransitionModel.class, ForecastProtocol.class)) {
                 try (var input = type.getResourceAsStream(type.getSimpleName() + ".class")) { digest.update(input.readAllBytes()); }
             }
             return HexFormat.of().formatHex(digest.digest());

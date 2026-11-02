@@ -13,7 +13,8 @@ public final class PredictionExplanation {
     public static Map<String,Object> fromResult(Map<String,Object> result) {
         return map("schemaVersion",VERSION,"scoreType","internal_score","ranking",result.get("ranking"),
                 "details",result.getOrDefault("allDetails",List.of()),"tieBreak","number_ascending",
-                "modelWeights",result.getOrDefault("modelWeights",Map.of()),"scoringPolicy",result.getOrDefault("scoringPolicy","heuristic"));
+                "modelWeights",result.getOrDefault("modelWeights",Map.of()),"scoringPolicy",result.getOrDefault("scoringPolicy","heuristic"),
+                "modelVersion",result.get("modelVersion"),"scoringDiagnostics",result.getOrDefault("scoringDiagnostics",Map.of()));
     }
     public static Map<String,Object> lab(AiLabModel.Fit fit,String model) {
         double[] scores=fit.scores();

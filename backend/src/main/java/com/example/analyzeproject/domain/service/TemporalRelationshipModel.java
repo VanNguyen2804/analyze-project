@@ -7,12 +7,14 @@ import java.util.stream.Collectors;
 
 /** Sequentially fits relationship experts; each evaluation precedes observing its target. */
 public final class TemporalRelationshipModel {
+    public static final String VERSION = "temporal-links-v3";
     private static final String[] IDS = {"frequency", "lag1", "lag2", "repeat", "neighbor", "same_tail", "special_to_main", "recent5", "recent15"};
     private static final String[] NAMES = {"Tần suất nền", "Chuyển tiếp một kỳ", "Chuyển tiếp hai kỳ", "Lặp số", "Lân cận ±1", "Cùng đuôi", "Số phụ sang số chính", "Tần suất bán rã 5 kỳ", "Tần suất bán rã 15 kỳ"};
     public record Result(double[] scores, Map<String, Object> analysis, double[][] expertScores) {}
     public static Map<String,Double> expertValues(Result result,int number) {
         Map<String,Double> values=new LinkedHashMap<>();
-        for(int i=0;i<IDS.length;i++) if(i==0 || !"frequency_fallback".equals(result.analysis().get("forecastPolicy"))) values.put(IDS[i],result.expertScores()[i][number]);
+        for(int i=0;i<IDS.length;i++) if((i!=6 || "POWER".equals(result.analysis().get("category")))
+                && (i==0 || !"frequency_fallback".equals(result.analysis().get("forecastPolicy")))) values.put(IDS[i],result.expertScores()[i][number]);
         return values;
     }
     public static Map<String,Double> expertWeights(Result result) {
@@ -48,8 +50,11 @@ public final class TemporalRelationshipModel {
         recent = new double[2][max + 1];
         counts = new int[2][max + 1][max + 1];
         exposures = new int[2][max + 1];
-        Arrays.fill(weights, 1.0 / IDS.length);
+        int activeCount = "POWER".equals(category) ? IDS.length : IDS.length - 1;
+        for (int i = 0; i < weights.length; i++) if (active(i)) weights[i] = 1.0 / activeCount;
     }
+
+    private boolean active(int expert) { return expert != 6 || "POWER".equals(category); }
 
     public static Result fit(List<LotteryNumber> history, String category) {
         return fit(history, category, Double.NaN, 0.5, 5);
@@ -151,7 +156,7 @@ public final class TemporalRelationshipModel {
                 int hits = (int) rank(forecast).stream().limit(6).filter(actual::contains).count();
                 matchHistogram[hits]++;
                 int[] expertHits = new int[IDS.length];
-                for (int i = 0; i < IDS.length; i++) {
+                for (int i = 0; i < IDS.length; i++) if (active(i)) {
                     expertHits[i] = (int) rank(models[i]).stream().limit(6).filter(actual::contains).count();
                     expertMatched[i] += expertHits[i];
                 }
@@ -162,7 +167,7 @@ public final class TemporalRelationshipModel {
                 if (hits >= 3) hit3++;
                 modelBrier += brier(forecast, actual); baselineBrier += brier(models[0], actual);
                 double total = 0;
-                for (int i = 0; i < weights.length; i++) { weights[i] *= Math.exp(rate * expertHits[i] / 6.0); total += weights[i]; }
+                for (int i = 0; i < weights.length; i++) if (active(i)) { weights[i] *= Math.exp(rate * expertHits[i] / 6.0); total += weights[i]; }
                 for (int i = 0; i < weights.length; i++) weights[i] /= total;
             }
             if (t > 0 && !connected) skipped++;
@@ -205,11 +210,11 @@ public final class TemporalRelationshipModel {
                 .thenComparing(Comparator.comparingInt((Map<String, Object> m) -> (int) m.get("support")).reversed())
                 .thenComparingInt(m -> (int) m.get("fromNumber")).thenComparingInt(m -> (int) m.get("toNumber")));
         List<Map<String, Object>> patterns = new ArrayList<>();
-        for (int i = 0; i < IDS.length; i++) patterns.add(map("id", IDS[i], "name", NAMES[i], "weightPercent", weights[i] * 100,
+        for (int i = 0; i < IDS.length; i++) if (active(i)) patterns.add(map("id", IDS[i], "name", NAMES[i], "weightPercent", weights[i] * 100,
                 "support", i >= 7 ? seen : i < 3 ? (i == 0 ? seen : Arrays.stream(exposures[i - 1]).sum() / 6) : trials[i - 3][1],
                 "occurrences", i < 3 || i >= 7 ? null : successes[i - 3][1],
                 "averageMatched", evaluated == 0 ? null : (double) expertMatched[i] / evaluated));
-        return new Result(scores, map("modelVersion", "temporal-links-v2", "category", category, "asOfDate", last == null ? null : last.getDrawDate().toString(),
+        return new Result(scores, map("modelVersion", VERSION, "category", category, "asOfDate", last == null ? null : last.getDrawDate().toString(),
                 "forecastPolicy", useBaseline ? "frequency_fallback" : "learned_mixture",
                 "trainingDraws", seen, "skippedGapTransitions", skipped, "parameters", map("priorStrength", prior, "learningRate", rate, "minHistory", minHistory,
                         "recencyHalfLives", HALF_LIVES, "weightObjective", "main_number_matches"),

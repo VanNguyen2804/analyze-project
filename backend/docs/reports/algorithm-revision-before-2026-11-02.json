@@ -1,0 +1,1764 @@
+{
+  "ticketBudget" : 1,
+  "warmupDraws" : 10,
+  "uniformReplicates" : 100,
+  "categories" : [ {
+    "eligibleDraws" : 39,
+    "byDraw" : [ {
+      "trainingThrough" : "2026-08-19",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 2, 6, 15, 31, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 6, 7, 15, 33, 40, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 6, 31, 33, 35, 40, 43 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 6, 2, 15, 31, 36, 43 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.81
+        }
+      },
+      "date" : "2026-08-21"
+    }, {
+      "trainingThrough" : "2026-08-21",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 7, 15, 31, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 7, 15, 25, 31, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 31, 38, 43, 45 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 31, 43, 2, 7, 15 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.76
+        }
+      },
+      "date" : "2026-08-23"
+    }, {
+      "trainingThrough" : "2026-08-23",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 7, 15, 17, 31, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 15, 16, 17, 31, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 15, 16, 17, 22, 43 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 31, 43, 2, 7, 15 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.7
+        }
+      },
+      "date" : "2026-08-26"
+    }, {
+      "trainingThrough" : "2026-08-26",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 7, 15, 16, 31, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 3, 6, 16, 33, 40 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 7, 16, 33, 40 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 16, 31, 43, 2, 3 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.69
+        }
+      },
+      "date" : "2026-08-28"
+    }, {
+      "trainingThrough" : "2026-08-28",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 15, 16, 31, 36 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 15, 16, 22, 36, 39 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 15, 22, 36, 39 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 6, 3, 15, 16, 31, 36 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.74
+        }
+      },
+      "date" : "2026-08-30"
+    }, {
+      "trainingThrough" : "2026-08-30",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 15, 16, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 15, 16, 36, 45 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 15, 16, 31, 43, 45 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 15, 16, 31, 36 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.81
+        }
+      },
+      "date" : "2026-09-02"
+    }, {
+      "trainingThrough" : "2026-09-02",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 15, 16, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 27, 35, 36 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 7, 15, 27, 35 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 3, 15, 16, 31, 36 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.77
+        }
+      },
+      "date" : "2026-09-04"
+    }, {
+      "trainingThrough" : "2026-09-04",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 43, 45 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 29, 45 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 29, 45 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 3, 15, 16, 31, 36 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.84
+        }
+      },
+      "date" : "2026-09-06"
+    }, {
+      "trainingThrough" : "2026-09-06",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 22, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 16, 22, 27, 40 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 9, 15, 22, 27, 40 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 3, 15, 16, 22, 27 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.81
+        }
+      },
+      "date" : "2026-09-09"
+    }, {
+      "trainingThrough" : "2026-09-09",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 16, 17, 21, 22, 36, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 6, 17, 20, 21, 36, 43 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 3, 15, 16, 36, 43 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.75
+        }
+      },
+      "date" : "2026-09-11"
+    }, {
+      "trainingThrough" : "2026-09-11",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 16, 27, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 15, 17, 20, 21, 26, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 20, 26 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 3, 15, 16, 27, 36 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.81
+        }
+      },
+      "date" : "2026-09-13"
+    }, {
+      "trainingThrough" : "2026-09-13",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 16, 27, 31, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 12, 15, 27, 31 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 12, 16, 27, 31, 38 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 3, 15, 16, 27, 31 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.92
+        }
+      },
+      "date" : "2026-09-16"
+    }, {
+      "trainingThrough" : "2026-09-16",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 27, 31, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 11, 12, 15, 31 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 11, 15, 18, 27 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 15, 16, 27, 31 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.77
+        }
+      },
+      "date" : "2026-09-18"
+    }, {
+      "trainingThrough" : "2026-09-18",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 12, 16, 27, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 12, 26, 27, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 7, 26, 27, 41, 43 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 27, 43, 12, 15 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.79
+        }
+      },
+      "date" : "2026-09-20"
+    }, {
+      "trainingThrough" : "2026-09-20",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 12, 15, 16, 27, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : true,
+          "matched" : 3,
+          "numbers" : [ 6, 12, 15, 16, 27, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 10, 15, 16, 33, 38 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 27, 3, 6, 15, 16, 43 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.8
+        }
+      },
+      "date" : "2026-09-23"
+    }, {
+      "trainingThrough" : "2026-09-23",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 12, 15, 16, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 12, 15, 16, 26, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 6, 15, 25, 26, 27 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 6, 15, 27, 3, 12, 16 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.69
+        }
+      },
+      "date" : "2026-09-25"
+    }, {
+      "trainingThrough" : "2026-09-25",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 12, 15, 26, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 12, 15, 27, 33, 36 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 18, 27, 33, 36, 43 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 15, 3, 6, 27, 12, 16 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.97
+        }
+      },
+      "date" : "2026-09-27"
+    }, {
+      "trainingThrough" : "2026-09-27",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 12, 15, 16, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 3, 12, 15, 31, 36 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 3, 15, 25, 31, 39 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 15, 3, 6, 27, 12, 16 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.06,
+          "matched" : 0.93
+        }
+      },
+      "date" : "2026-09-30"
+    }, {
+      "trainingThrough" : "2026-09-30",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 2, 3, 6, 12, 15, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 2, 3, 15, 27, 31, 33 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 9, 12, 15, 27 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 15, 27, 3, 6, 2, 12 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.76
+        }
+      },
+      "date" : "2026-10-02"
+    }, {
+      "trainingThrough" : "2026-10-02",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 15, 27, 31, 33 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 6, 20, 27, 31, 33 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 6, 15, 20, 27, 31, 41 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 27, 6, 15, 3, 31, 2 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.76
+        }
+      },
+      "date" : "2026-10-04"
+    }, {
+      "trainingThrough" : "2026-10-04",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 20, 27, 31 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 15, 16, 20, 27, 31, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 15, 20, 27, 29, 40, 45 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 15, 27, 6, 3, 31, 2 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.71
+        }
+      },
+      "date" : "2026-10-07"
+    }, {
+      "trainingThrough" : "2026-10-07",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 27, 31, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 15, 20, 36, 37, 41, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 15, 27, 36, 37, 41, 43 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 15, 27, 6, 3, 31, 36 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.7
+        }
+      },
+      "date" : "2026-10-09"
+    }, {
+      "trainingThrough" : "2026-10-09",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 12, 15, 27, 41, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 12, 16, 31, 33, 41 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 6, 7, 12, 15, 27 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 15, 27, 6, 3, 12, 31 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.88
+        }
+      },
+      "date" : "2026-10-11"
+    }, {
+      "trainingThrough" : "2026-10-11",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 3, 6, 12, 15, 27, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 9, 15, 16, 29, 41 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 9, 15, 16, 27, 29 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 15, 27, 3, 6, 12, 16 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.76
+        }
+      },
+      "date" : "2026-10-14"
+    }, {
+      "trainingThrough" : "2026-10-14",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 27, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 6, 15, 16, 20, 33, 43 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 16, 21, 27, 43 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 27, 3, 16, 43 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.86
+        }
+      },
+      "date" : "2026-10-16"
+    }, {
+      "trainingThrough" : "2026-10-16",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 16, 27, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 9, 20, 26, 27, 36 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 9, 15, 20, 26, 36, 38 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 27, 3, 16, 36 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.89
+        }
+      },
+      "date" : "2026-10-18"
+    }, {
+      "trainingThrough" : "2026-10-18",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 27, 36, 43 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 9, 10, 27, 31, 38, 40 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 10, 15, 27, 31, 38, 40 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 27, 3, 16, 31 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.04,
+          "matched" : 0.76
+        }
+      },
+      "date" : "2026-10-21"
+    }, {
+      "trainingThrough" : "2026-10-21",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 27, 36 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 9, 10, 15, 27, 44, 45 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 4, 10, 14, 15, 22, 25 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 27, 3, 16, 31 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.75
+        }
+      },
+      "date" : "2026-10-23"
+    }, {
+      "trainingThrough" : "2026-10-23",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 3, 6, 15, 16, 27, 36 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : true,
+          "matched" : 3,
+          "numbers" : [ 2, 10, 11, 22, 40, 41 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 2, 3, 11, 16, 22, 40 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 6, 15, 27, 3, 16, 31 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.86
+        }
+      },
+      "date" : "2026-10-25"
+    } ],
+    "summary" : {
+      "temporal_learning" : {
+        "draws" : 29,
+        "hit3Rate" : 0.0,
+        "averageMatched" : 0.7586206896551724
+      },
+      "bayesian_graph" : {
+        "draws" : 29,
+        "hit3Rate" : 0.06896551724137931,
+        "averageMatched" : 0.9655172413793104
+      },
+      "deep_stacking" : {
+        "draws" : 29,
+        "hit3Rate" : 0.0,
+        "averageMatched" : 0.896551724137931
+      },
+      "frequency" : {
+        "draws" : 29,
+        "hit3Rate" : 0.0,
+        "averageMatched" : 0.7586206896551724
+      },
+      "uniform100" : {
+        "draws" : 29,
+        "hit3Rate" : 0.020689655172413793,
+        "averageMatched" : 0.7948275862068965
+      }
+    },
+    "category" : "MEGA",
+    "versions" : {
+      "temporal_learning" : "temporal-links-v2",
+      "bayesian_graph" : "legacy-source-bayesian_graph",
+      "deep_stacking" : "History-based heuristic"
+    }
+  }, {
+    "eligibleDraws" : 39,
+    "byDraw" : [ {
+      "trainingThrough" : "2026-08-18",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 5, 7, 14, 16, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 2, 14, 18, 27, 38, 41 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 14, 18, 27, 30, 38, 41 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 14, 27, 2, 5, 7, 16 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.63
+        }
+      },
+      "date" : "2026-08-20"
+    }, {
+      "trainingThrough" : "2026-08-20",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 14, 27, 29, 38, 39 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 29, 30, 38, 39, 51 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 5, 29, 38, 39, 51 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 14, 27, 29, 38, 39 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.69
+        }
+      },
+      "date" : "2026-08-22"
+    }, {
+      "trainingThrough" : "2026-08-22",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 14, 18, 27, 29, 38 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 8, 9, 18, 19, 25, 38 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 9, 18, 19, 25, 29, 38 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 14, 18, 27, 29, 38 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.65
+        }
+      },
+      "date" : "2026-08-25"
+    }, {
+      "trainingThrough" : "2026-08-25",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 5, 7, 14, 18, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 7, 14, 18, 39, 40 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 7, 14, 29, 38, 40 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 18, 2, 5, 7, 14, 27 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.04,
+          "matched" : 0.82
+        }
+      },
+      "date" : "2026-08-27"
+    }, {
+      "trainingThrough" : "2026-08-27",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 5, 7, 14, 18, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 3, 14, 18, 21, 44 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 3, 14, 18, 21, 29, 44 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 18, 2, 5, 7, 14, 27 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.61
+        }
+      },
+      "date" : "2026-08-29"
+    }, {
+      "trainingThrough" : "2026-08-29",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 5, 18, 29, 39, 44 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 10, 14, 29, 44, 45 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 10, 15, 29, 39, 45 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 18, 29, 2, 7, 14 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.47
+        }
+      },
+      "date" : "2026-09-01"
+    }, {
+      "trainingThrough" : "2026-09-01",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 18, 29, 38, 44, 45 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 18, 29, 41, 44, 45 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 41, 44, 45, 49, 55 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 18, 29, 44, 2, 7 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.67
+        }
+      },
+      "date" : "2026-09-03"
+    }, {
+      "trainingThrough" : "2026-09-03",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 18, 29, 44, 49, 55 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 8, 9, 16, 44, 45, 46 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 9, 16, 18, 42, 45, 47 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 18, 29, 44, 2, 7 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.04,
+          "matched" : 0.79
+        }
+      },
+      "date" : "2026-09-05"
+    }, {
+      "trainingThrough" : "2026-09-05",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 9, 11, 18, 29, 44 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 9, 11, 27, 31, 44, 47 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 9, 11, 18, 21, 31, 47 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 9, 18, 29, 44, 2 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.65
+        }
+      },
+      "date" : "2026-09-08"
+    }, {
+      "trainingThrough" : "2026-09-08",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 9, 11, 14, 18, 29 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 8, 9, 11, 14, 23, 25 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 8, 11, 14, 23, 25 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 9, 11, 14, 18, 29 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.67
+        }
+      },
+      "date" : "2026-09-10"
+    }, {
+      "trainingThrough" : "2026-09-10",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 5, 9, 11, 18, 44 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 5, 11, 29, 50, 51 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 2, 5, 11, 18, 50, 51 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 2, 9, 11, 14, 18 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.68
+        }
+      },
+      "date" : "2026-09-12"
+    }, {
+      "trainingThrough" : "2026-09-12",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 9, 11, 14, 44, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 5, 7, 24, 31, 47, 54 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 14, 24, 31, 54 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 2, 7, 9, 11, 14 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.65
+        }
+      },
+      "date" : "2026-09-15"
+    }, {
+      "trainingThrough" : "2026-09-15",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 5, 11, 24, 38, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 18, 24, 27, 38, 47 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 9, 11, 18, 27, 32, 38 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 47, 2, 7, 9, 11 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.52
+        }
+      },
+      "date" : "2026-09-17"
+    }, {
+      "trainingThrough" : "2026-09-17",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 5, 11, 24, 25, 27, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 5, 11, 24, 25, 27, 47 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 11, 15, 25, 27, 45, 47 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 5, 11, 27, 47, 2, 7 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.62
+        }
+      },
+      "date" : "2026-09-19"
+    }, {
+      "trainingThrough" : "2026-09-19",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 7, 11, 18, 25, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 7, 11, 18, 25, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 5, 7, 11, 18, 25, 50 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 11, 5, 7, 18, 25, 27 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.77
+        }
+      },
+      "date" : "2026-09-22"
+    }, {
+      "trainingThrough" : "2026-09-22",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 9, 11, 25, 27, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 9, 11, 25, 41, 47 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 1, 3, 5, 9, 41, 46 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 11, 5, 7, 9, 18, 25 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.62
+        }
+      },
+      "date" : "2026-09-24"
+    }, {
+      "trainingThrough" : "2026-09-24",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 1, 9, 11, 18, 25, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 9, 11, 23, 25, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 5, 11, 23, 27, 28 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 11, 25, 5, 7, 9, 18 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.74
+        }
+      },
+      "date" : "2026-09-26"
+    }, {
+      "trainingThrough" : "2026-09-26",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 11, 18, 25, 38, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 11, 14, 18, 25, 27, 38 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 11, 14, 18, 21, 38, 49 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 11, 18, 25, 5, 7, 9 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.65
+        }
+      },
+      "date" : "2026-09-29"
+    }, {
+      "trainingThrough" : "2026-09-29",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 7, 9, 11, 18, 25, 47 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 5, 11, 14, 18, 25 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 11, 13, 18, 25, 36 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 11, 18, 25, 2, 5, 7 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.69
+        }
+      },
+      "date" : "2026-10-01"
+    }, {
+      "trainingThrough" : "2026-10-01",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : true,
+          "matched" : 3,
+          "numbers" : [ 2, 5, 11, 13, 18, 25 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : true,
+          "matched" : 3,
+          "numbers" : [ 4, 5, 11, 13, 18, 25 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 4, 5, 11, 15, 52, 55 ]
+        },
+        "frequency" : {
+          "hit3" : true,
+          "matched" : 3,
+          "numbers" : [ 11, 5, 18, 25, 2, 7 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.74
+        }
+      },
+      "date" : "2026-10-03"
+    }, {
+      "trainingThrough" : "2026-10-03",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 5, 7, 11, 13, 18, 25 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 5, 7, 11, 13, 18, 25 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 7, 11, 16, 18, 41, 54 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 11, 18, 5, 7, 25, 2 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.02,
+          "matched" : 0.69
+        }
+      },
+      "date" : "2026-10-06"
+    }, {
+      "trainingThrough" : "2026-10-06",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 7, 11, 13, 18, 25, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 5, 7, 11, 18, 24, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : true,
+          "matched" : 3,
+          "numbers" : [ 1, 7, 11, 24, 25, 27 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 11, 18, 7, 5, 25, 27 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.72
+        }
+      },
+      "date" : "2026-10-08"
+    }, {
+      "trainingThrough" : "2026-10-08",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 7, 11, 18, 25, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 7, 11, 13, 18, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 11, 18, 25, 27, 31 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 7, 11, 18, 27, 5, 25 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.6
+        }
+      },
+      "date" : "2026-10-10"
+    }, {
+      "trainingThrough" : "2026-10-10",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 7, 11, 14, 18, 24, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 7, 14, 18, 23, 24, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 11, 14, 18, 21, 23, 24 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 7, 11, 18, 27, 5, 14 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.72
+        }
+      },
+      "date" : "2026-10-13"
+    }, {
+      "trainingThrough" : "2026-10-13",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 14, 18, 24, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 2, 7, 14, 24, 25, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 2, 7, 11, 14, 18, 40 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 18, 27, 14, 2 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.7
+        }
+      },
+      "date" : "2026-10-15"
+    }, {
+      "trainingThrough" : "2026-10-15",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 14, 18, 25, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 7, 14, 23, 24, 25, 27 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 11, 18, 23, 25, 45, 51 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 18, 27, 14, 25 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.0,
+          "matched" : 0.59
+        }
+      },
+      "date" : "2026-10-17"
+    }, {
+      "trainingThrough" : "2026-10-17",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 7, 11, 14, 18, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 1, 7, 11, 23, 25, 38 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 1, 7, 11, 14, 16, 18 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 7, 11, 18, 27, 14, 25 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.03,
+          "matched" : 0.75
+        }
+      },
+      "date" : "2026-10-20"
+    }, {
+      "trainingThrough" : "2026-10-20",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 14, 18, 23, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 1, 11, 13, 14, 23, 24 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 13, 18, 20, 45, 50, 55 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 18, 27, 14, 23 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.64
+        }
+      },
+      "date" : "2026-10-22"
+    }, {
+      "trainingThrough" : "2026-10-22",
+      "methods" : {
+        "temporal_learning" : {
+          "hit3" : false,
+          "matched" : 1,
+          "numbers" : [ 7, 11, 14, 23, 24, 27 ]
+        },
+        "bayesian_graph" : {
+          "hit3" : false,
+          "matched" : 0,
+          "numbers" : [ 5, 13, 14, 23, 24, 31 ]
+        },
+        "deep_stacking" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 7, 14, 18, 24, 31, 42 ]
+        },
+        "frequency" : {
+          "hit3" : false,
+          "matched" : 2,
+          "numbers" : [ 7, 11, 14, 18, 27, 23 ]
+        },
+        "uniform100" : {
+          "hit3Rate" : 0.01,
+          "matched" : 0.63
+        }
+      },
+      "date" : "2026-10-24"
+    } ],
+    "summary" : {
+      "temporal_learning" : {
+        "draws" : 29,
+        "hit3Rate" : 0.034482758620689655,
+        "averageMatched" : 0.896551724137931
+      },
+      "bayesian_graph" : {
+        "draws" : 29,
+        "hit3Rate" : 0.034482758620689655,
+        "averageMatched" : 0.9655172413793104
+      },
+      "deep_stacking" : {
+        "draws" : 29,
+        "hit3Rate" : 0.034482758620689655,
+        "averageMatched" : 0.896551724137931
+      },
+      "frequency" : {
+        "draws" : 29,
+        "hit3Rate" : 0.034482758620689655,
+        "averageMatched" : 0.8620689655172413
+      },
+      "uniform100" : {
+        "draws" : 29,
+        "hit3Rate" : 0.013448275862068966,
+        "averageMatched" : 0.6679310344827587
+      }
+    },
+    "category" : "POWER",
+    "versions" : {
+      "temporal_learning" : "temporal-links-v2",
+      "bayesian_graph" : "legacy-source-bayesian_graph",
+      "deep_stacking" : "History-based heuristic"
+    }
+  } ],
+  "limitations" : "Previously inspected repository development history, not an untouched test or prospective forecasts. No tuning from this report. One ticket per model/category/draw; random replicates are not independent draws.",
+  "protocol" : "revision-replay-v1",
+  "configuration" : "frozen code defaults; no parameter selection",
+  "inputSha256" : "4f2c902351f46dda6eedd7be6b11a5d1c28f445fc3fc06937c322b11a802bfc5"
+}

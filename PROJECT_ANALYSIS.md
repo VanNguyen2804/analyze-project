@@ -1,5 +1,29 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Triển khai mã 02/11/2026 — Sửa bốn phần scoring
+
+Đã thực hiện bốn mục rà soát theo yêu cầu người dùng. API patch cấu hình trả HTTP 400 với ba khóa không còn được scorer dùng (`poissonGapMinRatio`, `poissonGapMaxRatio`, `repeatExhaustionPenalty`), nhưng giữ nguyên cấu hình lịch sử khi merge một patch hợp lệ. Thêm tham số graph có validation: `pairGraphPriorStrength` mặc định 8 và `pairGraphMinSupport` mặc định 3; `coOccurrenceWeight` hiện thực sự điều khiển thành phần graph của Bayes.
+
+`DrawTransitionModel` ở domain chỉ học các cặp kỳ liên tiếp theo lịch, dùng số lần nguồn có đích hợp lệ làm mẫu số và không dùng context cũ qua khoảng thiếu. `TemporalRelationshipModel` phiên bản `temporal-links-v3` bỏ expert `special_to_main` khỏi trọng số, cập nhật thành tích và explanation của MEGA; POWER giữ chín expert. `PairRelationshipModel` đo residual đồng xuất hiện so với mức tham chiếu có hiệu chỉnh chọn sáu số không hoàn lại, giới hạn theo marginal, ngưỡng support và làm trơn; thay graph degree đếm lại tần suất. Đây là heuristic, mức tham chiếu chỉ chính xác ở trường hợp đồng đều, chưa phải mô hình đã xác nhận khả năng dự đoán.
+
+Scorer Bayes mang phiên bản `bayesian-pair-excess-v2`, deep stacking `copula-scheduled-v2`; cả lượt chính/phụ và workspace lưu đúng phiên bản. Fingerprint bao gồm helper mới; explanation đóng băng diagnostics chuyển tiếp. Không thay snapshot cũ, migration, UI hoặc dependencies. Công thức, cấu hình và giới hạn tại [scoring](backend/docs/ALGORITHM_SCORING.md).
+
+Kiểm chứng: Angular build và Maven `clean install` đạt; 100 kiểm thử chạy đạt, gồm bốn kiểm thử PostgreSQL thật và phát lại phát triển, hai báo cáo có điều kiện cũ được bỏ qua. 23 assets Angular khớp byte trong JAR. Server PostgreSQL kiểm thử đã tắt; chưa triển khai hoặc sửa production.
+
+Phát lại code cũ/mới trên cùng byte dữ liệu, 29 kỳ mỗi loại sau mười kỳ khởi tạo, một vé/thuật toán/kỳ: temporal MEGA 0.759 → 0.724 số khớp/vé; Bayes MEGA 0.966 → 0.862, POWER 0.966 → 0.724; deep stacking POWER 0.897 → 0.966. Temporal POWER và deep stacking MEGA giữ số khớp TB. Không có cải thiện đồng đều; không chọn lại tham số theo báo cáo. Đây là lịch sử phát triển đến 25/10, không phải đánh giá production hiện tại hoặc bằng chứng tăng xác suất trúng. Xem [so sánh đầy đủ và dữ liệu tái lập](backend/docs/reports/algorithm-revision-2026-11-02.md).
+
+## Rà soát thuật toán 02/11/2026 — Các cập nhật nên ưu tiên
+
+Đối chiếu code sau refactor Onion và các báo cáo phát triển 26–28/10, cùng đối chiếu kỳ MEGA 01/11. Chưa thay thuật toán, tham số, UI hoặc dữ liệu; chưa chạy backtest mới hoặc đọc lại metric production. Các kết quả lịch sử bên dưới chỉ là snapshot đã có.
+
+- **Hợp đồng cấu hình:** `PredictionParameters` vẫn chấp nhận `poissonGapMinRatio`, `poissonGapMaxRatio`, `repeatExhaustionPenalty`, nhưng `AnalyzeService` chỉ khai báo/đọc các giá trị này, không dùng chúng để tính điểm hoặc chọn vé. Cần loại khỏi danh sách patch có hiệu lực hoặc thiết kế lại cách dùng có kiểm chứng; không tự nối các hệ số cũ vào công thức rồi coi là cải thiện.
+- **Liên kết qua kỳ thiếu:** `TemporalRelationshipModel` đã kiểm tra liên tiếp theo lịch. Khối dựng `transitionMatrix` trong `AnalyzeService` vẫn nối hai phần tử liền nhau của history mà không kiểm tra lịch; ma trận này được nhánh heuristic dùng để tính điểm Markov. Cần áp dụng cùng quy tắc loại chuyển tiếp qua khoảng thiếu và thêm regression test. Đây là rủi ro khi history thiếu kỳ, không phải bằng chứng dữ liệu hiện tại đang thiếu.
+- **Thành phần trùng trong MEGA:** MEGA không có số phụ, nhưng temporal vẫn phân trọng số cho `special_to_main`. Thành phần này trả lại marginal frequency, trùng với expert frequency. Cần thử loại expert không áp dụng theo category và chuẩn hóa trọng số trên các expert hoạt động; lưu phiên bản mô hình mới. Việc bỏ trùng chưa chứng minh tăng số khớp.
+- **Điểm graph chưa đo liên kết độc lập:** với các kỳ hợp lệ đúng sáu số, cách cộng `pairMatrix` hiện tại khiến tổng hàng bằng `5 * frequency[number]`. Vì vậy `coOccurSum` trong nhánh Bayes chỉ là biến đổi của tần suất; sau ngưỡng cap còn có thể bão hòa. Không suy rộng kết luận này sang mọi phép dùng ma trận cặp hoặc Jaccard. Một ứng viên mới có thể đo phần đồng xuất hiện vượt kỳ vọng khi lấy sáu số không hoàn lại, có làm trơn và ngưỡng support; cần đánh giá trước khi thay mặc định.
+- **Thực nghiệm:** giữ mô hình cũ làm đối chứng, tách MEGA/POWER, đo ranking riêng với phân bổ vé, dùng cùng kỳ/cùng ngân sách và nhiều seed đối chứng đã định trước. Chọn cấu hình trên dữ liệu phát triển theo walk-forward, đóng băng ứng viên rồi xác nhận trên các kỳ tương lai mới. Báo cáo 28/10 thử trọng số 0,25/0,5/0,75 chưa cho lợi thế ổn định; không dùng lại nó làm tập giữ kín. Chưa có cơ sở đổi trọng số hoặc thêm mô hình phức tạp chỉ từ một kỳ thua.
+
+Thứ tự đề xuất: sửa hợp đồng cấu hình và xử lý khoảng thiếu trước; sau đó thử một phiên bản temporal không có expert trùng, rồi mới nghiên cứu lại điểm graph. Kiểm chứng đợt rà soát này là đọc code, đối chiếu công thức và báo cáo hiện có; chỉ cập nhật tài liệu nên không chạy build ứng dụng.
+
 ## Refactor 02/11/2026 — Backend theo Onion Architecture
 
 Tách backend thành `domain`, `application`, `infrastructure`, `presentation`. Domain chứa mô hình thuần Java và các quy tắc chọn lịch sử, quan hệ theo thời gian, rank fusion/danh mục vé; không phụ thuộc Spring/JPA/Jackson. Application điều phối use case qua repository/store ports thuần Java, không phụ thuộc implementation database hoặc HTTP. JPA entities được tách riêng và ánh xạ hai chiều, giữ ID/timestamp, thứ tự số và toàn bộ audit JSON; collection được sao chép để tránh sửa entity qua domain. Spring Data và JDBC implements các ports; cấu hình lắp ghép tại `infrastructure/config/ApplicationConfig.java`.

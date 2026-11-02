@@ -18,7 +18,7 @@ public class MegaPortfolioService {
     private final Clock clock;
     private final ReentrantLock lock=new ReentrantLock();
     private final String codeVersion=WorkspaceProtocol.fingerprint(MegaPortfolioProtocol.class,TicketPortfolio.class,
-            AnalyzeService.class,TemporalRelationshipModel.class,PredictionSupport.class,ForecastProtocol.class,DrawQuality.class,WorkspaceProtocol.class);
+            AnalyzeService.class,TemporalRelationshipModel.class,PairRelationshipModel.class,DrawTransitionModel.class,PredictionSupport.class,ForecastProtocol.class,DrawQuality.class,WorkspaceProtocol.class);
     private volatile Map<String,Object> lastRun=map("status","NOT_RUN");
     public MegaPortfolioService(AnalyzeService analyze,LotteryNumberRepository draws,MegaPortfolioStore store,ForecastStore forecasts,AiLabStore lab,
             boolean enabled) {

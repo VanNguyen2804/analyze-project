@@ -3,6 +3,7 @@ import com.example.analyzeproject.domain.service.*;
 
 import com.example.analyzeproject.application.dto.PredictionResponseDto;
 import com.example.analyzeproject.domain.model.LotteryNumber;
+import com.example.analyzeproject.domain.model.AlgorithmHyperparameter;
 import com.example.analyzeproject.application.port.out.*;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
@@ -16,6 +17,50 @@ class AnalyzeServiceTest {
     private final AlgorithmHyperparameterRepository parameters = mock(AlgorithmHyperparameterRepository.class);
     private final AnalyzeService service = new AnalyzeService(repository, mock(UserTicketRepository.class),
             parameters, null);
+
+    @Test void bayesPairParametersActuallyControlScoringAndVersionsMatchBothSlots() {
+        var draws=history("MEGA",0);
+        var off=new AlgorithmHyperparameter(); off.setHyperparametersJson("{\"coOccurrenceWeight\":0,\"pairGraphMinSupport\":1}");
+        var on=new AlgorithmHyperparameter(); on.setHyperparametersJson("{\"coOccurrenceWeight\":1,\"pairGraphMinSupport\":1}");
+        var unsupported=new AlgorithmHyperparameter(); unsupported.setHyperparametersJson("{\"coOccurrenceWeight\":1,\"pairGraphMinSupport\":1000}");
+        var smoothed=new AlgorithmHyperparameter(); smoothed.setHyperparametersJson("{\"coOccurrenceWeight\":1,\"pairGraphPriorStrength\":1000,\"pairGraphMinSupport\":1}");
+        var zero=service.analyzeAndPredictWithConfiguration("MEGA","bayesian_graph","temporal_learning",draws,off);
+        var normal=service.analyzeAndPredictWithConfiguration("MEGA","bayesian_graph","temporal_learning",draws,on);
+        var neutral=service.analyzeAndPredictWithConfiguration("MEGA","bayesian_graph","temporal_learning",draws,unsupported);
+        var shrunk=service.analyzeAndPredictWithConfiguration("MEGA","bayesian_graph","temporal_learning",draws,smoothed);
+        assertEquals(AnalyzeService.BAYES_VERSION,normal.getModelVersion());
+        assertEquals(TemporalRelationshipModel.VERSION,normal.getSecondaryAlgorithmResult().get("modelVersion"));
+        var zeroDetails=byNumber(zero.getPrimaryAlgorithmResult());
+        var details=byNumber(normal.getPrimaryAlgorithmResult());
+        var neutralDetails=byNumber(neutral.getPrimaryAlgorithmResult());
+        var shrunkDetails=byNumber(shrunk.getPrimaryAlgorithmResult());
+        assertTrue(details.keySet().stream().anyMatch(n->!details.get(n).get("score").equals(zeroDetails.get(n).get("score"))));
+        for(int n:details.keySet()) {
+            assertEquals(zeroDetails.get(n).get("score"),neutralDetails.get(n).get("score"));
+            Map<?,?> feature=(Map<?,?>)details.get(n).get("features"), smaller=(Map<?,?>)shrunkDetails.get(n).get("features");
+            assertTrue(Math.abs(((Number)smaller.get("pairGraph")).doubleValue())<=Math.abs(((Number)feature.get("pairGraph")).doubleValue()));
+        }
+    }
+
+    @Test void stackUsesGapSafeTransitionsInBothScoringSlotsAndFreezesDiagnostics() {
+        var input=List.of(TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,1),"POWER",List.of(1,2,3,4,5,6),55,null)),
+                TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,6),"POWER",List.of(20,21,22,23,24,25),55,null)));
+        var response=service.analyzeAndPredictWithConfiguration("POWER","deep_stacking","deep_stacking",input,null);
+        for(var slot:List.of(response.getPrimaryAlgorithmResult(),response.getSecondaryAlgorithmResult())) {
+            assertEquals(AnalyzeService.STACK_VERSION,slot.get("modelVersion"));
+            var diagnostics=(Map<?,?>)slot.get("scoringDiagnostics");
+            assertEquals(0,diagnostics.get("learnedTransitions")); assertEquals(1,diagnostics.get("skippedGapTransitions"));
+            for(var detail:byNumber(slot).values()) assertEquals(0.0,((Map<?,?>)detail.get("features")).get("markov2"));
+            assertEquals(diagnostics,PredictionExplanation.fromResult(slot).get("scoringDiagnostics"));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<Integer,Map<String,Object>> byNumber(Map<String,Object> result) {
+        var values=new HashMap<Integer,Map<String,Object>>();
+        for(var detail:(List<Map<String,Object>>)result.get("allDetails")) values.put(((Number)detail.get("number")).intValue(),detail);
+        return values;
+    }
 
     private List<LotteryNumber> history(String category, int offset) {
         List<LotteryNumber> result = new ArrayList<>();
