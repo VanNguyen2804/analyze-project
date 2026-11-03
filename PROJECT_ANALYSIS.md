@@ -6,6 +6,8 @@ Theo yêu cầu đổi cả cách học, Logistic mới mang phiên bản `ai-la
 
 Thêm `AiLabProgress` tính trung bình, tổng lượt khớp, histogram đúng 0–6, các mức ≥1/≥2/≥3 và timeline chỉ từ kỳ có đủ năm vé đã đối soát; trả cùng cohort cũ để giữ phân tách phiên bản. Component `lab-progress` hiển thị mức ≥1 mặc định và cho đổi mức; mức cao nhất đã quan sát không phải trạng thái ứng viên. Cổng sàng lọc ≥3/60 kỳ giữ nguyên. [Chi tiết phương pháp và cấu hình](backend/docs/AI_LAB_PROGRESSIVE_LEARNING.md). Chưa có bằng chứng cải thiện xác suất trúng; tổng lượt khớp không phải một vé ghép từ nhiều kỳ.
 
+Kiểm chứng: Angular build, Maven clean install/install, typecheck và định dạng frontend thay đổi đạt; 52 kiểm thử Angular và 110 kiểm thử Java đạt, tám kiểm thử Java có điều kiện bỏ qua. 24 assets Angular khớp byte trong JAR. Không chạy PostgreSQL thật, không sửa dữ liệu production hoặc triển khai hosting.
+
 ## Trang chứng khoán 03/11/2026
 
 Thêm lazy route `/stocks` và `/stocks/:symbol`, menu chứng khoán; ẩn bộ chọn MEGA/POWER và lịch xổ số theo route, giữ các trang xổ số hiện có. Frontend có watchlist, biểu đồ Lightweight Charts 5.2.0, hai mode, form vị thế theo snapshot; không lưu/log vị thế. Backend theo Onion: `StockMarketDataPort`, adapter Entrade, `StockService`, các record stock và `StockController`; cache RAM, không migration hoặc lưu dữ liệu thị trường bền khi chưa xác minh quyền dùng.
