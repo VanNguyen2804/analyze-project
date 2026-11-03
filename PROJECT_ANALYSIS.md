@@ -1,5 +1,13 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Trang chứng khoán 03/11/2026
+
+Thêm lazy route `/stocks` và `/stocks/:symbol`, menu chứng khoán; ẩn bộ chọn MEGA/POWER và lịch xổ số theo route, giữ các trang xổ số hiện có. Frontend có watchlist, biểu đồ Lightweight Charts 5.2.0, hai mode, form vị thế theo snapshot; không lưu/log vị thế. Backend theo Onion: `StockMarketDataPort`, adapter Entrade, `StockService`, các record stock và `StockController`; cache RAM, không migration hoặc lưu dữ liệu thị trường bền khi chưa xác minh quyền dùng.
+
+Mô hình `stock-softmax-purged-v1` là logistic regression đa lớp thực sự học trọng số trên OHLCV, tách theo mã/mode; ba đoạn kiểm định mở rộng, purge nhãn tương lai, scaler fit trên train, baseline lớp phổ biến. Chỉ xét tín hiệu mua/bán khi kiểm định và chất lượng dữ liệu đạt; mặc định nguồn chưa verified nên khóa hành động/P&L VND. Báo cáo dữ liệu thật ngày 03/11: bốn mã có 1.246 nến ngày, FPT 672 nến 15 phút; cả bốn SWING và FPT INTRADAY chưa vượt điều kiện kiểm định. Không có bằng chứng hiệu quả giao dịch hoặc lợi nhuận thực thi. Các metric là kết quả khảo sát dữ liệu cơ sở giá chưa xác minh.
+
+Chi tiết cấu hình, API, công thức, giới hạn và phần chưa triển khai của kế hoạch gốc tại [STOCKS_IMPLEMENTATION.md](backend/docs/STOCKS_IMPLEMENTATION.md). Bản đầu chưa có sự kiện quyền/lịch sàn hoàn chỉnh, lưu model/ledger, hoặc backtest lợi nhuận sau thanh toán/khớp lệnh; không coi đã hoàn tất mọi giai đoạn kế hoạch.
+
 ## Triển khai mã 02/11/2026 — Sửa bốn phần scoring
 
 Đã thực hiện bốn mục rà soát theo yêu cầu người dùng. API patch cấu hình trả HTTP 400 với ba khóa không còn được scorer dùng (`poissonGapMinRatio`, `poissonGapMaxRatio`, `repeatExhaustionPenalty`), nhưng giữ nguyên cấu hình lịch sử khi merge một patch hợp lệ. Thêm tham số graph có validation: `pairGraphPriorStrength` mặc định 8 và `pairGraphMinSupport` mặc định 3; `coOccurrenceWeight` hiện thực sự điều khiển thành phần graph của Bayes.

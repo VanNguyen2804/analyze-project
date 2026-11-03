@@ -1,0 +1,378 @@
+{
+  "source" : "DNSE/Entrade",
+  "priceBasis" : "UNKNOWN",
+  "results" : [ {
+    "symbol" : "VIC",
+    "mode" : "SWING",
+    "bars" : 1246,
+    "closedBars" : 1246,
+    "warnings" : [ "Chưa xác minh đầy đủ đơn vị, cơ sở giá, timestamp và lịch sàn; khóa tín hiệu hành động và tính lãi/lỗ VND.", "Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ." ],
+    "lastBarAt" : 1793671200,
+    "learning" : {
+      "version" : "stock-softmax-purged-v1",
+      "status" : "VALIDATION_WEAK",
+      "signal" : "WATCH",
+      "horizonBars" : 10,
+      "trainSamples" : 1181,
+      "testSamples" : 414,
+      "accuracy" : 0.24396135265700483,
+      "balancedAccuracy" : 0.24575337173762368,
+      "baselineAccuracy" : 0.30676328502415456,
+      "logLoss" : 1.442133431214849,
+      "buyScore" : 0.25142089614874796,
+      "holdScore" : 0.473647460616584,
+      "sellScore" : 0.2749316432346679,
+      "trainingLabelsThrough" : 1793671200,
+      "weights" : [ {
+        "feature" : "Lợi suất 1 nến",
+        "buyWeight" : 0.03932650254419044,
+        "sellWeight" : -0.005546941979032482
+      }, {
+        "feature" : "Lợi suất 5 nến",
+        "buyWeight" : 0.04322098656379113,
+        "sellWeight" : -0.06831367897287015
+      }, {
+        "feature" : "Khoảng cách EMA",
+        "buyWeight" : 0.08505456447451899,
+        "sellWeight" : -0.01153076050605716
+      }, {
+        "feature" : "RSI",
+        "buyWeight" : -0.056169844426241844,
+        "sellWeight" : 0.05428994414636355
+      }, {
+        "feature" : "ATR",
+        "buyWeight" : 0.13664384242347388,
+        "sellWeight" : 0.02854798209073272
+      }, {
+        "feature" : "Khối lượng tương đối",
+        "buyWeight" : 0.09256851900650323,
+        "sellWeight" : 0.04876432626656168
+      } ],
+      "validationFolds" : [ {
+        "trainingLabelThrough" : 1740016800,
+        "validationFrom" : 1740103200,
+        "validationThrough" : 1757469600
+      }, {
+        "trainingLabelThrough" : 1757469600,
+        "validationFrom" : 1757556000,
+        "validationThrough" : 1775008800
+      }, {
+        "trainingLabelThrough" : 1775008800,
+        "validationFrom" : 1775095200,
+        "validationThrough" : 1792461600
+      } ],
+      "explanation" : "Softmax 3 lớp: giảm / trung tính / tăng. Kiểm định mở rộng 3 đoạn theo thời gian, purge 10 nến; chuẩn hóa chỉ trên tập huấn luyện. Nhãn từ open nến sau đến close sau 10 nến, chi phí giả định 0.4%. Điểm mô hình chưa hiệu chuẩn, không phải xác suất lời. Đây là kiểm định phân loại, chưa mô phỏng lợi nhuận, thanh toán hoặc khả năng khớp lệnh."
+    }
+  }, {
+    "symbol" : "FPT",
+    "mode" : "SWING",
+    "bars" : 1246,
+    "closedBars" : 1246,
+    "warnings" : [ "Chưa xác minh đầy đủ đơn vị, cơ sở giá, timestamp và lịch sàn; khóa tín hiệu hành động và tính lãi/lỗ VND.", "Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ." ],
+    "lastBarAt" : 1793671200,
+    "learning" : {
+      "version" : "stock-softmax-purged-v1",
+      "status" : "VALIDATION_WEAK",
+      "signal" : "WATCH",
+      "horizonBars" : 10,
+      "trainSamples" : 1181,
+      "testSamples" : 414,
+      "accuracy" : 0.42995169082125606,
+      "balancedAccuracy" : 0.3409487576910431,
+      "baselineAccuracy" : 0.45410628019323673,
+      "logLoss" : 1.106130410466203,
+      "buyScore" : 0.27615581745053286,
+      "holdScore" : 0.3500750835517524,
+      "sellScore" : 0.3737690989977148,
+      "trainingLabelsThrough" : 1793671200,
+      "weights" : [ {
+        "feature" : "Lợi suất 1 nến",
+        "buyWeight" : -0.02160830863411374,
+        "sellWeight" : 0.09332805985537511
+      }, {
+        "feature" : "Lợi suất 5 nến",
+        "buyWeight" : -0.002006732740214985,
+        "sellWeight" : -0.023841213434787092
+      }, {
+        "feature" : "Khoảng cách EMA",
+        "buyWeight" : -0.07258473795122176,
+        "sellWeight" : 0.07208811058612546
+      }, {
+        "feature" : "RSI",
+        "buyWeight" : 0.09718724289470611,
+        "sellWeight" : -0.22959652528209534
+      }, {
+        "feature" : "ATR",
+        "buyWeight" : -0.11531905618914953,
+        "sellWeight" : 0.028495242758980032
+      }, {
+        "feature" : "Khối lượng tương đối",
+        "buyWeight" : 0.13440859461920202,
+        "sellWeight" : 0.011023041980303286
+      } ],
+      "validationFolds" : [ {
+        "trainingLabelThrough" : 1740016800,
+        "validationFrom" : 1740103200,
+        "validationThrough" : 1757469600
+      }, {
+        "trainingLabelThrough" : 1757469600,
+        "validationFrom" : 1757556000,
+        "validationThrough" : 1775008800
+      }, {
+        "trainingLabelThrough" : 1775008800,
+        "validationFrom" : 1775095200,
+        "validationThrough" : 1792461600
+      } ],
+      "explanation" : "Softmax 3 lớp: giảm / trung tính / tăng. Kiểm định mở rộng 3 đoạn theo thời gian, purge 10 nến; chuẩn hóa chỉ trên tập huấn luyện. Nhãn từ open nến sau đến close sau 10 nến, chi phí giả định 0.4%. Điểm mô hình chưa hiệu chuẩn, không phải xác suất lời. Đây là kiểm định phân loại, chưa mô phỏng lợi nhuận, thanh toán hoặc khả năng khớp lệnh."
+    }
+  }, {
+    "symbol" : "FPT",
+    "mode" : "INTRADAY",
+    "bars" : 672,
+    "closedBars" : 672,
+    "warnings" : [ "Chưa xác minh đầy đủ đơn vị, cơ sở giá, timestamp và lịch sàn; khóa tín hiệu hành động và tính lãi/lỗ VND.", "Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ." ],
+    "lastBarAt" : 1793691900,
+    "learning" : {
+      "version" : "stock-softmax-purged-v1",
+      "status" : "VALIDATION_WEAK",
+      "signal" : "WATCH",
+      "horizonBars" : 4,
+      "trainSamples" : 461,
+      "testSamples" : 163,
+      "accuracy" : 0.7852760736196319,
+      "balancedAccuracy" : 0.3333333333333333,
+      "baselineAccuracy" : 0.7852760736196319,
+      "logLoss" : 0.677651528784985,
+      "buyScore" : 0.04373009706117899,
+      "holdScore" : 0.8236208030248396,
+      "sellScore" : 0.13264909991398144,
+      "trainingLabelsThrough" : 1793691900,
+      "weights" : [ {
+        "feature" : "Lợi suất 1 nến",
+        "buyWeight" : 0.05488690687868446,
+        "sellWeight" : 0.03761399450882297
+      }, {
+        "feature" : "Lợi suất 5 nến",
+        "buyWeight" : 0.03593941160102796,
+        "sellWeight" : -0.13979733223901683
+      }, {
+        "feature" : "Khoảng cách EMA",
+        "buyWeight" : -0.08322053669719749,
+        "sellWeight" : -0.029814531098923076
+      }, {
+        "feature" : "RSI",
+        "buyWeight" : -0.0876307582750871,
+        "sellWeight" : 0.01305941262104474
+      }, {
+        "feature" : "ATR",
+        "buyWeight" : -0.0720220680006528,
+        "sellWeight" : 0.061937539064168816
+      }, {
+        "feature" : "Khối lượng tương đối",
+        "buyWeight" : 0.05012321861696716,
+        "sellWeight" : 0.03622852244643661
+      } ],
+      "validationFolds" : [ {
+        "trainingLabelThrough" : 1792034100,
+        "validationFrom" : 1792035000,
+        "validationThrough" : 1792564200
+      }, {
+        "trainingLabelThrough" : 1792564200,
+        "validationFrom" : 1792565100,
+        "validationThrough" : 1793156400
+      }, {
+        "trainingLabelThrough" : 1793156400,
+        "validationFrom" : 1793157300,
+        "validationThrough" : 1793687400
+      } ],
+      "explanation" : "Softmax 3 lớp: giảm / trung tính / tăng. Kiểm định mở rộng 3 đoạn theo thời gian, purge 4 nến; chuẩn hóa chỉ trên tập huấn luyện. Nhãn từ open nến sau đến close sau 4 nến, chi phí giả định 0.4%. Điểm mô hình chưa hiệu chuẩn, không phải xác suất lời. Đây là kiểm định phân loại, chưa mô phỏng lợi nhuận, thanh toán hoặc khả năng khớp lệnh."
+    }
+  }, {
+    "symbol" : "SZC",
+    "mode" : "SWING",
+    "bars" : 1246,
+    "closedBars" : 1246,
+    "warnings" : [ "Chưa xác minh đầy đủ đơn vị, cơ sở giá, timestamp và lịch sàn; khóa tín hiệu hành động và tính lãi/lỗ VND.", "Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ." ],
+    "lastBarAt" : 1793671200,
+    "learning" : {
+      "version" : "stock-softmax-purged-v1",
+      "status" : "VALIDATION_WEAK",
+      "signal" : "WATCH",
+      "horizonBars" : 10,
+      "trainSamples" : 1181,
+      "testSamples" : 414,
+      "accuracy" : 0.34057971014492755,
+      "balancedAccuracy" : 0.326993787127599,
+      "baselineAccuracy" : 0.4323671497584541,
+      "logLoss" : 1.115764227284815,
+      "buyScore" : 0.23739329656080224,
+      "holdScore" : 0.5118136571986358,
+      "sellScore" : 0.2507930462405619,
+      "trainingLabelsThrough" : 1793671200,
+      "weights" : [ {
+        "feature" : "Lợi suất 1 nến",
+        "buyWeight" : -0.010464074814989018,
+        "sellWeight" : 0.018259857572728848
+      }, {
+        "feature" : "Lợi suất 5 nến",
+        "buyWeight" : 0.03326349629857799,
+        "sellWeight" : -0.020251361367925467
+      }, {
+        "feature" : "Khoảng cách EMA",
+        "buyWeight" : -0.08414179427459072,
+        "sellWeight" : -0.0800825523144695
+      }, {
+        "feature" : "RSI",
+        "buyWeight" : 0.004305428409106368,
+        "sellWeight" : -0.09524588092148645
+      }, {
+        "feature" : "ATR",
+        "buyWeight" : 0.07298763388881585,
+        "sellWeight" : -0.1780802420486314
+      }, {
+        "feature" : "Khối lượng tương đối",
+        "buyWeight" : -0.04898342297980179,
+        "sellWeight" : 0.018759498616887072
+      } ],
+      "validationFolds" : [ {
+        "trainingLabelThrough" : 1740016800,
+        "validationFrom" : 1740103200,
+        "validationThrough" : 1757469600
+      }, {
+        "trainingLabelThrough" : 1757469600,
+        "validationFrom" : 1757556000,
+        "validationThrough" : 1775008800
+      }, {
+        "trainingLabelThrough" : 1775008800,
+        "validationFrom" : 1775095200,
+        "validationThrough" : 1792461600
+      } ],
+      "explanation" : "Softmax 3 lớp: giảm / trung tính / tăng. Kiểm định mở rộng 3 đoạn theo thời gian, purge 10 nến; chuẩn hóa chỉ trên tập huấn luyện. Nhãn từ open nến sau đến close sau 10 nến, chi phí giả định 0.4%. Điểm mô hình chưa hiệu chuẩn, không phải xác suất lời. Đây là kiểm định phân loại, chưa mô phỏng lợi nhuận, thanh toán hoặc khả năng khớp lệnh."
+    }
+  }, {
+    "symbol" : "MBB",
+    "mode" : "SWING",
+    "bars" : 1246,
+    "closedBars" : 1246,
+    "warnings" : [ "Chưa xác minh đầy đủ đơn vị, cơ sở giá, timestamp và lịch sàn; khóa tín hiệu hành động và tính lãi/lỗ VND.", "Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ." ],
+    "lastBarAt" : 1793671200,
+    "learning" : {
+      "version" : "stock-softmax-purged-v1",
+      "status" : "VALIDATION_WEAK",
+      "signal" : "WATCH",
+      "horizonBars" : 10,
+      "trainSamples" : 1181,
+      "testSamples" : 414,
+      "accuracy" : 0.43719806763285024,
+      "balancedAccuracy" : 0.3339107780732146,
+      "baselineAccuracy" : 0.4758454106280193,
+      "logLoss" : 1.049240746722846,
+      "buyScore" : 0.3397083757345977,
+      "holdScore" : 0.3726934571969359,
+      "sellScore" : 0.2875981670684663,
+      "trainingLabelsThrough" : 1793671200,
+      "weights" : [ {
+        "feature" : "Lợi suất 1 nến",
+        "buyWeight" : -0.010320095559203548,
+        "sellWeight" : -0.008353360518550831
+      }, {
+        "feature" : "Lợi suất 5 nến",
+        "buyWeight" : -0.05679802010242504,
+        "sellWeight" : 0.04336053108765002
+      }, {
+        "feature" : "Khoảng cách EMA",
+        "buyWeight" : -0.009168704983279048,
+        "sellWeight" : 0.016707714312376984
+      }, {
+        "feature" : "RSI",
+        "buyWeight" : -0.046181523499041074,
+        "sellWeight" : -0.05045207903952752
+      }, {
+        "feature" : "ATR",
+        "buyWeight" : -0.19797896760637426,
+        "sellWeight" : -0.018029874559602373
+      }, {
+        "feature" : "Khối lượng tương đối",
+        "buyWeight" : -0.0727308370999642,
+        "sellWeight" : 0.11177209276243319
+      } ],
+      "validationFolds" : [ {
+        "trainingLabelThrough" : 1740016800,
+        "validationFrom" : 1740103200,
+        "validationThrough" : 1757469600
+      }, {
+        "trainingLabelThrough" : 1757469600,
+        "validationFrom" : 1757556000,
+        "validationThrough" : 1775008800
+      }, {
+        "trainingLabelThrough" : 1775008800,
+        "validationFrom" : 1775095200,
+        "validationThrough" : 1792461600
+      } ],
+      "explanation" : "Softmax 3 lớp: giảm / trung tính / tăng. Kiểm định mở rộng 3 đoạn theo thời gian, purge 10 nến; chuẩn hóa chỉ trên tập huấn luyện. Nhãn từ open nến sau đến close sau 10 nến, chi phí giả định 0.4%. Điểm mô hình chưa hiệu chuẩn, không phải xác suất lời. Đây là kiểm định phân loại, chưa mô phỏng lợi nhuận, thanh toán hoặc khả năng khớp lệnh."
+    }
+  }, {
+    "symbol" : "VNINDEX",
+    "mode" : "SWING",
+    "bars" : 1243,
+    "closedBars" : 1243,
+    "warnings" : [ "Chưa xác minh đầy đủ đơn vị, cơ sở giá, timestamp và lịch sàn; khóa tín hiệu hành động và tính lãi/lỗ VND.", "Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ." ],
+    "lastBarAt" : 1793671200,
+    "learning" : {
+      "version" : "stock-softmax-purged-v1",
+      "status" : "EXPERIMENTAL",
+      "signal" : "WATCH",
+      "horizonBars" : 10,
+      "trainSamples" : 1178,
+      "testSamples" : 413,
+      "accuracy" : 0.3414043583535109,
+      "balancedAccuracy" : 0.337989417989418,
+      "baselineAccuracy" : 0.3268765133171913,
+      "logLoss" : 1.1347583182540215,
+      "buyScore" : 0.35993567575213953,
+      "holdScore" : 0.35363443204701617,
+      "sellScore" : 0.2864298922008443,
+      "trainingLabelsThrough" : 1793671200,
+      "weights" : [ {
+        "feature" : "Lợi suất 1 nến",
+        "buyWeight" : -0.012194712703999707,
+        "sellWeight" : -0.0014995125884519184
+      }, {
+        "feature" : "Lợi suất 5 nến",
+        "buyWeight" : 0.041597128530503936,
+        "sellWeight" : -0.0599517420073164
+      }, {
+        "feature" : "Khoảng cách EMA",
+        "buyWeight" : -0.09566928261998024,
+        "sellWeight" : 0.0742804422296277
+      }, {
+        "feature" : "RSI",
+        "buyWeight" : -0.03103596573516902,
+        "sellWeight" : -0.032806700588715716
+      }, {
+        "feature" : "ATR",
+        "buyWeight" : -0.15852647932372255,
+        "sellWeight" : -0.04437842162980696
+      }, {
+        "feature" : "Khối lượng tương đối",
+        "buyWeight" : -0.005788905834189778,
+        "sellWeight" : -0.009962240262120824
+      } ],
+      "validationFolds" : [ {
+        "trainingLabelThrough" : 1740104100,
+        "validationFrom" : 1740363300,
+        "validationThrough" : 1757469600
+      }, {
+        "trainingLabelThrough" : 1757469600,
+        "validationFrom" : 1757556000,
+        "validationThrough" : 1775008800
+      }, {
+        "trainingLabelThrough" : 1775008800,
+        "validationFrom" : 1775095200,
+        "validationThrough" : 1792461600
+      } ],
+      "explanation" : "Softmax 3 lớp: giảm / trung tính / tăng. Kiểm định mở rộng 3 đoạn theo thời gian, purge 10 nến; chuẩn hóa chỉ trên tập huấn luyện. Nhãn từ open nến sau đến close sau 10 nến, chi phí giả định 0.4%. Điểm mô hình chưa hiệu chuẩn, không phải xác suất lời. Đây là kiểm định phân loại, chưa mô phỏng lợi nhuận, thanh toán hoặc khả năng khớp lệnh."
+    }
+  } ],
+  "verified" : false
+}

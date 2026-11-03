@@ -1,12 +1,13 @@
 # Kế hoạch trang phân tích chứng khoán Việt Nam
 
-Ngày lập: 02/11/2026. Trạng thái: kế hoạch triển khai, chưa thay code ứng dụng.
+Ngày lập: 02/11/2026. Cập nhật 03/11/2026: đã triển khai bản đầu trong ứng dụng và bổ sung học máy mua/theo dõi/bán theo yêu cầu mới. Xem [phạm vi đã làm, cấu hình, kiểm chứng và phần còn lại](STOCKS_IMPLEMENTATION.md); chưa hoàn tất mọi giai đoạn bên dưới.
 
 Yêu cầu đã chốt: trang mới cho VIC, FPT, SZC, MBB; biểu đồ nến mới nhất có thể lấy; người dùng nhập thời điểm và giá mua để nhận phân tích; có cả hai lựa chọn **Trong ngày** và **Vài tuần đến vài tháng**. Thư viện miễn phí, mã nguồn mở; nguồn dữ liệu không cần đăng ký tài khoản hoặc API key.
 
 ## 1. Phạm vi và kết quả người dùng nhận được
 
 - Route `/stocks`, có thể mở trực tiếp `/stocks/FPT`; mục menu “Chứng khoán Việt Nam”. Giữ shell Header / Left menu / Content hiện có, ẩn bộ chọn MEGA/POWER và lịch xổ số trên route chứng khoán.
+- Trên `/stocks` và mọi route con, không hiển thị nút/tab chọn MEGA hoặc POWER ở cả desktop và mobile. Chức năng chứng khoán độc lập với loại xổ số đang chọn: không yêu cầu chọn MEGA/POWER, không gửi category xổ số trong API chứng khoán và không tải lại dữ liệu chứng khoán khi category xổ số thay đổi. Khi quay về trang xổ số, bộ chọn hiển thị lại theo hành vi hiện có.
 - Danh sách ban đầu gồm đúng bốn mã VIC, FPT, SZC, MBB. Catalog cấu hình được để mở rộng sau. VNINDEX là chỉ số tham chiếu thị trường, không phải mã thứ năm trong danh mục cổ phiếu.
 - Hai chế độ phân tích có cấu hình, lịch sử và kết quả đánh giá riêng. Đổi khung hiển thị biểu đồ không âm thầm đổi chiến lược.
 - Tách **tín hiệu thị trường** và **nhận định vị thế của tôi**. Giá mua ảnh hưởng lãi/lỗ, ngưỡng chịu lỗ và kịch bản thoát vị thế; không tự biến cổ phiếu đang giảm thành cơ hội mua thêm.
@@ -219,6 +220,7 @@ Kiểm thử bắt buộc khi có code:
 - Vị thế: ngày/giá sai, không số lượng, phí, raw/adjusted, split/cổ tức, số lượng chưa bán được, không ghi/log dữ liệu vị thế.
 - API: timeout/429/lỗi nguồn, freshness và cache đồng nhất; frontend đổi mã nhanh không nhận kết quả cũ; tải lại deep link và chart cleanup.
 - Browser desktop/mobile, điều khiển bằng bàn phím, trạng thái không có dữ liệu; regression các trang hiện có.
+- Vào `/stocks`, mở trực tiếp hoặc refresh `/stocks/FPT`: không xuất hiện bộ chọn MEGA/POWER, kể cả trên mobile; chức năng chứng khoán không phụ thuộc category xổ số. Quay về trang xổ số thì bộ chọn hoạt động như trước.
 - `OnionArchitectureTest` và test nghiệp vụ; kiểm thử persistence thực nếu có migration; Angular build rồi Maven install riêng; kiểm tra assets Angular trong JAR.
 
 ## 10. Vận hành và các giới hạn còn phải giải quyết
@@ -227,4 +229,4 @@ Repository đang cấu hình một container Spring phục vụ Angular, Java 17
 
 Các phần còn mở để giải quyết trong giai đoạn 1: quyền tái hiển thị/lưu trữ nguồn công khai, mức trễ thực tế, raw/adjusted và lịch sử corporate actions, độ sâu intraday đủ đánh giá. Đây là các điều kiện kỹ thuật và dữ liệu thực tế của kế hoạch, không phải yêu cầu người dùng đăng ký tài khoản. Không đăng ký dịch vụ, không phát sinh phí trong giai đoạn lập kế hoạch.
 
-Kiểm chứng của tài liệu này: đối chiếu cấu trúc repo và tài liệu chính thức của thư viện, probe HTTP chỉ đọc trên nguồn công khai, kiểm tra liên kết/nội dung. Chưa triển khai trang, chưa chạy thuật toán chứng khoán hoặc backtest. Chỉ thay tài liệu nên không chạy lại build ứng dụng.
+Kiểm chứng khi lập kế hoạch ngày 02/11: đối chiếu cấu trúc repo và tài liệu chính thức của thư viện, probe HTTP chỉ đọc trên nguồn công khai, kiểm tra liên kết/nội dung; lúc đó chưa triển khai hoặc chạy thuật toán. Kết quả triển khai, mô hình học máy và build/kiểm thử ngày 03/11 được ghi riêng trong [báo cáo triển khai](STOCKS_IMPLEMENTATION.md).

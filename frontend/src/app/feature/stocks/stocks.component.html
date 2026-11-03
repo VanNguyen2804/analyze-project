@@ -1,0 +1,396 @@
+<section class="stocks-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">THỊ TRƯỜNG VIỆT NAM</p>
+      <h2>Chứng khoán Việt Nam</h2>
+      <p class="muted">Đọc xu hướng. Kiểm tra dữ liệu. Quản trị vị thế.</p>
+    </div>
+    <button type="button" class="secondary" (click)="refresh()" [disabled]="loading()">
+      {{ loading() ? 'Đang tải…' : '↻ Cập nhật' }}
+    </button>
+  </header>
+  <div class="toolbar">
+    <div class="segments" aria-label="Chế độ phân tích">
+      <button
+        type="button"
+        [class.selected]="mode() === 'INTRADAY'"
+        [attr.aria-pressed]="mode() === 'INTRADAY'"
+        (click)="setMode('INTRADAY')"
+      >
+        Trong ngày</button
+      ><button
+        type="button"
+        [class.selected]="mode() === 'SWING'"
+        [attr.aria-pressed]="mode() === 'SWING'"
+        (click)="setMode('SWING')"
+      >
+        Vài tuần – vài tháng
+      </button>
+    </div>
+    <span class="muted">{{
+      mode() === 'SWING' ? 'Nến ngày · dự báo 10 nến' : 'Nến 15 phút · dự báo 4 nến'
+    }}</span>
+  </div>
+  <nav class="watchlist" aria-label="Chọn cổ phiếu">
+    @for (symbol of symbols; track symbol) {
+      <a [routerLink]="['/stocks', symbol]" [class.active]="data()?.symbol === symbol"
+        ><strong>{{ symbol }}</strong
+        ><span>{{
+          symbol === 'VIC'
+            ? 'Vingroup'
+            : symbol === 'SZC'
+              ? 'Sonadezi Châu Đức'
+              : symbol === 'MBB'
+                ? 'Ngân hàng Quân đội'
+                : 'FPT'
+        }}</span>
+        @if (quotes()[symbol]; as q) {
+          <strong>{{ q.price === null ? '—' : (q.price | number: '1.0-2') }}</strong>
+          <small
+            >{{ q.unit === 'VND' ? 'VND' : 'Đơn vị nguồn' }} ·
+            {{ q.asOf === null ? 'Chưa có nến' : (q.asOf * 1000 | date: 'dd/MM HH:mm' : '+0700')
+            }}{{ q.freshness === 'STALE' ? ' · Cũ' : '' }}</small
+          >
+        }
+      </a>
+    }
+  </nav>
+  @if (loading()) {
+    <div class="panel empty" role="status">
+      Đang lấy lịch sử giá và huấn luyện mô hình…<small
+        >Lần đầu tải có thể lâu hơn do nguồn dữ liệu.</small
+      >
+    </div>
+  }
+  @if (error()) {
+    <div class="notice danger" role="alert">{{ error() }}</div>
+  }
+  @if (data(); as s) {
+    <div class="source-line">
+      <span
+        >{{ s.data.source }} · Tải lúc
+        {{ s.data.fetchedAt | date: 'dd/MM/yyyy HH:mm:ss' : '+0700' }} (VN)</span
+      ><span class="badge" [class.warning]="s.freshness !== 'RECENT'">{{
+        s.freshness === 'RECENT'
+          ? 'Nến gần đây · độ trễ chưa xác định'
+          : s.freshness === 'EMPTY'
+            ? 'Không có dữ liệu'
+            : 'Dữ liệu cũ'
+      }}</span>
+    </div>
+    @for (warning of s.data.warnings; track warning) {
+      <div class="notice">{{ warning }}</div>
+    }
+    <div class="main-grid">
+      <article class="panel chart-panel">
+        <div class="panel-heading">
+          <div>
+            <h3>{{ s.symbol }}</h3>
+            <span class="muted"
+              >{{
+                s.data.candles.at(-1)?.closed === false
+                  ? 'Giá nến đang hình thành'
+                  : 'Giá đóng nến gần nhất'
+              }}
+              · {{ s.data.unit === 'VND' ? 'VND/cổ phiếu' : 'Đơn vị nguồn chưa xác minh' }}</span
+            >
+          </div>
+          <strong class="price">{{ latestPrice(s) | number: '1.0-2' }}</strong>
+        </div>
+        @if (s.data.candles.length) {
+          <app-stock-chart
+            [candles]="s.data.candles"
+            [intraday]="mode() === 'INTRADAY'"
+            [purchasePrice]="
+              s.data.verified && s.data.unit === 'VND' && s.data.priceBasis === 'RAW'
+                ? input.purchasePrice
+                : null
+            "
+            [purchaseDate]="input.purchaseDate"
+          />
+        } @else {
+          <p class="empty">Nguồn chưa trả dữ liệu. Không tạo nến thay thế.</p>
+        }
+        <p class="muted small">
+          Nến xám: chưa xác nhận đóng. EMA20 trên biểu đồ là đường tham khảo. Nhận định chỉ dùng nến
+          đã đóng. Cơ sở giá: {{ s.data.priceBasis }}.
+        </p>
+      </article>
+      <aside class="panel">
+        <p class="eyebrow">TÍN HIỆU THỊ TRƯỜNG</p>
+        <h3
+          class="signal"
+          [class.buy]="s.analysis.signal === 'BUY'"
+          [class.sell]="s.analysis.signal === 'SELL'"
+        >
+          {{ label(s.analysis.signal) }}
+        </h3>
+        <ul>
+          @for (reason of s.analysis.reasons; track reason) {
+            <li>{{ reason }}</li>
+          }
+        </ul>
+        @if (s.analysis.indicators; as i) {
+          <dl class="metrics">
+            <div>
+              <dt>RSI14</dt>
+              <dd>{{ i.rsi | number: '1.1-1' }}</dd>
+            </div>
+            <div>
+              <dt>ATR14</dt>
+              <dd>{{ i.atr | number: '1.0-2' }}</dd>
+            </div>
+            <div>
+              <dt>Hỗ trợ trước đó</dt>
+              <dd>{{ i.support | number: '1.0-2' }}</dd>
+            </div>
+            <div>
+              <dt>Kháng cự trước đó</dt>
+              <dd>{{ i.resistance | number: '1.0-2' }}</dd>
+            </div>
+          </dl>
+        }
+        <div class="benchmark">
+          <strong>VNINDEX</strong
+          ><span>{{
+            benchmarkPrice(s) === null ? 'Chưa có dữ liệu' : (benchmarkPrice(s) | number: '1.2-2')
+          }}</span
+          ><small
+            >{{
+              s.benchmark.candles.at(-1)?.time
+                ? (s.benchmark.candles.at(-1)!.time * 1000 | date: 'dd/MM HH:mm' : '+0700')
+                : ''
+            }}
+            · điểm · mốc riêng</small
+          >
+        </div>
+      </aside>
+    </div>
+    <article class="panel learning-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">HỌC MÁY · KIỂM ĐỊNH THEO THỜI GIAN</p>
+          <h3>Dự báo mua / theo dõi / bán</h3>
+        </div>
+        <span class="badge">{{
+          s.analysis.learning.status === 'EXPERIMENTAL'
+            ? 'Thử nghiệm'
+            : s.analysis.learning.status === 'VALIDATION_WEAK'
+              ? 'Kiểm định chưa đạt'
+              : 'Thiếu dữ liệu huấn luyện'
+        }}</span>
+      </div>
+      @let ml = s.analysis.learning;
+      @if (ml.buyScore !== null) {
+        <div class="score-grid">
+          <div>
+            <span>Điểm mua</span><strong>{{ ml.buyScore | percent: '1.1-1' }}</strong>
+          </div>
+          <div>
+            <span>Điểm trung tính</span><strong>{{ ml.holdScore | percent: '1.1-1' }}</strong>
+          </div>
+          <div>
+            <span>Điểm bán</span><strong>{{ ml.sellScore | percent: '1.1-1' }}</strong>
+          </div>
+        </div>
+        <p class="muted small">
+          Điểm phân loại chưa hiệu chuẩn; không phải xác suất giao dịch có lời.
+          {{ !s.data.verified ? 'Dữ liệu chưa xác minh: kết quả mô hình chỉ để khảo sát.' : '' }}
+        </p>
+      }
+      <dl class="metrics ml-metrics">
+        <div>
+          <dt>Mẫu huấn luyện cuối</dt>
+          <dd>{{ ml.trainSamples }}</dd>
+        </div>
+        <div>
+          <dt>Mẫu kiểm định</dt>
+          <dd>{{ ml.testSamples }}</dd>
+        </div>
+        <div>
+          <dt>Phân loại đúng</dt>
+          <dd>{{ ml.accuracy === null ? '—' : (ml.accuracy | percent: '1.1-1') }}</dd>
+        </div>
+        <div>
+          <dt>Đối chứng lớp phổ biến</dt>
+          <dd>
+            {{ ml.baselineAccuracy === null ? '—' : (ml.baselineAccuracy | percent: '1.1-1') }}
+          </dd>
+        </div>
+        <div>
+          <dt>Balanced accuracy</dt>
+          <dd>
+            {{ ml.balancedAccuracy === null ? '—' : (ml.balancedAccuracy | percent: '1.1-1') }}
+          </dd>
+        </div>
+      </dl>
+      <details>
+        <summary>Phương pháp và trọng số đã học</summary>
+        <p>{{ ml.explanation }}</p>
+        <p class="muted small">
+          Phiên bản {{ ml.version }} · Nhãn huấn luyện đến
+          {{
+            ml.trainingLabelsThrough === null
+              ? '—'
+              : (ml.trainingLabelsThrough * 1000 | date: 'dd/MM/yyyy HH:mm' : '+0700')
+          }}
+        </p>
+        @if (ml.weights.length) {
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Đặc trưng</th>
+                  <th>Trọng số mua</th>
+                  <th>Trọng số bán</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (w of ml.weights; track w.feature) {
+                  <tr>
+                    <td>{{ w.feature }}</td>
+                    <td>{{ w.buyWeight | number: '1.3-3' }}</td>
+                    <td>{{ w.sellWeight | number: '1.3-3' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </details>
+    </article>
+    <div class="main-grid position-grid">
+      <form
+        class="panel"
+        (ngSubmit)="analyzePosition()"
+        #positionForm="ngForm"
+        (ngModelChange)="resetPosition()"
+      >
+        <p class="eyebrow">VỊ THẾ CỦA TÔI</p>
+        <h3>Kiểm tra lô cổ phiếu đang nắm giữ</h3>
+        <p class="muted small">
+          Dữ liệu chỉ dùng cho lần tính này, không lưu danh mục trên server.
+        </p>
+        <div class="form-grid">
+          <label
+            >Ngày mua<input
+              type="date"
+              name="purchaseDate"
+              [(ngModel)]="input.purchaseDate"
+              (ngModelChange)="resetPosition()"
+              required /></label
+          ><label
+            >Giá mua (VND/cổ phiếu)<input
+              type="number"
+              name="purchasePrice"
+              [(ngModel)]="input.purchasePrice"
+              (ngModelChange)="resetPosition()"
+              min="0.01"
+              required
+          /></label>
+          <label
+            >Số lượng (tùy chọn)<input
+              type="number"
+              name="quantity"
+              [(ngModel)]="input.quantity"
+              (ngModelChange)="resetPosition()"
+              min="1"
+              step="1" /></label
+          ><label
+            >Số lượng có thể bán<input
+              type="number"
+              name="sellable"
+              [(ngModel)]="input.sellableQuantity"
+              (ngModelChange)="resetPosition()"
+              min="0"
+              step="1"
+          /></label>
+          <label
+            >Phí mua (%)<input
+              type="number"
+              name="buyFee"
+              [(ngModel)]="input.buyFeePercent"
+              (ngModelChange)="resetPosition()"
+              min="0"
+              max="100"
+              step="0.01"
+              placeholder="Chưa khai báo" /></label
+          ><label
+            >Tổng chi phí bán dự kiến (%)<input
+              type="number"
+              name="sellCost"
+              [(ngModel)]="input.sellCostPercent"
+              (ngModelChange)="resetPosition()"
+              min="0"
+              max="99.99"
+              step="0.01"
+              placeholder="Gồm các khoản áp dụng" /></label
+          ><label
+            >Ngưỡng chịu lỗ (%)<input
+              type="number"
+              name="maxLoss"
+              [(ngModel)]="input.maxLossPercent"
+              (ngModelChange)="resetPosition()"
+              min="0"
+              max="100"
+              step="0.1"
+          /></label>
+        </div>
+        <button class="primary" type="submit" [disabled]="positionForm.invalid || positionBusy()">
+          {{ positionBusy() ? 'Đang phân tích…' : 'Phân tích vị thế' }}
+        </button>
+        @if (positionError()) {
+          <p class="sell" role="alert">{{ positionError() }}</p>
+        }
+      </form>
+      <article class="panel">
+        <p class="eyebrow">NHẬN ĐỊNH VỊ THẾ</p>
+        @if (position(); as p) {
+          <h3>{{ label(p.status) }}</h3>
+          @if (p.changePercent !== null) {
+            <dl class="metrics">
+              <div>
+                <dt>Thay đổi giá</dt>
+                <dd>{{ p.changePercent | number: '1.2-2' }}%</dd>
+              </div>
+              <div>
+                <dt>Lãi/lỗ giá (VND)</dt>
+                <dd>
+                  {{ p.grossPnl === null ? 'Chưa nhập số lượng' : (p.grossPnl | number: '1.0-0') }}
+                </dd>
+              </div>
+              <div>
+                <dt>Lãi/lỗ ròng ước tính</dt>
+                <dd>
+                  {{
+                    p.estimatedNetPnl === null
+                      ? 'Chưa đủ đầu vào'
+                      : (p.estimatedNetPnl | number: '1.0-0')
+                  }}
+                </dd>
+              </div>
+              <div>
+                <dt>Giá hòa vốn ước tính</dt>
+                <dd>{{ p.breakEven === null ? '—' : (p.breakEven | number: '1.0-2') }}</dd>
+              </div>
+            </dl>
+          }
+          <ul>
+            @for (reason of p.reasons; track reason) {
+              <li>{{ reason }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">
+            Nhập ngày và giá mua để phân tích. Tín hiệu thị trường và nhận định vị thế được đánh giá
+            riêng.
+          </p>
+        }
+      </article>
+    </div>
+  }
+  <footer class="disclaimer">
+    Phân tích kỹ thuật và học máy tham khảo. Chưa có bằng chứng mô hình tạo lợi nhuận có thể thực
+    hiện; không tự động đặt lệnh.
+  </footer>
+</section>

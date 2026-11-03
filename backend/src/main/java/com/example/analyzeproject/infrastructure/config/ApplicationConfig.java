@@ -13,6 +13,17 @@ import java.time.Clock;
 /** Composition root: only the outer layer knows how application ports are wired. */
 @Configuration
 public class ApplicationConfig {
+    @Bean StockService stockService(com.fasterxml.jackson.databind.ObjectMapper json, Clock clock,
+            @Value("${stocks.source.enabled:true}") boolean enabled,
+            @Value("${stocks.source.price-scale:1}") double scale,
+            @Value("${stocks.source.price-basis:UNKNOWN}") String basis,
+            @Value("${stocks.source.verified:false}") boolean verified,
+            @Value("${stocks.ml.buy-threshold:0.60}") double buyThreshold,
+            @Value("${stocks.ml.sell-threshold:0.60}") double sellThreshold,
+            @Value("${stocks.ml.round-trip-cost:0.004}") double cost) {
+        return new StockService(new com.example.analyzeproject.infrastructure.marketdata.EntradeStockAdapter(json,clock,enabled,scale,basis,verified),
+                clock,new com.example.analyzeproject.domain.service.stock.StockLearningEngine(buyThreshold,sellThreshold,cost));
+    }
     @Bean Clock applicationClock() { return Clock.systemUTC(); }
 
     @Bean AnalyzeService analyzeService(LotteryNumberRepository draws, UserTicketRepository tickets,

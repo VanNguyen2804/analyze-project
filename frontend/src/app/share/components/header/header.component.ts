@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { CategoryService } from '../../../core/services/category.service';
 import { LotteryCategory } from '../../../core/models/lottery-category.model';
+import { SectionService } from '../../../core/services/section.service';
 
 @Component({
   selector: 'app-header',
@@ -13,6 +14,7 @@ import { LotteryCategory } from '../../../core/models/lottery-category.model';
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit {
+  readonly stocksSection = inject(SectionService).stocks;
   private readonly categories = inject(CategoryService);
   private readonly translate = inject(TranslateService);
   readonly currentCategory = this.categories.category;

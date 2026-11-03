@@ -1,0 +1,94 @@
+package com.example.analyzeproject.application.service;
+
+import com.example.analyzeproject.application.port.out.StockMarketDataPort;
+import com.example.analyzeproject.domain.model.stock.StockModels.*;
+import com.example.analyzeproject.domain.service.stock.StockLearningEngine;
+import java.time.*;
+import java.util.*;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+
+public final class StockService {
+    private final StockMarketDataPort feed;
+    private final Clock clock;
+    private final StockLearningEngine learning;
+    private final Map<String,Snapshot> snapshots=new LinkedHashMap<>();
+    public StockService(StockMarketDataPort feed,Clock clock,StockLearningEngine learning){this.feed=feed;this.clock=clock;this.learning=learning;}
+    public List<Map<String,String>> instruments(){return List.of(Map.of("symbol","VIC","name","Vingroup"),Map.of("symbol","FPT","name","FPT"),Map.of("symbol","SZC","name","Sonadezi Châu Đức"),Map.of("symbol","MBB","name","Ngân hàng Quân đội"));}
+    public List<Map<String,Object>> watchlist(){
+        List<Map<String,Object>> result=new ArrayList<>();
+        for(var instrument:instruments()){
+            Feed data=feed.load(instrument.get("symbol"),Mode.SWING);
+            Candle latest=data.candles().isEmpty()?null:data.candles().get(data.candles().size()-1);
+            Map<String,Object> item=new LinkedHashMap<>();item.putAll(instrument);item.put("price",latest==null?null:latest.close());
+            item.put("asOf",latest==null?null:latest.time());item.put("unit",data.unit());item.put("source",data.source());
+            item.put("freshness",freshness(data,Mode.SWING,latest==null?null:latest.time()));result.add(item);
+        }
+        return result;
+    }
+    private void validate(String symbol){if(instruments().stream().noneMatch(i->i.get("symbol").equals(symbol)))throw new IllegalArgumentException("Chỉ hỗ trợ VIC, FPT, SZC, MBB");}
+    public synchronized Snapshot analyze(String symbol,Mode mode){
+        validate(symbol);Feed data=feed.load(symbol,mode),benchmark=feed.load("VNINDEX",mode);
+        String id=fingerprint(symbol+mode+data.toString()+benchmark.toString());
+        Snapshot cached=snapshots.get(id);if(cached!=null&&Duration.between(data.fetchedAt(),clock.instant()).getSeconds()<60)return cached;
+        List<Candle> closed=data.candles().stream().filter(Candle::closed).toList();
+        Long last=closed.isEmpty()?null:closed.get(closed.size()-1).time();
+        String fresh=freshness(data,mode,last);List<String> reasons=new ArrayList<>();
+        Learning ml=learning.analyze(closed,mode);Indicator indicators=null;String signal="UNAVAILABLE";
+        if(closed.size()>=55){
+            indicators=StockLearningEngine.indicators(closed,mode);double price=closed.get(closed.size()-1).close();
+            reasons.add(indicators.fastMa()>indicators.slowMa()?"Đường trung bình nhanh cao hơn đường chậm.":"Đường trung bình nhanh thấp hơn hoặc bằng đường chậm.");
+            reasons.add("RSI14 dùng trung bình đơn: "+Math.round(indicators.rsi())+"; ATR14 dùng trung bình true range.");
+            signal="WATCH";
+            if("BUY".equals(ml.signal())&&indicators.fastMa()>indicators.slowMa()&&indicators.rsi()<75)signal="BUY";
+            if("SELL".equals(ml.signal())&&price<indicators.fastMa())signal="SELL";
+            if("VALIDATION_WEAK".equals(ml.status()))reasons.add("Mô hình chưa vượt điều kiện kiểm định; chỉ theo dõi.");
+        }else reasons.add("Chưa đủ 55 nến đã đóng để phân tích kỹ thuật.");
+        if(!data.verified()||!"RECENT".equals(fresh)||"UNKNOWN".equals(data.priceBasis())){
+            signal="UNAVAILABLE";reasons.add("Chưa đủ dữ liệu đã xác minh hoặc dữ liệu không đủ mới để đưa tín hiệu mua/bán.");
+        }
+        if(mode==Mode.INTRADAY)reasons.add("Tín hiệu trong ngày không xác nhận cổ phiếu có thể bán ngay; cần kiểm tra số lượng sẵn có và thanh toán.");
+        Snapshot result=new Snapshot(symbol,mode,mode==Mode.SWING?"1D":"15",id,data,benchmark,fresh,"UNVERIFIED_CALENDAR",last,new Analysis(signal,List.copyOf(reasons),indicators,ml));
+        snapshots.put(id,result);while(snapshots.size()>24)snapshots.remove(snapshots.keySet().iterator().next());return result;
+    }
+    private String freshness(Feed data,Mode mode,Long last){
+        if(last==null)return "EMPTY";
+        if(Duration.between(data.fetchedAt(),clock.instant()).getSeconds()>180)return "STALE";
+        ZonedDateTime now=clock.instant().atZone(ZoneId.of("Asia/Ho_Chi_Minh"));
+        ZonedDateTime bar=Instant.ofEpochSecond(last).atZone(now.getZone());
+        // Conservative: weekends/holidays are not guessed. An unverified calendar can only restrict signals.
+        if(mode==Mode.INTRADAY){
+            boolean sameDay=bar.toLocalDate().equals(now.toLocalDate());
+            boolean afterClose=now.toLocalTime().isAfter(LocalTime.of(15,0))&&bar.toLocalTime().compareTo(LocalTime.of(14,30))>=0;
+            boolean lunch=now.toLocalTime().compareTo(LocalTime.of(11,30))>=0&&now.toLocalTime().isBefore(LocalTime.of(13,0))&&bar.toLocalTime().compareTo(LocalTime.of(11,0))>=0;
+            return sameDay&&(afterClose||lunch||Duration.between(bar,now).toMinutes()<=45)?"RECENT":"STALE";
+        }
+        return Duration.between(bar,now).toHours()<=36?"RECENT":"STALE";
+    }
+    public synchronized PositionResult position(String symbol,String id,PositionInput p){
+        validate(symbol);
+        if(p.purchaseDate()==null||p.purchaseDate().isAfter(LocalDate.now(clock.withZone(ZoneId.of("Asia/Ho_Chi_Minh")))))throw new IllegalArgumentException("Ngày mua không hợp lệ");
+        valid(p.purchasePrice(),0,1e12,false);valid(p.quantity(),0,1e10,true);valid(p.buyFeePercent(),0,100,true);valid(p.sellCostPercent(),0,100,true);valid(p.maxLossPercent(),0,100,true);valid(p.sellableQuantity(),0,1e10,true);
+        if(p.quantity()!=null&&p.quantity()%1!=0||p.sellableQuantity()!=null&&p.sellableQuantity()%1!=0)throw new IllegalArgumentException("Số lượng phải là số nguyên");
+        if(p.sellableQuantity()!=null&&(p.quantity()==null||p.sellableQuantity()>p.quantity()))throw new IllegalArgumentException("Số lượng có thể bán không hợp lệ");
+        if(p.quantity()!=null&&p.quantity()==0)throw new IllegalArgumentException("Số lượng nắm giữ phải lớn hơn 0");
+        Snapshot s=snapshots.get(id);if(s==null||!s.symbol().equals(symbol))throw new IllegalArgumentException("Snapshot hết hạn; hãy tải lại biểu đồ");
+        if(!s.data().verified()||!"RAW".equals(s.data().priceBasis())||!"VND".equals(s.data().unit())||!"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))
+            return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Chưa xác minh giá VND raw đủ mới; chưa tính lãi/lỗ vị thế."));
+        Candle c=s.data().candles().stream().filter(Candle::closed).reduce((a,b)->b).orElseThrow();double price=c.close();
+        double change=(price/p.purchasePrice()-1)*100,buyFee=p.buyFeePercent()==null?0:p.buyFeePercent()/100,sell=p.sellCostPercent()==null?0:p.sellCostPercent()/100;
+        String status=s.analysis().signal();List<String> reasons=new ArrayList<>();
+        if(p.maxLossPercent()!=null&&change<=-p.maxLossPercent()){status="SELL";reasons.add("Mức giảm giá đã chạm ngưỡng chịu lỗ bạn nhập.");}
+        else if("BUY".equals(status))status="HOLD";
+        reasons.add("Lãi/lỗ giá chưa bao gồm cổ tức, quyền mua hoặc thay đổi số lượng do sự kiện doanh nghiệp; cần đối soát trước khi sử dụng.");
+        if(p.buyFeePercent()==null||p.sellCostPercent()==null)reasons.add("Chưa tính đầy đủ phí và khoản thu bán vì còn thiếu đầu vào.");
+        reasons.add(p.sellableQuantity()==null?"Chưa biết số lượng có thể bán; kết quả chỉ là tín hiệu kỹ thuật.":"Số lượng có thể bán do bạn khai báo: "+p.sellableQuantity());
+        if(!s.data().candles().isEmpty()&&p.purchaseDate().isBefore(Instant.ofEpochSecond(s.data().candles().get(0).time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()))reasons.add("Ngày mua ngoài lịch sử hiện có; không tái dựng phân tích tại ngày mua.");
+        Double gross=p.quantity()==null?null:(price-p.purchasePrice())*p.quantity();
+        Double net=p.quantity()==null||p.buyFeePercent()==null||p.sellCostPercent()==null?null:(price*(1-sell)-p.purchasePrice()*(1+buyFee))*p.quantity();
+        Double breakEven=p.buyFeePercent()==null||p.sellCostPercent()==null||sell>=1?null:p.purchasePrice()*(1+buyFee)/(1-sell);
+        return new PositionResult(id,status,price,change,gross,net,breakEven,List.copyOf(reasons));
+    }
+    private void valid(Double v,double min,double max,boolean optional){if(v==null){if(optional)return;throw new IllegalArgumentException("Thiếu giá mua");}if(!Double.isFinite(v)||v<min||v>max||(!optional&&v==0))throw new IllegalArgumentException("Giá trị đầu vào ngoài phạm vi");}
+    private String fingerprint(String s){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(s.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}}
+}

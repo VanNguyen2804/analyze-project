@@ -2,6 +2,14 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
+    path: 'stocks',
+    loadComponent: () => import('./feature/stocks/stocks.component').then((m) => m.StocksComponent),
+  },
+  {
+    path: 'stocks/:symbol',
+    loadComponent: () => import('./feature/stocks/stocks.component').then((m) => m.StocksComponent),
+  },
+  {
     path: 'ai-lab',
     loadComponent: () => import('./feature/ai-lab/ai-lab.component').then((m) => m.AiLabComponent),
   },

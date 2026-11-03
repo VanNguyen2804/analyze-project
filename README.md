@@ -1,5 +1,11 @@
 # Analyze Project
 
+## Chứng khoán Việt Nam
+
+Mở `/stocks` hoặc `/stocks/FPT` để xem VIC, FPT, SZC, MBB: nến ngày/15 phút, volume, EMA20, VNINDEX, phân tích vị thế và mô hình học máy ba lớp mua/theo dõi/bán. MEGA/POWER và lịch xổ số được ẩn trên trang chứng khoán. Mô hình thực sự huấn luyện từ lịch sử, có kiểm định theo thời gian và đối chứng; chưa chứng minh lợi thế giao dịch.
+
+Nguồn công khai hiện ở chế độ thử nghiệm: đơn vị/cơ sở giá chưa xác minh sẽ khóa tín hiệu hành động và P&L VND. Xem [cấu hình, phương pháp và giới hạn](backend/docs/STOCKS_IMPLEMENTATION.md), [báo cáo dữ liệu thật](backend/docs/reports/stocks-development-2026-11-03.json). Không có thay đổi schema hoặc chức năng đặt lệnh.
+
 ## Trang dự đoán có người dùng chọn vé
 
 Trong `/analyze`, xem hai dãy thuật toán và bộ kết hợp; chỉnh trọng số/giữ/bỏ số trước khi chọn vé. Khu vực AI Lab có thể hiển thị 3–5 dãy đã lưu cho đúng loại/kỳ, theo quy tắc luân phiên mô hình; đây không phải thứ hạng xác suất trúng. Chọn gợi ý hoặc tự nhập, sửa sáu số rồi chốt danh sách trước 18:00 giờ Việt Nam. Tối đa 25 vé khác nhau mỗi bản chốt. Chốt là lưu lựa chọn trong ứng dụng, không phải mua vé.

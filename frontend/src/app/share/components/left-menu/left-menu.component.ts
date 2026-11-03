@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { CategoryService } from '../../../core/services/category.service';
 import { AnalyzeService } from '../../../core/services/analyze.service';
+import { SectionService } from '../../../core/services/section.service';
 
 @Component({
   selector: 'app-left-menu',
@@ -20,6 +21,7 @@ import { AnalyzeService } from '../../../core/services/analyze.service';
   styleUrl: './left-menu.component.css',
 })
 export class LeftMenuComponent implements OnInit {
+  readonly stocksSection = inject(SectionService).stocks;
   private readonly categories = inject(CategoryService);
   private readonly analyze = inject(AnalyzeService);
   private readonly destroyRef = inject(DestroyRef);

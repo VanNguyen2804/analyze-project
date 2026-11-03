@@ -12,30 +12,34 @@
     </div>
 
     <!-- Chọn danh mục xổ số (Căn giữa tuyệt đối) -->
-    <div
-      class="position-absolute top-50 start-50 translate-middle d-flex bg-light p-1 rounded-pill border shadow-sm category-picker"
-    >
-      <button
-        type="button"
-        class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
-        [ngClass]="currentCategory() === 'POWER' ? 'btn-primary shadow text-white' : 'text-primary'"
-        [style.background-color]="currentCategory() === 'POWER' ? '' : '#dbeafe'"
-        (click)="selectCategory('POWER')"
+    @if (!stocksSection()) {
+      <div
+        class="position-absolute top-50 start-50 translate-middle d-flex bg-light p-1 rounded-pill border shadow-sm category-picker"
       >
-        {{ 'CATEGORY.POWER' | translate }}
-      </button>
-      <button
-        type="button"
-        class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
-        [ngClass]="currentCategory() === 'MEGA' ? 'btn-danger shadow text-white' : 'text-danger'"
-        [style.background-color]="currentCategory() === 'MEGA' ? '' : '#ffe4e6'"
-        (click)="selectCategory('MEGA')"
-      >
-        {{ 'CATEGORY.MEGA' | translate }}
-      </button>
-    </div>
+        <button
+          type="button"
+          class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
+          [ngClass]="
+            currentCategory() === 'POWER' ? 'btn-primary shadow text-white' : 'text-primary'
+          "
+          [style.background-color]="currentCategory() === 'POWER' ? '' : '#dbeafe'"
+          (click)="selectCategory('POWER')"
+        >
+          {{ 'CATEGORY.POWER' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn rounded-pill fw-semibold px-3 px-md-4 py-1 border-0 transition-all"
+          [ngClass]="currentCategory() === 'MEGA' ? 'btn-danger shadow text-white' : 'text-danger'"
+          [style.background-color]="currentCategory() === 'MEGA' ? '' : '#ffe4e6'"
+          (click)="selectCategory('MEGA')"
+        >
+          {{ 'CATEGORY.MEGA' | translate }}
+        </button>
+      </div>
 
-    <!-- Menu Điều hướng & Đổi ngôn ngữ (Bên phải) -->
+      <!-- Menu Điều hướng & Đổi ngôn ngữ (Bên phải) -->
+    }
     <div class="d-none d-lg-flex align-items-center gap-4">
       <a
         routerLink="/analyze"

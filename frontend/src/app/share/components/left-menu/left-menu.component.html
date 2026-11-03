@@ -2,6 +2,9 @@
   <!-- Zone 1: Main navigation -->
   <div class="menu-heading text-uppercase text-muted fw-bold small px-2 mb-2">Chức năng chính</div>
   <div class="menu-links d-flex flex-column gap-1 mb-4">
+    <a routerLink="/stocks" routerLinkActive="active" class="menu-item"
+      ><span class="fs-5">📈</span><span>Chứng khoán Việt Nam</span></a
+    >
     <a routerLink="/ai-lab" routerLinkActive="active" class="menu-item">
       <span class="fs-5">🧪</span><span>Phòng thử nghiệm AI</span>
     </a>
@@ -27,21 +30,23 @@
   <!-- Zone 2: Đã chuyển sang Header -->
 
   <!-- Zone 3: Schedule summary -->
-  <div class="border-top pt-3 d-none d-md-block">
-    <div class="text-uppercase text-muted fw-bold small px-2 mb-2">Lịch mở thưởng</div>
-    <div class="small p-2 bg-light rounded border mb-2">
-      <div class="fw-bold text-primary mb-1">🔵 Power 6/55</div>
-      <div class="text-muted" style="font-size: 0.75rem">
-        Quay: Thứ 3, 5, 7<br />
-        Jackpot 1 & Jackpot 2 (Số phụ)
+  @if (!stocksSection()) {
+    <div class="border-top pt-3 d-none d-md-block">
+      <div class="text-uppercase text-muted fw-bold small px-2 mb-2">Lịch mở thưởng</div>
+      <div class="small p-2 bg-light rounded border mb-2">
+        <div class="fw-bold text-primary mb-1">🔵 Power 6/55</div>
+        <div class="text-muted" style="font-size: 0.75rem">
+          Quay: Thứ 3, 5, 7<br />
+          Jackpot 1 & Jackpot 2 (Số phụ)
+        </div>
+      </div>
+      <div class="small p-2 bg-light rounded border">
+        <div class="fw-bold text-danger mb-1">🔴 Mega 6/45</div>
+        <div class="text-muted" style="font-size: 0.75rem">
+          Quay: Thứ 4, 6, Chủ nhật<br />
+          Jackpot trúng 6/6 số chính
+        </div>
       </div>
     </div>
-    <div class="small p-2 bg-light rounded border">
-      <div class="fw-bold text-danger mb-1">🔴 Mega 6/45</div>
-      <div class="text-muted" style="font-size: 0.75rem">
-        Quay: Thứ 4, 6, Chủ nhật<br />
-        Jackpot trúng 6/6 số chính
-      </div>
-    </div>
-  </div>
+  }
 </nav>
