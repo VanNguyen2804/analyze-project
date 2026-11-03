@@ -31,7 +31,7 @@ public final class EntradeStockAdapter implements StockMarketDataPort {
         try{
             long from=now.minus(Duration.ofDays(mode==Mode.SWING?1826:60)).getEpochSecond(),to=now.getEpochSecond();
             TreeMap<Long,Candle> bars=new TreeMap<>();List<String> warnings=new ArrayList<>();
-            if(!verified)warnings.add("Chưa xác minh đầy đủ đơn vị, cơ sở giá, timestamp và lịch sàn; khóa tín hiệu hành động và tính lãi/lỗ VND.");
+            if(!verified)warnings.add("Chưa xác minh đầy đủ cơ sở giá, timestamp và lịch sàn; tín hiệu mua/bán bị hạn chế. Lãi/lỗ theo giá chỉ là số liệu tham khảo.");
             warnings.add("Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ.");
             // Provider limits are undocumented. Bounded time windows; never follow arbitrary URLs.
             long step=mode==Mode.SWING?to-from:10*86400L;
@@ -63,10 +63,16 @@ public final class EntradeStockAdapter implements StockMarketDataPort {
                 }
             }
             if(bars.isEmpty())warnings.add("Nguồn không trả nến trong khoảng yêu cầu.");
-            Feed feed=new Feed(new ArrayList<>(bars.values()),now,"DNSE / Entrade",symbol.equals("VNINDEX")?"POINTS":verified?"VND":"SOURCE",basis,verified,warnings);
+            Feed feed=new Feed(new ArrayList<>(bars.values()),now,"DNSE / Entrade",priceUnit(symbol,scale,verified),basis,verified,warnings);
             cache.put(key,new Entry(feed,now.plusSeconds(60)));return feed;
         }catch(InterruptedException e){Thread.currentThread().interrupt();return failed(key,old,now,cooldown);}
         catch(Exception e){System.getLogger(EntradeStockAdapter.class.getName()).log(System.Logger.Level.WARNING,"Stock source "+symbol+"/"+mode+": "+e.getClass().getSimpleName());return failed(key,old,now,cooldown);}
+    }
+    static String priceUnit(String symbol,double scale,boolean verified) {
+        if(symbol.equals("VNINDEX"))return "POINTS";
+        if(scale==1000)return "VND";
+        if(scale==1)return "THOUSAND_VND";
+        return verified?"VND":"SOURCE";
     }
     private Feed failed(String key,Entry old,Instant now,long cooldown){
         List<String> warnings=new ArrayList<>(old==null?List.of():old.feed().warnings());

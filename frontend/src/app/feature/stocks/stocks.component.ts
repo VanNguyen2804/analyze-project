@@ -30,12 +30,21 @@ import {
   StockWatchQuote,
 } from '../../core/models/stock.model';
 import { StockChartComponent } from './stock-chart.component';
+import { StockRecommendationComponent } from './stock-recommendation.component';
 
 @Component({
   selector: 'app-stocks',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, PercentPipe, DatePipe, FormsModule, RouterLink, StockChartComponent],
+  imports: [
+    DecimalPipe,
+    PercentPipe,
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    StockChartComponent,
+    StockRecommendationComponent,
+  ],
   templateUrl: './stocks.component.html',
   styleUrl: './stocks.component.css',
 })
@@ -59,8 +68,6 @@ export class StocksComponent implements OnInit {
     purchaseDate: '',
     purchasePrice: null,
     quantity: null,
-    buyFeePercent: null,
-    sellCostPercent: null,
     maxLossPercent: null,
     sellableQuantity: null,
   };
@@ -149,6 +156,13 @@ export class StocksComponent implements OnInit {
         } as Record<string, string>
       )[signal] || signal
     );
+  }
+  unitLabel(unit: string) {
+    return unit === 'VND'
+      ? 'VND/cổ phiếu'
+      : unit === 'THOUSAND_VND'
+        ? 'Nghìn VND/cổ phiếu'
+        : 'Đơn vị nguồn chưa xác minh';
   }
   latestPrice(s: StockSnapshot) {
     return s.data.candles.at(-1)?.close ?? null;

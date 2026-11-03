@@ -1,0 +1,63 @@
+@let r = recommendation();
+<section class="recommendation" aria-label="Khuyến nghị theo mốc giá">
+  <p class="eyebrow">KHUYẾN NGHỊ THEO GIÁ · THAM KHẢO</p>
+  <h3 [class.buy]="r.action === 'BUY'" [class.sell]="r.action === 'SELL'">{{ r.title }}</h3>
+  <p class="summary">{{ r.summary }}</p>
+  @if (r.asOf !== null) {
+    <p class="asof">
+      Dựa trên nến đã đóng: {{ r.asOf * 1000 | date: 'dd/MM/yyyy HH:mm' : '+0700' }} (VN) ·
+      {{ r.evaluatedPrice | number: '1.0-2' }} {{ unit() }}
+    </p>
+  }
+  @if (r.buyAbove !== null) {
+    <div class="scenario buy-scenario">
+      <strong>Khi nào cân nhắc mua?</strong>
+      <p>
+        Nến đóng <b>trên {{ r.buyAbove | number: '1.0-2' }}</b> {{ unit() }} và đủ các xác nhận:
+      </p>
+      <ul>
+        @for (condition of r.buyConditions; track condition) {
+          <li>{{ condition }}</li>
+        }
+      </ul>
+    </div>
+    <div class="scenario sell-scenario">
+      <strong>Khi nào cân nhắc giảm / bán?</strong>
+      <p>
+        Nến đóng <b>dưới {{ r.sellBelow | number: '1.0-2' }}</b> {{ unit() }} nếu đang nắm giữ.
+      </p>
+      <ul>
+        @for (condition of r.sellConditions; track condition) {
+          <li>{{ condition }}</li>
+        }
+      </ul>
+    </div>
+    <dl>
+      <div>
+        <dt>Khối lượng nến / mức so sánh</dt>
+        <dd>
+          {{
+            r.volumeRatio === null ? 'Chưa đủ dữ liệu' : (r.volumeRatio | number: '1.2-2') + ' lần'
+          }}
+          <small>(cần ≥{{ r.volumeConfirmation }} lần cho kịch bản mua)</small>
+        </dd>
+      </div>
+      <div>
+        <dt>Dừng lỗ giả định cho kịch bản mua</dt>
+        <dd>
+          {{ r.stopLoss === null ? 'Chưa xác định' : (r.stopLoss | number: '1.0-2') }} {{ unit() }}
+        </dd>
+      </div>
+      <div>
+        <dt>Chốt lời giả định cho kịch bản mua</dt>
+        <dd>
+          {{ r.takeProfit === null ? 'Chưa xác định' : (r.takeProfit | number: '1.0-2') }}
+          {{ unit() }}
+        </dd>
+      </div>
+    </dl>
+  }
+  @for (caution of r.cautions; track caution) {
+    <p class="caution">{{ caution }}</p>
+  }
+</section>

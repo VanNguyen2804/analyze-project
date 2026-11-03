@@ -1,5 +1,21 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Khuyến nghị chứng khoán theo giá — 04/11/2026
+
+Thêm `StockRecommendationEngine` thuần domain và `analysis.recommendation`: nến đóng vượt kháng cự 20 nến trước + đệm ATR, xác nhận volume/xu hướng/RSI mới cân nhắc mua; đóng dưới hỗ trợ có đệm ATR gợi ý giảm rủi ro nếu đang giữ. Có diễn giải vượt giả/thiếu volume/RSI cao/mua đuổi, mốc mua/bán và vùng dừng lỗ/chốt lời giả định theo ATR. Volume intraday so cùng giờ của ít nhất năm phiên trước. Không dùng nến chưa đóng, không xác nhận hành động trên nguồn chưa verified hoặc dữ liệu cũ; không biến điểm mô hình thành xác suất lời. Chính sách cấu hình được, chưa có bằng chứng hiệu quả giao dịch.
+
+Component `stock-recommendation` trình bày lời khuyên theo điều kiện và giá cụ thể; điểm % của học máy đưa xuống details thu gọn, phân biệt với tỷ lệ vốn mua/bán. Vị thế dùng action kỹ thuật mới, giữ tách biệt phép tính P&L. [Phương pháp và cấu hình](backend/docs/STOCKS_IMPLEMENTATION.md).
+
+Kiểm chứng: Angular build/Maven install đạt; 56 kiểm thử Angular và 118 kiểm thử Java đạt, tám kiểm thử có điều kiện bỏ qua. Typecheck, định dạng frontend sửa và 24 assets trong JAR đạt. Chưa đo hiệu quả giao dịch của quy tắc mới hoặc triển khai hosting.
+
+## Sửa trang chứng khoán 04/11/2026
+
+Tách tính lãi/lỗ theo giá khỏi cờ `verified` của nguồn: với đơn vị VND hoặc nghìn VND rõ ràng, vị thế trả giá dùng tính, phần trăm và số tiền chênh lệch; cảnh báo khi cơ sở điều chỉnh giá chưa xác nhận hoặc dữ liệu cũ, không mở tín hiệu mua/bán bằng cách bật cờ giả. Không dùng giá trước ngày mua, chuỗi ADJUSTED hoặc đơn vị chưa quy đổi được. Adapter mặc định quy đổi giá nến cổ phiếu ×1.000; cấu hình cũ scale=1 mang đơn vị `THOUSAND_VND`, quy đổi một lần trong phép tính vị thế. VNINDEX giữ đơn vị điểm.
+
+Bỏ phí mua/chi phí bán khỏi form và request frontend; bỏ kết quả lãi/lỗ ròng/hòa vốn khỏi màn hình. Sửa chart host thành block, khởi tạo khi vùng chứa có kích thước, resize qua requestAnimationFrame để tránh vòng lặp ResizeObserver; giải phóng observer/frame khi rời trang. Ngày nến được tạo theo ISO từ formatToParts ở giờ Việt Nam thay vì phụ thuộc cách locale `en-CA` định dạng chuỗi. Có kiểm thử vùng biểu đồ từ ẩn sang hiện và tình huống giá mua 234.000 VND × 200 cổ phiếu như ảnh người dùng.
+
+Kiểm chứng: Angular build/Maven install đạt; 54 kiểm thử Angular và 113 kiểm thử Java đạt, tám kiểm thử Java có điều kiện bỏ qua. Typecheck và định dạng frontend sửa đạt; 24 assets frontend khớp byte trong JAR. Chưa triển khai hosting hoặc chạy PostgreSQL thật trong lần sửa này.
+
 ## AI Lab 03/11/2026 — Học phản hồi từ vé khớp 1–2 số
 
 Theo yêu cầu đổi cả cách học, Logistic mới mang phiên bản `ai-lab-dense-feedback-v2`: sau huấn luyện lịch sử, replay tối đa 60 kỳ chốt thật có đủ batch/đặc trưng đóng băng và kết quả còn hợp lệ. Mỗi kỳ có một nhãn đúng/sai cho mỗi số; số được chọn trên nhiều vé không tạo cập nhật lặp. Mọi mức khớp 0–6 tham gia; số từng được chọn có thêm trọng số mất mát 0,25, bước gradient 0,05. Đối soát lại từ dữ liệu hiện tại, giới hạn trước kỳ đích; không phụ thuộc settlement cũ khi kết quả bị sửa/rút lại. Đóng băng policy, trọng số và lineage/hash trong explanation; không sửa snapshot cũ, migration, mô hình tần suất hoặc thuật toán chính. Clock được inject vào AiLabService để kiểm thử cutoff có thể tái lập.

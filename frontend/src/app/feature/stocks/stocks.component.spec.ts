@@ -95,8 +95,6 @@ describe('Stocks page', () => {
       purchaseDate: '2026-10-01',
       purchasePrice: 20000,
       quantity: null,
-      buyFeePercent: null,
-      sellCostPercent: null,
       maxLossPercent: null,
       sellableQuantity: null,
     };
@@ -126,6 +124,92 @@ describe('Stocks page', () => {
     header.detectChanges();
     expect(header.nativeElement.querySelector('.category-picker')).not.toBeNull();
     header.destroy();
+    http.verify();
+  });
+  it('submits a position without fee fields and displays reference price PnL', async () => {
+    const harness = await RouterTestingHarness.create();
+    const http = TestBed.inject(HttpTestingController);
+    const page = await harness.navigateByUrl('/stocks/VIC', StocksComponent);
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    const data = emptySnapshot('VIC');
+    data.data.unit = 'VND';
+    data.data.candles = [
+      {
+        time: Date.parse('2026-11-03T02:00:00Z') / 1000,
+        open: 230000,
+        high: 235000,
+        low: 229000,
+        close: 234000,
+        volume: 1000,
+        closed: true,
+      },
+    ];
+    http.expectOne((r) => r.url.endsWith('/VIC/analysis')).flush(data);
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('input[name="buyFee"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelector('input[name="sellCost"]')).toBeNull();
+    page.input = {
+      purchaseDate: '2026-11-03',
+      purchasePrice: 234000,
+      quantity: 200,
+      sellableQuantity: 200,
+      maxLossPercent: 10,
+    };
+    page.analyzePosition();
+    const request = http.expectOne((r) => r.url.endsWith('/VIC/position-analysis'));
+    expect(request.request.body.buyFeePercent).toBeUndefined();
+    expect(request.request.body.sellCostPercent).toBeUndefined();
+    request.flush({
+      snapshotId: data.snapshotId,
+      status: 'WATCH',
+      price: 234000,
+      changePercent: 0,
+      grossPnl: 0,
+      estimatedNetPnl: null,
+      breakEven: null,
+      reasons: ['Kết quả tính tham khảo; chưa tính phí, thuế.'],
+    });
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.textContent).toContain('0.00%');
+    expect(harness.routeNativeElement?.textContent).not.toContain('Lãi/lỗ ròng');
+    http.verify();
+  });
+  it('puts classifier scores in collapsed details and leads with conditional price guidance', async () => {
+    const harness = await RouterTestingHarness.create();
+    const http = TestBed.inject(HttpTestingController);
+    await harness.navigateByUrl('/stocks/FPT', StocksComponent);
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    const data = emptySnapshot('FPT');
+    data.analysis.learning.buyScore = 0.8;
+    data.analysis.learning.holdScore = 0.1;
+    data.analysis.learning.sellScore = 0.1;
+    data.analysis.recommendation = {
+      version: 'test',
+      action: 'WATCH',
+      title: 'Chờ xác nhận vượt kháng cự',
+      summary: 'Cần nến đóng và khối lượng xác nhận.',
+      unit: 'VND',
+      asOf: null,
+      evaluatedPrice: null,
+      buyAbove: 51000,
+      sellBelow: 48000,
+      stopLoss: 49000,
+      takeProfit: 55000,
+      volumeRatio: null,
+      volumeConfirmation: 1.2,
+      buyConditions: [],
+      sellConditions: [],
+      cautions: [],
+    };
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(data);
+    harness.detectChanges();
+    const root = harness.routeNativeElement!;
+    expect(root.querySelector('app-stock-recommendation')?.textContent).toContain(
+      'Chờ xác nhận vượt kháng cự',
+    );
+    const details = root.querySelector('.score-grid')?.closest('details');
+    expect(details?.open).toBeFalse();
+    expect(root.textContent).toContain('không phải tỷ lệ vốn nên mua/bán');
     http.verify();
   });
 });

@@ -3,6 +3,7 @@ package com.example.analyzeproject.application.service;
 import com.example.analyzeproject.application.port.out.StockMarketDataPort;
 import com.example.analyzeproject.domain.model.stock.StockModels.*;
 import com.example.analyzeproject.domain.service.stock.StockLearningEngine;
+import com.example.analyzeproject.domain.service.stock.StockRecommendationEngine;
 import java.time.*;
 import java.util.*;
 import java.security.MessageDigest;
@@ -12,8 +13,10 @@ public final class StockService {
     private final StockMarketDataPort feed;
     private final Clock clock;
     private final StockLearningEngine learning;
+    private final StockRecommendationEngine recommendations;
     private final Map<String,Snapshot> snapshots=new LinkedHashMap<>();
-    public StockService(StockMarketDataPort feed,Clock clock,StockLearningEngine learning){this.feed=feed;this.clock=clock;this.learning=learning;}
+    public StockService(StockMarketDataPort feed,Clock clock,StockLearningEngine learning){this(feed,clock,learning,new StockRecommendationEngine(StockRecommendationEngine.Policy.defaults()));}
+    public StockService(StockMarketDataPort feed,Clock clock,StockLearningEngine learning,StockRecommendationEngine recommendations){this.feed=feed;this.clock=clock;this.learning=learning;this.recommendations=recommendations;}
     public List<Map<String,String>> instruments(){return List.of(Map.of("symbol","VIC","name","Vingroup"),Map.of("symbol","FPT","name","FPT"),Map.of("symbol","SZC","name","Sonadezi Châu Đức"),Map.of("symbol","MBB","name","Ngân hàng Quân đội"));}
     public List<Map<String,Object>> watchlist(){
         List<Map<String,Object>> result=new ArrayList<>();
@@ -48,7 +51,7 @@ public final class StockService {
             signal="UNAVAILABLE";reasons.add("Chưa đủ dữ liệu đã xác minh hoặc dữ liệu không đủ mới để đưa tín hiệu mua/bán.");
         }
         if(mode==Mode.INTRADAY)reasons.add("Tín hiệu trong ngày không xác nhận cổ phiếu có thể bán ngay; cần kiểm tra số lượng sẵn có và thanh toán.");
-        Snapshot result=new Snapshot(symbol,mode,mode==Mode.SWING?"1D":"15",id,data,benchmark,fresh,"UNVERIFIED_CALENDAR",last,new Analysis(signal,List.copyOf(reasons),indicators,ml));
+        Snapshot result=new Snapshot(symbol,mode,mode==Mode.SWING?"1D":"15",id,data,benchmark,fresh,"UNVERIFIED_CALENDAR",last,new Analysis(signal,List.copyOf(reasons),indicators,ml,recommendations.evaluate(data,mode,fresh,ml)));
         snapshots.put(id,result);while(snapshots.size()>24)snapshots.remove(snapshots.keySet().iterator().next());return result;
     }
     private String freshness(Feed data,Mode mode,Long last){
@@ -73,15 +76,23 @@ public final class StockService {
         if(p.sellableQuantity()!=null&&(p.quantity()==null||p.sellableQuantity()>p.quantity()))throw new IllegalArgumentException("Số lượng có thể bán không hợp lệ");
         if(p.quantity()!=null&&p.quantity()==0)throw new IllegalArgumentException("Số lượng nắm giữ phải lớn hơn 0");
         Snapshot s=snapshots.get(id);if(s==null||!s.symbol().equals(symbol))throw new IllegalArgumentException("Snapshot hết hạn; hãy tải lại biểu đồ");
-        if(!s.data().verified()||!"RAW".equals(s.data().priceBasis())||!"VND".equals(s.data().unit())||!"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))
-            return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Chưa xác minh giá VND raw đủ mới; chưa tính lãi/lỗ vị thế."));
-        Candle c=s.data().candles().stream().filter(Candle::closed).reduce((a,b)->b).orElseThrow();double price=c.close();
+        if(s.data().candles().isEmpty())return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Nguồn chưa trả giá; hãy cập nhật lại dữ liệu."));
+        double conversion="VND".equals(s.data().unit())?1:"THOUSAND_VND".equals(s.data().unit())?1000:0;
+        if(conversion==0||"ADJUSTED".equals(s.data().priceBasis()))
+            return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Giá chưa có đơn vị quy đổi sang VND hoặc chỉ có giá lịch sử điều chỉnh; chưa thể so với giá mua."));
+        Candle c=s.data().candles().get(s.data().candles().size()-1);double price=c.close()*conversion;
+        LocalDate priceDate=Instant.ofEpochSecond(c.time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
+        if(p.purchaseDate().isAfter(priceDate))return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Giá gần nhất có trước ngày mua; cần cập nhật giá sau ngày mua để tính lãi/lỗ."));
         double change=(price/p.purchasePrice()-1)*100,buyFee=p.buyFeePercent()==null?0:p.buyFeePercent()/100,sell=p.sellCostPercent()==null?0:p.sellCostPercent()/100;
-        String status=s.analysis().signal();List<String> reasons=new ArrayList<>();
-        if(p.maxLossPercent()!=null&&change<=-p.maxLossPercent()){status="SELL";reasons.add("Mức giảm giá đã chạm ngưỡng chịu lỗ bạn nhập.");}
+        String status="UNAVAILABLE".equals(s.analysis().recommendation().action())?"WATCH":s.analysis().recommendation().action();List<String> reasons=new ArrayList<>();
+        reasons.add(s.analysis().recommendation().summary());
+        if(p.maxLossPercent()!=null&&change<=-p.maxLossPercent()){if(s.data().verified()&&"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))status="SELL";reasons.add("Mức giảm giá đã chạm ngưỡng chịu lỗ bạn nhập; cần đối chiếu giá và sự kiện quyền trước khi xử lý vị thế.");}
         else if("BUY".equals(status))status="HOLD";
-        reasons.add("Lãi/lỗ giá chưa bao gồm cổ tức, quyền mua hoặc thay đổi số lượng do sự kiện doanh nghiệp; cần đối soát trước khi sử dụng.");
-        if(p.buyFeePercent()==null||p.sellCostPercent()==null)reasons.add("Chưa tính đầy đủ phí và khoản thu bán vì còn thiếu đầu vào.");
+        reasons.add("Giá dùng tính: "+price+" VND/cổ phiếu; mốc nến "+Instant.ofEpochSecond(c.time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))+" giờ Việt Nam.");
+        reasons.add("Lãi/lỗ theo giá chưa tính phí, thuế, cổ tức hoặc thay đổi số lượng do sự kiện quyền.");
+        if(!s.data().verified()||"UNKNOWN".equals(s.data().priceBasis()))reasons.add("Kết quả tính tham khảo; cơ sở điều chỉnh giá chưa được xác nhận. Không dùng số liệu này làm xác nhận mua/bán.");
+        if(!"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))reasons.add("Dữ liệu cũ: kết quả dùng giá gần nhất đang có, không phải giá giao dịch hiện tại.");
+        if(!c.closed())reasons.add("Giá thuộc nến đang hình thành và có thể thay đổi.");
         reasons.add(p.sellableQuantity()==null?"Chưa biết số lượng có thể bán; kết quả chỉ là tín hiệu kỹ thuật.":"Số lượng có thể bán do bạn khai báo: "+p.sellableQuantity());
         if(!s.data().candles().isEmpty()&&p.purchaseDate().isBefore(Instant.ofEpochSecond(s.data().candles().get(0).time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()))reasons.add("Ngày mua ngoài lịch sử hiện có; không tái dựng phân tích tại ngày mua.");
         Double gross=p.quantity()==null?null:(price-p.purchasePrice())*p.quantity();

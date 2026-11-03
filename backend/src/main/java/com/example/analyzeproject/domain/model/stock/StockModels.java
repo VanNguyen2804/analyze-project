@@ -25,7 +25,13 @@ public final class StockModels {
                            int testSamples, Double accuracy, Double balancedAccuracy, Double baselineAccuracy,
                            Double logLoss, Double buyScore, Double holdScore, Double sellScore,
                            Long trainingLabelsThrough, List<FeatureWeight> weights, List<ValidationFold> validationFolds, String explanation) {}
-    public record Analysis(String signal, List<String> reasons, Indicator indicators, Learning learning) {}
+    public record Recommendation(String version, String action, String title, String summary, String unit,
+                                 Long asOf, Double evaluatedPrice, Double buyAbove, Double sellBelow,
+                                 Double stopLoss, Double takeProfit, Double volumeRatio, double volumeConfirmation,
+                                 List<String> buyConditions, List<String> sellConditions, List<String> cautions) {
+        public Recommendation { buyConditions=List.copyOf(buyConditions);sellConditions=List.copyOf(sellConditions);cautions=List.copyOf(cautions); }
+    }
+    public record Analysis(String signal, List<String> reasons, Indicator indicators, Learning learning, Recommendation recommendation) {}
     public record Snapshot(String symbol, Mode mode, String interval, String snapshotId, Feed data, Feed benchmark,
                            String freshness, String marketStatus, Long lastClosedBarAt, Analysis analysis) {}
     public record PositionInput(LocalDate purchaseDate, Double purchasePrice, Double quantity,

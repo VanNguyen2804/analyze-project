@@ -4,7 +4,7 @@
 
 Mở `/stocks` hoặc `/stocks/FPT` để xem VIC, FPT, SZC, MBB: nến ngày/15 phút, volume, EMA20, VNINDEX, phân tích vị thế và mô hình học máy ba lớp mua/theo dõi/bán. MEGA/POWER và lịch xổ số được ẩn trên trang chứng khoán. Mô hình thực sự huấn luyện từ lịch sử, có kiểm định theo thời gian và đối chứng; chưa chứng minh lợi thế giao dịch.
 
-Nguồn công khai hiện ở chế độ thử nghiệm: đơn vị/cơ sở giá chưa xác minh sẽ khóa tín hiệu hành động và P&L VND. Xem [cấu hình, phương pháp và giới hạn](backend/docs/STOCKS_IMPLEMENTATION.md), [báo cáo dữ liệu thật](backend/docs/reports/stocks-development-2026-11-03.json). Không có thay đổi schema hoặc chức năng đặt lệnh.
+Nguồn công khai hiện ở chế độ thử nghiệm, tín hiệu hành động phụ thuộc chất lượng dữ liệu. Vị thế tính chênh lệch giá tham khảo bằng VND, ghi rõ mốc giá và chưa tính phí/thuế/sự kiện quyền; giao diện không yêu cầu phí mua/bán. Xem [cấu hình, phương pháp và giới hạn](backend/docs/STOCKS_IMPLEMENTATION.md), [báo cáo dữ liệu thật](backend/docs/reports/stocks-development-2026-11-03.json). Không có thay đổi schema hoặc chức năng đặt lệnh.
 
 ## Trang dự đoán có người dùng chọn vé
 

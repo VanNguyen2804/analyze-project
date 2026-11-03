@@ -47,7 +47,7 @@
         @if (quotes()[symbol]; as q) {
           <strong>{{ q.price === null ? '—' : (q.price | number: '1.0-2') }}</strong>
           <small
-            >{{ q.unit === 'VND' ? 'VND' : 'Đơn vị nguồn' }} ·
+            >{{ unitLabel(q.unit) }} ·
             {{ q.asOf === null ? 'Chưa có nến' : (q.asOf * 1000 | date: 'dd/MM HH:mm' : '+0700')
             }}{{ q.freshness === 'STALE' ? ' · Cũ' : '' }}</small
           >
@@ -92,7 +92,7 @@
                   ? 'Giá nến đang hình thành'
                   : 'Giá đóng nến gần nhất'
               }}
-              · {{ s.data.unit === 'VND' ? 'VND/cổ phiếu' : 'Đơn vị nguồn chưa xác minh' }}</span
+              · {{ unitLabel(s.data.unit) }}</span
             >
           </div>
           <strong class="price">{{ latestPrice(s) | number: '1.0-2' }}</strong>
@@ -117,39 +117,46 @@
         </p>
       </article>
       <aside class="panel">
-        <p class="eyebrow">TÍN HIỆU THỊ TRƯỜNG</p>
-        <h3
-          class="signal"
-          [class.buy]="s.analysis.signal === 'BUY'"
-          [class.sell]="s.analysis.signal === 'SELL'"
-        >
-          {{ label(s.analysis.signal) }}
-        </h3>
-        <ul>
-          @for (reason of s.analysis.reasons; track reason) {
-            <li>{{ reason }}</li>
-          }
-        </ul>
-        @if (s.analysis.indicators; as i) {
-          <dl class="metrics">
-            <div>
-              <dt>RSI14</dt>
-              <dd>{{ i.rsi | number: '1.1-1' }}</dd>
-            </div>
-            <div>
-              <dt>ATR14</dt>
-              <dd>{{ i.atr | number: '1.0-2' }}</dd>
-            </div>
-            <div>
-              <dt>Hỗ trợ trước đó</dt>
-              <dd>{{ i.support | number: '1.0-2' }}</dd>
-            </div>
-            <div>
-              <dt>Kháng cự trước đó</dt>
-              <dd>{{ i.resistance | number: '1.0-2' }}</dd>
-            </div>
-          </dl>
+        @if (s.analysis.recommendation; as recommendation) {
+          <app-stock-recommendation [recommendation]="recommendation" />
+        } @else {
+          <p class="eyebrow">TÍN HIỆU THỊ TRƯỜNG</p>
+          <h3
+            class="signal"
+            [class.buy]="s.analysis.signal === 'BUY'"
+            [class.sell]="s.analysis.signal === 'SELL'"
+          >
+            {{ label(s.analysis.signal) }}
+          </h3>
         }
+        <details>
+          <summary>Chi tiết chỉ báo và chất lượng dữ liệu</summary>
+          <ul>
+            @for (reason of s.analysis.reasons; track reason) {
+              <li>{{ reason }}</li>
+            }
+          </ul>
+          @if (s.analysis.indicators; as i) {
+            <dl class="metrics">
+              <div>
+                <dt>RSI14</dt>
+                <dd>{{ i.rsi | number: '1.1-1' }}</dd>
+              </div>
+              <div>
+                <dt>ATR14</dt>
+                <dd>{{ i.atr | number: '1.0-2' }}</dd>
+              </div>
+              <div>
+                <dt>Hỗ trợ trước đó</dt>
+                <dd>{{ i.support | number: '1.0-2' }}</dd>
+              </div>
+              <div>
+                <dt>Kháng cự trước đó</dt>
+                <dd>{{ i.resistance | number: '1.0-2' }}</dd>
+              </div>
+            </dl>
+          }
+        </details>
         <div class="benchmark">
           <strong>VNINDEX</strong
           ><span>{{
@@ -170,7 +177,7 @@
       <div class="panel-heading">
         <div>
           <p class="eyebrow">HỌC MÁY · KIỂM ĐỊNH THEO THỜI GIAN</p>
-          <h3>Dự báo mua / theo dõi / bán</h3>
+          <h3>Mô hình học máy nói gì?</h3>
         </div>
         <span class="badge">{{
           s.analysis.learning.status === 'EXPERIMENTAL'
@@ -181,49 +188,56 @@
         }}</span>
       </div>
       @let ml = s.analysis.learning;
-      @if (ml.buyScore !== null) {
-        <div class="score-grid">
+      <p class="muted small">
+        Khuyến nghị dễ đọc và mốc mua/bán nằm ở khối “Khuyến nghị theo giá”. Điểm học máy chỉ thể
+        hiện cách mô hình phân loại, không phải tỷ lệ vốn nên mua/bán hoặc xác suất có lời.
+      </p>
+      <details>
+        <summary>Xem điểm phân loại và kết quả kiểm định của mô hình</summary>
+        @if (ml.buyScore !== null) {
+          <div class="score-grid">
+            <div>
+              <span>Điểm mua</span><strong>{{ ml.buyScore | percent: '1.1-1' }}</strong>
+            </div>
+            <div>
+              <span>Điểm trung tính</span><strong>{{ ml.holdScore | percent: '1.1-1' }}</strong>
+            </div>
+            <div>
+              <span>Điểm bán</span><strong>{{ ml.sellScore | percent: '1.1-1' }}</strong>
+            </div>
+          </div>
+          <p class="muted small">
+            Điểm phân loại chưa hiệu chuẩn; không phải xác suất giao dịch có lời.
+            {{ !s.data.verified ? 'Dữ liệu chưa xác minh: kết quả mô hình chỉ để khảo sát.' : '' }}
+          </p>
+        }
+        <dl class="metrics ml-metrics">
           <div>
-            <span>Điểm mua</span><strong>{{ ml.buyScore | percent: '1.1-1' }}</strong>
+            <dt>Mẫu huấn luyện cuối</dt>
+            <dd>{{ ml.trainSamples }}</dd>
           </div>
           <div>
-            <span>Điểm trung tính</span><strong>{{ ml.holdScore | percent: '1.1-1' }}</strong>
+            <dt>Mẫu kiểm định</dt>
+            <dd>{{ ml.testSamples }}</dd>
           </div>
           <div>
-            <span>Điểm bán</span><strong>{{ ml.sellScore | percent: '1.1-1' }}</strong>
+            <dt>Phân loại đúng</dt>
+            <dd>{{ ml.accuracy === null ? '—' : (ml.accuracy | percent: '1.1-1') }}</dd>
           </div>
-        </div>
-        <p class="muted small">
-          Điểm phân loại chưa hiệu chuẩn; không phải xác suất giao dịch có lời.
-          {{ !s.data.verified ? 'Dữ liệu chưa xác minh: kết quả mô hình chỉ để khảo sát.' : '' }}
-        </p>
-      }
-      <dl class="metrics ml-metrics">
-        <div>
-          <dt>Mẫu huấn luyện cuối</dt>
-          <dd>{{ ml.trainSamples }}</dd>
-        </div>
-        <div>
-          <dt>Mẫu kiểm định</dt>
-          <dd>{{ ml.testSamples }}</dd>
-        </div>
-        <div>
-          <dt>Phân loại đúng</dt>
-          <dd>{{ ml.accuracy === null ? '—' : (ml.accuracy | percent: '1.1-1') }}</dd>
-        </div>
-        <div>
-          <dt>Đối chứng lớp phổ biến</dt>
-          <dd>
-            {{ ml.baselineAccuracy === null ? '—' : (ml.baselineAccuracy | percent: '1.1-1') }}
-          </dd>
-        </div>
-        <div>
-          <dt>Balanced accuracy</dt>
-          <dd>
-            {{ ml.balancedAccuracy === null ? '—' : (ml.balancedAccuracy | percent: '1.1-1') }}
-          </dd>
-        </div>
-      </dl>
+          <div>
+            <dt>Đối chứng lớp phổ biến</dt>
+            <dd>
+              {{ ml.baselineAccuracy === null ? '—' : (ml.baselineAccuracy | percent: '1.1-1') }}
+            </dd>
+          </div>
+          <div>
+            <dt>Balanced accuracy</dt>
+            <dd>
+              {{ ml.balancedAccuracy === null ? '—' : (ml.balancedAccuracy | percent: '1.1-1') }}
+            </dd>
+          </div>
+        </dl>
+      </details>
       <details>
         <summary>Phương pháp và trọng số đã học</summary>
         <p>{{ ml.explanation }}</p>
@@ -260,12 +274,7 @@
       </details>
     </article>
     <div class="main-grid position-grid">
-      <form
-        class="panel"
-        (ngSubmit)="analyzePosition()"
-        #positionForm="ngForm"
-        (ngModelChange)="resetPosition()"
-      >
+      <form class="panel" (ngSubmit)="analyzePosition()" #positionForm="ngForm">
         <p class="eyebrow">VỊ THẾ CỦA TÔI</p>
         <h3>Kiểm tra lô cổ phiếu đang nắm giữ</h3>
         <p class="muted small">
@@ -306,26 +315,6 @@
               step="1"
           /></label>
           <label
-            >Phí mua (%)<input
-              type="number"
-              name="buyFee"
-              [(ngModel)]="input.buyFeePercent"
-              (ngModelChange)="resetPosition()"
-              min="0"
-              max="100"
-              step="0.01"
-              placeholder="Chưa khai báo" /></label
-          ><label
-            >Tổng chi phí bán dự kiến (%)<input
-              type="number"
-              name="sellCost"
-              [(ngModel)]="input.sellCostPercent"
-              (ngModelChange)="resetPosition()"
-              min="0"
-              max="99.99"
-              step="0.01"
-              placeholder="Gồm các khoản áp dụng" /></label
-          ><label
             >Ngưỡng chịu lỗ (%)<input
               type="number"
               name="maxLoss"
@@ -360,18 +349,8 @@
                 </dd>
               </div>
               <div>
-                <dt>Lãi/lỗ ròng ước tính</dt>
-                <dd>
-                  {{
-                    p.estimatedNetPnl === null
-                      ? 'Chưa đủ đầu vào'
-                      : (p.estimatedNetPnl | number: '1.0-0')
-                  }}
-                </dd>
-              </div>
-              <div>
-                <dt>Giá hòa vốn ước tính</dt>
-                <dd>{{ p.breakEven === null ? '—' : (p.breakEven | number: '1.0-2') }}</dd>
+                <dt>Giá dùng tính (VND/cổ phiếu)</dt>
+                <dd>{{ p.price | number: '1.0-2' }}</dd>
               </div>
             </dl>
           }

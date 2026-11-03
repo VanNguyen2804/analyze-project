@@ -1,0 +1,86 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1px;
+  font-weight: 700;
+  color: #64748b;
+}
+h3 {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.summary {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.asof,
+small {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.7;
+}
+.scenario {
+  padding: 14px;
+  border: 1px solid #dbe3ed;
+  border-radius: 9px;
+  margin: 14px 0;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.scenario strong {
+  font-size: 13px;
+}
+.scenario p {
+  margin: 8px 0;
+}
+.buy-scenario {
+  border-left: 3px solid #059669;
+}
+.sell-scenario {
+  border-left: 3px solid #e11d48;
+}
+ul {
+  padding-left: 17px;
+  margin: 6px 0;
+}
+li {
+  margin: 6px 0;
+}
+dl {
+  margin: 14px 0;
+}
+dl div {
+  margin: 12px 0;
+}
+dt {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+dd {
+  font-size: 13px;
+  margin: 5px 0;
+  font-weight: 650;
+}
+small {
+  display: block;
+  font-weight: 400;
+}
+.caution {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #805b14;
+  background: #fffbeb;
+  padding: 8px 10px;
+  border-radius: 5px;
+}
+.buy {
+  color: #059669;
+}
+.sell {
+  color: #be123c;
+}

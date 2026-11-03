@@ -63,14 +63,36 @@ class StockServiceTest {
         assertThrows(IllegalArgumentException.class,()->service.position("MBB",snapshot.snapshotId(),input));
         assertThrows(IllegalArgumentException.class,()->service.position("FPT","expired",input));
     }
-    @Test void positionWithoutCostsOrQuantityDoesNotInventNetPnlAndUnknownBasisBlocksPnl(){
+    @Test void positionWithoutCostsOrQuantityDoesNotInventNetPnlAndUnknownBasisAllowsReferencePnl(){
         var service=service(history(100),true,"RAW",clock);var s=service.analyze("FPT",Mode.SWING);
         var input=new PositionInput(LocalDate.of(2026,10,1),100.0,null,null,null,null,null);
         var p=service.position("FPT",s.snapshotId(),input);assertNull(p.grossPnl());assertNull(p.estimatedNetPnl());assertNull(p.breakEven());
         var unknown=service(history(100),false,"UNKNOWN",clock);var u=unknown.analyze("FPT",Mode.SWING);
-        assertEquals("UNAVAILABLE",unknown.position("FPT",u.snapshotId(),input).status());
+        var reference=unknown.position("FPT",u.snapshotId(),input);assertEquals("WATCH",reference.status());assertNotNull(reference.changePercent());
+        assertTrue(reference.reasons().stream().anyMatch(r->r.contains("tham khảo")));
         var invalid=new PositionInput(LocalDate.of(2027,1,1),Double.NaN,null,null,null,null,null);
         assertThrows(IllegalArgumentException.class,()->service.position("FPT",s.snapshotId(),invalid));
         assertThrows(IllegalArgumentException.class,()->service.analyze("OTHER",Mode.SWING));
+    }
+    @Test void screenshotPositionWorksWithoutFeesAndThousandDongIsConvertedExactlyOnce(){
+        var bars=List.of(new Candle(Instant.parse("2026-11-03T02:00:00Z").getEpochSecond(),230,235,229,234,1000,true));
+        var service=new StockService((symbol,mode)->new Feed(bars,clock.instant(),"DNSE / Entrade","THOUSAND_VND","UNKNOWN",false,List.of()),clock,engine);
+        var snapshot=service.analyze("VIC",Mode.SWING);
+        var input=new PositionInput(LocalDate.of(2026,11,3),234000.0,200.0,null,null,10.0,200.0);
+        var result=service.position("VIC",snapshot.snapshotId(),input);
+        assertEquals(234000,result.price());assertEquals(0,result.changePercent());assertEquals(0,result.grossPnl());assertEquals("WATCH",result.status());
+        assertNull(result.estimatedNetPnl());assertTrue(result.reasons().stream().noneMatch(r->r.contains("thiếu đầu vào")));
+        var changed=new PositionInput(LocalDate.of(2026,11,3),230000.0,200.0,null,null,10.0,200.0);
+        assertEquals(800000,service.position("VIC",snapshot.snapshotId(),changed).grossPnl());
+    }
+    @Test void staleDataRemainsExplicitReferenceButAdjustedOrUnknownUnitsCannotBeCompared(){
+        var stale=service(history(100),false,"UNKNOWN",Clock.offset(clock,Duration.ofDays(5)));
+        var snapshot=stale.analyze("FPT",Mode.SWING);var input=new PositionInput(LocalDate.of(2026,10,1),100.0,200.0,null,null,10.0,null);
+        var result=stale.position("FPT",snapshot.snapshotId(),input);assertNotNull(result.grossPnl());assertEquals("WATCH",result.status());
+        assertTrue(result.reasons().stream().anyMatch(r->r.contains("Dữ liệu cũ")));
+        var adjusted=service(history(100),true,"ADJUSTED",clock);var a=adjusted.analyze("FPT",Mode.SWING);
+        assertEquals("UNAVAILABLE",adjusted.position("FPT",a.snapshotId(),input).status());
+        var unknown=new StockService((symbol,mode)->new Feed(history(100),clock.instant(),"TEST","SOURCE","UNKNOWN",false,List.of()),clock,engine);var u=unknown.analyze("FPT",Mode.SWING);
+        assertNull(unknown.position("FPT",u.snapshotId(),input).price());
     }
 }

@@ -15,14 +15,20 @@ import java.time.Clock;
 public class ApplicationConfig {
     @Bean StockService stockService(com.fasterxml.jackson.databind.ObjectMapper json, Clock clock,
             @Value("${stocks.source.enabled:true}") boolean enabled,
-            @Value("${stocks.source.price-scale:1}") double scale,
+            @Value("${stocks.source.price-scale:1000}") double scale,
             @Value("${stocks.source.price-basis:UNKNOWN}") String basis,
             @Value("${stocks.source.verified:false}") boolean verified,
             @Value("${stocks.ml.buy-threshold:0.60}") double buyThreshold,
             @Value("${stocks.ml.sell-threshold:0.60}") double sellThreshold,
-            @Value("${stocks.ml.round-trip-cost:0.004}") double cost) {
+            @Value("${stocks.ml.round-trip-cost:0.004}") double cost,
+            @Value("${stocks.recommendation.breakout-atr:0.25}") double breakoutAtr,
+            @Value("${stocks.recommendation.volume-multiple:1.2}") double volumeMultiple,
+            @Value("${stocks.recommendation.stop-atr:1.5}") double stopAtr,
+            @Value("${stocks.recommendation.target-atr:3.0}") double targetAtr,
+            @Value("${stocks.recommendation.max-buy-rsi:70}") double maxBuyRsi) {
         return new StockService(new com.example.analyzeproject.infrastructure.marketdata.EntradeStockAdapter(json,clock,enabled,scale,basis,verified),
-                clock,new com.example.analyzeproject.domain.service.stock.StockLearningEngine(buyThreshold,sellThreshold,cost));
+                clock,new com.example.analyzeproject.domain.service.stock.StockLearningEngine(buyThreshold,sellThreshold,cost),
+                new com.example.analyzeproject.domain.service.stock.StockRecommendationEngine(new com.example.analyzeproject.domain.service.stock.StockRecommendationEngine.Policy(breakoutAtr,volumeMultiple,stopAtr,targetAtr,maxBuyRsi)));
     }
     @Bean Clock applicationClock() { return Clock.systemUTC(); }
 

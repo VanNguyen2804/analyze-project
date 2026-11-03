@@ -53,6 +53,7 @@ export interface StockSnapshot {
   marketStatus: string;
   lastClosedBarAt: number | null;
   analysis: {
+    recommendation?: StockRecommendation;
     signal: string;
     reasons: string[];
     indicators: {
@@ -66,12 +67,28 @@ export interface StockSnapshot {
     learning: StockLearning;
   };
 }
+export interface StockRecommendation {
+  version: string;
+  action: string;
+  title: string;
+  summary: string;
+  unit: string;
+  asOf: number | null;
+  evaluatedPrice: number | null;
+  buyAbove: number | null;
+  sellBelow: number | null;
+  stopLoss: number | null;
+  takeProfit: number | null;
+  volumeRatio: number | null;
+  volumeConfirmation: number;
+  buyConditions: string[];
+  sellConditions: string[];
+  cautions: string[];
+}
 export interface StockPositionInput {
   purchaseDate: string;
   purchasePrice: number | null;
   quantity: number | null;
-  buyFeePercent: number | null;
-  sellCostPercent: number | null;
   maxLossPercent: number | null;
   sellableQuantity: number | null;
 }
