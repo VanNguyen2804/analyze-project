@@ -1,0 +1,127 @@
+<section class="desk" aria-label="Nhận định theo ngày">
+  <header>
+    <div>
+      <span class="eyebrow">TECHNICAL DESK / NẾN NGÀY</span>
+      <h3>Nhận định theo ngày</h3>
+      <p>Giá trị hiện tại và điều kiện cụ thể cho từng chỉ báo.</p>
+    </div>
+    <label
+      >Phiên đánh giá<select
+        aria-label="Ngày nhận định"
+        [value]="selected()?.date || ''"
+        (change)="selectedDate.set($any($event.target).value)"
+      >
+        @for (day of desk().days; track day.date) {
+          <option [value]="day.date">{{ day.date | date: 'dd/MM/yyyy' }}</option>
+        }
+      </select></label
+    >
+  </header>
+  @if (selected(); as day) {
+    <div class="overview">
+      <div>
+        <span>Đóng cửa {{ day.date | date: 'dd/MM' }}</span
+        ><strong
+          >{{ day.price | number: '1.0-2' }} <small>{{ unit() }}</small></strong
+        >
+      </div>
+      <div>
+        <span>So phiên trước</span
+        ><strong
+          [class.positive]="(day.changePercent || 0) > 0"
+          [class.negative]="(day.changePercent || 0) < 0"
+          >{{ day.changePercent | number: '1.2-2' }}%</strong
+        >
+      </div>
+      <div>
+        <span>Điều kiện nghiêng mua</span
+        ><strong class="positive">{{ day.buyConfirmations }}<small> / 6</small></strong>
+      </div>
+      <div>
+        <span>Điều kiện nghiêng bán</span
+        ><strong class="negative">{{ day.sellConfirmations }}<small> / 6</small></strong>
+      </div>
+    </div>
+    <div
+      class="summary"
+      [class.bullish]="day.bias === 'BULLISH'"
+      [class.bearish]="day.bias === 'BEARISH'"
+    >
+      <b>{{
+        day.bias === 'BULLISH'
+          ? 'Nghiêng tăng'
+          : day.bias === 'BEARISH'
+            ? 'Nghiêng giảm'
+            : 'Chờ đồng thuận'
+      }}</b
+      ><span>{{ day.summary }}</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Chỉ báo</th>
+            <th>Hiện tại · {{ unit() }} với giá</th>
+            <th>Điều kiện nghiêng mua</th>
+            <th>Điều kiện nghiêng bán</th>
+            <th>Đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of day.readings; track row.key) {
+            <tr>
+              <th scope="row">
+                <strong>{{ row.name }}</strong>
+                <details>
+                  <summary>Cách đọc</summary>
+                  <p>{{ row.explanation }}</p>
+                </details>
+              </th>
+              <td class="current">{{ row.current }}</td>
+              <td class="target" [class.ready-buy]="row.buyReady">{{ row.buyTarget }}</td>
+              <td class="target" [class.ready-sell]="row.sellReady">{{ row.sellTarget }}</td>
+              <td>
+                <span
+                  class="state"
+                  [class.positive]="row.buyReady"
+                  [class.negative]="row.sellReady"
+                  >{{
+                    row.buyReady ? 'Nghiêng mua' : row.sellReady ? 'Nghiêng bán' : 'Chưa xác nhận'
+                  }}</span
+                >
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (day.values.fibonacci.length) {
+      <div class="fib-strip">
+        <span>FIBONACCI / BIÊN 60 NẾN</span>
+        @for (level of day.values.fibonacci; track level.ratio) {
+          <div>
+            <small>{{ level.ratio | percent: '1.1-1' }}</small
+            ><b>{{ level.price | number: '1.0-2' }}</b>
+          </div>
+        }
+      </div>
+    }
+    <footer>
+      <strong>Ngưỡng sẽ thay đổi khi có nến mới; cần kết hợp giá, xu hướng và khối lượng.</strong>
+      <details>
+        <summary>Phạm vi dữ liệu và phương pháp</summary>
+        @for (caution of day.cautions; track caution) {
+          <p>{{ caution }}</p>
+        }
+        <p>
+          Phiên bản {{ desk().version }} · Cơ sở giá: {{ desk().priceBasis }}. Mỗi ngày chỉ sử dụng
+          dữ liệu tới ngày đang chọn; không ghép dữ liệu tương lai.
+        </p>
+      </details>
+    </footer>
+  } @else {
+    <div class="empty">
+      Chưa đủ nến ngày để lập bảng nhận định. Không thay bằng dữ liệu trong ngày.
+    </div>
+  }
+</section>

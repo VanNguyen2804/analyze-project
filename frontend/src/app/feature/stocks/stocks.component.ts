@@ -31,6 +31,7 @@ import {
 } from '../../core/models/stock.model';
 import { StockChartComponent } from './stock-chart.component';
 import { StockRecommendationComponent } from './stock-recommendation.component';
+import { StockDailyDeskComponent } from './stock-daily-desk.component';
 
 @Component({
   selector: 'app-stocks',
@@ -44,6 +45,7 @@ import { StockRecommendationComponent } from './stock-recommendation.component';
     RouterLink,
     StockChartComponent,
     StockRecommendationComponent,
+    StockDailyDeskComponent,
   ],
   templateUrl: './stocks.component.html',
   styleUrl: './stocks.component.css',
@@ -80,10 +82,12 @@ export class StocksComponent implements OnInit {
       .subscribe((quotes) => this.quotes.set(Object.fromEntries(quotes.map((q) => [q.symbol, q]))));
     combineLatest([this.route.paramMap, this.modeChanges, this.refreshChanges])
       .pipe(
-        tap(() => {
+        tap(([params, mode]) => {
           this.loading.set(true);
           this.error.set('');
-          this.data.set(null);
+          const current = this.data();
+          if (current?.symbol !== (params.get('symbol') || 'FPT') || current?.mode !== mode)
+            this.data.set(null);
           this.resetPosition();
         }),
         switchMap(([params, mode]) =>
@@ -97,7 +101,7 @@ export class StocksComponent implements OnInit {
         takeUntilDestroyed(this.destroy),
       )
       .subscribe((data) => {
-        this.data.set(data);
+        if (data) this.data.set(data);
         this.loading.set(false);
       });
     interval(60000)
@@ -127,7 +131,7 @@ export class StocksComponent implements OnInit {
   }
   analyzePosition() {
     const s = this.data();
-    if (!s || this.positionBusy()) return;
+    if (!s || this.positionBusy() || this.loading()) return;
     this.resetPosition();
     this.positionBusy.set(true);
     this.api

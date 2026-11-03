@@ -23,15 +23,17 @@ import {
   createSeriesMarkers,
 } from 'lightweight-charts';
 import { StockCandle } from '../../core/models/stock.model';
+import { stockBusinessDate, stockChartCandles } from './stock-chart-data';
+import { StockCloud } from './stock-cloud';
 
 @Component({
   selector: 'app-stock-chart',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template:
-    '<div #host class="chart" role="img" aria-label="Biểu đồ nến, khối lượng và đường trung bình EMA20; có thể kéo và thu phóng"></div>@if (renderError()) {<p role="alert">{{ renderError() }}</p>}<p class="credit">TradingView Lightweight Charts™ · Copyright (с) 2025 TradingView, Inc. <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView</a></p>',
+    '<div class="chart-tools"><div class="legend"><span>● Nến / Volume</span><span class="ema20">━ EMA20</span><span class="ema50">━ EMA50</span><label><input type="checkbox" [checked]="cloudVisible()" (change)="toggleCloud()" /> Mây Ichimoku</label></div><div class="ranges"><button type="button" (click)="setRange(intraday ? 16 : 21)">{{intraday ? "1 phiên" : "1M"}}</button><button type="button" (click)="setRange(intraday ? 80 : 63)">{{intraday ? "5 phiên" : "3M"}}</button><button type="button" (click)="setRange(intraday ? 320 : 126)">{{intraday ? "20 phiên" : "6M"}}</button><button type="button" (click)="setRange(100000)">Tất cả</button></div></div><div #host class="chart" role="img" aria-label="Biểu đồ nến, khối lượng, EMA20/50 và mây Ichimoku; có thể kéo và thu phóng"></div>@if (renderError()) {<p role="alert">{{ renderError() }}</p>}<p class="credit">TradingView Lightweight Charts™ · Copyright (с) 2025 TradingView, Inc. <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView</a></p>',
   styles: [
-    ':host{display:block;width:100%;min-width:0}.chart{height:430px;width:100%;min-width:0}.credit{font-size:11px;color:#64748b;margin:8px 0}@media(max-width:600px){.chart{height:330px}}',
+    ':host{display:block;width:100%;min-width:0}.chart{height:480px;width:100%;min-width:0}.chart-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0}.legend,.ranges{display:flex;gap:12px;align-items:center;font-size:10px;color:#64748b}.legend{flex-wrap:wrap}.legend label{display:flex;align-items:center;gap:4px}.legend input{accent-color:#059669}.ema20{color:#6366f1}.ema50{color:#d97706}.ranges{gap:3px}.ranges button{border:1px solid #e2e8f0;border-radius:5px;padding:5px 8px;background:#fff;color:#475569;font-size:10px;cursor:pointer}.ranges button:hover{background:#eef2ff}.credit{font-size:10px;color:#64748b;margin:8px 0}@media(max-width:600px){.chart{height:350px}}',
   ],
 })
 export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy {
@@ -44,6 +46,13 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
   private candlesSeries?: ISeriesApi<'Candlestick'>;
   private volumeSeries?: ISeriesApi<'Histogram'>;
   private emaSeries?: ISeriesApi<'Line'>;
+  private ema50Series?: ISeriesApi<'Line'>;
+  private cloud?: StockCloud;
+  private cloudASeries?: ISeriesApi<'Line'>;
+  private cloudBSeries?: ISeriesApi<'Line'>;
+  readonly cloudVisible = signal(true);
+  private visibleBars = 90;
+  private candleCount = 0;
   private purchaseLine?: IPriceLine;
   private markers?: ISeriesMarkersPluginApi<Time>;
   private observer?: ResizeObserver;
@@ -75,7 +84,11 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
       height,
       layout: { textColor: '#64748b', attributionLogo: true },
       grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
-      localization: { locale: 'vi-VN' },
+      localization: {
+        locale: 'vi-VN',
+        priceFormatter: (value: number) =>
+          new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value),
+      },
     });
     this.candlesSeries = this.chart.addSeries(CandlestickSeries, {
       upColor: '#059669',
@@ -96,27 +109,54 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
       title: 'EMA20',
       priceLineVisible: false,
     });
+    this.ema50Series = this.chart.addSeries(LineSeries, {
+      color: '#d97706',
+      lineWidth: 1,
+      title: 'EMA50',
+      priceLineVisible: false,
+      lastValueVisible: false,
+    });
+    this.cloud = new StockCloud(this.chart, this.candlesSeries);
+    this.candlesSeries.attachPrimitive(this.cloud);
+    this.cloudASeries = this.chart.addSeries(LineSeries, {
+      color: 'rgba(5,150,105,0.35)',
+      lineWidth: 1,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
+    this.cloudBSeries = this.chart.addSeries(LineSeries, {
+      color: 'rgba(225,29,72,0.3)',
+      lineWidth: 1,
+      lastValueVisible: false,
+      priceLineVisible: false,
+    });
     this.markers = createSeriesMarkers(this.candlesSeries);
     this.render();
   }
   ngOnChanges() {
     this.render();
   }
+  setRange(bars: number) {
+    this.visibleBars = bars;
+    this.applyRange();
+  }
+  toggleCloud() {
+    this.cloudVisible.update((v) => !v);
+    this.render();
+  }
+  private applyRange() {
+    if (this.chart && this.candleCount)
+      this.chart.timeScale().setVisibleLogicalRange({
+        from: Math.max(0, this.candleCount - this.visibleBars),
+        to: this.candleCount + 3,
+      });
+  }
   private render() {
     if (!this.chart) return;
     try {
       this.renderError.set('');
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Ho_Chi_Minh',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-      const date = (timestamp: number) => {
-        const parts = formatter.formatToParts(new Date(timestamp * 1000));
-        const part = (type: string) => parts.find((p) => p.type === type)!.value;
-        return `${part('year')}-${part('month')}-${part('day')}`;
-      };
+      const candles = stockChartCandles(this.candles, this.intraday);
+      const date = stockBusinessDate;
       const time = (c: StockCandle) => (this.intraday ? (c.time as UTCTimestamp) : date(c.time));
       this.chart.applyOptions({
         timeScale: {
@@ -141,7 +181,7 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
         },
       });
       this.candlesSeries!.setData(
-        this.candles.map((c) => ({
+        candles.map((c) => ({
           time: time(c),
           open: c.open,
           high: c.high,
@@ -151,19 +191,43 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
         })),
       );
       this.volumeSeries!.setData(
-        this.candles.map((c) => ({
+        candles.map((c) => ({
           time: time(c),
           value: c.volume,
           color: c.close >= c.open ? '#a7f3d0' : '#fecdd3',
         })),
       );
-      let ema = this.candles[0]?.close ?? 0;
+      let ema = candles[0]?.close ?? 0;
       this.emaSeries!.setData(
-        this.candles.map((c) => {
+        candles.map((c) => {
           ema += (2 / 21) * (c.close - ema);
           return { time: time(c), value: ema };
         }),
       );
+      let ema50 = candles[0]?.close ?? 0;
+      this.ema50Series!.setData(
+        candles.map((c) => {
+          ema50 += (2 / 51) * (c.close - ema50);
+          return { time: time(c), value: ema50 };
+        }),
+      );
+      const midpoint = (end: number, period: number) => {
+        const window = candles.slice(end - period + 1, end + 1);
+        return (Math.max(...window.map((c) => c.high)) + Math.min(...window.map((c) => c.low))) / 2;
+      };
+      const cloudPoints = [];
+      if (this.cloudVisible())
+        for (let i = 77; i < candles.length; i++) {
+          const origin = i - 26;
+          cloudPoints.push({
+            time: time(candles[i]),
+            a: (midpoint(origin, 9) + midpoint(origin, 26)) / 2,
+            b: midpoint(origin, 52),
+          });
+        }
+      this.cloud!.setData(cloudPoints);
+      this.cloudASeries!.setData(cloudPoints.map((p) => ({ time: p.time, value: p.a })));
+      this.cloudBSeries!.setData(cloudPoints.map((p) => ({ time: p.time, value: p.b })));
       if (this.purchaseLine) {
         this.candlesSeries!.removePriceLine(this.purchaseLine);
         this.purchaseLine = undefined;
@@ -181,7 +245,7 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
           axisLabelVisible: true,
         });
       }
-      const purchaseBar = this.candles.find((c) => date(c.time) === this.purchaseDate);
+      const purchaseBar = candles.find((c) => date(c.time) === this.purchaseDate);
       this.markers?.setMarkers(
         purchaseBar && this.purchasePrice !== null
           ? [
@@ -195,11 +259,8 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
             ]
           : [],
       );
-      if (this.candles.length)
-        this.chart.timeScale().setVisibleLogicalRange({
-          from: Math.max(0, this.candles.length - 100),
-          to: this.candles.length + 3,
-        });
+      this.candleCount = candles.length;
+      this.applyRange();
     } catch {
       this.renderError.set('Không vẽ được biểu đồ từ dữ liệu hiện tại. Hãy cập nhật lại dữ liệu.');
     }
@@ -209,6 +270,7 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
     cancelAnimationFrame(this.resizeFrame);
     this.observer?.disconnect();
     this.markers?.detach();
+    if (this.cloud) this.candlesSeries?.detachPrimitive(this.cloud);
     this.chart?.remove();
   }
 }

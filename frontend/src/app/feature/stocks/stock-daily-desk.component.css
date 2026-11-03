@@ -1,0 +1,262 @@
+:host {
+  display: block;
+  margin: 20px 0;
+}
+.desk {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 3px 16px #10243a04;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 24px;
+}
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #475569;
+  font-weight: 750;
+}
+h3 {
+  font-size: 23px;
+  letter-spacing: -0.6px;
+  margin: 7px 0;
+  font-weight: 750;
+}
+header p {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 10px;
+  gap: 6px;
+  color: #64748b;
+}
+select {
+  border: 1px solid #dbe3ed;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 10px 28px 10px 12px;
+  font-size: 12px;
+  color: #172b45;
+}
+.overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 0 24px 20px;
+  gap: 18px;
+}
+.overview > div {
+  border-left: 2px solid #e2e8f0;
+  padding-left: 14px;
+}
+.overview span {
+  display: block;
+  font-size: 10px;
+  color: #64748b;
+  margin-bottom: 7px;
+}
+.overview strong {
+  font-size: 23px;
+  letter-spacing: -0.6px;
+}
+.overview small {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.positive {
+  color: #087f69;
+}
+.negative {
+  color: #c24154;
+}
+.summary {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 24px;
+  background: #f5f7fb;
+  border-top: 1px solid #eef2f7;
+  border-bottom: 1px solid #eef2f7;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.7;
+}
+.summary b {
+  white-space: nowrap;
+  color: #334155;
+}
+.summary.bullish {
+  background: #f0faf6;
+}
+.summary.bearish {
+  background: #fff5f5;
+}
+.table-wrap {
+  overflow: auto;
+}
+table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  text-align: left;
+  table-layout: fixed;
+}
+thead th {
+  background: #fafbfd;
+  color: #64748b;
+  font-weight: 650;
+  font-size: 10px;
+  letter-spacing: 0.15px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+thead th:first-child {
+  width: 17%;
+}
+thead th:last-child {
+  width: 12%;
+}
+tbody th,
+tbody td {
+  vertical-align: top;
+  padding: 17px 16px;
+  font-size: 11px;
+  line-height: 1.8;
+  border-bottom: 1px solid #edf2f7;
+}
+tbody th {
+  font-weight: 500;
+}
+tbody th strong {
+  font-weight: 700;
+  font-size: 12px;
+}
+tr:hover {
+  background: #fafcff;
+}
+.current {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: #19334f;
+}
+.target {
+  color: #64748b;
+}
+.ready-buy {
+  background: #f1faf6;
+  color: #087f69;
+}
+.ready-sell {
+  background: #fff5f5;
+  color: #ad3248;
+}
+.state {
+  font-size: 10px;
+  display: inline-block;
+  border-radius: 5px;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  line-height: 1.5;
+}
+.fib-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  background: #fafbfe;
+  padding: 18px 24px;
+}
+.fib-strip > span {
+  font-size: 9px;
+  letter-spacing: 1px;
+  font-weight: 750;
+  color: #64748b;
+  max-width: 100px;
+}
+.fib-strip > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 18px;
+  border-left: 1px solid #e2e8f0;
+}
+.fib-strip small {
+  font-size: 10px;
+  color: #64748b;
+}
+.fib-strip b {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+footer {
+  padding: 16px 24px;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.8;
+}
+footer strong {
+  font-weight: 500;
+}
+details {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #64748b;
+  margin-top: 6px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 550;
+}
+details p {
+  margin: 8px 0;
+}
+.empty {
+  padding: 40px 24px;
+  color: #64748b;
+  font-size: 13px;
+}
+@media (max-width: 700px) {
+  header {
+    padding: 18px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  label {
+    width: 100%;
+  }
+  .overview {
+    grid-template-columns: 1fr 1fr;
+    padding: 0 18px 18px;
+  }
+  .overview strong {
+    font-size: 21px;
+  }
+  .summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 18px;
+  }
+  .fib-strip {
+    gap: 14px;
+    padding: 16px 18px;
+  }
+  .fib-strip > span {
+    max-width: none;
+    width: 100%;
+  }
+  footer {
+    padding: 16px 18px;
+  }
+}

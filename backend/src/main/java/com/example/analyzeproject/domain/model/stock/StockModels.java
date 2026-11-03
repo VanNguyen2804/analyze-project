@@ -33,7 +33,18 @@ public final class StockModels {
     }
     public record Analysis(String signal, List<String> reasons, Indicator indicators, Learning learning, Recommendation recommendation) {}
     public record Snapshot(String symbol, Mode mode, String interval, String snapshotId, Feed data, Feed benchmark,
-                           String freshness, String marketStatus, Long lastClosedBarAt, Analysis analysis) {}
+                           String freshness, String marketStatus, Long lastClosedBarAt, Analysis analysis, DailyDesk dailyDesk) {}
+    public record Reading(String key, String name, String current, String buyTarget, String sellTarget,
+                          boolean buyReady, boolean sellReady, String explanation) {}
+    public record FibonacciLevel(double ratio, double price) {}
+    public record DailyValues(Double rsi, Double previousRsi, Double ema20, Double ema50, Double ema200,
+                              Double tenkan, Double kijun, Double cloudA, Double cloudB,
+                              Double volumeAverage, Double volumeRatio, Double rangeLow, Double rangeHigh,
+                              String rangeLowDate, String rangeHighDate, String swingDirection, List<FibonacciLevel> fibonacci) {}
+    public record DailyAssessment(String date, long asOf, double price, Double changePercent, String bias,
+                                  String summary, int buyConfirmations, int sellConfirmations, DailyValues values,
+                                  List<Reading> readings, List<String> cautions) {}
+    public record DailyDesk(String version, String unit, String priceBasis, List<DailyAssessment> days) {}
     public record PositionInput(LocalDate purchaseDate, Double purchasePrice, Double quantity,
                                 Double buyFeePercent, Double sellCostPercent, Double maxLossPercent,
                                 Double sellableQuantity) {

@@ -1,7 +1,70 @@
 import { TestBed } from '@angular/core/testing';
 import { StockChartComponent } from './stock-chart.component';
+import { stockChartCandles } from './stock-chart-data';
 
 describe('Stock chart with the real chart library', () => {
+  it('paints actual candle and EMA pixels for a multi-year daily history, not only axes', async () => {
+    const fixture = TestBed.createComponent(StockChartComponent);
+    fixture.nativeElement.style.width = '900px';
+    const start = Date.parse('2022-01-01T02:00:00Z') / 1000;
+    const bars = Array.from({ length: 1000 }, (_, i) => {
+      const open = 100000 + i * 120 + Math.sin(i) * 1200;
+      return {
+        time: start + i * 86400,
+        open,
+        high: open + 3000,
+        low: open - 2000,
+        close: open + 1500,
+        volume: 1000000 + i * 100,
+        closed: true,
+      };
+    });
+    // Real provider failure: two distinct timestamps collapse to the same daily chart time.
+    bars.splice(400, 0, { ...bars[400], time: bars[400].time - 7200, close: bars[400].open + 500 });
+    fixture.componentRef.setInput('candles', bars);
+    fixture.detectChanges();
+    for (let i = 0; i < 5; i++)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const picture = fixture.componentInstance['chart']!.takeScreenshot();
+    const pixels = picture
+      .getContext('2d')!
+      .getImageData(0, 0, Math.floor(picture.width * 0.8), Math.floor(picture.height * 0.75)).data;
+    let marks = 0;
+    for (let i = 0; i < pixels.length; i += 4)
+      if (
+        (pixels[i + 1] > pixels[i] + 25 && pixels[i + 1] > pixels[i + 2] + 10) ||
+        (pixels[i + 2] > pixels[i] + 35 && pixels[i + 2] > pixels[i + 1] + 25)
+      )
+        marks++;
+    expect(marks)
+      .withContext('Candlesticks and EMA must have visible colored pixels inside the price pane')
+      .toBeGreaterThan(150);
+    expect(fixture.componentInstance.renderError()).toBe('');
+    expect(fixture.componentInstance['candlesSeries']!.data().length).toBe(1000);
+    fixture.destroy();
+  });
+  it('keeps the later actual VIC daily snapshot and does not add volumes', () => {
+    const early = {
+      time: 1672099200,
+      open: 26450,
+      high: 26500,
+      low: 26150,
+      close: 26450,
+      volume: 317300,
+      closed: true,
+    };
+    const later = {
+      time: 1672106400,
+      open: 26450,
+      high: 27400,
+      low: 26050,
+      close: 26700,
+      volume: 1844000,
+      closed: true,
+    };
+    expect(stockChartCandles([later, early], false)).toEqual([later]);
+    expect(stockChartCandles([later, early], true)).toEqual([early, later]);
+  });
   it('renders daily and intraday data, purchase markers and cleans up when leaving the page', () => {
     const fixture = TestBed.createComponent(StockChartComponent);
     const time = Date.parse('2026-11-02T02:15:00Z') / 1000;

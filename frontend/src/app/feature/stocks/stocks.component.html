@@ -55,7 +55,7 @@
       </a>
     }
   </nav>
-  @if (loading()) {
+  @if (loading() && !data()) {
     <div class="panel empty" role="status">
       Đang lấy lịch sử giá và huấn luyện mô hình…<small
         >Lần đầu tải có thể lâu hơn do nguồn dữ liệu.</small
@@ -78,8 +78,13 @@
             : 'Dữ liệu cũ'
       }}</span>
     </div>
-    @for (warning of s.data.warnings; track warning) {
-      <div class="notice">{{ warning }}</div>
+    @if (s.data.warnings.length) {
+      <details class="source-notices">
+        <summary>Thông tin nguồn dữ liệu · {{ s.data.warnings.length }} lưu ý</summary>
+        @for (warning of s.data.warnings; track warning) {
+          <div class="notice">{{ warning }}</div>
+        }
+      </details>
     }
     <div class="main-grid">
       <article class="panel chart-panel">
@@ -173,6 +178,9 @@
         </div>
       </aside>
     </div>
+    @if (s.dailyDesk; as desk) {
+      <app-stock-daily-desk [desk]="desk" />
+    }
     <article class="panel learning-panel">
       <div class="panel-heading">
         <div>

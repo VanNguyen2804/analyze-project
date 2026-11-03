@@ -15,22 +15,28 @@
       <p>
         Nến đóng <b>trên {{ r.buyAbove | number: '1.0-2' }}</b> {{ unit() }} và đủ các xác nhận:
       </p>
-      <ul>
-        @for (condition of r.buyConditions; track condition) {
-          <li>{{ condition }}</li>
-        }
-      </ul>
+      <details>
+        <summary>Điều kiện xác nhận mua</summary>
+        <ul>
+          @for (condition of r.buyConditions; track condition) {
+            <li>{{ condition }}</li>
+          }
+        </ul>
+      </details>
     </div>
     <div class="scenario sell-scenario">
       <strong>Khi nào cân nhắc giảm / bán?</strong>
       <p>
         Nến đóng <b>dưới {{ r.sellBelow | number: '1.0-2' }}</b> {{ unit() }} nếu đang nắm giữ.
       </p>
-      <ul>
-        @for (condition of r.sellConditions; track condition) {
-          <li>{{ condition }}</li>
-        }
-      </ul>
+      <details>
+        <summary>Điều kiện giảm / bán</summary>
+        <ul>
+          @for (condition of r.sellConditions; track condition) {
+            <li>{{ condition }}</li>
+          }
+        </ul>
+      </details>
     </div>
     <dl>
       <div>
@@ -57,7 +63,13 @@
       </div>
     </dl>
   }
-  @for (caution of r.cautions; track caution) {
-    <p class="caution">{{ caution }}</p>
+  @if (r.cautions.length) {
+    <p class="caution">{{ r.cautions[0] }}</p>
   }
+  <details>
+    <summary>Phương pháp và lưu ý</summary>
+    @for (caution of r.cautions.slice(1); track caution) {
+      <p class="caution">{{ caution }}</p>
+    }
+  </details>
 </section>

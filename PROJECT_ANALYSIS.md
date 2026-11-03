@@ -1,5 +1,13 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Chart production và nhận định ngày — 04/11/2026
+
+Tái hiện lỗi chỉ hiện trục giá trên production bundle với response VIC: hai timestamp 1672099200/1672106400 cùng business date 27/12/2022 khiến renderer Lightweight Charts ném `Value is null`. Adapter và frontend chuẩn hóa một nến/ngày, lấy timestamp muộn nhất, không cộng volume. Regression dùng đúng hai timestamp này và kiểm tra pixel nến/EMA trong pane; đã đối chiếu ảnh production trước/sau trên cùng response thật.
+
+Thêm `StockDailyDesk` và `dailyDesk` trong snapshot: 10 phiên đóng gần nhất, từng phiên chỉ dùng prefix tới ngày đó. Bảng hiện tại/điều kiện mua/điều kiện bán cho RSI14 Wilder, EMA20/50/200, Ichimoku dịch đúng 26 phiên, volume TB20 và Fibonacci biên 60 nến với ngày đáy/đỉnh, giá từng mức. Thống kê sáu điều kiện không phải xác suất thắng. UI chọn phiên, ma trận trạng thái, chú giải thu gọn; chart thêm EMA50, mây tô và khoảng xem 1M/3M/6M, giữ nội dung khi polling cùng mã/mode. Không xác nhận giao dịch từ nguồn chưa verified.
+
+Model version mới `stock-softmax-purged-v2-wilder`, quy tắc `stock-price-scenarios-v2-wilder` vì chuẩn hóa ngày, RSI Wilder và EMA toàn prefix. Báo cáo 03/11 giữ riêng cho phiên bản cũ. [Công thức, giới hạn, chẩn đoán](backend/docs/STOCKS_IMPLEMENTATION.md).
+
 ## Khuyến nghị chứng khoán theo giá — 04/11/2026
 
 Thêm `StockRecommendationEngine` thuần domain và `analysis.recommendation`: nến đóng vượt kháng cự 20 nến trước + đệm ATR, xác nhận volume/xu hướng/RSI mới cân nhắc mua; đóng dưới hỗ trợ có đệm ATR gợi ý giảm rủi ro nếu đang giữ. Có diễn giải vượt giả/thiếu volume/RSI cao/mua đuổi, mốc mua/bán và vùng dừng lỗ/chốt lời giả định theo ATR. Volume intraday so cùng giờ của ít nhất năm phiên trước. Không dùng nến chưa đóng, không xác nhận hành động trên nguồn chưa verified hoặc dữ liệu cũ; không biến điểm mô hình thành xác suất lời. Chính sách cấu hình được, chưa có bằng chứng hiệu quả giao dịch.

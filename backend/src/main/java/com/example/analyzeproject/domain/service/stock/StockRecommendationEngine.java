@@ -6,7 +6,7 @@ import java.util.*;
 
 /** Explainable price scenarios; no classifier score is presented as a probability of profit. */
 public final class StockRecommendationEngine {
-    public static final String VERSION = "stock-price-scenarios-v1";
+    public static final String VERSION = "stock-price-scenarios-v2-wilder";
     public record Policy(double breakoutAtr, double volumeMultiple, double stopAtr, double targetAtr, double maxBuyRsi) {
         public Policy {
             if (!Double.isFinite(breakoutAtr) || breakoutAtr < 0 || breakoutAtr > 2
@@ -57,6 +57,10 @@ public final class StockRecommendationEngine {
             summary=extended?"Giá đã đi xa hơn mốc mua trên 1 ATR; chờ giá kiểm tra lại vùng vừa vượt và giữ được vùng này.":"Chưa cân nhắc mua vì " + String.join("; ",missing) + ". Chờ thêm xác nhận sau khi nến đóng.";
         } else if (last.high()>buyAbove) {
             title="Chưa xác nhận vượt kháng cự";summary="Giá cao nhất trong nến đã vượt mốc mua nhưng giá đóng nến không giữ được phía trên; có nguy cơ vượt giả.";
+        } else {
+            summary="Giá đóng "+String.format(Locale.US,"%,.2f",last.close())+" chưa vượt mốc mua "+String.format(Locale.US,"%,.2f",buyAbove)
+                    +"; RSI "+String.format(Locale.US,"%.2f",i.rsi())+"; khối lượng "+(ratio==null?"chưa đủ mẫu":String.format(Locale.US,"%.2f",ratio)+" lần mức so sánh (cần "+policy.volumeMultiple()+" lần).")
+                    +" Xem bảng theo ngày để biết điều kiện nào đã đạt hoặc còn thiếu.";
         }
         if (!feed.verified() || "UNKNOWN".equals(feed.priceBasis()) || !"RECENT".equals(freshness)) {
             if ("BUY".equals(action)) title="Chờ xác nhận dữ liệu trước khi cân nhắc mua";

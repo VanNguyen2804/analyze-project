@@ -4,6 +4,7 @@ import com.example.analyzeproject.application.port.out.StockMarketDataPort;
 import com.example.analyzeproject.domain.model.stock.StockModels.*;
 import com.example.analyzeproject.domain.service.stock.StockLearningEngine;
 import com.example.analyzeproject.domain.service.stock.StockRecommendationEngine;
+import com.example.analyzeproject.domain.service.stock.StockDailyDesk;
 import java.time.*;
 import java.util.*;
 import java.security.MessageDigest;
@@ -32,7 +33,8 @@ public final class StockService {
     private void validate(String symbol){if(instruments().stream().noneMatch(i->i.get("symbol").equals(symbol)))throw new IllegalArgumentException("Chỉ hỗ trợ VIC, FPT, SZC, MBB");}
     public synchronized Snapshot analyze(String symbol,Mode mode){
         validate(symbol);Feed data=feed.load(symbol,mode),benchmark=feed.load("VNINDEX",mode);
-        String id=fingerprint(symbol+mode+data.toString()+benchmark.toString());
+        Feed daily=mode==Mode.SWING?data:feed.load(symbol,Mode.SWING);
+        String id=fingerprint(symbol+mode+data.toString()+benchmark.toString()+daily.toString());
         Snapshot cached=snapshots.get(id);if(cached!=null&&Duration.between(data.fetchedAt(),clock.instant()).getSeconds()<60)return cached;
         List<Candle> closed=data.candles().stream().filter(Candle::closed).toList();
         Long last=closed.isEmpty()?null:closed.get(closed.size()-1).time();
@@ -41,7 +43,7 @@ public final class StockService {
         if(closed.size()>=55){
             indicators=StockLearningEngine.indicators(closed,mode);double price=closed.get(closed.size()-1).close();
             reasons.add(indicators.fastMa()>indicators.slowMa()?"Đường trung bình nhanh cao hơn đường chậm.":"Đường trung bình nhanh thấp hơn hoặc bằng đường chậm.");
-            reasons.add("RSI14 dùng trung bình đơn: "+Math.round(indicators.rsi())+"; ATR14 dùng trung bình true range.");
+            reasons.add("RSI14 Wilder: "+Math.round(indicators.rsi())+"; ATR14 dùng trung bình true range.");
             signal="WATCH";
             if("BUY".equals(ml.signal())&&indicators.fastMa()>indicators.slowMa()&&indicators.rsi()<75)signal="BUY";
             if("SELL".equals(ml.signal())&&price<indicators.fastMa())signal="SELL";
@@ -51,7 +53,8 @@ public final class StockService {
             signal="UNAVAILABLE";reasons.add("Chưa đủ dữ liệu đã xác minh hoặc dữ liệu không đủ mới để đưa tín hiệu mua/bán.");
         }
         if(mode==Mode.INTRADAY)reasons.add("Tín hiệu trong ngày không xác nhận cổ phiếu có thể bán ngay; cần kiểm tra số lượng sẵn có và thanh toán.");
-        Snapshot result=new Snapshot(symbol,mode,mode==Mode.SWING?"1D":"15",id,data,benchmark,fresh,"UNVERIFIED_CALENDAR",last,new Analysis(signal,List.copyOf(reasons),indicators,ml,recommendations.evaluate(data,mode,fresh,ml)));
+        Recommendation recommendation=recommendations.evaluate(data,mode,fresh,ml);
+        Snapshot result=new Snapshot(symbol,mode,mode==Mode.SWING?"1D":"15",id,data,benchmark,fresh,"UNVERIFIED_CALENDAR",last,new Analysis(signal,List.copyOf(reasons),indicators,ml,recommendation),StockDailyDesk.build(daily,recommendation.volumeConfirmation()));
         snapshots.put(id,result);while(snapshots.size()>24)snapshots.remove(snapshots.keySet().iterator().next());return result;
     }
     private String freshness(Feed data,Mode mode,Long last){

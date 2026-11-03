@@ -5,7 +5,7 @@ import java.util.*;
 
 /** Deterministic regularized multinomial logistic regression. Every training label matures before its test block. */
 public final class StockLearningEngine {
-    public static final String VERSION = "stock-softmax-purged-v1";
+    public static final String VERSION = "stock-softmax-purged-v2-wilder";
     private static final String[] NAMES = {"Lợi suất 1 nến", "Lợi suất 5 nến", "Khoảng cách EMA", "RSI", "ATR", "Khối lượng tương đối"};
     private final double buyThreshold, sellThreshold, cost;
     public StockLearningEngine(double buyThreshold, double sellThreshold, double cost) {
@@ -79,8 +79,8 @@ public final class StockLearningEngine {
         for(int j=Math.max(0,i-20);j<i;j++){support=Math.min(support,c.get(j).low());resistance=Math.max(resistance,c.get(j).high());}
         return new Indicator(ema(c,i,mode==Mode.SWING?20:9),ema(c,i,mode==Mode.SWING?50:21),rsi(c,i),atr(c,i),support,resistance);
     }
-    private static double ema(List<Candle> c,int i,int period){int from=Math.max(0,i-period*5);double v=c.get(from).close(),a=2.0/(period+1);for(int j=from+1;j<=i;j++)v+=a*(c.get(j).close()-v);return v;}
-    private static double rsi(List<Candle> c,int i){double up=0,down=0;for(int j=i-13;j<=i;j++){double d=c.get(j).close()-c.get(j-1).close();up+=Math.max(d,0);down+=Math.max(-d,0);}return up+down==0?50:100*up/(up+down);}
+    private static double ema(List<Candle> c,int i,int period){return StockDailyDesk.ema(c,i,period);}
+    private static double rsi(List<Candle> c,int i){return StockDailyDesk.wilderRsi(c,i);}
     private static double atr(List<Candle> c,int i){double sum=0;for(int j=i-13;j<=i;j++){Candle b=c.get(j);double p=c.get(j-1).close();sum+=Math.max(b.high()-b.low(),Math.max(Math.abs(b.high()-p),Math.abs(b.low()-p)));}return sum/14;}
     private static Model fit(double[][] x,int[] y,int from,int to){
         int d=NAMES.length,n=0;for(int i=from;i<to;i++)if(y[i]>=0)n++;n=Math.max(1,n);

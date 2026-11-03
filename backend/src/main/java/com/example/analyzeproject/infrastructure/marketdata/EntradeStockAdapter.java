@@ -62,11 +62,22 @@ public final class EntradeStockAdapter implements StockMarketDataPort {
                     if(bars.putIfAbsent(t,candle)!=null)throw new IllegalStateException("Nguồn trả timestamp trùng");
                 }
             }
+            if(mode==Mode.SWING) {
+                int before=bars.size();List<Candle> canonical=normalizeDaily(new ArrayList<>(bars.values()));
+                bars.clear();canonical.forEach(c->bars.put(c.time(),c));
+                if(before>bars.size())warnings.add("Nguồn có "+(before-bars.size())+" bản ghi ngày trùng phiên; chọn timestamp muộn nhất mỗi ngày, không cộng dồn khối lượng.");
+            }
             if(bars.isEmpty())warnings.add("Nguồn không trả nến trong khoảng yêu cầu.");
             Feed feed=new Feed(new ArrayList<>(bars.values()),now,"DNSE / Entrade",priceUnit(symbol,scale,verified),basis,verified,warnings);
             cache.put(key,new Entry(feed,now.plusSeconds(60)));return feed;
         }catch(InterruptedException e){Thread.currentThread().interrupt();return failed(key,old,now,cooldown);}
         catch(Exception e){System.getLogger(EntradeStockAdapter.class.getName()).log(System.Logger.Level.WARNING,"Stock source "+symbol+"/"+mode+": "+e.getClass().getSimpleName());return failed(key,old,now,cooldown);}
+    }
+    static List<Candle> normalizeDaily(List<Candle> input) {
+        TreeMap<LocalDate,Candle> days=new TreeMap<>();
+        for(Candle candle:input){LocalDate date=Instant.ofEpochSecond(candle.time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
+            days.merge(date,candle,(a,b)->a.time()>b.time()?a:b);}
+        return List.copyOf(days.values());
     }
     static String priceUnit(String symbol,double scale,boolean verified) {
         if(symbol.equals("VNINDEX"))return "POINTS";

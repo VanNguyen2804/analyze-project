@@ -6,6 +6,26 @@ Kiểm chứng bản sửa 04/11: Angular build và Maven install đạt; 54 ki�
 
 ## Sử dụng
 
+### Chart production và bảng nhận định ngày — 04/11/2026
+
+Kiểm chứng lần cập nhật này: Angular build và Maven install đạt; 60 kiểm thử Angular và 122 kiểm thử Java đạt, 9 kiểm thử Java có điều kiện bỏ qua. Đã kiểm tra trực quan production bundle bằng dữ liệu VIC thật. Chưa triển khai hosting hoặc chạy tích hợp với PostgreSQL thật.
+
+Tái hiện lỗi bằng response VIC thật trên production bundle: hai timestamp `1672099200` và `1672106400` cùng ngày 27/12/2022 làm trùng time trên chart. Renderer ném `Value is null`, trục giá vẫn hiện nhưng nến/EMA không vẽ. Adapter và frontend hiện giữ bản timestamp muộn nhất mỗi business date, không cộng volume. Bản muộn có close 26,7 và volume 1.844.000; không cộng thêm 317.300 từ bản sớm. Đối chiếu ảnh production trước/sau cùng response đã xác nhận nến/EMA được vẽ lại. Regression kiểm tra cả dữ liệu trùng ngày và pixel màu trong pane, không chỉ canvas tồn tại.
+
+Chart có EMA20/50, mây Ichimoku tô giữa Senkou A/B bật/tắt và khoảng xem 1M/3M/6M/toàn bộ; mode 15 phút có 1/5/20 phiên. UI giữ nội dung khi polling cùng mã/mode, thu gọn chú giải và thêm `stock-daily-desk`.
+
+`dailyDesk` trả tối đa 10 phiên đóng gần nhất, độc lập mode đang xem. Chọn ngày để đọc bảng **hiện tại / điều kiện nghiêng mua / điều kiện nghiêng bán / trạng thái**. Mỗi ngày dùng đúng prefix lịch sử tới ngày đó; đây là tính lại nhận định, không phải snapshot dự đoán đã chốt trước ngày quay.
+
+- RSI14 dùng Wilder, so với phiên trước: mua cần RSI tăng trong 50–70, giảm dưới 50 cảnh báo yếu; quá mua/quá bán không tự tạo lệnh.
+- EMA20/50/200 seed từ close đầu prefix. Bảng ghi giá đường trung bình và bất đẳng thức phải đạt; EMA200 cần đủ 200 nến.
+- Ichimoku dùng Tenkan9/Kijun26 và Senkou A/B9/26/52 dịch 26 phiên. Mây đang nhìn tại i dùng giá trị tính ở i−26, cần 78 nến; ghi đỉnh/đáy mây và vị trí giá. Bản này không dùng Chikou làm điều kiện giao dịch.
+- Volume ngày so TB20 nến trước, ghi số cổ phiếu hiện có và mức cần đạt 1,2×. Khối kịch bản intraday vẫn so cùng giờ phiên trước.
+- Fibonacci lấy high/low 60 nến trước phiên đánh giá, ghi ngày đáy/đỉnh, hướng và các mức 23,6/38,2/50/61,8/78,6%. Đáy trước đỉnh dùng retracement từ đỉnh; đỉnh trước đáy dùng hồi từ đáy. Đây là biên cửa sổ, không phải nhận diện sóng. Bảng ghi giá cần vượt/mất và yêu cầu kết hợp EMA/volume.
+
+Số điều kiện nghiêng mua/bán trên sáu hàng không phải xác suất thắng. Bối cảnh tăng/giảm cần ít nhất bốn điều kiện cùng phía và không quá một điều kiện phía kia; không tự thay cổng xác nhận giá/volume hoặc kiểm tra nguồn. Các ngưỡng thay đổi khi có nến mới. Tham khảo khái niệm/công thức [Ichimoku](https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/ichimoku-cloud), [Fibonacci](https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/fibonacci-retracement); cách chọn cửa sổ/phối hợp là quy tắc thử nghiệm của ứng dụng.
+
+Chuẩn hóa ngày và RSI/EMA thay đổi đầu vào: model mới `stock-softmax-purged-v2-wilder`, kịch bản giá `stock-price-scenarios-v2-wilder`. Báo cáo JSON 03/11 là phiên bản cũ, chưa chứng minh hiệu quả phiên bản mới. Không sửa kết quả lịch sử để coi như đã đánh giá lại.
+
 ### Khuyến nghị theo mốc giá — 04/11/2026
 
 Khối kết luận chính dùng lời và mốc giá, thay điểm mua/bán dạng phần trăm. Điểm softmax và metric kiểm định nằm trong details thu gọn; ghi rõ không phải tỷ lệ vốn nên mua/bán hoặc xác suất có lời. `analysis.recommendation` là hợp đồng riêng của quy tắc kỹ thuật `stock-price-scenarios-v1`; giữ `analysis.signal` cũ để tương thích. Nhận định vị thế lấy action của quy tắc giá mới, vẫn xét điều kiện rủi ro và khả năng bán.
@@ -48,9 +68,9 @@ Nguồn truy cập công khai không đồng nghĩa giấy phép tái phân ph�
 
 ## Học máy thực sự được huấn luyện
 
-`StockLearningEngine` là multinomial logistic regression 3 lớp, Java thuần, phiên bản `stock-softmax-purged-v1`; độc lập hoàn toàn scoring xổ số. Không thêm Python hoặc dịch vụ AI. Trọng số được học lại từ lịch sử snapshot, không phải tín hiệu được gán tay. Mô hình/chỉ báo tính trong RAM; chưa lưu model/ledger dự báo bất biến.
+`StockLearningEngine` là multinomial logistic regression 3 lớp, Java thuần, phiên bản `stock-softmax-purged-v2-wilder`; độc lập hoàn toàn scoring xổ số. Không thêm Python hoặc dịch vụ AI. Trọng số được học lại từ lịch sử snapshot, không phải tín hiệu được gán tay. Mô hình/chỉ báo tính trong RAM; chưa lưu model/ledger dự báo bất biến.
 
-- Sáu đặc trưng: lợi suất 1/5 nến, chênh lệch EMA9/21, RSI14, ATR14/close, log khối lượng tương đối 20 nến trước. RSI và ATR dùng trung bình đơn, không gọi là Wilder RSI/ATR. Domain tự tính, chưa sử dụng ta4j của phương án ban đầu.
+- Sáu đặc trưng: lợi suất 1/5 nến, chênh lệch EMA9/21, RSI14 Wilder, ATR14/close, log khối lượng tương đối 20 nến trước. ATR vẫn dùng trung bình đơn true range, không gọi là Wilder ATR. Domain tự tính, chưa sử dụng ta4j của phương án ban đầu.
 - Mục tiêu: biến động từ **open nến sau** tới close sau 10 nến (SWING) hoặc 4 nến (INTRADAY). Biên trung tính bằng chi phí giả định cộng phần biến động ATR; nhãn intraday không băng qua ngày giao dịch khác.
 - Cần tối thiểu 305 nến ngày hoặc 299 nến intraday, đồng thời đủ nhãn hợp lệ. 65% phần đầu làm khởi tạo; ba đoạn kiểm định về sau, mỗi đoạn chỉ huấn luyện trên quá khứ. Purge toàn bộ horizon để nhãn train kết thúc trước feature test. Mean/std chỉ fit trên train; regularization L2 0,02, learning rate 0,08, 180 vòng; không chọn lại tham số theo báo cáo hiện tại.
 - Mô hình cuối học tất cả nhãn đã trưởng thành trước snapshot. Trả số mẫu, accuracy, balanced accuracy, log loss, baseline lớp phổ biến tính trên train của từng fold, các mốc fold và trọng số chuẩn hóa đã học.
