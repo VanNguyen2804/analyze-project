@@ -78,4 +78,43 @@ describe('AI lab', () => {
     expect(fixture.componentInstance.data()).toEqual(payload);
     fixture.destroy();
   }));
+  it('shows an observed two-match stage without promoting it to a validated model', () => {
+    http.expectOne(`${base}?category=MEGA&page=0`).flush({
+      ...payload,
+      groups: [
+        {
+          cohort: 'new-feedback',
+          model: 'logistic',
+          modelVersion: 'ai-lab-dense-feedback-v2',
+          feedbackEnabled: true,
+          savedDraws: 2,
+          evaluatedDraws: 2,
+          status: 'COLLECTING',
+          continuous60: false,
+          progress: {
+            evaluationVersion: 'lab-progress-v1',
+            evaluatedTickets: 10,
+            totalMatched: 9,
+            bestTicketMatched: 2,
+            averageMatchedPerTicket: 0.9,
+            frequencyAverageMatched: 0.5,
+            randomAverageMatched: 0.5,
+            recent30AverageMatched: 0.9,
+            previous30AverageMatched: null,
+            matchHistogram: [2, 7, 1, 0, 0, 0, 0],
+            levels: [],
+            timeline: [],
+          },
+        },
+      ],
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.model-state').textContent).toContain(
+      'Đã ghi nhận 2 số / vé',
+    );
+    expect(
+      fixture.nativeElement.querySelector('.model-state').classList.contains('candidate'),
+    ).toBeFalse();
+    expect(fixture.nativeElement.querySelector('app-lab-progress')).not.toBeNull();
+  });
 });

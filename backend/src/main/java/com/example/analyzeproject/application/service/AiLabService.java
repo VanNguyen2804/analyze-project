@@ -15,14 +15,24 @@ public class AiLabService {
     private final ReentrantLock lock = new ReentrantLock();
     private volatile Map<String,Object> lastRun=map("status","NOT_RUN");
     private final String codeVersion;
+    private final AiLabModel.FeedbackPolicy feedbackPolicy;
+    private final Clock clock;
     public AiLabService(AiLabStore store,LotteryNumberRepository draws,boolean enabled) {
+        this(store,draws,enabled,AiLabModel.FeedbackPolicy.defaults());
+    }
+    public AiLabService(AiLabStore store,LotteryNumberRepository draws,boolean enabled,AiLabModel.FeedbackPolicy feedbackPolicy) {
+        this(store,draws,enabled,feedbackPolicy,Clock.systemUTC());
+    }
+    public AiLabService(AiLabStore store,LotteryNumberRepository draws,boolean enabled,AiLabModel.FeedbackPolicy feedbackPolicy,Clock clock) {
         this.store=store; this.draws=draws; this.enabled=enabled;
-        codeVersion=WorkspaceProtocol.fingerprint(AiLabModel.class,AiLabService.class,ForecastProtocol.class,DrawQuality.class);
+        this.feedbackPolicy=feedbackPolicy;
+        this.clock=clock;
+        codeVersion=WorkspaceProtocol.fingerprint(AiLabModel.class,AiLabService.class,AiLabFeedback.class,ForecastProtocol.class,DrawQuality.class);
     }
     public Map<String,Object> run() {
         if(!lock.tryLock()) return map("status","BUSY");
         try {
-            Instant now=Instant.now(); var all=draws.findAllByOrderByDrawDateDescCreatedAtDesc();
+            Instant now=clock.instant(); var all=draws.findAllByOrderByDrawDateDescCreatedAtDesc();
             var existing=store.snapshots(); Set<Object> ids=new HashSet<>(); existing.forEach(f->ids.add(f.get("id")));
             List<Map<String,Object>> outcomes=new ArrayList<>();
             if(enabled) for(String category:List.of("MEGA","POWER")) {
@@ -35,36 +45,39 @@ public class AiLabService {
                         if(ids.contains(prefix+0)) { outcomes.add(map("category",category,"model",model,"status","ALREADY_SAVED")); continue; }
                         var config=map("protocol",AiLabModel.VERSION,"budget",AiLabModel.BUDGET,"epochs",80,"learningRate",0.2,"l2",0.05,
                                 "features",List.of("frequency","recent10","decay10","gap30"),"minimumDraws",60,"windowDraws",30,"minimumWindowHitRate",0.5);
+                        config.put("feedbackPolicy","logistic".equals(model)?map("version","dense-signed-feedback-v1","learningRate",feedbackPolicy.learningRate(),"selectedExtraWeight",feedbackPolicy.selectedExtraWeight(),"maximumDraws",feedbackPolicy.maximumDraws()):map("version","not_applied"));
                         // Validate freshness before fitting; do not capture a partially trained or stale batch.
                         ForecastProtocol.prepare(history,category,"validation",AiLabModel.VERSION,codeVersion,config,List.of(1,2,3,4,5,6),now);
                         String seed=AiLabModel.VERSION+":"+category+":"+target;
-                        var fit=AiLabModel.fit(history,category,model);var modelScores=fit.scores();
+                        var feedback=AiLabFeedback.collect(existing,history,category,LocalDate.parse(target),now,feedbackPolicy.maximumDraws());
+                        var fit=AiLabModel.fit(history,category,model,feedback.rounds(),feedbackPolicy);var modelScores=fit.scores();
                         var tickets=AiLabModel.tickets(modelScores,seed+":"+model);
                         var frequency=AiLabModel.tickets(AiLabModel.scores(history,category,"frequency"),seed+":frequency");
                         var random=AiLabModel.tickets(AiLabModel.scores(history,category,"random"),seed+":random");
-                        Instant capturedAt=Instant.now();
+                        Instant capturedAt=clock.instant();
                         if(!ForecastProtocol.target(category,capturedAt).toString().equals(target)) throw new IllegalStateException("CUTOFF_CHANGED");
                         List<Map<String,Object>> batch=new ArrayList<>();
                         for(int slot=0;slot<AiLabModel.BUDGET;slot++) {
                             var f=ForecastProtocol.prepare(history,category,"lab-"+model+"-"+slot,AiLabModel.VERSION,codeVersion,config,tickets.get(slot),capturedAt);
                             var explanation=PredictionExplanation.lab(fit,model);
+                            if("logistic".equals(model))explanation.put("feedback",feedback.audit());
                             explanation.put("selectionPolicy",slot==0?"top_six":"seeded_weighted_sample");
                             f.put("explanation",explanation);
                             f.put("labModel",model); f.put("slot",slot); f.put("frequencyNumbers",frequency.get(slot)); f.put("randomNumbers",random.get(slot)); batch.add(f);
                         }
-                        if(!ForecastProtocol.target(category,Instant.now()).toString().equals(target)) throw new IllegalStateException("CUTOFF_CHANGED");
+                        if(!ForecastProtocol.target(category,clock.instant()).toString().equals(target)) throw new IllegalStateException("CUTOFF_CHANGED");
                         store.captureBatch(batch);
                         outcomes.add(map("category",category,"model",model,"status","SAVED"));
                     }
                 } catch(Exception e) { outcomes.add(map("category",category,"status","NOT_SAVED","message",Objects.toString(e.getMessage(),"Error"))); }
             }
-            store.reconcile(all,Instant.now());
-            lastRun=map("status",enabled?"COMPLETED":"CAPTURE_DISABLED","checkedAt",Instant.now().toString(),"outcomes",outcomes);
+            store.reconcile(all,clock.instant());
+            lastRun=map("status",enabled?"COMPLETED":"CAPTURE_DISABLED","checkedAt",clock.instant().toString(),"outcomes",outcomes);
             return lastRun;
         } finally { lock.unlock(); }
     }
     public void tick() {
-        try { run(); } catch(Exception e) { lastRun=map("status","ERROR","checkedAt",Instant.now().toString(),"message",Objects.toString(e.getMessage(),"Error")); }
+        try { run(); } catch(Exception e) { lastRun=map("status","ERROR","checkedAt",clock.instant().toString(),"message",Objects.toString(e.getMessage(),"Error")); }
     }
     @SuppressWarnings("unchecked")
     public Map<String,Object> overview(String category,int page) {
@@ -74,8 +87,13 @@ public class AiLabService {
                 .sorted(Comparator.<Map<String,Object>,String>comparing(f->(String)f.get("targetDate")).reversed().thenComparing(f->(String)f.get("id"))).toList();
         var events=(List<Map<String,Object>>)ledger.get("settlements"); Map<Object,Map<String,Object>> latest=new HashMap<>(); events.forEach(e->latest.put(e.get("forecastId"),e));
         var rows=forecasts.stream().skip((long)page*50).limit(50).map(f->map("id",f.get("id"),"model",f.get("labModel"),"targetDate",f.get("targetDate"),"numbers",f.get("numbers"),
-                "createdAt",f.get("createdAt"),"settlement",latest.get(f.get("id")))).toList();
+                "createdAt",f.get("createdAt"),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
         return map("enabled",enabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",forecasts.size(),"rows",rows,"groups",evaluate(forecasts,events));
+    }
+    private static Object feedbackSummary(Map<String,Object> forecast) {
+        if (forecast.get("explanation") instanceof Map<?,?> explanation && explanation.get("feedback") instanceof Map<?,?> feedback)
+            return map("draws",feedback.get("draws"),"tickets",feedback.get("tickets"),"ticketMatchHistogram",feedback.get("ticketMatchHistogram"));
+        return null;
     }
     public static List<Map<String,Object>> evaluate(List<Map<String,Object>> forecasts,List<Map<String,Object>> events) {
         Map<Object,Map<String,Object>> latest=new HashMap<>(); events.forEach(e->latest.put(e.get("forecastId"),e));
@@ -89,23 +107,28 @@ public class AiLabService {
             var first=cohort.getValue().get(0); Map<String,List<Map<String,Object>>> dates=new TreeMap<>();
             cohort.getValue().forEach(f->dates.computeIfAbsent((String)f.get("targetDate"),k->new ArrayList<>()).add(f));
             List<int[]> measured=new ArrayList<>(); List<String> measuredDates=new ArrayList<>(); int ticketHits=0;
+            List<AiLabProgress.Draw> progressDraws=new ArrayList<>();
             for(var date:dates.entrySet()) {
                 var tickets=date.getValue();
                 if(tickets.size()!=AiLabModel.BUDGET || tickets.stream().anyMatch(f->latest.get(f.get("id"))==null || !"SETTLED".equals(latest.get(f.get("id")).get("status")))) continue;
-                int[] hits=new int[3];
+                int[] hits=new int[3]; List<AiLabProgress.Ticket> progressTickets=new ArrayList<>();
                 for(var f:tickets) {
                     var e=latest.get(f.get("id")); int matched=((Number)e.get("matched")).intValue();
+                    progressTickets.add(new AiLabProgress.Ticket(matched,((Number)e.get("frequencyMatched")).intValue(),((Number)e.get("randomMatched")).intValue()));
                     if(matched>=3) {hits[0]=1;ticketHits++;}
                     if(((Number)e.get("frequencyMatched")).intValue()>=3) hits[1]=1;
                     if(((Number)e.get("randomMatched")).intValue()>=3) hits[2]=1;
                 }
                 measured.add(hits); measuredDates.add(date.getKey());
+                progressDraws.add(new AiLabProgress.Draw(date.getKey(),progressTickets));
             }
             int n=measured.size(); var recent=measured.subList(Math.max(0,n-30),n); var prior=measured.subList(Math.max(0,n-60),Math.max(0,n-30));
             boolean continuous=n>=60;
             for(int i=Math.max(1,n-59);i<n;i++) if(!TemporalRelationshipModel.scheduledAfter(LocalDate.parse(measuredDates.get(i-1)),(String)first.get("category")).equals(LocalDate.parse(measuredDates.get(i)))) continuous=false;
             boolean candidate=continuous && rate(recent,0)>=50 && rate(prior,0)>=50 && lowerDifference(measured,1)>0 && lowerDifference(measured,2)>0;
             reports.add(map("cohort",cohort.getKey(),"model",first.get("labModel"),"modelVersion",first.get("modelVersion"),"savedDraws",dates.size(),"evaluatedDraws",n,
+                    "feedbackEnabled","logistic".equals(first.get("labModel")) && first.get("configuration") instanceof Map<?,?> configuration && configuration.get("feedbackPolicy") instanceof Map<?,?> policy && "dense-signed-feedback-v1".equals(policy.get("version")),
+                    "progress",AiLabProgress.summarize(progressDraws),
                     "ticketHit3Percent",n==0?null:100.0*ticketHits/(n*AiLabModel.BUDGET),"drawHit3Percent",rate(measured,0),"frequencyHit3Percent",rate(measured,1),"randomHit3Percent",rate(measured,2),
                     "recent30Percent",rate(recent,0),"previous30Percent",rate(prior,0),"continuous60",continuous,"frequencyDifferenceLower95",n<2?null:lowerDifference(measured,1),
                     "randomDifferenceLower95",n<2?null:lowerDifference(measured,2),"status",candidate?"VALIDATION_CANDIDATE":"COLLECTING",

@@ -90,12 +90,7 @@
                 ><span
                   class="model-state"
                   [class.candidate]="group.status === 'VALIDATION_CANDIDATE'"
-                  ><span></span
-                  >{{
-                    group.status === 'VALIDATION_CANDIDATE'
-                      ? 'Ứng viên cần xác nhận'
-                      : 'Đang thu thập'
-                  }}</span
+                  ><span></span>{{ stageName(group) }}</span
                 >
               </div>
               <span class="model-type">{{
@@ -107,47 +102,53 @@
               <p class="model-description">
                 {{
                   group.model === 'logistic'
-                    ? 'Học trọng số từ các đặc trưng của những kỳ trước.'
+                    ? group.feedbackEnabled
+                      ? 'Học lịch sử và phản hồi từng số đúng/sai từ các vé đã chốt, gồm cả vé khớp 1–2 số.'
+                      : 'Phiên bản học từ lịch sử; chưa áp dụng phản hồi từng vé của phiên bản mới.'
                     : 'Ưu tiên dữ liệu gần đây với trọng số giảm dần theo thời gian.'
                 }}
               </p>
-              <div class="model-score">
-                <strong>{{ percent(group.drawHit3Percent) }}</strong
-                ><span>kỳ có ít nhất một vé<br />khớp từ 3 số</span>
-              </div>
-              <div class="comparison" aria-label="So sánh tỷ lệ kỳ có vé khớp từ ba số">
-                <div class="comparison-row">
-                  <span>Mô hình</span>
-                  <div class="bar-track">
-                    <div
-                      class="bar-fill model-bar"
-                      [style.width.%]="progress(group.drawHit3Percent)"
-                    ></div>
-                  </div>
-                  <strong>{{ percent(group.drawHit3Percent) }}</strong>
+              @if (group.progress; as evidence) {
+                <app-lab-progress [progress]="evidence" />
+              } @else {
+                <div class="model-score">
+                  <strong>{{ percent(group.drawHit3Percent) }}</strong
+                  ><span>kỳ có ít nhất một vé<br />khớp từ 3 số</span>
                 </div>
-                <div class="comparison-row">
-                  <span>Tần suất</span>
-                  <div class="bar-track">
-                    <div
-                      class="bar-fill frequency-bar"
-                      [style.width.%]="progress(group.frequencyHit3Percent)"
-                    ></div>
+                <div class="comparison" aria-label="So sánh tỷ lệ kỳ có vé khớp từ ba số">
+                  <div class="comparison-row">
+                    <span>Mô hình</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill model-bar"
+                        [style.width.%]="progress(group.drawHit3Percent)"
+                      ></div>
+                    </div>
+                    <strong>{{ percent(group.drawHit3Percent) }}</strong>
                   </div>
-                  <strong>{{ percent(group.frequencyHit3Percent) }}</strong>
-                </div>
-                <div class="comparison-row">
-                  <span>Ngẫu nhiên</span>
-                  <div class="bar-track">
-                    <div
-                      class="bar-fill random-bar"
-                      [style.width.%]="progress(group.randomHit3Percent)"
-                    ></div>
+                  <div class="comparison-row">
+                    <span>Tần suất</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill frequency-bar"
+                        [style.width.%]="progress(group.frequencyHit3Percent)"
+                      ></div>
+                    </div>
+                    <strong>{{ percent(group.frequencyHit3Percent) }}</strong>
                   </div>
-                  <strong>{{ percent(group.randomHit3Percent) }}</strong>
+                  <div class="comparison-row">
+                    <span>Ngẫu nhiên</span>
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill random-bar"
+                        [style.width.%]="progress(group.randomHit3Percent)"
+                      ></div>
+                    </div>
+                    <strong>{{ percent(group.randomHit3Percent) }}</strong>
+                  </div>
                 </div>
-              </div>
-              <p class="comparison-caption">Cùng ngân sách {{ lab.budget }} vé / mô hình / kỳ</p>
+                <p class="comparison-caption">Cùng ngân sách {{ lab.budget }} vé / mô hình / kỳ</p>
+              }
               <div class="collection-progress">
                 <div>
                   <span>Tiến độ đối soát</span
@@ -206,7 +207,10 @@
             <span>01</span>
             <div>
               <strong>Học & chốt</strong>
-              <p>Mỗi mô hình lưu 5 bộ sáu số trước 18:00.</p>
+              <p>
+                Mỗi mô hình lưu 5 bộ sáu số trước 18:00. Bản Logistic mới học phản hồi từ cả vé khớp
+                0, 1, 2 và 3+ số của các kỳ đã có kết quả.
+              </p>
             </div>
           </li>
           <li>
@@ -291,6 +295,13 @@
               </div>
             }
             <div class="ticket-footer">
+              @if (row.feedback; as feedback) {
+                <span class="feedback-note"
+                  >Phản hồi đã học: {{ feedback.draws }} kỳ / {{ feedback.tickets }} vé;
+                  {{ feedback.ticketMatchHistogram[1] || 0 }} vé khớp 1 số,
+                  {{ feedback.ticketMatchHistogram[2] || 0 }} vé khớp 2 số.</span
+                >
+              }
               Đã lưu {{ row.createdAt | date: 'dd/MM · HH:mm:ss' : '+0700' }} <span>GMT+7</span>
             </div>
           </article>

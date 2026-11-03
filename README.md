@@ -47,7 +47,9 @@ Mở `/ai-lab` từ menu để theo dõi nhiều dãy dự đoán trước kỳ:
 
 Khi triển khai bản mới, Flyway chạy migration V12 tạo ledger thử nghiệm riêng. Có thể đặt `AI_LAB_ENABLED=false` để tắt tạo vé mới; đối soát bản cũ vẫn hoạt động. `FORECAST_ENABLED` chỉ điều khiển ledger dự đoán chính.
 
-Trang so sánh tỷ lệ khớp từ ba số của từng vé và từng kỳ với đối chứng cùng 5 vé. Mốc sàng lọc 60 kỳ và hai khối 30 kỳ là quy ước thử nghiệm; mô hình đạt chỉ được đánh dấu ứng viên cần xác nhận thêm, không tự thay thuật toán chính. Chưa có bằng chứng về lợi thế dự đoán.
+Trang theo dõi từ vé khớp 1–2 số: trung bình số khớp/vé, tổng lượt khớp, histogram 0–6 và các mức ≥1/≥2/≥3 so với đối chứng cùng năm vé. Logistic `ai-lab-dense-feedback-v2` cập nhật trọng số từ phản hồi từng số đúng/sai của các vé chốt trước kỳ; không chờ khớp ba số. Tổng lượt khớp qua nhiều vé/kỳ không phải một vé trúng. Xem [phương pháp và cấu hình phản hồi](backend/docs/AI_LAB_PROGRESSIVE_LEARNING.md).
+
+Mốc sàng lọc ≥3, 60 kỳ và hai khối 30 kỳ vẫn là quy ước thử nghiệm ở phần chi tiết; ghi nhận khớp 1–2 số không tự nâng mô hình thành ứng viên hoặc đổi thuật toán chính. Các phiên bản cũ được giữ riêng. Chưa có bằng chứng bước học mới tăng khả năng trúng.
 
 Ứng dụng chọn bộ 6 số MEGA 6/45 và POWER 6/55 dựa trên thuật toán và thống kê; lưu dự đoán trước kỳ, đối soát kết quả và đánh giá trên các dự đoán đã lưu. Hiện chưa chứng minh được lợi thế dự đoán đáng tin cậy.
 

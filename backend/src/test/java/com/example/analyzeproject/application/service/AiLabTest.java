@@ -41,9 +41,11 @@ class AiLabTest {
         }
         var report=AiLabService.evaluate(snapshots,events).get(0);
         assertEquals(1,report.get("evaluatedDraws")); assertEquals(100.0,report.get("ticketHit3Percent")); assertEquals(100.0,report.get("drawHit3Percent"));
+        var progress=(AiLabProgress.Report)report.get("progress");assertEquals(15,progress.totalMatched());assertEquals(5,progress.evaluatedTickets());
         assertEquals("COLLECTING",report.get("status")); assertFalse((Boolean)report.get("continuous60"));
         events.add(ForecastProtocol.settle(snapshots.get(0),List.of(),after,events.get(0)));
         assertEquals(0,AiLabService.evaluate(snapshots,events).get(0).get("evaluatedDraws"));
+        assertEquals(0,((AiLabProgress.Report)AiLabService.evaluate(snapshots,events).get(0).get("progress")).totalMatched());
         snapshots.get(0).put("createdAt","2026-10-25T11:00:00Z");
         assertEquals(0,AiLabService.evaluate(snapshots,events).get(0).get("evaluatedDraws"));
     }

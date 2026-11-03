@@ -1,0 +1,155 @@
+:host {
+  display: block;
+}
+.learning-progress {
+  margin: 20px 0;
+  color: inherit;
+}
+.headline {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.headline > strong {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 750;
+  letter-spacing: -1px;
+}
+.headline > span,
+.caption,
+.cumulative,
+.footnote {
+  font-size: 12px;
+  line-height: 1.65;
+  color: #64748b;
+}
+.cumulative {
+  margin: 14px 0;
+}
+.cumulative strong {
+  color: #334155;
+}
+.levels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.levels button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 11px 5px;
+  color: #475569;
+  cursor: pointer;
+}
+.levels button.active {
+  border-color: #6366f1;
+  color: #4338ca;
+  background: #eef2ff;
+}
+.levels button span {
+  font-size: 11px;
+}
+.levels button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #a5b4fc;
+  outline-offset: 2px;
+}
+.caption {
+  margin: 12px 0;
+}
+.comparison > div {
+  display: grid;
+  grid-template-columns: 74px minmax(30px, 1fr) 58px;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  margin: 10px 0;
+}
+.comparison i {
+  height: 7px;
+  overflow: hidden;
+  background: #eef2f7;
+  border-radius: 6px;
+}
+.comparison b {
+  display: block;
+  background: #6366f1;
+  height: 100%;
+  border-radius: 6px;
+}
+.comparison b.frequency {
+  background: #38bdf8;
+}
+.comparison b.random {
+  background: #cbd5e1;
+}
+.comparison strong {
+  text-align: right;
+  font-size: 11px;
+}
+details {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  font-size: 12px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.distribution {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+.distribution > span {
+  display: flex;
+  justify-content: space-between;
+  background: #f8fafc;
+  padding: 7px;
+  border-radius: 5px;
+  gap: 8px;
+  font-size: 11px;
+}
+dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 15px 0;
+}
+dt {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+dd {
+  margin: 4px 0;
+  font-weight: 650;
+}
+.history {
+  overflow: auto;
+}
+table {
+  width: 100%;
+  font-size: 11px;
+  border-collapse: collapse;
+}
+caption {
+  caption-side: top;
+  font-size: 11px;
+}
+th,
+td {
+  text-align: left;
+  padding: 8px 5px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.footnote {
+  font-size: 10px;
+  margin: 14px 0 0;
+}

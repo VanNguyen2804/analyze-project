@@ -54,8 +54,39 @@ export interface LabRun {
 }
 export interface LabTicket extends ForecastTicket {
   model: string;
+  feedback?: { draws: number; tickets: number; ticketMatchHistogram: number[] } | null;
+}
+export interface LabProgressLevel {
+  threshold: number;
+  ticketHits: number;
+  ticketPercent: number | null;
+  drawHits: number;
+  drawPercent: number | null;
+  frequencyTicketPercent: number | null;
+  randomTicketPercent: number | null;
+}
+export interface LabProgress {
+  evaluationVersion: string;
+  evaluatedTickets: number;
+  totalMatched: number;
+  bestTicketMatched: number;
+  averageMatchedPerTicket: number | null;
+  frequencyAverageMatched: number | null;
+  randomAverageMatched: number | null;
+  recent30AverageMatched: number | null;
+  previous30AverageMatched: number | null;
+  matchHistogram: number[];
+  levels: LabProgressLevel[];
+  timeline: {
+    targetDate: string;
+    matched: number;
+    cumulativeMatched: number;
+    averageMatchedPerTicket: number;
+  }[];
 }
 export interface LabGroup {
+  feedbackEnabled?: boolean;
+  progress?: LabProgress;
   cohort: string;
   model: string;
   modelVersion: string;

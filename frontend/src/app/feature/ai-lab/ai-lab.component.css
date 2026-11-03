@@ -724,9 +724,14 @@ dd {
   font-size: 9px;
   color: #728078;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px;
   background: #fcfdfb;
+}
+.ticket-footer .feedback-note {
+  flex-basis: 100%;
+  line-height: 1.7;
 }
 .history-footer {
   display: flex;

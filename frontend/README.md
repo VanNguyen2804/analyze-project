@@ -15,7 +15,7 @@ npm.cmd run build
 
 API do Spring Boot trong `../backend/` cung cấp. Cấu hình địa chỉ API ở `src/environments/environment.ts` và `environment.prod.ts`; giá trị rỗng gọi API cùng origin. Khi chạy Angular dev server riêng, cấu hình địa chỉ backend tương ứng.
 
-Trang `/analyze` tạo dự đoán; `/analyze/history` xem ledger tự động; `/analyze/review` phân tích kỳ và nhóm vé. `/forecasts` chuyển hướng sang lịch sử, `/latest-analysis` sang tab phân tích kỳ. `/ai-lab` theo dõi các mô hình thử nghiệm. Không suy ra xác suất trúng từ điểm xếp hạng heuristic.
+Trang `/analyze` tạo dự đoán; `/analyze/history` xem ledger tự động; `/analyze/review` phân tích kỳ và nhóm vé. `/forecasts` chuyển hướng sang lịch sử, `/latest-analysis` sang tab phân tích kỳ. `/ai-lab` theo dõi các mô hình thử nghiệm; component `feature/ai-lab/lab-progress/` nhận report riêng qua input, quản lý mức so sánh ≥1/≥2/≥3 và hiển thị trung bình/lũy kế/histogram. Phản hồi đã học hiển thị trên từng snapshot mới, không tính lại việc học ở browser. Không suy ra xác suất trúng từ điểm xếp hạng heuristic.
 
 ## Quy ước frontend
 

@@ -1,0 +1,128 @@
+<section class="learning-progress" aria-label="Tiến bộ từ một số khớp">
+  <div class="headline">
+    <strong>{{
+      progress().averageMatchedPerTicket === null
+        ? 'Chưa có'
+        : (progress().averageMatchedPerTicket | number: '1.2-2')
+    }}</strong
+    ><span>số khớp trung bình / vé<br />Ghi nhận từ 1 số, 2 số và cao hơn</span>
+  </div>
+  <p class="cumulative">
+    <strong>{{ progress().totalMatched }}</strong> lượt số khớp trên
+    {{ progress().evaluatedTickets }} vé đã đối soát
+  </p>
+  <div class="levels" role="group" aria-label="Chọn mức khớp để so sánh">
+    @for (item of progress().levels; track item.threshold) {
+      <button
+        type="button"
+        (click)="selected.set(item.threshold)"
+        [class.active]="selected() === item.threshold"
+        [attr.aria-pressed]="selected() === item.threshold"
+      >
+        <strong>≥{{ item.threshold }} số</strong><span>{{ item.ticketHits }} vé</span>
+      </button>
+    }
+  </div>
+  @if (level(); as l) {
+    <p class="caption">Tỷ lệ từng vé khớp ít nhất {{ l.threshold }} số · cùng ngân sách</p>
+    <div class="comparison">
+      <div>
+        <span>Mô hình</span><i><b [style.width.%]="width(l.ticketPercent)"></b></i
+        ><strong>{{ percent(l.ticketPercent) }}</strong>
+      </div>
+      <div>
+        <span>Tần suất</span
+        ><i><b class="frequency" [style.width.%]="width(l.frequencyTicketPercent)"></b></i
+        ><strong>{{ percent(l.frequencyTicketPercent) }}</strong>
+      </div>
+      <div>
+        <span>Ngẫu nhiên</span
+        ><i><b class="random" [style.width.%]="width(l.randomTicketPercent)"></b></i
+        ><strong>{{ percent(l.randomTicketPercent) }}</strong>
+      </div>
+    </div>
+    <p class="caption">
+      {{ l.drawHits }} kỳ có ít nhất một vé đạt mức này · {{ percent(l.drawPercent) }}
+    </p>
+  }
+  <details>
+    <summary>Phân bố và lịch sử tích lũy</summary>
+    <p class="caption">
+      Mức cao nhất đã ghi nhận trên một vé:
+      {{ progress().evaluatedTickets ? progress().bestTicketMatched + '/6 số' : 'Chưa có' }}.
+    </p>
+    <div class="distribution">
+      @for (count of progress().matchHistogram; track $index) {
+        <span
+          >Đúng {{ $index }} số <strong>{{ count }} vé</strong></span
+        >
+      }
+    </div>
+    <dl>
+      <div>
+        <dt>30 kỳ gần nhất · số/vé</dt>
+        <dd>
+          {{
+            progress().recent30AverageMatched === null
+              ? 'Chưa có'
+              : (progress().recent30AverageMatched | number: '1.2-2')
+          }}
+        </dd>
+      </div>
+      <div>
+        <dt>30 kỳ trước · số/vé</dt>
+        <dd>
+          {{
+            progress().previous30AverageMatched === null
+              ? 'Chưa có'
+              : (progress().previous30AverageMatched | number: '1.2-2')
+          }}
+        </dd>
+      </div>
+    </dl>
+    <p class="caption">
+      Trung bình đối chứng: tần suất
+      {{
+        progress().frequencyAverageMatched === null
+          ? 'Chưa có'
+          : (progress().frequencyAverageMatched | number: '1.2-2')
+      }}
+      · ngẫu nhiên
+      {{
+        progress().randomAverageMatched === null
+          ? 'Chưa có'
+          : (progress().randomAverageMatched | number: '1.2-2')
+      }}
+      số/vé.
+    </p>
+    @if (recent().length) {
+      <div class="history">
+        <table>
+          <caption>
+            10 kỳ đối soát gần nhất
+          </caption>
+          <thead>
+            <tr>
+              <th>Kỳ</th>
+              <th>Lượt khớp trong kỳ</th>
+              <th>Lũy kế</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (point of recent(); track point.targetDate) {
+              <tr>
+                <td>{{ point.targetDate | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ point.matched }}</td>
+                <td>{{ point.cumulativeMatched }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </details>
+  <p class="footnote">
+    Lũy kế là tổng lượt khớp trên tất cả vé, không phải một vé trúng ghép từ nhiều kỳ. Các mức ≥1,
+    ≥2, ≥3 chồng lấp; 1–2 số khớp không có nghĩa là trúng thưởng hoặc kỳ sau sẽ tốt hơn.
+  </p>
+</section>

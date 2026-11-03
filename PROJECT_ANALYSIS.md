@@ -1,5 +1,11 @@
 # Hiện trạng và hướng phát triển dự án
 
+## AI Lab 03/11/2026 — Học phản hồi từ vé khớp 1–2 số
+
+Theo yêu cầu đổi cả cách học, Logistic mới mang phiên bản `ai-lab-dense-feedback-v2`: sau huấn luyện lịch sử, replay tối đa 60 kỳ chốt thật có đủ batch/đặc trưng đóng băng và kết quả còn hợp lệ. Mỗi kỳ có một nhãn đúng/sai cho mỗi số; số được chọn trên nhiều vé không tạo cập nhật lặp. Mọi mức khớp 0–6 tham gia; số từng được chọn có thêm trọng số mất mát 0,25, bước gradient 0,05. Đối soát lại từ dữ liệu hiện tại, giới hạn trước kỳ đích; không phụ thuộc settlement cũ khi kết quả bị sửa/rút lại. Đóng băng policy, trọng số và lineage/hash trong explanation; không sửa snapshot cũ, migration, mô hình tần suất hoặc thuật toán chính. Clock được inject vào AiLabService để kiểm thử cutoff có thể tái lập.
+
+Thêm `AiLabProgress` tính trung bình, tổng lượt khớp, histogram đúng 0–6, các mức ≥1/≥2/≥3 và timeline chỉ từ kỳ có đủ năm vé đã đối soát; trả cùng cohort cũ để giữ phân tách phiên bản. Component `lab-progress` hiển thị mức ≥1 mặc định và cho đổi mức; mức cao nhất đã quan sát không phải trạng thái ứng viên. Cổng sàng lọc ≥3/60 kỳ giữ nguyên. [Chi tiết phương pháp và cấu hình](backend/docs/AI_LAB_PROGRESSIVE_LEARNING.md). Chưa có bằng chứng cải thiện xác suất trúng; tổng lượt khớp không phải một vé ghép từ nhiều kỳ.
+
 ## Trang chứng khoán 03/11/2026
 
 Thêm lazy route `/stocks` và `/stocks/:symbol`, menu chứng khoán; ẩn bộ chọn MEGA/POWER và lịch xổ số theo route, giữ các trang xổ số hiện có. Frontend có watchlist, biểu đồ Lightweight Charts 5.2.0, hai mode, form vị thế theo snapshot; không lưu/log vị thế. Backend theo Onion: `StockMarketDataPort`, adapter Entrade, `StockService`, các record stock và `StockController`; cache RAM, không migration hoặc lưu dữ liệu thị trường bền khi chưa xác minh quyền dùng.

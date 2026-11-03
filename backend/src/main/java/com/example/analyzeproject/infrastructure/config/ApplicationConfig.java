@@ -44,9 +44,12 @@ public class ApplicationConfig {
         return new ForecastService(analyze, draws, store, enabled);
     }
 
-    @Bean AiLabService aiLabService(AiLabStore store, LotteryNumberRepository draws,
-            @Value("${ai-lab.enabled:true}") boolean enabled) {
-        return new AiLabService(store, draws, enabled);
+    @Bean AiLabService aiLabService(AiLabStore store, LotteryNumberRepository draws, Clock clock,
+            @Value("${ai-lab.enabled:true}") boolean enabled,
+            @Value("${ai-lab.feedback.learning-rate:0.05}") double learningRate,
+            @Value("${ai-lab.feedback.selected-extra-weight:0.25}") double selectedExtraWeight,
+            @Value("${ai-lab.feedback.maximum-draws:60}") int maximumDraws) {
+        return new AiLabService(store, draws, enabled, new com.example.analyzeproject.domain.service.AiLabModel.FeedbackPolicy(learningRate,selectedExtraWeight,maximumDraws),clock);
     }
 
     @Bean WorkspaceService workspaceService(AnalyzeService analyze, LotteryNumberRepository draws,

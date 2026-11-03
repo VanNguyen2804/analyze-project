@@ -1,6 +1,6 @@
 import { ForecastApiService } from '../../core/services/forecast-api.service';
 import { LotteryCategory } from '../../core/models/lottery-category.model';
-import { LabOverview, LabTicket } from '../../core/models/forecast.model';
+import { LabGroup, LabOverview, LabTicket } from '../../core/models/forecast.model';
 import {
   Component,
   DestroyRef,
@@ -14,11 +14,12 @@ import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, distinctUntilChanged, finalize, switchMap, timer } from 'rxjs';
 import { AnalyzeService } from '../../core/services/analyze.service';
+import { LabProgressComponent } from './lab-progress/lab-progress.component';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ai-lab',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, LabProgressComponent],
   templateUrl: './ai-lab.component.html',
   styleUrl: './ai-lab.component.css',
 })
@@ -114,6 +115,11 @@ export class AiLabComponent implements OnInit {
     return model === 'logistic'
       ? 'Logistic Regression (học máy)'
       : 'Tần suất suy giảm theo thời gian';
+  }
+  stageName(group: LabGroup) {
+    if (group.status === 'VALIDATION_CANDIDATE') return 'Ứng viên cần xác nhận';
+    if (!group.progress?.evaluatedTickets) return 'Chờ dữ liệu đối soát';
+    return `Đã ghi nhận ${group.progress.bestTicketMatched} số / vé`;
   }
   percent(value: number | null | undefined) {
     return value == null ? 'Chưa có' : `${value.toFixed(1)}%`;

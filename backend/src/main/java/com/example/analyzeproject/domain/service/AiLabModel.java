@@ -6,11 +6,63 @@ import java.util.stream.IntStream;
 
 /** Small, deterministic online logistic model; every training feature precedes its label. */
 public final class AiLabModel {
-    public static final String VERSION = "ai-lab-logistic-v1";
+    public static final String VERSION = "ai-lab-dense-feedback-v2";
     public static final int BUDGET = 5;
     public static final List<String> MODELS = List.of("logistic", "recency");
     private AiLabModel() {}
     public record Fit(double[] scores, double[][] features, double[] weights) {}
+    public record FeedbackPolicy(double learningRate, double selectedExtraWeight, int maximumDraws) {
+        public FeedbackPolicy {
+            if (!Double.isFinite(learningRate) || learningRate <= 0 || learningRate > .2
+                    || !Double.isFinite(selectedExtraWeight) || selectedExtraWeight < 0 || selectedExtraWeight > 1
+                    || maximumDraws < 1 || maximumDraws > 120)
+                throw new IllegalArgumentException("Invalid feedback policy");
+        }
+        public static FeedbackPolicy defaults() { return new FeedbackPolicy(.05, .25, 60); }
+    }
+    public record FeedbackExample(int number, double[] features, boolean selected, boolean occurred) {
+        public FeedbackExample { features = features.clone(); }
+        @Override public double[] features() { return features.clone(); }
+    }
+    public record FeedbackRound(String targetDate, List<FeedbackExample> examples) {
+        public FeedbackRound { examples = List.copyOf(examples); }
+    }
+    /** Replay dense, signed feedback once per settled draw; a 1/2-hit ticket is never discarded. */
+    public static Fit fit(List<LotteryNumber> input, String category, String model,
+                          List<FeedbackRound> feedback, FeedbackPolicy policy) {
+        Fit base = fit(input, category, model);
+        if (!"logistic".equals(model) || feedback.isEmpty()) return base;
+        var actual = new HashMap<String,Set<Integer>>();
+        DrawQuality.history(input).stream().filter(r -> category.equals(r.getCategory()))
+                .forEach(r -> actual.put(r.getDrawDate().toString(), new HashSet<>(r.getNumbers())));
+        var rounds = feedback.stream().sorted(Comparator.comparing(FeedbackRound::targetDate)).toList();
+        Set<String> dates = new HashSet<>();
+        double[] weights = base.weights().clone();
+        for (var round : rounds.subList(Math.max(0, rounds.size() - policy.maximumDraws()), rounds.size())) {
+            if (!dates.add(round.targetDate()) || !actual.containsKey(round.targetDate()))
+                throw new IllegalArgumentException("Feedback must have one known historical result per date");
+            if (round.examples().size() != base.scores().length - 1)
+                throw new IllegalArgumentException("Feedback must cover every main number");
+            Set<Integer> numbers = new HashSet<>();
+            double[] gradient = new double[weights.length]; double totalWeight = 0;
+            for (var example : round.examples()) {
+                double[] x = example.features();
+                if (example.number() < 1 || example.number() >= base.scores().length || !numbers.add(example.number())
+                        || x.length != weights.length || x[0] != 1 || Arrays.stream(x).anyMatch(v -> !Double.isFinite(v) || v < 0 || v > 1)
+                        || example.occurred() != actual.get(round.targetDate()).contains(example.number()))
+                    throw new IllegalArgumentException("Invalid or unverified feedback example");
+                // All positives and negatives remain in the loss; selected numbers receive a bounded extra weight.
+                double weight = 1 + (example.selected() ? policy.selectedExtraWeight() : 0);
+                double error = sigmoid(dot(weights, x)) - (example.occurred() ? 1 : 0);
+                totalWeight += weight;
+                for (int j = 0; j < weights.length; j++) gradient[j] += weight * error * x[j];
+            }
+            for (int j = 0; j < weights.length; j++) weights[j] -= policy.learningRate() * gradient[j] / totalWeight;
+        }
+        double[] scores = new double[base.scores().length];
+        for (int n = 1; n < scores.length; n++) scores[n] = sigmoid(dot(weights, base.features()[n]));
+        return new Fit(scores, base.features(), weights);
+    }
     public static double[] scores(List<LotteryNumber> input, String category, String model) {
         return fit(input,category,model).scores();
     }
