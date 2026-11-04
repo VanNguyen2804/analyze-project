@@ -148,17 +148,25 @@ describe('Stocks page', () => {
     harness.detectChanges();
     expect(harness.routeNativeElement?.querySelector('input[name="buyFee"]')).toBeNull();
     expect(harness.routeNativeElement?.querySelector('input[name="sellCost"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelector('input[name="maxLoss"]')).toBeNull();
+    expect(
+      harness.routeNativeElement
+        ?.querySelector('.chart-panel')
+        ?.parentElement?.nextElementSibling?.classList.contains('position-workspace'),
+    ).toBeTrue();
     page.input = {
-      purchaseDate: '2026-11-03',
+      purchaseDate: '',
       purchasePrice: 234000,
       quantity: 200,
       sellableQuantity: 200,
-      maxLossPercent: 10,
+      maxLossPercent: 2,
     };
     page.analyzePosition();
     const request = http.expectOne((r) => r.url.endsWith('/VIC/position-analysis'));
     expect(request.request.body.buyFeePercent).toBeUndefined();
     expect(request.request.body.sellCostPercent).toBeUndefined();
+    expect(request.request.body.maxLossPercent).toBe(10);
+    expect(request.request.body.purchaseDate).toBeNull();
     request.flush({
       snapshotId: data.snapshotId,
       status: 'WATCH',

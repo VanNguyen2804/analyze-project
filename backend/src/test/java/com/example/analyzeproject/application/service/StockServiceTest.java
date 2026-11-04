@@ -8,6 +8,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class StockServiceTest {
+    @Test void positionNeedsNoPurchaseDateAndUsesFixedTenPercentStopLoss() {
+        var bars=history(100); double current=bars.get(99).close();
+        var service=service(bars,true,"RAW",clock); var snapshot=service.analyze("FPT",Mode.SWING);
+        var result=service.position("FPT",snapshot.snapshotId(),new PositionInput(null,current/.89,200.0,null,null,99.0,null));
+        assertEquals(-11,result.changePercent(),1e-8);
+        assertEquals((current-current/.89)*200,result.grossPnl(),1e-8);
+        assertEquals("SELL",result.status());
+        assertTrue(result.reasons().stream().anyMatch(r->r.contains("10%")));
+        var above=service.position("FPT",snapshot.snapshotId(),new PositionInput(null,current/.91,200.0,null,null,1.0,null));
+        assertTrue(above.reasons().stream().noneMatch(r->r.contains("cắt lỗ cố định")));
+    }
     private final Clock clock=Clock.fixed(Instant.parse("2026-11-03T09:30:00Z"),ZoneOffset.UTC);
     private final StockLearningEngine engine=new StockLearningEngine(.60,.60,.004);
     private List<Candle> history(int n) {

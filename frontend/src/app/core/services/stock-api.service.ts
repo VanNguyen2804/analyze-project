@@ -20,8 +20,12 @@ export class StockApiService {
     return this.http.get<StockSnapshot>(`${this.base}/${symbol}/analysis`, { params: { mode } });
   }
   position(symbol: string, snapshotId: string, input: StockPositionInput) {
-    return this.http.post<StockPositionResult>(`${this.base}/${symbol}/position-analysis`, input, {
-      params: { snapshotId },
-    });
+    return this.http.post<StockPositionResult>(
+      `${this.base}/${symbol}/position-analysis`,
+      { ...input, purchaseDate: input.purchaseDate || null },
+      {
+        params: { snapshotId },
+      },
+    );
   }
 }

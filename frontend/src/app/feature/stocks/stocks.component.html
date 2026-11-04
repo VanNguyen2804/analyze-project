@@ -178,6 +178,121 @@
         </div>
       </aside>
     </div>
+    <section class="panel position-workspace" aria-labelledby="position-heading">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">VỊ THẾ CỦA TÔI · {{ s.symbol }}</p>
+          <h3 id="position-heading">Giá vốn &amp; lãi/lỗ</h3>
+        </div>
+        <span class="badge warning">Cắt lỗ cố định 10%</span>
+      </div>
+      <div class="position-grid">
+        <form (ngSubmit)="analyzePosition()" #positionForm="ngForm">
+          <p class="muted small">
+            Dữ liệu chỉ dùng cho lần tính này, không lưu danh mục trên server.
+          </p>
+          <div class="form-grid">
+            <label
+              >Giá mua (VND/cổ phiếu)<input
+                type="number"
+                name="purchasePrice"
+                [(ngModel)]="input.purchasePrice"
+                (ngModelChange)="resetPosition()"
+                min="0.01"
+                required
+            /></label>
+            <label
+              >Khối lượng (cổ phiếu)<input
+                type="number"
+                name="quantity"
+                [(ngModel)]="input.quantity"
+                (ngModelChange)="resetPosition()"
+                min="1"
+                step="1"
+                pattern="[0-9]+"
+                required
+            /></label>
+          </div>
+          <p class="stop-loss-note">
+            Giá cắt lỗ:
+            <strong>{{
+              input.purchasePrice && input.purchasePrice > 0
+                ? (input.purchasePrice * 0.9 | number: '1.0-2') + ' VND/cổ phiếu'
+                : 'Nhập giá mua để tính'
+            }}</strong>
+          </p>
+          <details class="position-options">
+            <summary>Thông tin bổ sung (tùy chọn)</summary>
+            <div class="form-grid">
+              <label
+                >Ngày mua<input
+                  type="date"
+                  name="purchaseDate"
+                  [(ngModel)]="input.purchaseDate"
+                  (ngModelChange)="resetPosition()"
+              /></label>
+              <label
+                >Số lượng có thể bán<input
+                  type="number"
+                  name="sellable"
+                  [(ngModel)]="input.sellableQuantity"
+                  (ngModelChange)="resetPosition()"
+                  min="0"
+                  [max]="input.quantity"
+                  step="1"
+                  pattern="[0-9]+"
+              /></label>
+            </div>
+          </details>
+          <button
+            class="primary"
+            type="submit"
+            [disabled]="positionForm.invalid || positionBusy() || loading()"
+          >
+            {{ positionBusy() ? 'Đang tính…' : 'Tính lãi/lỗ' }}
+          </button>
+          @if (positionError()) {
+            <p class="sell" role="alert">{{ positionError() }}</p>
+          }
+        </form>
+        <article class="position-result" aria-live="polite">
+          <p class="eyebrow">NHẬN ĐỊNH VỊ THẾ</p>
+          @if (position(); as p) {
+            <h3>{{ label(p.status) }}</h3>
+            @if (p.changePercent !== null) {
+              <dl class="metrics">
+                <div>
+                  <dt>Thay đổi giá</dt>
+                  <dd>{{ p.changePercent | number: '1.2-2' }}%</dd>
+                </div>
+                <div>
+                  <dt>Lãi/lỗ giá (VND)</dt>
+                  <dd>
+                    {{
+                      p.grossPnl === null ? 'Chưa nhập số lượng' : (p.grossPnl | number: '1.0-0')
+                    }}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Giá dùng tính (VND/cổ phiếu)</dt>
+                  <dd>{{ p.price | number: '1.0-2' }}</dd>
+                </div>
+              </dl>
+            }
+            <ul>
+              @for (reason of p.reasons; track reason) {
+                <li>{{ reason }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="muted">
+              Nhập khối lượng và giá mua để xem lãi/lỗ theo giá trên biểu đồ. Mức cắt lỗ tự đặt thấp
+              hơn giá mua 10%.
+            </p>
+          }
+        </article>
+      </div>
+    </section>
     @if (s.dailyDesk; as desk) {
       <app-stock-daily-desk [desk]="desk" />
     }
@@ -281,100 +396,6 @@
         }
       </details>
     </article>
-    <div class="main-grid position-grid">
-      <form class="panel" (ngSubmit)="analyzePosition()" #positionForm="ngForm">
-        <p class="eyebrow">VỊ THẾ CỦA TÔI</p>
-        <h3>Kiểm tra lô cổ phiếu đang nắm giữ</h3>
-        <p class="muted small">
-          Dữ liệu chỉ dùng cho lần tính này, không lưu danh mục trên server.
-        </p>
-        <div class="form-grid">
-          <label
-            >Ngày mua<input
-              type="date"
-              name="purchaseDate"
-              [(ngModel)]="input.purchaseDate"
-              (ngModelChange)="resetPosition()"
-              required /></label
-          ><label
-            >Giá mua (VND/cổ phiếu)<input
-              type="number"
-              name="purchasePrice"
-              [(ngModel)]="input.purchasePrice"
-              (ngModelChange)="resetPosition()"
-              min="0.01"
-              required
-          /></label>
-          <label
-            >Số lượng (tùy chọn)<input
-              type="number"
-              name="quantity"
-              [(ngModel)]="input.quantity"
-              (ngModelChange)="resetPosition()"
-              min="1"
-              step="1" /></label
-          ><label
-            >Số lượng có thể bán<input
-              type="number"
-              name="sellable"
-              [(ngModel)]="input.sellableQuantity"
-              (ngModelChange)="resetPosition()"
-              min="0"
-              step="1"
-          /></label>
-          <label
-            >Ngưỡng chịu lỗ (%)<input
-              type="number"
-              name="maxLoss"
-              [(ngModel)]="input.maxLossPercent"
-              (ngModelChange)="resetPosition()"
-              min="0"
-              max="100"
-              step="0.1"
-          /></label>
-        </div>
-        <button class="primary" type="submit" [disabled]="positionForm.invalid || positionBusy()">
-          {{ positionBusy() ? 'Đang phân tích…' : 'Phân tích vị thế' }}
-        </button>
-        @if (positionError()) {
-          <p class="sell" role="alert">{{ positionError() }}</p>
-        }
-      </form>
-      <article class="panel">
-        <p class="eyebrow">NHẬN ĐỊNH VỊ THẾ</p>
-        @if (position(); as p) {
-          <h3>{{ label(p.status) }}</h3>
-          @if (p.changePercent !== null) {
-            <dl class="metrics">
-              <div>
-                <dt>Thay đổi giá</dt>
-                <dd>{{ p.changePercent | number: '1.2-2' }}%</dd>
-              </div>
-              <div>
-                <dt>Lãi/lỗ giá (VND)</dt>
-                <dd>
-                  {{ p.grossPnl === null ? 'Chưa nhập số lượng' : (p.grossPnl | number: '1.0-0') }}
-                </dd>
-              </div>
-              <div>
-                <dt>Giá dùng tính (VND/cổ phiếu)</dt>
-                <dd>{{ p.price | number: '1.0-2' }}</dd>
-              </div>
-            </dl>
-          }
-          <ul>
-            @for (reason of p.reasons; track reason) {
-              <li>{{ reason }}</li>
-            }
-          </ul>
-        } @else {
-          <p class="muted">
-            Nhập ngày và giá mua để phân tích. Tín hiệu thị trường và nhận định vị thế được đánh giá
-            riêng.
-          </p>
-        }
-      </article>
-    </div>
   }
   <footer class="disclaimer">
     Phân tích kỹ thuật và học máy tham khảo. Chưa có bằng chứng mô hình tạo lợi nhuận có thể thực

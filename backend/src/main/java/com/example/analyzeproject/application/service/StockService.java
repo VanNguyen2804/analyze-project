@@ -73,7 +73,7 @@ public final class StockService {
     }
     public synchronized PositionResult position(String symbol,String id,PositionInput p){
         validate(symbol);
-        if(p.purchaseDate()==null||p.purchaseDate().isAfter(LocalDate.now(clock.withZone(ZoneId.of("Asia/Ho_Chi_Minh")))))throw new IllegalArgumentException("Ngày mua không hợp lệ");
+        if(p.purchaseDate()!=null&&p.purchaseDate().isAfter(LocalDate.now(clock.withZone(ZoneId.of("Asia/Ho_Chi_Minh")))))throw new IllegalArgumentException("Ngày mua không hợp lệ");
         valid(p.purchasePrice(),0,1e12,false);valid(p.quantity(),0,1e10,true);valid(p.buyFeePercent(),0,100,true);valid(p.sellCostPercent(),0,100,true);valid(p.maxLossPercent(),0,100,true);valid(p.sellableQuantity(),0,1e10,true);
         if(p.quantity()!=null&&p.quantity()%1!=0||p.sellableQuantity()!=null&&p.sellableQuantity()%1!=0)throw new IllegalArgumentException("Số lượng phải là số nguyên");
         if(p.sellableQuantity()!=null&&(p.quantity()==null||p.sellableQuantity()>p.quantity()))throw new IllegalArgumentException("Số lượng có thể bán không hợp lệ");
@@ -85,11 +85,11 @@ public final class StockService {
             return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Giá chưa có đơn vị quy đổi sang VND hoặc chỉ có giá lịch sử điều chỉnh; chưa thể so với giá mua."));
         Candle c=s.data().candles().get(s.data().candles().size()-1);double price=c.close()*conversion;
         LocalDate priceDate=Instant.ofEpochSecond(c.time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
-        if(p.purchaseDate().isAfter(priceDate))return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Giá gần nhất có trước ngày mua; cần cập nhật giá sau ngày mua để tính lãi/lỗ."));
+        if(p.purchaseDate()!=null&&p.purchaseDate().isAfter(priceDate))return new PositionResult(id,"UNAVAILABLE",null,null,null,null,null,List.of("Giá gần nhất có trước ngày mua; cần cập nhật giá sau ngày mua để tính lãi/lỗ."));
         double change=(price/p.purchasePrice()-1)*100,buyFee=p.buyFeePercent()==null?0:p.buyFeePercent()/100,sell=p.sellCostPercent()==null?0:p.sellCostPercent()/100;
         String status="UNAVAILABLE".equals(s.analysis().recommendation().action())?"WATCH":s.analysis().recommendation().action();List<String> reasons=new ArrayList<>();
         reasons.add(s.analysis().recommendation().summary());
-        if(p.maxLossPercent()!=null&&change<=-p.maxLossPercent()){if(s.data().verified()&&"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))status="SELL";reasons.add("Mức giảm giá đã chạm ngưỡng chịu lỗ bạn nhập; cần đối chiếu giá và sự kiện quyền trước khi xử lý vị thế.");}
+        if(change<=-10){if(s.data().verified()&&"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))status="SELL";reasons.add("Mức giảm giá đã chạm ngưỡng cắt lỗ cố định 10%; cần đối chiếu giá và sự kiện quyền trước khi xử lý vị thế.");}
         else if("BUY".equals(status))status="HOLD";
         reasons.add("Giá dùng tính: "+price+" VND/cổ phiếu; mốc nến "+Instant.ofEpochSecond(c.time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))+" giờ Việt Nam.");
         reasons.add("Lãi/lỗ theo giá chưa tính phí, thuế, cổ tức hoặc thay đổi số lượng do sự kiện quyền.");
@@ -97,7 +97,7 @@ public final class StockService {
         if(!"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))reasons.add("Dữ liệu cũ: kết quả dùng giá gần nhất đang có, không phải giá giao dịch hiện tại.");
         if(!c.closed())reasons.add("Giá thuộc nến đang hình thành và có thể thay đổi.");
         reasons.add(p.sellableQuantity()==null?"Chưa biết số lượng có thể bán; kết quả chỉ là tín hiệu kỹ thuật.":"Số lượng có thể bán do bạn khai báo: "+p.sellableQuantity());
-        if(!s.data().candles().isEmpty()&&p.purchaseDate().isBefore(Instant.ofEpochSecond(s.data().candles().get(0).time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()))reasons.add("Ngày mua ngoài lịch sử hiện có; không tái dựng phân tích tại ngày mua.");
+        if(p.purchaseDate()!=null&&!s.data().candles().isEmpty()&&p.purchaseDate().isBefore(Instant.ofEpochSecond(s.data().candles().get(0).time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()))reasons.add("Ngày mua ngoài lịch sử hiện có; không tái dựng phân tích tại ngày mua.");
         Double gross=p.quantity()==null?null:(price-p.purchasePrice())*p.quantity();
         Double net=p.quantity()==null||p.buyFeePercent()==null||p.sellCostPercent()==null?null:(price*(1-sell)-p.purchasePrice()*(1+buyFee))*p.quantity();
         Double breakEven=p.buyFeePercent()==null||p.sellCostPercent()==null||sell>=1?null:p.purchasePrice()*(1+buyFee)/(1-sell);

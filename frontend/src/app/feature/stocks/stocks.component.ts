@@ -70,7 +70,7 @@ export class StocksComponent implements OnInit {
     purchaseDate: '',
     purchasePrice: null,
     quantity: null,
-    maxLossPercent: null,
+    maxLossPercent: 10,
     sellableQuantity: null,
   };
   ngOnInit() {
@@ -135,7 +135,7 @@ export class StocksComponent implements OnInit {
     this.resetPosition();
     this.positionBusy.set(true);
     this.api
-      .position(s.symbol, s.snapshotId, this.input)
+      .position(s.symbol, s.snapshotId, { ...this.input, maxLossPercent: 10 })
       .pipe(takeUntil(this.cancelPosition), takeUntilDestroyed(this.destroy))
       .subscribe({
         next: (result) => {

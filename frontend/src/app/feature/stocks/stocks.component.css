@@ -158,7 +158,29 @@ button:disabled {
   margin-bottom: 6px;
 }
 .position-grid {
+  display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 28px;
+}
+.position-workspace {
+  margin: 18px 0;
+  border-top: 3px solid #168c78;
+}
+.position-result {
+  min-width: 0;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f4faf8;
+}
+.stop-loss-note {
+  font-size: 13px;
+  color: #91621a;
+  padding: 12px;
+  background: #fffaf0;
+  border-radius: 8px;
+}
+.position-options .form-grid {
+  margin-top: 16px;
 }
 .price {
   font-size: 32px;
@@ -336,7 +358,8 @@ summary:focus-visible {
   outline-offset: 3px;
 }
 @media (max-width: 1100px) {
-  .main-grid {
+  .main-grid,
+  .position-grid {
     grid-template-columns: 1fr;
   }
   .ml-metrics {
