@@ -85,7 +85,7 @@
             <article class="model-card" [class.recency-card]="group.model !== 'logistic'">
               <div class="model-topline">
                 <span class="model-icon" aria-hidden="true">{{
-                  group.model === 'logistic' ? '✳' : '◷'
+                  group.model.startsWith('logistic') ? '✳' : '◷'
                 }}</span
                 ><span
                   class="model-state"
@@ -94,17 +94,17 @@
                 >
               </div>
               <span class="model-type">{{
-                group.model === 'logistic' ? 'MÔ HÌNH HỌC MÁY' : 'MÔ HÌNH THỐNG KÊ'
+                group.model.startsWith('logistic') ? 'MÔ HÌNH HỌC MÁY' : 'MÔ HÌNH THỐNG KÊ'
               }}</span>
               <h3>
-                {{ group.model === 'logistic' ? 'Logistic Regression' : 'Tần suất theo thời gian' }}
+                {{ name(group.model) }}
               </h3>
               <p class="model-description">
                 {{
-                  group.model === 'logistic'
+                  group.model.startsWith('logistic')
                     ? group.feedbackEnabled
                       ? 'Học lịch sử và phản hồi từng số đúng/sai từ các vé đã chốt, gồm cả vé khớp 1–2 số.'
-                      : 'Phiên bản học từ lịch sử; chưa áp dụng phản hồi từng vé của phiên bản mới.'
+                      : 'Học từ lịch sử, không học thêm feedback; đối chứng để đo tác dụng của phản hồi.'
                     : 'Ưu tiên dữ liệu gần đây với trọng số giảm dần theo thời gian.'
                 }}
               </p>
@@ -178,6 +178,83 @@
                     <dd>{{ percent(group.previous30Percent) }}</dd>
                   </div>
                 </dl>
+                @if (group.feedbackComparison; as comparison) {
+                  <p>
+                    So sánh feedback: {{ comparison.pairedDraws }} kỳ có đủ hai bản cùng lịch sử và
+                    cấu hình.
+                  </p>
+                  @if (comparison.pairedDraws > 0) {
+                    <p>
+                      Số khớp TB/vé: có feedback {{ comparison.averageMatched?.toFixed(3) }} · không
+                      feedback {{ comparison.noFeedbackAverageMatched?.toFixed(3) }} · chênh lệch
+                      {{ comparison.difference?.toFixed(3) }}. Đây là thống kê mô tả, chưa kết luận
+                      lợi thế.
+                    </p>
+                  }
+                }
+                @if (group.probability; as probability) {
+                  @if (probability.evaluatedDraws > 0) {
+                    <p>
+                      Đánh giá xác suất: {{ probability.evaluatedDraws }} kỳ, mỗi số tính một lần
+                      mỗi kỳ. Điểm càng thấp càng tốt.
+                    </p>
+                    <dl>
+                      <div>
+                        <dt>Brier / đồng đều</dt>
+                        <dd>
+                          {{ probability.brierScore?.toFixed(4) }} /
+                          {{ probability.uniformBrierScore?.toFixed(4) }}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Log loss / đồng đều</dt>
+                        <dd>
+                          {{ probability.logLoss?.toFixed(4) }} /
+                          {{ probability.uniformLogLoss?.toFixed(4) }}
+                        </dd>
+                      </div>
+                    </dl>
+                    <table aria-label="Đối chiếu xác suất dự báo và tỷ lệ thực tế">
+                      <caption>
+                        Hiệu chuẩn: dự báo so với thực tế
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th>Khoảng dự báo</th>
+                          <th>Số mẫu</th>
+                          <th>Dự báo TB</th>
+                          <th>Thực tế</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (bin of probability.bins; track bin.lower) {
+                          @if (bin.count > 0) {
+                            <tr>
+                              <td>
+                                {{ (bin.lower * 100).toFixed(0) }}–{{
+                                  (bin.upper * 100).toFixed(0)
+                                }}%
+                              </td>
+                              <td>{{ bin.count }}</td>
+                              <td>
+                                {{ percent(bin.predicted == null ? null : bin.predicted * 100) }}
+                              </td>
+                              <td>
+                                {{ percent(bin.observed == null ? null : bin.observed * 100) }}
+                              </td>
+                            </tr>
+                          }
+                        }
+                      </tbody>
+                    </table>
+                    <p>
+                      Các số cùng kỳ có liên quan; số mẫu không phải số kỳ độc lập. Điểm Logistic
+                      chưa được hiệu chuẩn.
+                    </p>
+                  } @else if (group.model.startsWith('logistic')) {
+                    <p>Chưa có kỳ đối soát với điểm xác suất đã lưu đầy đủ.</p>
+                  }
+                }
                 <p class="version">{{ group.modelVersion }}</p>
                 <span class="detail-label">Nhóm đánh giá</span><code>{{ group.cohort }}</code>
               </details>
@@ -224,7 +301,10 @@
             <span>03</span>
             <div>
               <strong>Đo trên cùng ngân sách</strong>
-              <p>So với tần suất và ngẫu nhiên, cùng 5 vé mỗi kỳ.</p>
+              <p>
+                So sánh Logistic có/không feedback, tần suất và ngẫu nhiên; mỗi mô hình 5 vé mỗi kỳ.
+                Hai bản Logistic dùng cùng seed lấy mẫu và chỉ so trên kỳ có đủ cả hai bản.
+              </p>
             </div>
           </li>
         </ol>
@@ -242,6 +322,7 @@
           với cả hai đối chứng.
         </p>
         <p>
+          Mốc 50% là ngưỡng sàng lọc cấu hình sẵn, không phải tỷ lệ kỳ vọng hoặc cam kết hiệu quả.
           Đây là tiêu chí thử nghiệm, chưa chứng minh lợi thế. Mô hình đạt ngưỡng chỉ là ứng viên
           cần xác nhận trên các kỳ tương lai mới; không tự thay thuật toán đang dùng. Tách riêng
           từng phiên bản mã và cấu hình.
@@ -265,9 +346,7 @@
         @for (row of lab.rows; track row.id) {
           <article class="ticket" [class.ticket-settled]="row.settlement?.status === 'SETTLED'">
             <div class="ticket-head">
-              <span class="ticket-model">{{
-                row.model === 'logistic' ? '✳ Logistic' : '◷ Tần suất'
-              }}</span
+              <span class="ticket-model">{{ name(row.model) }}</span
               ><strong>{{ row.targetDate | date: 'dd/MM/yyyy' }}</strong>
             </div>
             <div class="numbers">

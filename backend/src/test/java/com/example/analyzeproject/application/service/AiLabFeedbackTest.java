@@ -87,7 +87,7 @@ class AiLabFeedbackTest {
         doAnswer(call->{saved.addAll((List<Map<String,Object>>)call.getArgument(0));return null;}).when(store).captureBatch(anyList());
         Clock clock=Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"),ZoneOffset.UTC);
         var service=new AiLabService(store,repository,true,AiLabModel.FeedbackPolicy.defaults(),clock);service.run();
-        assertEquals(15,saved.size());assertEquals(original,ForecastProtocol.hash(old));
+        assertEquals(20,saved.size());assertEquals(original,ForecastProtocol.hash(old));
         var next=saved.get(5);assertEquals(AiLabModel.VERSION,next.get("modelVersion"));assertTrue(ForecastProtocol.isProspective(next));
         var explanation=(Map<String,Object>)next.get("explanation");var feedback=(Map<String,Object>)explanation.get("feedback");
         assertEquals(1,feedback.get("draws"));assertEquals(List.of(1,2,2,0,0,0,0),feedback.get("ticketMatchHistogram"));
@@ -95,6 +95,6 @@ class AiLabFeedbackTest {
         var fit=AiLabModel.fit(known(),"MEGA","logistic",evidence.rounds(),AiLabModel.FeedbackPolicy.defaults());
         var weights=(Map<String,Double>)explanation.get("modelWeights");assertEquals(fit.weights()[0],weights.get("intercept"));
         assertEquals(fit.weights()[1],weights.get("frequency"));
-        service.run();assertEquals(15,saved.size());verify(store,times(2)).captureBatch(anyList());
+        service.run();assertEquals(20,saved.size());verify(store,times(3)).captureBatch(anyList());
     }
 }

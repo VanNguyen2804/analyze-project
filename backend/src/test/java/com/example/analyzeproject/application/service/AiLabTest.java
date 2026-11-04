@@ -10,6 +10,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AiLabTest {
+    @Test void feedbackComparisonUsesOnlyCompletePairedDrawsWithSameHistory() {
+        List<Map<String,Object>> snapshots=new ArrayList<>(), events=new ArrayList<>();
+        var actual=TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,25),"MEGA",List.of(1,2,3,30,31,32),null,null));
+        for (String model:List.of("logistic","logistic_no_feedback")) for(int slot=0;slot<5;slot++) {
+            var f=ForecastProtocol.prepare(history(),"MEGA","lab-"+model+"-"+slot,AiLabModel.VERSION,"code",
+                    Map.of("budget",5,"feedbackPolicy",model),List.of(1,2,3,4,5,6),before);
+            f.put("labModel",model); snapshots.add(f); events.add(ForecastProtocol.settle(f,List.of(actual),after,null));
+        }
+        var report=AiLabService.evaluate(snapshots,events).stream().filter(g->"logistic".equals(g.get("model"))).findFirst().orElseThrow();
+        var comparison=(Map<?,?>)report.get("feedbackComparison");
+        assertEquals(1,comparison.get("pairedDraws")); assertEquals(0.0,comparison.get("difference"));
+        snapshots.get(5).put("historyHash","different");
+        report=AiLabService.evaluate(snapshots,events).stream().filter(g->"logistic".equals(g.get("model"))).findFirst().orElseThrow();
+        assertEquals(0,((Map<?,?>)report.get("feedbackComparison")).get("pairedDraws"));
+    }
     private final Instant before=Instant.parse("2026-10-25T10:59:59Z"), after=Instant.parse("2026-10-25T12:00:00Z");
     private List<LotteryNumber> history() {
         List<LotteryNumber> rows=new ArrayList<>(); LocalDate date=LocalDate.of(2026,9,30);
@@ -68,7 +83,7 @@ class AiLabTest {
         List<Map<String,Object>> saved=new ArrayList<>(); when(store.snapshots()).thenAnswer(call->new ArrayList<>(saved));
         doAnswer(call->{ List<Map<String,Object>> batch=call.getArgument(0); assertEquals(5,batch.size()); saved.addAll(batch); return null; }).when(store).captureBatch(anyList());
         var lab=new AiLabService(store,repository,true); lab.run();
-        assertEquals(10,saved.size());
+        assertEquals(15,saved.size());
         for(var f:saved) {
             assertTrue(ForecastProtocol.isProspective(f)); assertEquals(12,((List<?>)f.get("history")).size());
             assertEquals(6,((List<?>)f.get("frequencyNumbers")).size()); assertEquals(6,((List<?>)f.get("randomNumbers")).size());
@@ -77,7 +92,7 @@ class AiLabTest {
             assertEquals(saved.get(i).get("frequencyNumbers"),saved.get(i+5).get("frequencyNumbers"));
             assertEquals(saved.get(i).get("randomNumbers"),saved.get(i+5).get("randomNumbers"));
         }
-        lab.run(); assertEquals(10,saved.size()); verify(store,times(2)).captureBatch(anyList());
+        lab.run(); assertEquals(15,saved.size()); verify(store,times(3)).captureBatch(anyList());
     }
     @Test void disabledCaptureStillReconcilesAndStaleHistoryDoesNotProduceTickets() {
         var store=mock(AiLabStore.class); var repository=mock(LotteryNumberRepository.class);

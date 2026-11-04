@@ -37,6 +37,53 @@ describe('AI lab', () => {
     http.expectOne(`${base}?category=POWER&page=0`).flush(payload);
     http.expectNone(`${base}/run`);
   });
+  it('labels the no-feedback control and shows paired probability evidence', () => {
+    http.expectOne(`${base}?category=MEGA&page=0`).flush({
+      ...payload,
+      groups: [
+        {
+          cohort: 'paired',
+          model: 'logistic',
+          modelVersion: 'v2',
+          savedDraws: 1,
+          evaluatedDraws: 1,
+          status: 'COLLECTING',
+          feedbackComparison: {
+            pairedDraws: 1,
+            averageMatched: 1,
+            noFeedbackAverageMatched: 0.8,
+            difference: 0.2,
+          },
+          probability: {
+            evaluatedDraws: 1,
+            observations: 45,
+            brierScore: 0.12,
+            logLoss: 0.4,
+            uniformBrierScore: 0.1156,
+            uniformLogLoss: 0.3927,
+            bins: [{ lower: 0.1, upper: 0.2, count: 45, predicted: 0.14, observed: 6 / 45 }],
+          },
+        },
+      ],
+      rows: [
+        {
+          id: 'control',
+          model: 'logistic_no_feedback',
+          targetDate: '2026-11-06',
+          createdAt: '2026-11-05T01:00:00Z',
+          numbers: [1, 2, 3, 4, 5, 6],
+        },
+      ],
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Logistic không feedback');
+    expect(fixture.nativeElement.textContent).toContain('0.200');
+    expect(fixture.nativeElement.textContent).toContain('0.1200');
+    expect(fixture.nativeElement.querySelector('table').textContent).toContain('13.3%');
+    expect(
+      fixture.nativeElement.querySelector('.model-state').classList.contains('candidate'),
+    ).toBeFalse();
+  });
   it('prevents duplicate submissions and refreshes after a run', () => {
     http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
     fixture.componentInstance.run();

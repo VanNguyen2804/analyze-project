@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 public final class AiLabModel {
     public static final String VERSION = "ai-lab-dense-feedback-v2";
     public static final int BUDGET = 5;
-    public static final List<String> MODELS = List.of("logistic", "recency");
+    public static final List<String> MODELS = List.of("logistic", "logistic_no_feedback", "recency");
     private AiLabModel() {}
     public record Fit(double[] scores, double[][] features, double[] weights) {}
     public record FeedbackPolicy(double learningRate, double selectedExtraWeight, int maximumDraws) {
@@ -67,6 +67,7 @@ public final class AiLabModel {
         return fit(input,category,model).scores();
     }
     public static Fit fit(List<LotteryNumber> input, String category, String model) {
+        if ("logistic_no_feedback".equals(model)) model = "logistic";
         var rows = DrawQuality.history(input).stream().filter(r -> category.equals(r.getCategory()))
                 .sorted(Comparator.comparing(LotteryNumber::getDrawDate)).toList();
         int max = "POWER".equals(category) ? 55 : 45;

@@ -85,6 +85,27 @@ export interface LabProgress {
   }[];
 }
 export interface LabGroup {
+  feedbackComparison?: {
+    pairedDraws: number;
+    averageMatched: number | null;
+    noFeedbackAverageMatched: number | null;
+    difference: number | null;
+  } | null;
+  probability?: {
+    evaluatedDraws: number;
+    observations: number;
+    brierScore: number | null;
+    logLoss: number | null;
+    uniformBrierScore: number | null;
+    uniformLogLoss: number | null;
+    bins: {
+      lower: number;
+      upper: number;
+      count: number;
+      predicted: number | null;
+      observed: number | null;
+    }[];
+  };
   feedbackEnabled?: boolean;
   progress?: LabProgress;
   cohort: string;

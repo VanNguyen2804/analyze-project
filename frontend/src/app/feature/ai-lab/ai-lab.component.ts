@@ -112,6 +112,7 @@ export class AiLabComponent implements OnInit {
       });
   }
   name(model: string) {
+    if (model === 'logistic_no_feedback') return 'Logistic không feedback';
     return model === 'logistic'
       ? 'Logistic Regression (học máy)'
       : 'Tần suất suy giảm theo thời gian';

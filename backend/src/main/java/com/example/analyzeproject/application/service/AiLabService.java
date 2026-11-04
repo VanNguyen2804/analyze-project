@@ -27,7 +27,7 @@ public class AiLabService {
         this.store=store; this.draws=draws; this.enabled=enabled;
         this.feedbackPolicy=feedbackPolicy;
         this.clock=clock;
-        codeVersion=WorkspaceProtocol.fingerprint(AiLabModel.class,AiLabService.class,AiLabFeedback.class,ForecastProtocol.class,DrawQuality.class);
+        codeVersion=WorkspaceProtocol.fingerprint(AiLabModel.class,AiLabService.class,AiLabFeedback.class,AiLabProbability.class,ForecastProtocol.class,DrawQuality.class);
     }
     public Map<String,Object> run() {
         if(!lock.tryLock()) return map("status","BUSY");
@@ -51,7 +51,7 @@ public class AiLabService {
                         String seed=AiLabModel.VERSION+":"+category+":"+target;
                         var feedback=AiLabFeedback.collect(existing,history,category,LocalDate.parse(target),now,feedbackPolicy.maximumDraws());
                         var fit=AiLabModel.fit(history,category,model,feedback.rounds(),feedbackPolicy);var modelScores=fit.scores();
-                        var tickets=AiLabModel.tickets(modelScores,seed+":"+model);
+                        var tickets=AiLabModel.tickets(modelScores,seed+":"+(model.startsWith("logistic")?"logistic":model));
                         var frequency=AiLabModel.tickets(AiLabModel.scores(history,category,"frequency"),seed+":frequency");
                         var random=AiLabModel.tickets(AiLabModel.scores(history,category,"random"),seed+":random");
                         Instant capturedAt=clock.instant();
@@ -108,9 +108,11 @@ public class AiLabService {
             cohort.getValue().forEach(f->dates.computeIfAbsent((String)f.get("targetDate"),k->new ArrayList<>()).add(f));
             List<int[]> measured=new ArrayList<>(); List<String> measuredDates=new ArrayList<>(); int ticketHits=0;
             List<AiLabProgress.Draw> progressDraws=new ArrayList<>();
+            var probability = new AiLabProbability();
             for(var date:dates.entrySet()) {
                 var tickets=date.getValue();
                 if(tickets.size()!=AiLabModel.BUDGET || tickets.stream().anyMatch(f->latest.get(f.get("id"))==null || !"SETTLED".equals(latest.get(f.get("id")).get("status")))) continue;
+                probability.add(tickets.get(0),latest.get(tickets.get(0).get("id")));
                 int[] hits=new int[3]; List<AiLabProgress.Ticket> progressTickets=new ArrayList<>();
                 for(var f:tickets) {
                     var e=latest.get(f.get("id")); int matched=((Number)e.get("matched")).intValue();
@@ -128,6 +130,9 @@ public class AiLabService {
             boolean candidate=continuous && rate(recent,0)>=50 && rate(prior,0)>=50 && lowerDifference(measured,1)>0 && lowerDifference(measured,2)>0;
             reports.add(map("cohort",cohort.getKey(),"model",first.get("labModel"),"modelVersion",first.get("modelVersion"),"savedDraws",dates.size(),"evaluatedDraws",n,
                     "feedbackEnabled","logistic".equals(first.get("labModel")) && first.get("configuration") instanceof Map<?,?> configuration && configuration.get("feedbackPolicy") instanceof Map<?,?> policy && "dense-signed-feedback-v1".equals(policy.get("version")),
+                    "probability",probability.report(),
+                    "feedbackComparison",feedbackComparison(cohort.getValue(),forecasts,latest),
+                    "candidatePolicy",map("minimumDraws",60,"windowDraws",30,"minimumWindowHitPercent",50,"automaticPromotion",false),
                     "progress",AiLabProgress.summarize(progressDraws),
                     "ticketHit3Percent",n==0?null:100.0*ticketHits/(n*AiLabModel.BUDGET),"drawHit3Percent",rate(measured,0),"frequencyHit3Percent",rate(measured,1),"randomHit3Percent",rate(measured,2),
                     "recent30Percent",rate(recent,0),"previous30Percent",rate(prior,0),"continuous60",continuous,"frequencyDifferenceLower95",n<2?null:lowerDifference(measured,1),
@@ -135,6 +140,39 @@ public class AiLabService {
                     "firstTargetDate",dates.keySet().iterator().next(),"lastTargetDate",new ArrayList<>(dates.keySet()).get(dates.size()-1)));
         }
         return reports;
+    }
+    private static Map<String,Object> feedbackComparison(List<Map<String,Object>> cohort,
+            List<Map<String,Object>> forecasts, Map<Object,Map<String,Object>> latest) {
+        if (!"logistic".equals(cohort.get(0).get("labModel"))) return null;
+        int draws=0, matches=0, controlMatches=0;
+        var dates=new TreeMap<Object,List<Map<String,Object>>>();
+        cohort.forEach(f->dates.computeIfAbsent(f.get("targetDate"),k->new ArrayList<>()).add(f));
+        for (var batch:dates.values()) {
+            var first=batch.get(0);
+            var control=forecasts.stream().filter(f->"logistic_no_feedback".equals(f.get("labModel"))
+                    && ForecastProtocol.isProspective(f)
+                    && List.of("category","targetDate","modelVersion","codeVersion","historyHash").stream()
+                        .allMatch(key->Objects.equals(first.get(key),f.get(key)))
+                    && comparisonConfiguration(first).equals(comparisonConfiguration(f))).toList();
+            if (batch.size()!=AiLabModel.BUDGET || control.size()!=AiLabModel.BUDGET) continue;
+            var both=new ArrayList<>(batch); both.addAll(control);
+            if (both.stream().anyMatch(f->latest.get(f.get("id"))==null
+                    || !"SETTLED".equals(latest.get(f.get("id")).get("status")))) continue;
+            Object actual=latest.get(first.get("id")).get("actualNumbers");
+            if (actual==null || both.stream().anyMatch(f->!Objects.equals(actual,latest.get(f.get("id")).get("actualNumbers")))) continue;
+            draws++;
+            matches+=batch.stream().mapToInt(f->((Number)latest.get(f.get("id")).get("matched")).intValue()).sum();
+            controlMatches+=control.stream().mapToInt(f->((Number)latest.get(f.get("id")).get("matched")).intValue()).sum();
+        }
+        return map("pairedDraws",draws,"averageMatched",draws==0?null:(double)matches/(draws*AiLabModel.BUDGET),
+                "noFeedbackAverageMatched",draws==0?null:(double)controlMatches/(draws*AiLabModel.BUDGET),
+                "difference",draws==0?null:(double)(matches-controlMatches)/(draws*AiLabModel.BUDGET));
+    }
+    private static Map<Object,Object> comparisonConfiguration(Map<String,Object> forecast) {
+        Map<Object,Object> config=new LinkedHashMap<>();
+        if (forecast.get("configuration") instanceof Map<?,?> values) config.putAll(values);
+        config.remove("feedbackPolicy");
+        return config;
     }
     private static Double rate(List<int[]> rows,int index) { return rows.isEmpty()?null:100.0*rows.stream().mapToInt(r->r[index]).sum()/rows.size(); }
     private static double lowerDifference(List<int[]> rows,int control) {
