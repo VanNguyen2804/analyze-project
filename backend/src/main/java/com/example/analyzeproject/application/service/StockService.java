@@ -5,6 +5,8 @@ import com.example.analyzeproject.domain.model.stock.StockModels.*;
 import com.example.analyzeproject.domain.service.stock.StockLearningEngine;
 import com.example.analyzeproject.domain.service.stock.StockRecommendationEngine;
 import com.example.analyzeproject.domain.service.stock.StockDailyDesk;
+import com.example.analyzeproject.domain.service.stock.StockDataQuality;
+import com.example.analyzeproject.domain.service.stock.StockPositionPlanEngine;
 import java.time.*;
 import java.util.*;
 import java.security.MessageDigest;
@@ -73,6 +75,7 @@ public final class StockService {
     }
     public synchronized PositionResult position(String symbol,String id,PositionInput p){
         validate(symbol);
+        if(p==null)throw new IllegalArgumentException("Thiếu thông tin vị thế.");
         if(p.purchaseDate()!=null&&p.purchaseDate().isAfter(LocalDate.now(clock.withZone(ZoneId.of("Asia/Ho_Chi_Minh")))))throw new IllegalArgumentException("Ngày mua không hợp lệ");
         valid(p.purchasePrice(),0,1e12,false);valid(p.quantity(),0,1e10,true);valid(p.buyFeePercent(),0,100,true);valid(p.sellCostPercent(),0,100,true);valid(p.maxLossPercent(),0,100,true);valid(p.sellableQuantity(),0,1e10,true);
         if(p.quantity()!=null&&p.quantity()%1!=0||p.sellableQuantity()!=null&&p.sellableQuantity()%1!=0)throw new IllegalArgumentException("Số lượng phải là số nguyên");
@@ -89,7 +92,16 @@ public final class StockService {
         double change=(price/p.purchasePrice()-1)*100,buyFee=p.buyFeePercent()==null?0:p.buyFeePercent()/100,sell=p.sellCostPercent()==null?0:p.sellCostPercent()/100;
         String status="UNAVAILABLE".equals(s.analysis().recommendation().action())?"WATCH":s.analysis().recommendation().action();List<String> reasons=new ArrayList<>();
         reasons.add(s.analysis().recommendation().summary());
-        if(change<=-10){if(s.data().verified()&&"RECENT".equals(freshness(s.data(),s.mode(),s.lastClosedBarAt())))status="SELL";reasons.add("Mức giảm giá đã chạm ngưỡng cắt lỗ cố định 10%; cần đối chiếu giá và sự kiện quyền trước khi xử lý vị thế.");}
+        String currentFreshness=freshness(s.data(),s.mode(),s.lastClosedBarAt());
+        double maxLoss=p.maxLossPercent()==null?10:p.maxLossPercent();
+        if(maxLoss<=0||maxLoss>=100)throw new IllegalArgumentException("Giới hạn lỗ phải trong (0,100%).");
+        var closed=s.data().candles().stream().filter(Candle::closed).toList();
+        boolean confirmed=StockDataQuality.canConfirm(s.data(),currentFreshness)&&!closed.isEmpty();
+        if(!confirmed)status="WATCH";
+        if(!closed.isEmpty()&&closed.get(closed.size()-1).close()*conversion<=p.purchasePrice()*(1-maxLoss/100)){
+            if(confirmed)status="SELL";
+            reasons.add("Nến đã đóng chạm giới hạn lỗ "+maxLoss+"% đã cấu hình; kiểm tra lượng có thể bán.");
+        }
         else if("BUY".equals(status))status="HOLD";
         reasons.add("Giá dùng tính: "+price+" VND/cổ phiếu; mốc nến "+Instant.ofEpochSecond(c.time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))+" giờ Việt Nam.");
         reasons.add("Lãi/lỗ theo giá chưa tính phí, thuế, cổ tức hoặc thay đổi số lượng do sự kiện quyền.");
@@ -101,6 +113,12 @@ public final class StockService {
         Double gross=p.quantity()==null?null:(price-p.purchasePrice())*p.quantity();
         Double net=p.quantity()==null||p.buyFeePercent()==null||p.sellCostPercent()==null?null:(price*(1-sell)-p.purchasePrice()*(1+buyFee))*p.quantity();
         Double breakEven=p.buyFeePercent()==null||p.sellCostPercent()==null||sell>=1?null:p.purchasePrice()*(1+buyFee)/(1-sell);
+        if(p.plan()!=null) {
+            var plan=StockPositionPlanEngine.evaluate(s,p,currentFreshness,clock.instant());
+            reasons.add(0,plan.summary());
+            String action=switch(plan.status()){case "RISK","TAKE_PROFIT" -> "SELL";case "AVERAGE" -> "BUY";case "REFERENCE","REVIEW" -> "WATCH";default -> "HOLD";};
+            return new PositionResult(id,action,price,(price/plan.averageCost()-1)*100,(price-plan.averageCost())*plan.quantity(),null,null,List.copyOf(reasons),plan);
+        }
         return new PositionResult(id,status,price,change,gross,net,breakEven,List.copyOf(reasons));
     }
     private void valid(Double v,double min,double max,boolean optional){if(v==null){if(optional)return;throw new IllegalArgumentException("Thiếu giá mua");}if(!Double.isFinite(v)||v<min||v>max||(!optional&&v==0))throw new IllegalArgumentException("Giá trị đầu vào ngoài phạm vi");}

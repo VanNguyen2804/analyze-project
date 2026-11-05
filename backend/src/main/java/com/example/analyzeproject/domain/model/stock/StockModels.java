@@ -47,11 +47,35 @@ public final class StockModels {
     public record DailyDesk(String version, String unit, String priceBasis, List<DailyAssessment> days) {}
     public record PositionInput(LocalDate purchaseDate, Double purchasePrice, Double quantity,
                                 Double buyFeePercent, Double sellCostPercent, Double maxLossPercent,
-                                Double sellableQuantity) {
+                                Double sellableQuantity, PositionPlanInput plan) {
+        public PositionInput(LocalDate date, Double price, Double quantity, Double buyFee, Double sellCost, Double maxLoss, Double sellable) {
+            this(date,price,quantity,buyFee,sellCost,maxLoss,sellable,null);
+        }
         @Override public String toString(){return "PositionInput[redacted]";}
     }
     public record PositionResult(String snapshotId, String status, Double price, Double changePercent,
-                                 Double grossPnl, Double estimatedNetPnl, Double breakEven, List<String> reasons) {
+                                 Double grossPnl, Double estimatedNetPnl, Double breakEven, List<String> reasons, PositionPlan positionPlan) {
+        public PositionResult(String id,String status,Double price,Double change,Double gross,Double net,Double breakEven,List<String> reasons) {
+            this(id,status,price,change,gross,net,breakEven,reasons,null);
+        }
         @Override public String toString(){return "PositionResult[redacted]";}
     }
+    public record ProfitTarget(Double gainPercent, Double price, double sellPercent) {}
+    public record PositionPolicy(double alertLossPercent, double maxLossVnd, double additionalBudget,
+                                 double maxCapital, List<Double> averagingBudgets, List<ProfitTarget> targets,
+                                 Double trailingPercent) {}
+    public record PositionExecution(String stepId, double price, double quantity, Instant executedAt, Double sellableBefore) {}
+    public record PositionPlanInput(Instant startedAt, PositionPolicy policy, List<PositionExecution> executions, Double observedPeak, Double availableQuantity) {}
+    public record PlanCondition(String label, boolean met) {}
+    public record PlanStep(String id, String side, String title, String status, double triggerPrice,
+                           double quantity, double cash, double averageAfter, double quantityAfter,
+                           double pnlAtReference, double lossAtStop, double breakEvenRisePercent,
+                           Double profit, List<PlanCondition> conditions, List<String> blockers) {}
+    public record PositionPlan(String version, String snapshotId, Instant startedAt, String status, String summary,
+                               boolean actionable, double valuationPrice, long valuationAsOf, boolean valuationClosed,
+                               Double decisionPrice, Long decisionAsOf, double referenceCost, double averageCost,
+                               double quantity, Double sellableQuantity, double capitalCommitted, double additionalSpent,
+                               double saleProceeds, double realizedPnl, double totalPnl, double remainingBudget,
+                               double alertPrice, double originalStop, double effectiveStop, Double observedPeak,
+                               List<PlanStep> steps, List<String> cautions) {}
 }

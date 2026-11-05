@@ -6,7 +6,7 @@
   font-size: 11px;
   letter-spacing: 1px;
   font-weight: 700;
-  color: #64748b;
+  color: #a6b6ce;
 }
 h3 {
   font-size: 20px;
@@ -20,12 +20,12 @@ h3 {
 .asof,
 small {
   font-size: 11px;
-  color: #64748b;
+  color: #a6b6ce;
   line-height: 1.7;
 }
 .scenario {
   padding: 14px;
-  border: 1px solid #dbe3ed;
+  border: 1px solid #304462;
   border-radius: 9px;
   margin: 14px 0;
   font-size: 12px;
@@ -38,10 +38,10 @@ small {
   margin: 8px 0;
 }
 .buy-scenario {
-  border-left: 3px solid #059669;
+  border-left: 3px solid #2dd4bf;
 }
 .sell-scenario {
-  border-left: 3px solid #e11d48;
+  border-left: 3px solid #fb7185;
 }
 ul {
   padding-left: 17px;
@@ -58,7 +58,7 @@ dl div {
 }
 dt {
   font-size: 11px;
-  color: #64748b;
+  color: #a6b6ce;
   font-weight: 500;
 }
 dd {
@@ -73,14 +73,14 @@ small {
 .caution {
   font-size: 11px;
   line-height: 1.7;
-  color: #805b14;
-  background: #fffbeb;
+  color: #fbbf24;
+  background: #322b1c;
   padding: 8px 10px;
   border-radius: 5px;
 }
 .buy {
-  color: #059669;
+  color: #2dd4bf;
 }
 .sell {
-  color: #be123c;
+  color: #fb7185;
 }

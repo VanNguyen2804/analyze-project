@@ -21,8 +21,9 @@ import {
   ISeriesMarkersPluginApi,
   Time,
   createSeriesMarkers,
+  ColorType,
 } from 'lightweight-charts';
-import { StockCandle } from '../../core/models/stock.model';
+import { StockCandle, StockPlanLevel } from '../../core/models/stock.model';
 import { stockBusinessDate, stockChartCandles } from './stock-chart-data';
 import { StockCloud } from './stock-cloud';
 
@@ -31,9 +32,9 @@ import { StockCloud } from './stock-cloud';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template:
-    '<div class="chart-tools"><div class="legend"><span>● Nến / Volume</span><span class="ema20">━ EMA20</span><span class="ema50">━ EMA50</span><label><input type="checkbox" [checked]="cloudVisible()" (change)="toggleCloud()" /> Mây Ichimoku</label></div><div class="ranges"><button type="button" (click)="setRange(intraday ? 16 : 21)">{{intraday ? "1 phiên" : "1M"}}</button><button type="button" (click)="setRange(intraday ? 80 : 63)">{{intraday ? "5 phiên" : "3M"}}</button><button type="button" (click)="setRange(intraday ? 320 : 126)">{{intraday ? "20 phiên" : "6M"}}</button><button type="button" (click)="setRange(100000)">Tất cả</button></div></div><div #host class="chart" role="img" aria-label="Biểu đồ nến, khối lượng, EMA20/50 và mây Ichimoku; có thể kéo và thu phóng"></div>@if (renderError()) {<p role="alert">{{ renderError() }}</p>}<p class="credit">TradingView Lightweight Charts™ · Copyright (с) 2025 TradingView, Inc. <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView</a></p>',
+    '<div class="chart-tools"><div class="legend"><span>● Nến / Volume</span><span class="ema20">━ EMA20</span><span class="ema50">━ EMA50</span><label><input type="checkbox" [checked]="cloudVisible()" (change)="toggleCloud()" /> Mây Ichimoku</label><label><input type="checkbox" [checked]="planVisible()" (change)="togglePlan()" /> Mốc vị thế</label></div><div class="ranges"><button type="button" (click)="setRange(intraday ? 16 : 21)">{{intraday ? "1 phiên" : "1M"}}</button><button type="button" (click)="setRange(intraday ? 80 : 63)">{{intraday ? "5 phiên" : "3M"}}</button><button type="button" (click)="setRange(intraday ? 320 : 126)">{{intraday ? "20 phiên" : "6M"}}</button><button type="button" (click)="setRange(100000)">Tất cả</button></div></div><div #host class="chart" role="img" aria-label="Biểu đồ nến, khối lượng, EMA20/50 và mây Ichimoku; có thể kéo và thu phóng"></div>@if (renderError()) {<p role="alert">{{ renderError() }}</p>}<p class="credit">TradingView Lightweight Charts™ · Copyright (с) 2025 TradingView, Inc. <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView</a></p>',
   styles: [
-    ':host{display:block;width:100%;min-width:0}.chart{height:480px;width:100%;min-width:0}.chart-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0}.legend,.ranges{display:flex;gap:12px;align-items:center;font-size:10px;color:#64748b}.legend{flex-wrap:wrap}.legend label{display:flex;align-items:center;gap:4px}.legend input{accent-color:#059669}.ema20{color:#6366f1}.ema50{color:#d97706}.ranges{gap:3px}.ranges button{border:1px solid #e2e8f0;border-radius:5px;padding:5px 8px;background:#fff;color:#475569;font-size:10px;cursor:pointer}.ranges button:hover{background:#eef2ff}.credit{font-size:10px;color:#64748b;margin:8px 0}@media(max-width:600px){.chart{height:350px}}',
+    ':host{display:block;width:100%;min-width:0}.chart{height:480px;width:100%;min-width:0}.chart-tools{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0}.legend,.ranges{display:flex;gap:12px;align-items:center;font-size:10px;color:#a6b6ce}.legend{flex-wrap:wrap}.legend label{display:flex;align-items:center;gap:4px}.legend input{accent-color:#059669}.ema20{color:#6366f1}.ema50{color:#d97706}.ranges{gap:3px}.ranges button{border:1px solid #304462;border-radius:5px;padding:5px 8px;background:#15253e;color:#e6eef8;font-size:10px;cursor:pointer}.ranges button:hover{background:#304268}.credit{font-size:10px;color:#a6b6ce;margin:8px 0}@media(max-width:600px){.chart{height:350px}}',
   ],
 })
 export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy {
@@ -42,6 +43,9 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Input() intraday = false;
   @Input() purchasePrice: number | null = null;
   @Input() purchaseDate = '';
+  @Input() planLevels: StockPlanLevel[] = [];
+  readonly planVisible = signal(true);
+  private planLines: IPriceLine[] = [];
   private chart?: IChartApi;
   private candlesSeries?: ISeriesApi<'Candlestick'>;
   private volumeSeries?: ISeriesApi<'Histogram'>;
@@ -82,8 +86,8 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
       autoSize: false,
       width,
       height,
-      layout: { textColor: '#64748b', attributionLogo: true },
-      grid: { vertLines: { color: '#f1f5f9' }, horzLines: { color: '#f1f5f9' } },
+      layout: { textColor: '#a6b6ce', background: { type: ColorType.Solid, color: '#111e33' }, attributionLogo: true },
+      grid: { vertLines: { color: '#1e2e46' }, horzLines: { color: '#1e2e46' } },
       localization: {
         locale: 'vi-VN',
         priceFormatter: (value: number) =>
@@ -144,6 +148,7 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.cloudVisible.update((v) => !v);
     this.render();
   }
+  togglePlan() { this.planVisible.update(v => !v); this.render(); }
   private applyRange() {
     if (this.chart && this.candleCount)
       this.chart.timeScale().setVisibleLogicalRange({
@@ -232,7 +237,15 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
         this.candlesSeries!.removePriceLine(this.purchaseLine);
         this.purchaseLine = undefined;
       }
+      for (const line of this.planLines) this.candlesSeries!.removePriceLine(line);
+      this.planLines = [];
+      if (this.planVisible()) for (const level of this.planLevels) {
+        if (Number.isFinite(level.price) && level.price > 0)
+          this.planLines.push(this.candlesSeries!.createPriceLine({ price: level.price, color: level.color,
+            lineWidth: 1, title: level.title, axisLabelVisible: true }));
+      }
       if (
+        this.planVisible() && !this.planLevels.some(l => l.title === 'Giá vốn') &&
         this.purchasePrice !== null &&
         Number.isFinite(this.purchasePrice) &&
         this.purchasePrice > 0
@@ -241,7 +254,7 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
           price: this.purchasePrice,
           color: '#d97706',
           lineWidth: 2,
-          title: 'Giá mua',
+          title: 'Giá vốn',
           axisLabelVisible: true,
         });
       }

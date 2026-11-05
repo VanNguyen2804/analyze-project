@@ -139,6 +139,7 @@ export interface StockPositionInput {
   quantity: number | null;
   maxLossPercent: number | null;
   sellableQuantity: number | null;
+  plan?: StockPositionPlanInput;
 }
 export interface StockPositionResult {
   snapshotId: string;
@@ -149,4 +150,30 @@ export interface StockPositionResult {
   estimatedNetPnl: number | null;
   breakEven: number | null;
   reasons: string[];
+  positionPlan?: StockPositionPlan | null;
 }
+export interface StockProfitTarget { gainPercent: number | null; price: number | null; sellPercent: number; }
+export interface StockPositionExecution { stepId: string; price: number; quantity: number; executedAt: string; sellableBefore: number | null; }
+export interface StockPositionPlanInput {
+  startedAt: string;
+  policy: { alertLossPercent: number; maxLossVnd: number | null; additionalBudget: number;
+    maxCapital: number | null; averagingBudgets: number[]; targets: StockProfitTarget[]; trailingPercent: number | null; };
+  executions: StockPositionExecution[];
+  observedPeak: number | null;
+  availableQuantity: number | null;
+}
+export interface StockPlanStep {
+  id: string; side: string; title: string; status: string; triggerPrice: number; quantity: number;
+  cash: number; averageAfter: number; quantityAfter: number; pnlAtReference: number;
+  lossAtStop: number; breakEvenRisePercent: number; profit: number | null;
+  conditions: { label: string; met: boolean }[]; blockers: string[];
+}
+export interface StockPositionPlan {
+  version: string; snapshotId: string; startedAt: string; status: string; summary: string; actionable: boolean;
+  valuationPrice: number; valuationAsOf: number; valuationClosed: boolean; decisionPrice: number | null; decisionAsOf: number | null;
+  referenceCost: number; averageCost: number; quantity: number; sellableQuantity: number | null;
+  capitalCommitted: number; additionalSpent: number; saleProceeds: number; realizedPnl: number; totalPnl: number;
+  remainingBudget: number; alertPrice: number; originalStop: number; effectiveStop: number; observedPeak: number | null;
+  steps: StockPlanStep[]; cautions: string[];
+}
+export interface StockPlanLevel { price: number; title: string; color: string; }

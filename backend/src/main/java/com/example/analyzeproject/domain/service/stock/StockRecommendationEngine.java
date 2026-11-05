@@ -62,7 +62,7 @@ public final class StockRecommendationEngine {
                     +"; RSI "+String.format(Locale.US,"%.2f",i.rsi())+"; khối lượng "+(ratio==null?"chưa đủ mẫu":String.format(Locale.US,"%.2f",ratio)+" lần mức so sánh (cần "+policy.volumeMultiple()+" lần).")
                     +" Xem bảng theo ngày để biết điều kiện nào đã đạt hoặc còn thiếu.";
         }
-        if (!feed.verified() || "UNKNOWN".equals(feed.priceBasis()) || !"RECENT".equals(freshness)) {
+        if (!StockDataQuality.canConfirm(feed, freshness)) {
             if ("BUY".equals(action)) title="Chờ xác nhận dữ liệu trước khi cân nhắc mua";
             if ("SELL".equals(action)) title="Theo dõi nguy cơ phá hỗ trợ; chờ xác nhận dữ liệu";
             summary="Quan sát trên dữ liệu tham khảo. " + summary;
