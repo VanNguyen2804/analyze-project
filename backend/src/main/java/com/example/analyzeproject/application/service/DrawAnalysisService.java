@@ -98,7 +98,8 @@ public class DrawAnalysisService {
         evaluations.addAll(evaluateWorkspace(batches,history,category,date));
         var q=actual.getQuality();
         return new DrawReport("draw-report-v1",context,"SUCCESS",null,new Draw(actual.getNumbers().stream().sorted().toList(),actual.getSpecialNumber(),DrawQuality.fingerprint(actual),string(q,"status"),string(q,"sourceUrl"),Objects.toString(actual.getCreatedAt(),null)),
-                evidence,selected==null?null:selected.id(),details,groups,evaluations,warnings);
+                evidence,selected==null?null:selected.id(),details,groups,evaluations,warnings,
+                compareModels(saved,labs,history,category,date));
     }
     public TicketGroup evaluateTickets(EvaluateRequest request) {
         if(request==null || request.tickets()==null || request.tickets().isEmpty() || request.tickets().size()>25) throw new IllegalArgumentException("Cần từ 1 đến 25 vé.");
@@ -111,7 +112,7 @@ public class DrawAnalysisService {
         return group("manual","Vé nhập để đối chiếu · chưa lưu","CHECKED_AFTER_DRAW",results,null,null,0);
     }
     private DrawReport empty(Context c,String status,String message) {
-        return new DrawReport("draw-report-v1",c,status,message,null,List.of(),null,missingDetails(c.category()),List.of(),List.of(),List.of());
+        return new DrawReport("draw-report-v1",c,status,message,null,List.of(),null,missingDetails(c.category()),List.of(),List.of(),List.of(),List.of());
     }
     private static LocalDate date(String value) {
         try { return LocalDate.parse(value); } catch(Exception e) { throw new IllegalArgumentException("Ngày kỳ quay không hợp lệ."); }
@@ -218,6 +219,60 @@ public class DrawAnalysisService {
             }
             result.add(summarize(entry.getKey(),isLab?"AI_LAB":"FORECAST",algorithm,string(first,"modelVersion"),budget,model,frequency,random,differences,measured));
         }
+        return result;
+    }
+    /** Pairwise comparison of frozen top tickets; never select a Lab slot using its outcome. */
+    static List<ModelComparison> compareModels(List<Map<String,Object>> saved,List<Map<String,Object>> labs,
+                                               List<LotteryNumber> history,String category,LocalDate through) {
+        Map<LocalDate,LotteryNumber> actuals=new TreeMap<>();
+        history.stream().filter(r->category.equals(r.getCategory())&&!r.getDrawDate().isAfter(through))
+                .forEach(r->actuals.put(r.getDrawDate(),r));
+        Map<String,Map<String,List<Map<String,Object>>>> cohorts=new TreeMap<>();
+        for(var source:List.of(saved,labs)) for(var f:source) {
+            boolean isLab=f.containsKey("labModel");
+            if(!category.equals(f.get("category")) || !validSnapshot(f)) continue;
+            if(isLab ? !"logistic".equals(f.get("labModel"))
+                    : !Set.of("temporal_learning","bayesian_graph","deep_stacking").contains(Objects.toString(f.get("algorithm"),""))) continue;
+            String key=(isLab?"AI_LAB":"FORECAST")+"|"+(isLab?"logistic":f.get("algorithm"))+"|"
+                    +f.get("modelVersion")+"|"+f.get("codeVersion")+"|"+f.get("configurationHash");
+            cohorts.computeIfAbsent(key,k->new TreeMap<>()).computeIfAbsent(string(f,"targetDate"),k->new ArrayList<>()).add(f);
+        }
+        // A complete Lab batch is required; ambiguous or duplicate snapshots are excluded.
+        Map<String,Map<LocalDate,Map<String,Object>>> eligible=new TreeMap<>();
+        for(var cohort:cohorts.entrySet()) {
+            boolean isLab=cohort.getKey().startsWith("AI_LAB|");
+            Map<LocalDate,Map<String,Object>> days=new TreeMap<>();
+            for(var day:cohort.getValue().entrySet()) {
+                var d=date(day.getKey()); var batch=day.getValue();
+                if(!actuals.containsKey(d) || batch.size()!=(isLab?AiLabModel.BUDGET:1)) continue;
+                if(isLab && (batch.stream().map(f->integers(f.get("numbers"))).distinct().count()!=AiLabModel.BUDGET
+                        || batch.stream().map(f->f.get("historyHash")).distinct().count()!=1
+                        || !new HashSet<>(batch.stream().map(f->f.get("slot")).toList()).equals(Set.of(0,1,2,3,4)))) continue;
+                days.put(d,isLab?batch.stream().filter(f->Integer.valueOf(0).equals(f.get("slot"))).findFirst().orElseThrow():batch.get(0));
+            }
+            eligible.put(cohort.getKey(),days);
+        }
+        List<ModelComparison> result=new ArrayList<>();
+        for(var logistic:eligible.entrySet()) if(logistic.getKey().startsWith("AI_LAB|"))
+            for(var algorithm:eligible.entrySet()) if(algorithm.getKey().startsWith("FORECAST|")) {
+                List<Portfolio> left=new ArrayList<>(),right=new ArrayList<>(); List<Double> differences=new ArrayList<>(); List<String> dates=new ArrayList<>();
+                for(var day:logistic.getValue().entrySet()) {
+                    var other=algorithm.getValue().get(day.getKey());
+                    if(other==null || !Objects.equals(day.getValue().get("historyHash"),other.get("historyHash"))) continue;
+                    var a=control(List.of(day.getValue().get("numbers")),actuals.get(day.getKey()));
+                    var b=control(List.of(other.get("numbers")),actuals.get(day.getKey()));
+                    if(a==null||b==null) continue;
+                    left.add(a);right.add(b);differences.add(a.averageMatched()-b.averageMatched());dates.add(day.getKey().toString());
+                }
+                if(dates.isEmpty()) continue;
+                var l=logistic.getValue().get(date(dates.get(0)));var r=algorithm.getValue().get(date(dates.get(0)));
+                double delta=differences.stream().mapToDouble(v->v).average().orElseThrow(); int n=dates.size();
+                double margin=n<2?0:1.96*Math.sqrt(differences.stream().mapToDouble(v->Math.pow(v-delta,2)).sum()/(n-1)/n);
+                result.add(new ModelComparison(logistic.getKey()+"::"+algorithm.getKey(),"frozen-slot-0-v1",dates,
+                        summarize(logistic.getKey(),"AI_LAB","lab-logistic",string(l,"modelVersion"),1,left,List.of(),List.of(),List.of(),dates),
+                        summarize(algorithm.getKey(),"FORECAST",string(r,"algorithm"),string(r,"modelVersion"),1,right,List.of(),List.of(),List.of(),dates),
+                        delta,n<2?null:List.of(delta-margin,delta+margin)));
+            }
         return result;
     }
     private static List<Evaluation> evaluateWorkspace(List<Map<String,Object>> batches,List<LotteryNumber> history,String category,LocalDate through) {

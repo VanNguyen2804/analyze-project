@@ -25,8 +25,62 @@ class DrawAnalysisServiceTest {
         when(draws.findByCategoryOrderByDrawDateDescCreatedAtDesc("POWER")).thenReturn(List.of(actual));
         when(workspace.history("POWER")).thenReturn(map("batches",List.of()));
     }
+    @Test void pairedComparisonUsesFixedSlotSameHistoryAndBudgetForBothGames() {
+        for(String category:List.of("POWER","MEGA")) {
+            LocalDate target=LocalDate.parse("POWER".equals(category)?"2026-10-29":"2026-10-28");
+            Instant captured=target.minusDays(1).atTime(8,0).toInstant(ZoneOffset.UTC);
+            var training=WorkspaceTest.history(category,ForecastProtocol.previous(category,target));
+            var actual=TestDraws.verified(new LotteryNumber(target,category,List.of(1,2,3,4,5,6),"POWER".equals(category)?7:null,null));
+            var model=ForecastProtocol.prepare(training,category,"bayesian_graph","v1","code",Map.of(),List.of(1,2,10,11,12,13),captured);
+            List<Map<String,Object>> labs=new ArrayList<>();
+            for(int slot=0;slot<5;slot++) {
+                // Slot 1 is the winning ticket. The comparison must still use slot 0 (zero hits).
+                var numbers=slot==0?List.of(10,11,12,13,14,15):slot==1?List.of(1,2,3,4,5,6):List.of(1,2,3,4,5,15+slot);
+                var f=ForecastProtocol.prepare(training,category,"lab-logistic-"+slot,"lab-v1","code",Map.of(),numbers,captured);
+                f.put("labModel","logistic");f.put("slot",slot);labs.add(f);
+            }
+            var result=DrawAnalysisService.compareModels(List.of(model),labs,List.of(actual),category,target);
+            assertEquals(1,result.size());var pair=result.get(0);
+            assertEquals(List.of(target.toString()),pair.dates()); assertEquals(1,pair.logistic().ticketBudget());
+            assertEquals(1,pair.algorithm().ticketBudget());assertEquals(0.0,pair.logistic().averageMatched());
+            assertEquals(2.0,pair.algorithm().averageMatched());assertEquals(-2.0,pair.averageDifference());
+            assertNull(pair.approximate95PercentInterval());
+            var changedTraining=WorkspaceTest.history(category,ForecastProtocol.previous(category,target));
+            changedTraining.get(0).setNumbers(List.of(20,21,22,23,24,25));TestDraws.verified(changedTraining.get(0));
+            var differentSource=ForecastProtocol.prepare(changedTraining,category,"bayesian_graph","v1","code",Map.of(),List.of(1,2,10,11,12,13),captured);
+            assertTrue(DrawAnalysisService.compareModels(List.of(differentSource),labs,List.of(actual),category,target).isEmpty());
+            var v2=new LinkedHashMap<>(model);v2.put("modelVersion","v2");
+            assertEquals(2,DrawAnalysisService.compareModels(List.of(model,v2),labs,List.of(actual),category,target).size());
+            assertTrue(DrawAnalysisService.compareModels(List.of(model),labs.subList(0,4),List.of(actual),category,target).isEmpty());
+            assertTrue(DrawAnalysisService.compareModels(List.of(model,model),labs,List.of(actual),category,target).isEmpty());
+            assertTrue(DrawAnalysisService.compareModels(List.of(model),labs,List.of(actual),category,target.minusDays(1)).isEmpty());
+            labs.get(0).put("createdAt",target.atTime(18,0).atZone(ForecastProtocol.ZONE).toInstant().toString());
+            assertTrue(DrawAnalysisService.compareModels(List.of(model),labs,List.of(actual),category,target).isEmpty());
+        }
+    }
     List<LotteryNumber> history() {
         return List.of(17,20,22,24,27).stream().map(day->TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,day),"POWER",List.of(7,9,18,27,31,50),53,null))).toList();
+    }
+    @Test void comparisonUsesOnlySharedDatesAndComputesUncertaintyPerDraw() {
+        List<Map<String,Object>> models=new ArrayList<>(),labs=new ArrayList<>(); List<LotteryNumber> actuals=new ArrayList<>();
+        var dates=List.of(LocalDate.of(2026,10,29),LocalDate.of(2026,10,31),LocalDate.of(2026,11,3));
+        for(int day=0;day<dates.size();day++) {
+            var target=dates.get(day);var training=WorkspaceTest.history("POWER",ForecastProtocol.previous("POWER",target));
+            var captured=target.minusDays(1).atTime(8,0).toInstant(ZoneOffset.UTC);
+            actuals.add(TestDraws.verified(new LotteryNumber(target,"POWER",List.of(1,2,3,4,5,6),7,null)));
+            if(day<2) models.add(ForecastProtocol.prepare(training,"POWER","deep_stacking","v1","code",Map.of(),
+                    day==0?List.of(1,2,10,11,12,13):List.of(1,2,3,4,10,11),captured));
+            for(int slot=0;slot<5;slot++) {
+                var numbers=slot==0?(day==0?List.of(10,11,12,13,14,15):List.of(1,2,3,4,5,6)):List.of(1,2,3,4,5,15+slot);
+                var f=ForecastProtocol.prepare(training,"POWER","lab-logistic-"+slot,"v1","code",Map.of(),numbers,captured);
+                f.put("labModel","logistic");f.put("slot",slot);labs.add(f);
+            }
+        }
+        var pair=DrawAnalysisService.compareModels(models,labs,actuals,"POWER",dates.get(2)).get(0);
+        assertEquals(List.of("2026-10-29","2026-10-31"),pair.dates());
+        assertEquals(3.0,pair.logistic().averageMatched());assertEquals(3.0,pair.algorithm().averageMatched());
+        assertEquals(0.0,pair.averageDifference());assertEquals(-3.92,pair.approximate95PercentInterval().get(0),1e-9);
+        assertEquals(3.92,pair.approximate95PercentInterval().get(1),1e-9);
     }
     Map<String,Object> snapshot(String algorithm,List<Integer> ticket) {
         return ForecastProtocol.prepare(history(),"POWER",algorithm,"model-v1","scoring-v1",Map.of("version","frozen"),ticket,Instant.parse("2026-10-27T13:00:00Z"));

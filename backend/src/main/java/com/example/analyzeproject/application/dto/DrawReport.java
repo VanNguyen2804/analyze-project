@@ -7,7 +7,11 @@ import java.util.Map;
 public record DrawReport(
         String schemaVersion, Context context, String status, String message, Draw draw,
         List<Evidence> evidence, String selectedEvidenceId, List<NumberDetail> numberDetails,
-        List<TicketGroup> ticketGroups, List<Evaluation> evaluation, List<String> warnings) {
+        List<TicketGroup> ticketGroups, List<Evaluation> evaluation, List<String> warnings,
+        List<ModelComparison> modelComparisons) {
+    public record ModelComparison(String id, String policy, List<String> dates, Evaluation logistic,
+                                  Evaluation algorithm, double averageDifference,
+                                  List<Double> approximate95PercentInterval) {}
     public record Context(String category, String drawDate, String algorithm, String generatedAt) {}
     public record Draw(List<Integer> numbers, Integer specialNumber, String fingerprint, String quality,
                        String sourceUrl, String updatedAt) {}

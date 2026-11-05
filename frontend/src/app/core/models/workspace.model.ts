@@ -1,6 +1,6 @@
 export interface WorkspaceTicket {
   id: string;
-  source: 'ALGORITHM' | 'COMBINED' | 'AI_LAB';
+  source: 'ALGORITHM' | 'COMBINED' | 'AI_LAB' | 'PORTFOLIO';
   label: string;
   numbers: number[];
   labOrigins?: { id: string; model: string; createdAt: string; modelVersion: string }[];
@@ -24,6 +24,9 @@ export interface WorkspaceSuggestion {
   labStatus: string;
   labPolicy: string;
   tickets: WorkspaceTicket[];
+  portfolioTickets?: WorkspaceTicket[];
+  portfolioPolicy?: string;
+  portfolioDiagnostics?: { ticketCount: number; uniqueNumbers: number; maxPairOverlap: number };
 }
 export interface WorkspaceMetrics {
   ticketCount: number;

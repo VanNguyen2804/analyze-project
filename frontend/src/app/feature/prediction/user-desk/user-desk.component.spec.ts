@@ -54,6 +54,31 @@ describe('User prediction desk', () => {
     fixture.detectChanges();
     return fixture;
   }
+  it('shows a separate diverse portfolio and commits its frozen source identity', () => {
+    const fixture = TestBed.createComponent(UserDeskComponent);
+    const view = suggestion();
+    view.portfolioTickets = [
+      {
+        id: 'portfolio-0',
+        source: 'PORTFOLIO',
+        label: 'Nhóm ít trùng · vé 1',
+        numbers: [1, 2, 10, 11, 20, 21],
+      },
+    ];
+    view.portfolioDiagnostics = { ticketCount: 3, uniqueNumbers: 15, maxPairOverlap: 3 };
+    fixture.componentRef.setInput('suggestion', view);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Nhóm 3 vé ít trùng');
+    const button = Array.from(fixture.nativeElement.querySelectorAll('article')).find((node: any) =>
+      node.textContent.includes('Nhóm ít trùng'),
+    ) as HTMLElement;
+    button.querySelector('button')!.click();
+    fixture.componentInstance.commit();
+    expect(api.commit.calls.mostRecent().args[0].tickets).toEqual([
+      { sourceId: 'portfolio-0', numbers: [1, 2, 10, 11, 20, 21] },
+    ]);
+    fixture.destroy();
+  });
   it('keeps source identity after editing and reuses the request key on network retry', () => {
     const fixture = mount();
     const c = fixture.componentInstance;

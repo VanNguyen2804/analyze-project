@@ -61,10 +61,10 @@ class WorkspaceTest {
         var service=new WorkspaceService(mock(AnalyzeService.class),mock(LotteryNumberRepository.class),lab,mock(WorkspaceStore.class));
         var result=service.labSuggestions("MEGA","2026-10-28",history);
         var tickets=(List<?>)result.get("tickets"); assertEquals(5,tickets.size());
-        assertEquals(2,((List<?>)((Map<?,?>)tickets.get(0)).get("labOrigins")).size());
+        assertEquals(AiLabModel.MODELS.size(),((List<?>)((Map<?,?>)tickets.get(0)).get("labOrigins")).size());
         Collections.reverse(snapshots); assertEquals(result,service.labSuggestions("MEGA","2026-10-28",history));
         assertTrue(((List<?>)service.labSuggestions("MEGA","2026-10-30",history).get("tickets")).isEmpty());
-        snapshots.remove(0); assertEquals(1,((List<?>)((Map<?,?>)((List<?>)service.labSuggestions("MEGA","2026-10-28",history).get("tickets")).get(0)).get("labOrigins")).size());
+        snapshots.remove(0); assertEquals(AiLabModel.MODELS.size()-1,((List<?>)((Map<?,?>)((List<?>)service.labSuggestions("MEGA","2026-10-28",history).get("tickets")).get(0)).get("labOrigins")).size());
     }
     @Test void settlementWaitsThenSeparatesOriginalUserAndEqualBudgetControlsAndInvalidatesCorrections() {
         var ticket=map("numbers",List.of(1,2,3,4,5,6),"originalNumbers",List.of(10,11,12,13,14,15));

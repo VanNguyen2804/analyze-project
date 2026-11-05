@@ -51,6 +51,16 @@ public class WorkspaceService {
                 "primaryRanking",ready?response.getPrimaryAlgorithmResult().get("ranking"):List.of(),"secondaryRanking",ready?response.getSecondaryAlgorithmResult().get("ranking"):List.of(),
                 "primaryWeight",0.5,"keep",List.of(),"exclude",List.of(),"labPolicy",LAB_POLICY,"labStatus",labs.get("status"),"tickets",tickets);
         if(ready) {
+            @SuppressWarnings("unchecked") var firstRanking=(List<Integer>)response.getPrimaryAlgorithmResult().get("ranking");
+            @SuppressWarnings("unchecked") var secondRanking=(List<Integer>)response.getSecondaryAlgorithmResult().get("ranking");
+            int max="POWER".equals(category)?55:45;
+            var portfolio=TicketPortfolio.select(PredictionSupport.fusedRanking(firstRanking,secondRanking,max),max,3);
+            List<Map<String,Object>> portfolioTickets=new ArrayList<>();
+            for(int i=0;i<portfolio.size();i++) portfolioTickets.add(map("id","portfolio-"+i,"source","PORTFOLIO",
+                    "label","Nhóm ít trùng · vé "+(i+1),"numbers",portfolio.get(i)));
+            suggestion.put("portfolioTickets",portfolioTickets);
+            suggestion.put("portfolioPolicy",TicketPortfolio.VERSION+"-equal-rank-fusion-3");
+            suggestion.put("portfolioDiagnostics",TicketPortfolio.diagnostics(portfolio));
             suggestion.put("primaryExplanation",PredictionExplanation.fromResult(response.getPrimaryAlgorithmResult()));
             suggestion.put("secondaryExplanation",PredictionExplanation.fromResult(response.getSecondaryAlgorithmResult()));
             suggestion.put("combinedExplanation",response.getCombinedAlgorithmResult().get("explanation"));
@@ -109,6 +119,8 @@ public class WorkspaceService {
             if(!request.category().equals(suggestion.get("category")) || !request.targetDate().equals(suggestion.get("targetDate"))) throw new IllegalArgumentException("Vé không khớp loại/kỳ của bản gợi ý.");
             boolean sourced=request.tickets().stream().anyMatch(t->t.sourceId()!=null && !t.sourceId().isBlank()); ensureCurrent(suggestion,sourced);
             Map<Object,Map<String,Object>> sources=new HashMap<>(); ((List<Map<String,Object>>)suggestion.get("tickets")).forEach(t->sources.put(t.get("id"),t));
+            if(suggestion.get("portfolioTickets") instanceof List<?> portfolio)
+                for(var item:portfolio) { var t=(Map<String,Object>)item; sources.put(t.get("id"),t); }
             List<Map<String,Object>> tickets=new ArrayList<>(); Set<List<Integer>> unique=new HashSet<>();
             for(var selected:request.tickets()) {
                 var nums=WorkspaceProtocol.numbers(request.category(),selected.numbers());

@@ -1,4 +1,59 @@
 <section class="evaluation">
+  <h3>Logistic và thuật toán trên cùng kỳ · 1 vé mỗi bên</h3>
+  <p>
+    Dùng vé Logistic slot 0 đã lưu, không chọn vé tốt nhất sau khi quay. Mỗi cặp chỉ đo các kỳ chung
+    có cùng lịch sử nguồn, tách riêng phiên bản và cấu hình. Không đại diện cho cả nhóm 5 vé
+    Logistic.
+  </p>
+  @for (c of comparisons(); track c.id) {
+    <article>
+      <h4>Logistic ↔ {{ c.algorithm.algorithm }}</h4>
+      <p>{{ c.dates.length }} kỳ chung · {{ c.logistic.firstDate }} → {{ c.logistic.lastDate }}</p>
+      <div class="comparison-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Mô hình</th>
+              <th>Khớp TB/vé</th>
+              <th>Kỳ khớp ≥3</th>
+              <th>Kỳ khớp ≥4</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of [c.logistic, c.algorithm]; track e.cohort) {
+              <tr>
+                <td>{{ e.algorithm }} · {{ e.modelVersion }}</td>
+                <td>{{ e.averageMatched | number: '1.2-2' }}</td>
+                <td>{{ e.hit3RatePercent | number: '1.1-1' }}%</td>
+                <td>{{ e.hit4RatePercent | number: '1.1-1' }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Chênh lệch Logistic − thuật toán: {{ c.averageDifference | number: '1.2-2' }} số/vé.
+        @if (c.approximate95PercentInterval; as interval) {
+          Khoảng 95% xấp xỉ: [{{ interval[0] | number: '1.2-2' }},
+          {{ interval[1] | number: '1.2-2' }}].
+        }
+      </p>
+      <p class="notice">
+        {{
+          c.dates.length < 30
+            ? 'Mẫu còn ít; chưa đủ bằng chứng về lợi thế dự đoán.'
+            : 'Thống kê mô tả; chưa chứng minh lợi thế trên kỳ tương lai.'
+        }}
+      </p>
+      <details>
+        <summary>Kỳ đánh giá và nhóm phiên bản</summary>
+        <p>{{ c.dates.join(', ') }}</p>
+        <code>{{ c.id }}</code>
+      </details>
+    </article>
+  } @empty {
+    <p>Chưa có cặp snapshot Logistic và thuật toán đủ điều kiện trên cùng kỳ và lịch sử nguồn.</p>
+  }
   <h3>Hiệu quả trên các dự đoán đã lưu trước kỳ</h3>
   <p>
     Mỗi dòng là một nguồn và phiên bản, cùng ngân sách vé mỗi kỳ. Không bao gồm vé chỉ nhập để dò

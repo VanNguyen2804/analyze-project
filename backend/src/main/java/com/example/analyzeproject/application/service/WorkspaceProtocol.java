@@ -69,7 +69,7 @@ public final class WorkspaceProtocol {
                 "bestMatched",hits.stream().mapToInt(List::size).max().orElse(0),"coverage",coverage,"coverageCount",coverage.size(),
                 "averageMatched",hits.stream().mapToInt(List::size).average().orElse(0),"hit3",hits.stream().anyMatch(t->t.size()>=3),"hit4",hits.stream().anyMatch(t->t.size()>=4));
     }
-    public static String codeVersion() { return fingerprint(WorkspaceProtocol.class, WorkspaceService.class, PredictionSupport.class, AnalyzeService.class, TemporalRelationshipModel.class, PairRelationshipModel.class, DrawTransitionModel.class, ForecastProtocol.class, DrawQuality.class); }
+    public static String codeVersion() { return fingerprint(WorkspaceProtocol.class, WorkspaceService.class, PredictionSupport.class, TicketPortfolio.class, AnalyzeService.class, TemporalRelationshipModel.class, PairRelationshipModel.class, DrawTransitionModel.class, ForecastProtocol.class, DrawQuality.class); }
     public static String fingerprint(Class<?>... types) {
         List<String> parts = new ArrayList<>();
         try {

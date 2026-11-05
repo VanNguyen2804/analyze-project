@@ -10,6 +10,11 @@ public final class PredictionSupport {
     private PredictionSupport() {}
 
     public static List<Integer> fuse(List<Integer> first, List<Integer> second, int count) {
+        return fusedRanking(first,second,count).stream().sorted().collect(Collectors.toList());
+    }
+
+    /** Preserve rank order when the result will feed a portfolio selector. */
+    public static List<Integer> fusedRanking(List<Integer> first, List<Integer> second, int count) {
         Map<Integer, Double> scores = new HashMap<>();
         for (List<Integer> ranking : List.of(first, second)) {
             List<Integer> unique = new ArrayList<>(new LinkedHashSet<>(ranking));
@@ -19,7 +24,7 @@ public final class PredictionSupport {
         }
         return scores.keySet().stream()
                 .sorted(Comparator.<Integer>comparingDouble(scores::get).reversed().thenComparingInt(n -> n))
-                .limit(count).sorted().collect(Collectors.toList());
+                .limit(count).collect(Collectors.toList());
     }
 
     public static List<Integer> distinctTicket(List<Integer> preferred, List<Integer> fallback, int max) {

@@ -76,6 +76,25 @@
         </p>
       </details>
     }
+    @if (current.portfolioDiagnostics; as diagnostics) {
+      <h3>Nhóm 3 vé ít trùng</h3>
+      <p class="muted">
+        Xếp hạng kết hợp hai thuật toán với trọng số bằng nhau từ gợi ý ban đầu.
+        {{ diagnostics.uniqueNumbers }} số khác nhau; mỗi cặp trùng tối đa
+        {{ diagnostics.maxPairOverlap }}/6 số. Đây là lựa chọn phân bổ cùng ngân sách 3 vé, chưa
+        chứng minh tăng khả năng trúng. Điều chỉnh bộ kết hợp ở trên không thay đổi nhóm này.
+      </p>
+      <div class="ticket-grid">
+        @for (ticket of current.portfolioTickets ?? []; track ticket.id) {
+          <article class="option">
+            <strong>{{ ticket.label }}</strong>
+            <p class="numbers">{{ ticket.numbers.join(' · ') }}</p>
+            <button (click)="add(ticket)" [disabled]="busy()">Chọn / sửa vé</button>
+            <button (click)="copy(ticket)" [disabled]="busy()">Sao chép</button>
+          </article>
+        }
+      </div>
+    }
     <div class="section-head">
       <h3>Gợi ý từ AI Lab</h3>
       <label

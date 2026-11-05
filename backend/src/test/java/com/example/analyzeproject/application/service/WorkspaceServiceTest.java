@@ -54,6 +54,21 @@ class WorkspaceServiceTest {
         assertThrows(IllegalArgumentException.class,()->service.commit(new Commit("MEGA","2026-10-28",id,0,"bad-source",List.of(new Ticket("not-offered",List.of(1,2,3,4,5,6))),5)));
         assertThrows(IllegalArgumentException.class,()->service.commit(new Commit("MEGA","2026-10-28",id,0,"duplicate",List.of(new Ticket("primary",List.of(1,2,3,4,5,6)),new Ticket(null,List.of(6,5,4,3,2,1))),5)));
     }
+    @Test @SuppressWarnings("unchecked") void diversifiedOptionIsFrozenSeparateAndCanBeCommittedWithProvenance() {
+        var source=service.create(new Create("MEGA","temporal_learning","bayesian_graph")).getWorkspace();
+        var portfolio=(List<Map<String,Object>>)source.get("portfolioTickets");
+        assertEquals(3,portfolio.size()); assertEquals(3,((List<?>)source.get("tickets")).size());
+        var numbers=portfolio.stream().map(t->(List<Integer>)t.get("numbers")).toList();
+        assertEquals(List.of(1,2,3,43,44,45),numbers.get(0));
+        for(int i=0;i<3;i++) for(int j=0;j<i;j++) assertTrue(TicketPortfolio.overlap(numbers.get(i),numbers.get(j))<=3);
+        var batch=service.commit(new Commit("MEGA","2026-10-28",(String)source.get("id"),0,"portfolio",
+                portfolio.stream().map(t->new Ticket((String)t.get("id"),(List<Integer>)t.get("numbers"))).toList(),3));
+        var committed=(List<Map<String,Object>>)batch.get("tickets");
+        assertTrue(committed.stream().allMatch(t->"PORTFOLIO".equals(t.get("source")) && Boolean.FALSE.equals(t.get("edited"))));
+        assertEquals(3,((List<?>)batch.get("frequencyTickets")).size());
+        var variant=service.combine((String)source.get("id"),new Combine(0.0,List.of(),List.of()));
+        assertEquals(portfolio,variant.get("portfolioTickets"));
+    }
     @Test void changedHistoryBlocksSourceCommitButManualInputRemainsPossibleWithoutInventingSuggestions() {
         var source=service.create(new Create("MEGA","temporal_learning","bayesian_graph")).getWorkspace(); String id=(String)source.get("id");
         rows.get(0).setNumbers(List.of(10,11,12,13,14,15)); TestDraws.verified(rows.get(0));

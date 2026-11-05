@@ -96,6 +96,7 @@ export interface DrawEvaluation {
   evidenceStatus: string;
 }
 export interface DrawReport {
+  modelComparisons?: ModelComparison[];
   schemaVersion: string;
   context: { category: string; drawDate: string | null; algorithm: string; generatedAt: string };
   status: string;
@@ -114,4 +115,13 @@ export interface DrawReport {
   ticketGroups: AnalyzedTicketGroup[];
   evaluation: DrawEvaluation[];
   warnings: string[];
+}
+export interface ModelComparison {
+  id: string;
+  policy: string;
+  dates: string[];
+  logistic: DrawEvaluation;
+  algorithm: DrawEvaluation;
+  averageDifference: number;
+  approximate95PercentInterval: number[] | null;
 }

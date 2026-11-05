@@ -228,6 +228,10 @@ export class LatestDrawAnalysisComponent implements OnInit {
         (e) =>
           `${e.algorithm} · ${e.modelVersion}: ${e.evaluatedDraws} kỳ, ${e.ticketBudget} vé/kỳ; khớp TB/vé ${e.averageMatched ?? 'N/A'}, độ phủ TB/kỳ ${e.coverageAverage ?? 'N/A'}, kỳ có vé ≥3 ${e.hit3RatePercent ?? 'N/A'}%; đối chứng ghép cặp ${e.pairedDraws} kỳ.`,
       ),
+      ...(report.modelComparisons ?? []).map(
+        (c) =>
+          `So sánh 1 vé mỗi bên (${c.policy}): Logistic ${c.logistic.averageMatched} ↔ ${c.algorithm.algorithm} ${c.algorithm.averageMatched} số khớp TB/vé; ${c.dates.length} kỳ chung cùng lịch sử: ${c.dates.join(', ')}. Chênh lệch Logistic − thuật toán ${c.averageDifference}; khoảng 95% xấp xỉ ${c.approximate95PercentInterval?.join(' → ') ?? 'N/A'}. Nhóm phiên bản: ${c.id}. Chỉ là thống kê mô tả, chưa chứng minh lợi thế dự đoán.`,
+      ),
       ...report.warnings,
       'Báo cáo không thay cấu hình hoặc huấn luyện lại mô hình.',
     ].join('\n');

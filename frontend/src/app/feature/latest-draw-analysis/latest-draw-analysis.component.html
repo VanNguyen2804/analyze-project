@@ -138,7 +138,10 @@
       <details class="history">
         <summary>Xem hiệu quả qua nhiều kỳ và đối chứng</summary>
         @defer (on immediate) {
-          <app-draw-reconciliation [evaluation]="r.evaluation" />
+          <app-draw-reconciliation
+            [evaluation]="r.evaluation"
+            [comparisons]="r.modelComparisons ?? []"
+          />
         }
       </details>
       <section class="report-actions">
