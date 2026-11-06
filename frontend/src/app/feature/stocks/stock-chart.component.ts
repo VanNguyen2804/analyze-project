@@ -22,6 +22,7 @@ import {
   Time,
   createSeriesMarkers,
   ColorType,
+  AutoscaleInfo,
 } from 'lightweight-charts';
 import { StockCandle, StockPlanLevel } from '../../core/models/stock.model';
 import { stockBusinessDate, stockChartCandles } from './stock-chart-data';
@@ -86,7 +87,11 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
       autoSize: false,
       width,
       height,
-      layout: { textColor: '#a6b6ce', background: { type: ColorType.Solid, color: '#111e33' }, attributionLogo: true },
+      layout: {
+        textColor: '#a6b6ce',
+        background: { type: ColorType.Solid, color: '#111e33' },
+        attributionLogo: true,
+      },
       grid: { vertLines: { color: '#1e2e46' }, horzLines: { color: '#1e2e46' } },
       localization: {
         locale: 'vi-VN',
@@ -100,6 +105,21 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
       borderVisible: false,
       wickUpColor: '#059669',
       wickDownColor: '#e11d48',
+      autoscaleInfoProvider: (base: () => AutoscaleInfo | null) => {
+        const info = base();
+        if (!info?.priceRange || !this.planVisible()) return info;
+        const levels = this.planLevels
+          .map((l) => l.price)
+          .filter((p) => Number.isFinite(p) && p > 0);
+        if (!levels.length) return info;
+        return {
+          ...info,
+          priceRange: {
+            minValue: Math.min(info.priceRange.minValue, ...levels),
+            maxValue: Math.max(info.priceRange.maxValue, ...levels),
+          },
+        };
+      },
     });
     this.volumeSeries = this.chart.addSeries(HistogramSeries, {
       priceFormat: { type: 'volume' },
@@ -148,7 +168,10 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.cloudVisible.update((v) => !v);
     this.render();
   }
-  togglePlan() { this.planVisible.update(v => !v); this.render(); }
+  togglePlan() {
+    this.planVisible.update((v) => !v);
+    this.render();
+  }
   private applyRange() {
     if (this.chart && this.candleCount)
       this.chart.timeScale().setVisibleLogicalRange({
@@ -239,13 +262,22 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
       }
       for (const line of this.planLines) this.candlesSeries!.removePriceLine(line);
       this.planLines = [];
-      if (this.planVisible()) for (const level of this.planLevels) {
-        if (Number.isFinite(level.price) && level.price > 0)
-          this.planLines.push(this.candlesSeries!.createPriceLine({ price: level.price, color: level.color,
-            lineWidth: 1, title: level.title, axisLabelVisible: true }));
-      }
+      if (this.planVisible())
+        for (const level of this.planLevels) {
+          if (Number.isFinite(level.price) && level.price > 0)
+            this.planLines.push(
+              this.candlesSeries!.createPriceLine({
+                price: level.price,
+                color: level.color,
+                lineWidth: 1,
+                title: level.title,
+                axisLabelVisible: true,
+              }),
+            );
+        }
       if (
-        this.planVisible() && !this.planLevels.some(l => l.title === 'Giá vốn') &&
+        this.planVisible() &&
+        !this.planLevels.some((l) => l.title === 'Giá vốn') &&
         this.purchasePrice !== null &&
         Number.isFinite(this.purchasePrice) &&
         this.purchasePrice > 0

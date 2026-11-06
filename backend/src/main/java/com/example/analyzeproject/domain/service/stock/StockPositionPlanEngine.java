@@ -13,6 +13,8 @@ public final class StockPositionPlanEngine {
     private static boolean finite(double x) { return Double.isFinite(x)&&x>=0&&x<=1e18; }
     private static double loss(double capital,double proceeds,double qty,double stop) { return Math.max(0,capital-proceeds-qty*stop); }
     private static double rise(double avg,double price) { return Math.max(0,(avg/price-1)*100); }
+    // Computational precision only; this does not claim an exchange tick size.
+    private static double pricePrecision(double price) { return java.math.BigDecimal.valueOf(price).setScale(6,java.math.RoundingMode.HALF_UP).doubleValue(); }
 
     public static PositionPlan evaluate(Snapshot s,PositionInput p,String freshness,Instant now) {
         var input=p.plan(); var policy=input.policy();
@@ -50,7 +52,7 @@ public final class StockPositionPlanEngine {
         Double close=decision==null?null:decision.close()*conversion;
         boolean decisionAfterPurchase=decision!=null&&(p.purchaseDate()==null||!Instant.ofEpochSecond(decision.time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate().isBefore(p.purchaseDate()));
         boolean confirmed=StockDataQuality.canConfirm(s.data(),freshness)&&decisionAfterPurchase;
-        double stop=base*(1-hard/100),alert=base*(1-policy.alertLossPercent()/100);
+        double stop=pricePrecision(base*(1-hard/100)),alert=pricePrecision(base*(1-policy.alertLossPercent()/100));
         double held=initialQty,avg=base,committed=base*initialQty,spent=0,proceeds=0,realized=0;
         Double sellable=p.sellableQuantity();
         List<PositionExecution> executions=input.executions()==null?List.of():input.executions();
@@ -93,12 +95,13 @@ public final class StockPositionPlanEngine {
             require(finite(input.availableQuantity())&&input.availableQuantity()%1==0&&input.availableQuantity()<=held,"Số cổ phiếu hiện có thể bán phải nằm trong lượng đang giữ.");
             sellable=input.availableQuantity();
         }
-        Double peak=null;double effectiveStop=stop;
+        Double peak=null;
+        double effectiveStop=held>0?Math.max(stop,(committed-proceeds-policy.maxLossVnd())/held):stop;
         if(firstProfit!=null&&policy.trailingPercent()!=null) {
             peak=input.observedPeak();
             if(confirmed)for(Candle bar:closed)if(!Instant.ofEpochSecond(bar.time()).isBefore(firstProfit))
                 peak=peak==null?bar.close()*conversion:Math.max(peak,bar.close()*conversion);
-            if(peak!=null)effectiveStop=Math.max(stop,peak*(1-policy.trailingPercent()/100));
+            if(peak!=null)effectiveStop=Math.max(effectiveStop,peak*(1-policy.trailingPercent()/100));
         }
         boolean breached=close!=null&&(close<=effectiveStop||loss(committed,proceeds,held,close)>=policy.maxLossVnd());
         var rec=s.analysis().recommendation();
@@ -124,7 +127,7 @@ public final class StockPositionPlanEngine {
             double trigger=support>0?Math.min(alert,support+(slot==0?Math.max(0,atr)*.25:0)):alert;
             double cashLimit=Math.min(allocation,simulationRemaining);
             double riskRoom=policy.maxLossVnd()-loss(simulationCapital,proceeds,simulationQty,stop);
-            double qty=trigger>stop&&trigger<simulationAvg?Math.max(0,Math.floor(Math.min(cashLimit/trigger,riskRoom/(trigger-stop)))):0;
+            double qty=trigger>stop&&trigger<simulationAvg?Math.max(0,Math.floor(Math.min(cashLimit/trigger,riskRoom/(trigger-stop))+1e-9)):0;
             double cash=qty*trigger,afterQty=simulationQty+qty,afterAvg=afterQty>0?(simulationQty*simulationAvg+cash)/afterQty:simulationAvg;
             List<PlanCondition> conditions=List.of(
                     new PlanCondition("Dữ liệu và nến đánh giá được xác nhận",confirmed),
@@ -132,7 +135,9 @@ public final class StockPositionPlanEngine {
                     new PlanCondition("Giá đóng trong vùng mua thêm, thấp hơn giá vốn",close!=null&&close<=trigger&&close<avg&&close>effectiveStop),
                     new PlanCondition("Giữ/lấy lại hỗ trợ và không thấp hơn nến trước",support>0&&close!=null&&close>=support&&closed.size()>1&&decision.close()>=closed.get(closed.size()-2).close()),
                     new PlanCondition("Khối lượng đạt xác nhận của khung đang xem",rec!=null&&rec.volumeRatio()!=null&&rec.volumeRatio()>=rec.volumeConfirmation()),
-                    new PlanCondition("Còn ngân sách, hạn mức lỗ và chưa chuyển sang bán",qty>=1&&firstProfit==null&&!done.contains("REDUCE")&&held>0));
+                    new PlanCondition("Ngân sách đợt và vốn còn lại đủ cho ít nhất một cổ phiếu",cashLimit>=trigger),
+                    new PlanCondition("Trần lỗ bằng tiền còn đủ cho lượng mua thêm",trigger>stop&&riskRoom>=trigger-stop),
+                    new PlanCondition("Vị thế còn mở và chưa chuyển sang bán",firstProfit==null&&!done.contains("REDUCE")&&held>0));
             List<String> blockers=conditions.stream().filter(c->!c.met()).map(PlanCondition::label).toList();
             String status=risk||firstProfit!=null||done.contains("REDUCE")||qty<1||held==0?"BLOCKED":previousPending?"WAIT_PREVIOUS":blockers.isEmpty()?"READY":"WAITING";
             steps.add(new PlanStep(id,"BUY","Bình giá đợt "+(slot+1),status,trigger,qty,cash,afterAvg,afterQty,
@@ -161,7 +166,7 @@ public final class StockPositionPlanEngine {
             List<PlanCondition> conditions=List.of(new PlanCondition("Dữ liệu và nến đánh giá được xác nhận",confirmed),
                     new PlanCondition("Đã chạm mốc dừng, trần lỗ hoặc mất hỗ trợ",risk),new PlanCondition("Đã xác nhận lượng có thể bán",sellable!=null&&qty>0));
             steps.add(new PlanStep("REDUCE","SELL","Giảm rủi ro",held==0||qty==0?"BLOCKED":sellable==null?"NEED_SELLABLE":confirmed&&risk?"READY":"WAITING",
-                    effectiveStop,qty,qty*price,avg,held-qty,0,loss(committed,proceeds+qty*price,held-qty,stop),rise(avg,price),(price-avg)*qty,conditions,
+                    effectiveStop,qty,qty*effectiveStop,avg,held-qty,(price-avg)*(held-qty),loss(committed,proceeds+qty*effectiveStop,held-qty,stop),rise(avg,price),(effectiveStop-avg)*qty,conditions,
                     conditions.stream().filter(c->!c.met()).map(PlanCondition::label).toList()));
         }
         boolean profitReady=steps.stream().anyMatch(t->t.id().startsWith("TP")&&"READY".equals(t.status()));

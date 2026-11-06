@@ -148,11 +148,11 @@ describe('Stocks page', () => {
     harness.detectChanges();
     expect(harness.routeNativeElement?.querySelector('input[name="buyFee"]')).toBeNull();
     expect(harness.routeNativeElement?.querySelector('input[name="sellCost"]')).toBeNull();
-    expect(harness.routeNativeElement?.querySelector('input[name="maxLoss"]')).toBeNull();
+    expect(harness.routeNativeElement?.querySelector('input[name="maxLoss"]')).not.toBeNull();
     expect(
-      harness.routeNativeElement
-        ?.querySelector('.chart-panel')
-        ?.parentElement?.nextElementSibling?.classList.contains('position-workspace'),
+      !!harness.routeNativeElement?.querySelector(
+        '.main-grid .position-workspace app-stock-position-form',
+      ),
     ).toBeTrue();
     page.input = {
       purchaseDate: '',
@@ -165,7 +165,7 @@ describe('Stocks page', () => {
     const request = http.expectOne((r) => r.url.endsWith('/VIC/position-analysis'));
     expect(request.request.body.buyFeePercent).toBeUndefined();
     expect(request.request.body.sellCostPercent).toBeUndefined();
-    expect(request.request.body.maxLossPercent).toBe(10);
+    expect(request.request.body.maxLossPercent).toBe(2);
     expect(request.request.body.purchaseDate).toBeNull();
     request.flush({
       snapshotId: data.snapshotId,
@@ -219,5 +219,73 @@ describe('Stocks page', () => {
     expect(details?.open).toBeFalse();
     expect(root.textContent).toContain('không phải tỷ lệ vốn nên mua/bán');
     http.verify();
+  });
+  it('keeps separate inputs per symbol and refreshes an accepted position without clearing it', async () => {
+    const harness = await RouterTestingHarness.create();
+    const http = TestBed.inject(HttpTestingController);
+    const page = await harness.navigateByUrl('/stocks/FPT', StocksComponent);
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    page.input.purchasePrice = 30000;
+    page.input.quantity = 1000;
+    page.input.plan!.availableQuantity = 100;
+    page.input.sellableQuantity = 400;
+    page.resetPosition();
+    expect(page.input.plan!.availableQuantity).toBeNull();
+    page.analyzePosition();
+    const result = {
+      snapshotId: 'FPT-snapshot',
+      status: 'WATCH',
+      price: 27000,
+      changePercent: -10,
+      grossPnl: -3000000,
+      estimatedNetPnl: null,
+      breakEven: null,
+      reasons: [],
+    };
+    http.expectOne((r) => r.url.endsWith('/FPT/position-analysis')).flush(result);
+    page.refresh();
+    expect(page.position()?.grossPnl).toBe(-3000000);
+    expect(page.positionStale()).toBeTrue();
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    const next = { ...emptySnapshot('FPT'), snapshotId: 'FPT-new' };
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(next);
+    const recalculation = http.expectOne((r) => r.url.endsWith('/FPT/position-analysis'));
+    expect(recalculation.request.params.get('snapshotId')).toBe('FPT-new');
+    recalculation.flush({ ...result, snapshotId: 'FPT-new', grossPnl: -2000000 });
+    expect(page.positionStale()).toBeFalse();
+    await harness.navigateByUrl('/stocks/MBB', StocksComponent);
+    http.expectOne((r) => r.url.endsWith('/MBB/analysis')).flush(emptySnapshot('MBB'));
+    expect(page.input.purchasePrice).toBeNull();
+    expect(page.position()).toBeNull();
+    page.input.purchasePrice = 20000;
+    await harness.navigateByUrl('/stocks/FPT', StocksComponent);
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(next);
+    http
+      .expectOne((r) => r.url.endsWith('/FPT/position-analysis'))
+      .flush({ ...result, snapshotId: 'FPT-new' });
+    expect(page.input.purchasePrice).toBe(30000);
+    expect(page.input.quantity).toBe(1000);
+    http.verify();
+  });
+  it('cancels position calculation after editing and never accepts a mismatched snapshot', async () => {
+    const harness = await RouterTestingHarness.create();
+    const http = TestBed.inject(HttpTestingController);
+    const page = await harness.navigateByUrl('/stocks/FPT', StocksComponent);
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    page.input.purchasePrice = 30000;
+    page.analyzePosition();
+    const old = http.expectOne((r) => r.url.endsWith('/FPT/position-analysis'));
+    page.input.purchasePrice = 31000;
+    page.resetPosition();
+    expect(old.cancelled).toBeTrue();
+    page.analyzePosition();
+    http
+      .expectOne((r) => r.url.endsWith('/FPT/position-analysis'))
+      .flush({ snapshotId: 'OTHER', status: 'SELL', reasons: [] });
+    expect(page.position()).toBeNull();
+    expect(page.positionError()).toContain('snapshot');
+    http.verify({ ignoreCancelled: true });
   });
 });

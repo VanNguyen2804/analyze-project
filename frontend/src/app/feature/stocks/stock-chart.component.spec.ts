@@ -3,6 +3,28 @@ import { StockChartComponent } from './stock-chart.component';
 import { stockChartCandles } from './stock-chart-data';
 
 describe('Stock chart with the real chart library', () => {
+  it('replaces position price lines and removes them when the layer is hidden', () => {
+    const fixture = TestBed.createComponent(StockChartComponent);
+    fixture.nativeElement.style.width = '900px';
+    fixture.componentRef.setInput('candles', [
+      { time: 1793671200, open: 29, high: 31, low: 28, close: 30, volume: 1000, closed: true },
+    ]);
+    fixture.componentRef.setInput('planLevels', [
+      { price: 25, title: 'Dừng rủi ro', color: '#fb7185' },
+      { price: 33, title: 'TP1', color: '#2dd4bf' },
+    ]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['planLines'].length).toBe(2);
+    fixture.componentRef.setInput('planLevels', [
+      { price: 26, title: 'Dừng rủi ro', color: '#fb7185' },
+    ]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['planLines'].length).toBe(1);
+    fixture.componentInstance.togglePlan();
+    expect(fixture.componentInstance['planLines'].length).toBe(0);
+    expect(fixture.componentInstance.renderError()).toBe('');
+    fixture.destroy();
+  });
   it('paints actual candle and EMA pixels for a multi-year daily history, not only axes', async () => {
     const fixture = TestBed.createComponent(StockChartComponent);
     fixture.nativeElement.style.width = '900px';

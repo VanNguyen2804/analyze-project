@@ -1,42 +1,170 @@
 @if (plan(); as p) {
   <section class="position-plan" aria-label="Kế hoạch vị thế">
-    <div class="plan-heading" [class.risk]="p.status === 'RISK'" [class.profit]="p.status === 'TAKE_PROFIT'">
+    <div
+      class="plan-heading"
+      [class.risk]="p.status === 'RISK'"
+      [class.profit]="p.status === 'TAKE_PROFIT'"
+    >
       <span class="eyebrow">KẾ HOẠCH VỊ THẾ</span>
-      <h3>{{ title(p.status) }}</h3><p>{{ p.summary }}</p>
-      @if (busy()) { <span class="updating" role="status">Đang cập nhật · tạm khóa ghi nhận</span> }
+      <h3>{{ title(p.status) }}</h3>
+      <p>{{ p.summary }}</p>
+      @if (busy()) {
+        <span class="updating" role="status">Đang cập nhật · tạm khóa ghi nhận</span>
+      }
     </div>
-    <div class="limits"><div><small>Cảnh báo lỗ</small><b>{{ p.alertPrice | number:'1.0-0' }}</b></div><div><small>Dừng rủi ro</small><b class="negative">{{ p.effectiveStop | number:'1.0-0' }}</b></div><div><small>Vốn mua thêm còn lại</small><b>{{ p.remainingBudget | number:'1.0-0' }}</b></div></div>
-    <p class="note">Mốc giá · VND/cổ phiếu. Xác nhận theo nến đóng {{ p.decisionAsOf === null ? 'chưa có' : (p.decisionAsOf * 1000 | date:'dd/MM HH:mm':'+0700') }} (VN).</p>
+    <div class="limits">
+      <div>
+        <small>Cảnh báo lỗ</small><b>{{ p.alertPrice | number: '1.0-0' }}</b>
+      </div>
+      <div>
+        <small>Dừng rủi ro</small><b class="negative">{{ p.effectiveStop | number: '1.0-0' }}</b>
+      </div>
+      <div>
+        <small>Vốn mua thêm còn lại</small><b>{{ p.remainingBudget | number: '1.0-0' }}</b>
+      </div>
+    </div>
+    <p class="note">
+      Mốc giá · VND/cổ phiếu. Xác nhận theo nến đóng
+      {{
+        p.decisionAsOf === null
+          ? 'chưa có'
+          : (p.decisionAsOf * 1000 | date: 'dd/MM HH:mm' : '+0700')
+      }}
+      (VN).
+    </p>
+    @if (!hasAveraging()) {
+      <p class="note">
+        Chưa phân bổ vốn cho bình giá. Mở “Giá vốn & hạn mức” để đặt ngân sách từng đợt nếu muốn mô
+        phỏng mua thêm.
+      </p>
+    }
     @for (step of p.steps; track step.id) {
-      <article class="step" [class.ready]="step.status === 'READY'" [class.done]="step.status === 'DONE'" [class.stop]="step.id === 'REDUCE'">
-        <div class="step-title"><h4>{{ step.title }}</h4><span class="badge">{{ status(step.status) }}</span></div>
-        <div class="step-price">{{ step.triggerPrice | number:'1.0-0' }} <small>VND · {{ step.quantity | number:'1.0-0' }} cổ phiếu</small></div>
-        <p>{{ step.side === 'BUY' ? 'Vốn bổ sung' : 'Tiền thu' }}{{ step.status === 'DONE' ? ' đã ghi nhận' : ' giả định' }}: <b>{{ step.cash | number:'1.0-0' }} VND</b></p>
+      <article
+        class="step"
+        [class.ready]="step.status === 'READY'"
+        [class.done]="step.status === 'DONE'"
+        [class.stop]="step.id === 'REDUCE'"
+      >
+        <div class="step-title">
+          <h4>{{ step.title }}</h4>
+          <span class="badge">{{ status(step.status) }}</span>
+        </div>
+        <div class="step-price">
+          {{ step.triggerPrice | number: '1.0-0' }}
+          <small>VND · {{ step.quantity | number: '1.0-0' }} cổ phiếu</small>
+        </div>
+        <p>
+          {{ step.side === 'BUY' ? 'Vốn bổ sung' : 'Tiền thu'
+          }}{{ step.status === 'DONE' ? ' đã ghi nhận' : ' giả định' }}:
+          <b>{{ step.cash | number: '1.0-0' }} VND</b>
+        </p>
         @if (step.status !== 'DONE') {
-          <details><summary>Điều kiện và tác động lên vị thế</summary>
-            <ul class="conditions">@for (condition of step.conditions; track condition.label) { <li [class.met]="condition.met"><span>{{ condition.met ? '✓' : '○' }}</span>{{ condition.label }}</li> }</ul>
-            <dl><div><dt>Giá vốn sau bước</dt><dd>{{ step.averageAfter | number:'1.0-0' }} VND</dd></div><div><dt>Lượng còn lại</dt><dd>{{ step.quantityAfter | number:'1.0-0' }} CP</dd></div><div><dt>Lỗ cả kế hoạch tại mốc dừng gốc</dt><dd class="negative">{{ step.lossAtStop | number:'1.0-0' }} VND</dd></div>
-            @if (step.side === 'BUY') { <div><dt>P&L phần giữ theo giá tham chiếu</dt><dd>{{ step.pnlAtReference | number:'1.0-0' }} VND</dd></div><div><dt>Mức tăng để về giá vốn mới</dt><dd>{{ step.breakEvenRisePercent | number:'1.2-2' }}%</dd></div> }
-            @if (step.profit !== null) { <div><dt>Lãi/lỗ của phần bán giả định</dt><dd>{{ step.profit | number:'1.0-0' }} VND</dd></div> }</dl>
-            <p class="note">Các bước tiếp theo là mô phỏng sau bước trước. Giá và lượng thực tế có thể khác.</p>
+          <details>
+            <summary>Điều kiện và tác động lên vị thế</summary>
+            <ul class="conditions">
+              @for (condition of step.conditions; track condition.label) {
+                <li [class.met]="condition.met">
+                  <span>{{ condition.met ? '✓' : '○' }}</span
+                  >{{ condition.label }}
+                </li>
+              }
+            </ul>
+            <dl>
+              <div>
+                <dt>Giá vốn sau bước</dt>
+                <dd>{{ step.averageAfter | number: '1.0-0' }} VND</dd>
+              </div>
+              <div>
+                <dt>Lượng còn lại</dt>
+                <dd>{{ step.quantityAfter | number: '1.0-0' }} CP</dd>
+              </div>
+              <div>
+                <dt>Lỗ cả kế hoạch tại mốc dừng gốc</dt>
+                <dd class="negative">{{ step.lossAtStop | number: '1.0-0' }} VND</dd>
+              </div>
+              @if (step.side === 'BUY') {
+                <div>
+                  <dt>P&L phần giữ theo giá tham chiếu</dt>
+                  <dd>{{ step.pnlAtReference | number: '1.0-0' }} VND</dd>
+                </div>
+                <div>
+                  <dt>Mức tăng để về giá vốn mới</dt>
+                  <dd>{{ step.breakEvenRisePercent | number: '1.2-2' }}%</dd>
+                </div>
+              }
+              @if (step.profit !== null) {
+                <div>
+                  <dt>Lãi/lỗ của phần bán giả định</dt>
+                  <dd>{{ step.profit | number: '1.0-0' }} VND</dd>
+                </div>
+              }
+            </dl>
+            <p class="note">
+              Các bước tiếp theo là mô phỏng sau bước trước. Giá và lượng thực tế có thể khác.
+            </p>
           </details>
           @if (canRecord(step)) {
             @if (editing() === step.id) {
               <form (ngSubmit)="submit(step)" #execution="ngForm" class="record-form">
-                <p>Chỉ nhập giao dịch bạn đã thực hiện. Thao tác này cập nhật sổ vị thế trong phiên.</p>
-                <label>Giá thực tế · VND<input type="number" name="actualPrice" [(ngModel)]="actualPrice" min="0.01" required /></label>
-                <label>Số lượng thực tế<input type="number" name="actualQuantity" [(ngModel)]="actualQuantity" min="1" [max]="step.quantity" step="1" pattern="[0-9]+" required /></label>
-                <button type="submit" [disabled]="execution.invalid || busy()">Ghi nhận giao dịch đã thực hiện</button>
+                <p>
+                  Chỉ nhập giao dịch bạn đã thực hiện. Thao tác này cập nhật sổ vị thế trong phiên.
+                </p>
+                <label
+                  >Giá thực tế · VND<input
+                    type="number"
+                    name="actualPrice"
+                    [(ngModel)]="actualPrice"
+                    min="0.01"
+                    required
+                /></label>
+                <label
+                  >Số lượng thực tế<input
+                    type="number"
+                    name="actualQuantity"
+                    [(ngModel)]="actualQuantity"
+                    min="1"
+                    [max]="step.quantity"
+                    step="1"
+                    pattern="[0-9]+"
+                    required
+                /></label>
+                <button type="submit" [disabled]="execution.invalid || busy()">
+                  Ghi nhận giao dịch đã thực hiện
+                </button>
                 <button type="button" class="quiet" (click)="editing.set(null)">Hủy</button>
               </form>
-            } @else { <button class="quiet" type="button" (click)="open(step)">Tôi đã thực hiện bước này</button> }
+            } @else {
+              <button class="quiet" type="button" (click)="open(step)">
+                Tôi đã thực hiện bước này
+              </button>
+            }
           }
         }
       </article>
     }
-    <div class="totals"><span>Lãi/lỗ đã thực hiện <b>{{ p.realizedPnl | number:'1.0-0' }} VND</b></span><span>Tổng lãi/lỗ cả kế hoạch <b>{{ p.totalPnl | number:'1.0-0' }} VND</b></span></div>
-    <details class="method"><summary>Giả định và hạn mức gốc</summary><p>Giá vốn gốc {{ p.referenceCost | number:'1.0-0' }} VND · dừng gốc {{ p.originalStop | number:'1.0-0' }} VND. Tỷ lệ chốt tính trên lượng gốc, trước phí/thuế.</p>@for (caution of p.cautions; track caution) { <p>{{ caution }}</p> }</details>
+    <div class="totals">
+      <span
+        >Lãi/lỗ đã thực hiện <b>{{ p.realizedPnl | number: '1.0-0' }} VND</b></span
+      ><span
+        >Tổng lãi/lỗ cả kế hoạch <b>{{ p.totalPnl | number: '1.0-0' }} VND</b></span
+      >
+    </div>
+    <details class="method">
+      <summary>Giả định và hạn mức gốc</summary>
+      <p>
+        Giá vốn gốc {{ p.referenceCost | number: '1.0-0' }} VND · dừng gốc
+        {{ p.originalStop | number: '1.0-0' }} VND. Tỷ lệ chốt tính trên lượng gốc, trước phí/thuế.
+      </p>
+      @for (caution of p.cautions; track caution) {
+        <p>{{ caution }}</p>
+      }
+    </details>
   </section>
 } @else {
-  <section class="plan-empty"><span class="orb">◎</span><h3>Mỗi vị thế, một kế hoạch</h3><p>Nhập giá vốn và hạn mức để xem khi nào cần đánh giá bình giá, giảm rủi ro hoặc chốt lời.</p><div>01 · Nhập vị thế<br />02 · Đặt hạn mức<br />03 · Theo dõi từng bước</div></section>
+  <section class="plan-empty">
+    <span class="orb">◎</span>
+    <h3>Mỗi vị thế, một kế hoạch</h3>
+    <p>Nhập giá vốn và hạn mức để xem khi nào cần đánh giá bình giá, giảm rủi ro hoặc chốt lời.</p>
+    <div>01 · Nhập vị thế<br />02 · Đặt hạn mức<br />03 · Theo dõi từng bước</div>
+  </section>
 }

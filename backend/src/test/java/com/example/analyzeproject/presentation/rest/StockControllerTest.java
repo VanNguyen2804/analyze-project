@@ -11,6 +11,26 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class StockControllerTest {
+    @Test void planContractUsesCanonicalJsonAndRejectsInvalidRiskSettings() throws Exception {
+        var clock=Clock.fixed(Instant.parse("2026-11-06T09:00:00Z"),ZoneOffset.UTC);
+        var candle=new Candle(clock.instant().minusSeconds(3600).getEpochSecond(),27000,27500,26500,27000,100000,true);
+        var service=new StockService((symbol,mode)->new Feed(List.of(candle),clock.instant(),"TEST","VND","RAW",true,List.of()),clock,new StockLearningEngine(.6,.6,.004));
+        var snapshot=service.analyze("FPT",Mode.SWING);
+        var mvc=MockMvcBuilders.standaloneSetup(new StockController(service)).build();
+        String body="""
+            {"purchasePrice":30000,"quantity":1000,"maxLossPercent":15,"sellableQuantity":800,
+             "plan":{"startedAt":"2026-11-06T01:00:00Z","executions":[],"observedPeak":null,"availableQuantity":null,
+             "policy":{"alertLossPercent":5,"maxLossVnd":6000000,"additionalBudget":10000000,"maxCapital":40000000,
+             "averagingBudgets":[5000000,5000000],"targets":[{"gainPercent":10,"price":null,"sellPercent":30},{"gainPercent":20,"price":null,"sellPercent":30}],"trailingPercent":null}}}
+            """;
+        mvc.perform(post("/api/stocks/FPT/position-analysis").param("snapshotId",snapshot.snapshotId()).contentType("application/json").content(body))
+                .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))
+                .andExpect(jsonPath("$.positionPlan.originalStop").value(25500))
+                .andExpect(jsonPath("$.positionPlan.quantity").value(1000))
+                .andExpect(jsonPath("$.positionPlan.valuationPrice").value(27000));
+        mvc.perform(post("/api/stocks/FPT/position-analysis").param("snapshotId",snapshot.snapshotId()).contentType("application/json").content(body.replace("\"alertLossPercent\":5","\"alertLossPercent\":20")))
+                .andExpect(status().isBadRequest());
+    }
     private StockService service(){
         Clock clock=Clock.fixed(Instant.parse("2026-11-03T09:30:00Z"),ZoneOffset.UTC);
         return new StockService((symbol,mode)->new Feed(List.of(),clock.instant(),"TEST","SOURCE","UNKNOWN",false,List.of()),clock,new StockLearningEngine(.6,.6,.004));

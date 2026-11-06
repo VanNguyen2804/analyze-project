@@ -70,7 +70,8 @@ class StockPositionPlanTest {
     }
     @Test void qualityGatesCurrencyAndClosedDecisionAreIndependentFromValuation() {
         var p=input(policy(8000000,List.of(13500000.0,0.0)),List.of(),null,null);
-        var vnd=run(snapshot(27000,true,"RAW","VND",false),p),thousand=run(snapshot(27000,true,"RAW","THOUSAND_VND",false),p);
+        var vnd=run(snapshot(27000,true,"RAW","VND",false),p);
+        var thousand=run(snapshot(27000,true,"RAW","THOUSAND_VND",false),p);
         assertEquals(vnd,thousand);
         for(var s:List.of(snapshot(25000,false,"RAW","VND",false),snapshot(25000,true,"UNKNOWN","VND",false))) {
             var plan=run(s,p);assertEquals("REFERENCE",plan.status());assertFalse(plan.actionable());assertNotEquals("READY",step(plan,"REDUCE").status());
@@ -88,6 +89,27 @@ class StockPositionPlanTest {
         assertEquals("NEED_SELLABLE",step(run(snapshot(37000,true,"RAW","VND",false),p),"TP1").status());
         assertEquals(0,step(run(snapshot(37000,true,"RAW","VND",false),input(policy,List.of(),0.0,null)),"TP1").quantity());
         assertThrows(IllegalArgumentException.class,()->run(snapshot(37000,true,"RAW","VND",false),input(policy,List.of(),1001.0,null)));
+    }
+    @Test void cashLimitTightensProtectionAndReplayedSalesCountTowardTotalPlanPnl() {
+        var tight=run(snapshot(29500,true,"RAW","VND",false),input(policy(1000000,List.of()),List.of(),null,null));
+        assertEquals(29000,tight.effectiveStop());assertEquals(25000,tight.originalStop(),1e-8);
+        assertNotEquals("RISK",tight.status());
+        var sale=new PositionExecution("TP1",33000,300,now.minusSeconds(100),1000.0);
+        var plan=run(snapshot(29000,true,"RAW","VND",false),input(policy(6000000,List.of()),List.of(sale),700.0,null));
+        assertEquals(900000,plan.realizedPnl());assertEquals(200000,plan.totalPnl());
+        assertEquals(700,plan.quantity());
+    }
+    @Test void budgetsFutureExecutionsAndPurchaseDateAreValidated() {
+        var bad=new PositionPolicy(20,6000000,1000000,31000000,List.of(500000.0),List.of(new ProfitTarget(10.0,null,30),new ProfitTarget(20.0,null,30)),null);
+        assertThrows(IllegalArgumentException.class,()->run(snapshot(27000,true,"RAW","VND",false),input(bad,List.of(),null,null)));
+        var valid=policy(6000000,List.of(13500000.0));
+        var future=new PositionExecution("AVG1",27000,100,now.plusSeconds(1),null);
+        assertThrows(IllegalArgumentException.class,()->run(snapshot(27000,true,"RAW","VND",false),input(valid,List.of(future),null,null)));
+        var tooMuch=new PositionExecution("AVG1",27000,1000,now,null);
+        assertThrows(IllegalArgumentException.class,()->run(snapshot(27000,true,"RAW","VND",false),input(valid,List.of(tooMuch),null,null)));
+        var p=input(valid,List.of(),null,null);
+        var afterDecision=new PositionInput(LocalDate.of(2026,11,3),p.purchasePrice(),p.quantity(),null,null,p.maxLossPercent(),p.sellableQuantity(),p.plan());
+        assertEquals("REFERENCE",run(snapshot(27000,true,"RAW","VND",false),afterDecision).status());
     }
     @Test void exportsClearlyLabeledSyntheticPreviewForLocalVisualVerification() throws Exception {
         var s=snapshot(27000,true,"RAW","VND",false);var plan=run(s,input(policy(6000000,List.of(13500000.0,0.0)),List.of(),null,null));

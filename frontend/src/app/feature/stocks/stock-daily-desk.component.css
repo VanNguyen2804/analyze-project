@@ -263,7 +263,74 @@ details p {
   }
 }
 
-select:focus-visible,summary:focus-visible{outline:2px solid #2dd4bf;outline-offset:3px}
-@media(max-width:700px){
-  header{align-items:flex-start;flex-direction:column;padding:18px}.overview{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 18px 18px}.summary{flex-direction:column;align-items:flex-start;padding:16px 18px}.table-wrap{overflow:visible;padding:14px}table{min-width:0;table-layout:auto}thead{display:none}table,tbody,tr,tbody th,tbody td{display:block;width:100%}tr{background:#0c182a;border:1px solid #253653;border-radius:12px;overflow:hidden;margin-bottom:12px}tbody th{padding:14px;font-size:14px;border-bottom:1px solid #253653}tbody td{padding:10px 14px;border-bottom:0;font-size:12px}tbody td::before{content:attr(data-label);display:block;color:#a6b6ce;font-size:10px;margin-bottom:5px;font-weight:500}.fib-strip{flex-wrap:wrap}.fib-strip>span{width:100%}
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+  .overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0 18px 18px;
+  }
+  .summary {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 18px;
+  }
+  .table-wrap {
+    overflow: visible;
+    padding: 14px;
+  }
+  table {
+    min-width: 0;
+    table-layout: auto;
+  }
+  thead {
+    display: none;
+  }
+  table,
+  tbody,
+  tr,
+  tbody th,
+  tbody td {
+    display: block;
+    width: 100%;
+  }
+  tr {
+    background: #0c182a;
+    border: 1px solid #253653;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  tbody th {
+    padding: 14px;
+    font-size: 14px;
+    border-bottom: 1px solid #253653;
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 0;
+    font-size: 12px;
+  }
+  tbody td::before {
+    content: attr(data-label);
+    display: block;
+    color: #a6b6ce;
+    font-size: 10px;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .fib-strip {
+    flex-wrap: wrap;
+  }
+  .fib-strip > span {
+    width: 100%;
+  }
 }

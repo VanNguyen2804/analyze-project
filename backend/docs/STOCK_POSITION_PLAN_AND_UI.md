@@ -1,6 +1,6 @@
 # Kế hoạch nâng cấp nhận định vị thế và UI chứng khoán
 
-Ngày lập: 05/11/2026. Trạng thái: kế hoạch triển khai, chưa sửa ứng dụng.
+Ngày lập: 05/11/2026. Trạng thái: đã triển khai ngày 06/11/2026; xem báo cáo `reports/stock-position-ui-2026-11-06.md`.
 
 ## 1. Mục tiêu và phạm vi
 

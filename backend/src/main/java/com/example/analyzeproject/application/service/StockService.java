@@ -97,6 +97,7 @@ public final class StockService {
         if(maxLoss<=0||maxLoss>=100)throw new IllegalArgumentException("Giới hạn lỗ phải trong (0,100%).");
         var closed=s.data().candles().stream().filter(Candle::closed).toList();
         boolean confirmed=StockDataQuality.canConfirm(s.data(),currentFreshness)&&!closed.isEmpty();
+        if(confirmed&&p.purchaseDate()!=null)confirmed=!Instant.ofEpochSecond(closed.get(closed.size()-1).time()).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate().isBefore(p.purchaseDate());
         if(!confirmed)status="WATCH";
         if(!closed.isEmpty()&&closed.get(closed.size()-1).close()*conversion<=p.purchasePrice()*(1-maxLoss/100)){
             if(confirmed)status="SELL";

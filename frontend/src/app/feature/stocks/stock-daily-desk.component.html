@@ -78,8 +78,20 @@
                 </details>
               </th>
               <td class="current" data-label="Hiện tại">{{ row.current }}</td>
-              <td class="target" data-label="Điều kiện nghiêng mua" [class.ready-buy]="row.buyReady">{{ row.buyTarget }}</td>
-              <td class="target" data-label="Điều kiện nghiêng bán" [class.ready-sell]="row.sellReady">{{ row.sellTarget }}</td>
+              <td
+                class="target"
+                data-label="Điều kiện nghiêng mua"
+                [class.ready-buy]="row.buyReady"
+              >
+                {{ row.buyTarget }}
+              </td>
+              <td
+                class="target"
+                data-label="Điều kiện nghiêng bán"
+                [class.ready-sell]="row.sellReady"
+              >
+                {{ row.sellTarget }}
+              </td>
               <td data-label="Đánh giá">
                 <span
                   class="state"
