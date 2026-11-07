@@ -6,6 +6,7 @@ import {
   ForecastMutationResult,
   ForecastOverview,
   LabOverview,
+  LabTicket,
   LabRun,
 } from '../models/forecast.model';
 import { LotteryCategory } from '../models/lottery-category.model';
@@ -33,6 +34,11 @@ export class ForecastApiService {
   labOverview(category: LotteryCategory, page: number) {
     return this.http
       .get<LabOverview>(`${this.base}/api/ai-lab`, { params: { category, page } })
+      .pipe(timeout(15000));
+  }
+  labHighlights(category: LotteryCategory) {
+    return this.http
+      .get<LabTicket[]>(`${this.base}/api/ai-lab/highlights`, { params: { category } })
       .pipe(timeout(15000));
   }
   runLab() {

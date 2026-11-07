@@ -1,4 +1,5 @@
 <section class="lab" [attr.aria-busy]="busy()">
+  <app-lab-highlights [category]="category()" [tickets]="data()?.highlights ?? []" />
   <header class="lab-header">
     <div class="hero-copy">
       <div class="eyebrow">

@@ -16,5 +16,9 @@ public class AiLabController {
         try { return ResponseEntity.ok(lab.overview(category.toUpperCase(Locale.ROOT),page)); }
         catch(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
     }
+    @GetMapping("/highlights") public ResponseEntity<?> highlights(@RequestParam(defaultValue="MEGA") String category) {
+        try { return ResponseEntity.ok(lab.highlights(category.toUpperCase(Locale.ROOT))); }
+        catch(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
+    }
     @PostMapping("/run") public Map<String,Object> run() { return lab.run(); }
 }

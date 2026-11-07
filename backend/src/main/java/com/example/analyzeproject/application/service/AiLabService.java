@@ -22,7 +22,7 @@ public class AiLabService {
     private final AiLabModel.FeedbackPolicy feedbackPolicy;
     private final Clock clock;
     private final boolean challengersEnabled;
-    private record OverviewCache(List<Map<String,Object>> rows,List<Map<String,Object>> groups,Instant asOf,long expiresAt) {}
+    private record OverviewCache(List<Map<String,Object>> rows,List<Map<String,Object>> groups,List<Map<String,Object>> eligibleRows,Instant asOf,long expiresAt) {}
     private final Map<String,OverviewCache> overviewCache=new ConcurrentHashMap<>();
     private final Map<String,ReentrantLock> readMonitors=Map.of("MEGA",new ReentrantLock(),"POWER",new ReentrantLock());
     private final AtomicLong readEpoch=new AtomicLong();
@@ -45,7 +45,9 @@ public class AiLabService {
             var rows=forecasts.stream().map(f->map("id",f.get("id"),"model",f.get("labModel"),"targetDate",f.get("targetDate"),"numbers",f.get("numbers"),
                     "createdAt",f.get("createdAt"),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
             // Retain only the rendered rows/statistics, never full configurations or probability matrices.
-            var result=new OverviewCache(rows,groups,clock.instant(),System.nanoTime()+30_000_000_000L);
+            Set<Object> validIds=eligible.stream().map(f->f.get("id")).collect(java.util.stream.Collectors.toSet());
+            var eligibleRows=rows.stream().filter(f->validIds.contains(f.get("id"))).toList();
+            var result=new OverviewCache(rows,groups,eligibleRows,clock.instant(),System.nanoTime()+30_000_000_000L);
             if(readEpoch.get()==epoch)overviewCache.put(category,result);
             return result;
         }finally{monitor.unlock();}
@@ -139,7 +141,35 @@ public class AiLabService {
         if(!Set.of("MEGA","POWER").contains(category)||page<0) throw new IllegalArgumentException("Invalid category or page");
         var view=readOverview(category);
         var rows=view.rows().stream().skip((long)page*50).limit(50).toList();
-        return map("enabled",enabled,"challengersEnabled",challengersEnabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",view.rows().size(),"rows",rows,"groups",view.groups(),"asOf",view.asOf().toString(),"cacheSeconds",30);
+        return map("enabled",enabled,"challengersEnabled",challengersEnabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",view.rows().size(),"rows",rows,"highlights",currentHighlights(category,view),"groups",view.groups(),"asOf",view.asOf().toString(),"cacheSeconds",30);
+    }
+    public List<Map<String,Object>> highlights(String category) {
+        if(!Set.of("MEGA","POWER").contains(category))throw new IllegalArgumentException("Invalid category");
+        return currentHighlights(category,readOverview(category));
+    }
+    private List<Map<String,Object>> currentHighlights(String category,OverviewCache view) {
+        String target=ForecastProtocol.target(category,clock.instant()).toString();
+        Map<Object,List<Map<String,Object>>> successes=new HashMap<>();
+        for(var row:view.eligibleRows()) {
+            if(((String)row.get("targetDate")).compareTo(target)>=0 || !(row.get("settlement") instanceof Map<?,?> event))continue;
+            if("SETTLED".equals(event.get("status"))&&event.get("matched") instanceof Number matched&&matched.intValue()>=3)
+                successes.computeIfAbsent(row.get("model"),key->new ArrayList<>()).add(row);
+        }
+        List<Map<String,Object>> result=new ArrayList<>();
+        for(var row:view.eligibleRows()) {
+            var past=successes.get(row.get("model"));
+            if(!target.equals(row.get("targetDate"))||past==null)continue;
+            if(row.get("settlement") instanceof Map<?,?> event && !"PENDING".equals(event.get("status")))continue;
+            int best=past.stream().mapToInt(f->((Number)((Map<?,?>)f.get("settlement")).get("matched")).intValue()).max().orElse(0);
+            String latest=past.stream().map(f->(String)f.get("targetDate")).max(String::compareTo).orElseThrow();
+            var highlighted=new LinkedHashMap<>(row);
+            highlighted.put("pastPerformance",map("bestMatched",best,"hitTickets",past.size(),"hitDraws",past.stream().map(f->f.get("targetDate")).distinct().count(),"latestHitDate",latest));
+            result.add(highlighted);
+        }
+        result.sort(Comparator.<Map<String,Object>>comparingInt(f->((Number)((Map<?,?>)f.get("pastPerformance")).get("bestMatched")).intValue()).reversed()
+                .thenComparing(f->(String)((Map<?,?>)f.get("pastPerformance")).get("latestHitDate"),Comparator.reverseOrder())
+                .thenComparing(f->(String)f.get("model")).thenComparing(f->(String)f.get("id")));
+        return result;
     }
     private static Object feedbackSummary(Map<String,Object> forecast) {
         if (forecast.get("explanation") instanceof Map<?,?> explanation && explanation.get("feedback") instanceof Map<?,?> feedback)

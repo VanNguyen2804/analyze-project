@@ -47,3 +47,6 @@ Build dùng `@angular/build:application`; test dùng `@angular/build:karma`. Kh�
 `npm run build:sync` build và đồng bộ asset sang backend bằng script Node chạy trên Windows/Linux; chỉ xóa các bundle sinh tự động cũ. Đầu ra vẫn ở `dist/analyzeproject/` để tương thích Maven, Docker và CI.
 
 Để đóng gói chung, build Angular trước rồi chạy Maven trong `backend/`. Xem [hướng dẫn toàn dự án](../README.md).
+
+
+`share/components/lab-highlights/` hiển thị dự đoán kỳ tới của thuật toán Lab từng trúng ≥3 số, cùng thành tích lịch sử. AI Lab truyền highlights từ overview; Prediction dùng chế độ đọc endpoint highlights riêng, hủy request khi đổi category và dừng polling khi ẩn tab. Không đưa vé lịch sử vào khay chốt vé hiện tại.

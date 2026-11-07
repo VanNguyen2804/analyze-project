@@ -1,0 +1,61 @@
+<section
+  class="highlights"
+  aria-label="Dự đoán mới từ thuật toán AI Lab từng trúng từ 3 số"
+  [attr.aria-busy]="loading()"
+>
+  <header>
+    <div>
+      <span class="kicker">AI LAB · {{ category() }}</span>
+      <h2>Dự đoán từ thuật toán từng trúng ≥3 số</h2>
+    </div>
+    <span class="count">{{ results().length }} vé cho kỳ tới</span>
+  </header>
+  <p class="context">
+    Dãy mới của các thuật toán AI Lab từng dự đoán trúng từ 3 số ở kỳ trước. Thành tích lịch sử
+    không bảo đảm kết quả kỳ tới.
+  </p>
+  @if (error()) {
+    <p role="status">{{ error() }}</p>
+  }
+  @if (loading() && !results().length) {
+    <p role="status">Đang tải dự đoán AI Lab…</p>
+  } @else if (!results().length && !error()) {
+    <p class="empty">
+      Chưa có dự đoán kỳ tới từ thuật toán từng trúng ≥3 số cho {{ category() }}. Chờ AI Lab cập
+      nhật.
+    </p>
+  }
+  <div class="tickets">
+    @for (ticket of visible(); track ticket.id) {
+      <article>
+        <div class="ticket-heading">
+          <strong class="match-count"
+            >Từng trúng {{ ticket.pastPerformance?.bestMatched }}/6 số</strong
+          ><span class="algorithm">{{ name(ticket.model) }}</span>
+        </div>
+        <p class="history-count">
+          Thuật toán đã trúng ≥3 số: <strong>{{ ticket.pastPerformance?.hitTickets }} lần</strong>
+          <span
+            >({{ ticket.pastPerformance?.hitTickets }} vé /
+            {{ ticket.pastPerformance?.hitDraws }} kỳ)</span
+          >
+        </p>
+        <div class="numbers">
+          @for (number of ticket.numbers; track number) {
+            <span>{{ number < 10 ? '0' + number : number }}</span>
+          }
+        </div>
+        <span class="draw-date">Dự đoán kỳ {{ ticket.targetDate | date: 'dd/MM/yyyy' }}</span>
+        <p class="draw-date">
+          Kỳ trúng ≥3 số gần nhất:
+          {{ ticket.pastPerformance?.latestHitDate | date: 'dd/MM/yyyy' }}
+        </p>
+      </article>
+    }
+  </div>
+  @if (results().length > 6) {
+    <button type="button" (click)="expanded.set(!expanded())">
+      {{ expanded() ? 'Thu gọn' : 'Xem tất cả ' + results().length + ' vé' }}
+    </button>
+  }
+</section>

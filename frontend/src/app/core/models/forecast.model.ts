@@ -62,6 +62,12 @@ export interface LabRun {
   outcomes?: LabOutcome[];
 }
 export interface LabTicket extends ForecastTicket {
+  pastPerformance?: {
+    bestMatched: number;
+    hitTickets: number;
+    hitDraws: number;
+    latestHitDate: string;
+  };
   model: string;
   feedback?: { draws: number; tickets: number; ticketMatchHistogram: number[] } | null;
 }
@@ -132,6 +138,7 @@ export interface LabGroup {
   status: 'VALIDATION_CANDIDATE' | 'COLLECTING';
 }
 export interface LabOverview {
+  highlights?: LabTicket[];
   enabled: boolean;
   lastRun: LabRun;
   budget: number;

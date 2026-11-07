@@ -30,6 +30,36 @@ describe('AI lab', () => {
     fixture.destroy();
     http.verify({ ignoreCancelled: true });
   });
+  it('places current predictions from historically successful models before the Lab header', () => {
+    http.expectOne(`${base}?category=MEGA&page=0`).flush({
+      ...payload,
+      rows: [],
+      highlights: [
+        {
+          id: 'new',
+          model: 'recency',
+          targetDate: '2026-11-08',
+          numbers: [10, 11, 12, 13, 14, 15],
+          pastPerformance: {
+            bestMatched: 3,
+            hitTickets: 1,
+            hitDraws: 1,
+            latestHitDate: '2026-10-25',
+          },
+        },
+      ],
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.lab').firstElementChild.tagName).toBe(
+      'APP-LAB-HIGHLIGHTS',
+    );
+    expect(fixture.nativeElement.querySelector('app-lab-highlights').textContent).toContain(
+      'Tần suất suy giảm theo thời gian',
+    );
+    expect(fixture.nativeElement.querySelector('app-lab-highlights').textContent).toContain(
+      '08/11/2026',
+    );
+  });
   it('loads read-only data and cancels category requests', () => {
     const old = http.expectOne(`${base}?category=MEGA&page=0`);
     fixture.componentInstance.select('POWER');

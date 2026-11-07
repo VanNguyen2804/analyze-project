@@ -1,3 +1,4 @@
+import { LabHighlightsComponent } from '../../share/components/lab-highlights/lab-highlights.component';
 import { UserDeskComponent } from './user-desk/user-desk.component';
 import { WorkspaceSuggestion } from '@app/core/models/workspace.model';
 import { PredictionChartComponent } from './prediction-chart/prediction-chart.component';
@@ -28,6 +29,7 @@ import { AnalyzeService } from '@app/core/services/analyze.service';
   selector: 'app-prediction',
   standalone: true,
   imports: [
+    LabHighlightsComponent,
     UserDeskComponent,
     PredictionChartComponent,
     PredictionOverviewComponent,

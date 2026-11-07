@@ -1,3 +1,4 @@
+import { LabHighlightsComponent } from '../../share/components/lab-highlights/lab-highlights.component';
 import { ForecastApiService } from '../../core/services/forecast-api.service';
 import { LotteryCategory } from '../../core/models/lottery-category.model';
 import { LabGroup, LabOverview, LabTicket } from '../../core/models/forecast.model';
@@ -19,7 +20,7 @@ import { LabProgressComponent } from './lab-progress/lab-progress.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ai-lab',
   standalone: true,
-  imports: [DatePipe, LabProgressComponent],
+  imports: [LabHighlightsComponent, DatePipe, LabProgressComponent],
   templateUrl: './ai-lab.component.html',
   styleUrl: './ai-lab.component.css',
 })
