@@ -15,8 +15,9 @@ public class ForecastController {
     public ForecastController(ForecastService forecasts) { this.forecasts = forecasts; }
     @GetMapping public Map<String,Object> list() { return forecasts.list(); }
     @GetMapping("/overview") public ResponseEntity<?> overview(@RequestParam(defaultValue="MEGA") String category,
-            @RequestParam(defaultValue="0") int page, @RequestParam(defaultValue="50") int size) {
-        try { return ResponseEntity.ok(forecasts.overview(category.toUpperCase(Locale.ROOT),page,size)); }
+            @RequestParam(defaultValue="0") int page, @RequestParam(defaultValue="50") int size,
+            @RequestParam(required=false) String fromDate,@RequestParam(required=false) String toDate) {
+        try { return ResponseEntity.ok(forecasts.overview(category.toUpperCase(Locale.ROOT),page,size,fromDate,toDate)); }
         catch(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
     }
     @PostMapping("/capture") public Map<String,Object> capture() { return forecasts.captureAll(); }

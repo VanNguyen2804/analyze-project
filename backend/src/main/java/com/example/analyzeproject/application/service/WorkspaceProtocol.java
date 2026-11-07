@@ -73,7 +73,10 @@ public final class WorkspaceProtocol {
     public static String fingerprint(Class<?>... types) {
         List<String> parts = new ArrayList<>();
         try {
-            for(Class<?> type:types) try(var in=type.getResourceAsStream(type.getSimpleName()+".class")) { parts.add(HexFormat.of().formatHex(in.readAllBytes())); }
+            for(Class<?> type:types) try(var in=type.getResourceAsStream("/"+type.getName().replace('.', '/')+".class")) {
+                if(in==null) throw new IllegalStateException("Missing model artifact: "+type.getName());
+                parts.add(HexFormat.of().formatHex(in.readAllBytes()));
+            }
         } catch(Exception e) { throw new IllegalStateException(e); }
         return hash(parts);
     }

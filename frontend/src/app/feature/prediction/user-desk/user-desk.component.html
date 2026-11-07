@@ -19,166 +19,203 @@
     @if (message()) {
       <p class="notice" role="status">{{ message() }}</p>
     }
-    <h3>Gợi ý thuật toán</h3>
-    <p class="muted">
-      Nguồn lịch sử đến {{ current.trainingThrough || 'chưa có' }} · Gợi ý
-      {{ current.createdAt | date: 'dd/MM HH:mm' : '+0700' }} GMT+7
-    </p>
-    <div class="ticket-grid">
-      @for (ticket of algorithmTickets(); track ticket.id) {
-        <article class="option">
-          <strong>{{
-            ticket.source === 'COMBINED'
-              ? 'Bộ kết hợp'
-              : ticket.id === 'primary'
-                ? 'Thuật toán 1'
-                : 'Thuật toán 2'
-          }}</strong>
-          <span class="muted">{{ ticket.label }}</span>
-          <p class="numbers">{{ ticket.numbers.join(' · ') }}</p>
-          <button (click)="add(ticket)" [disabled]="busy()">Chọn / sửa vé</button>
-          <button (click)="copy(ticket)" [disabled]="busy()">Sao chép</button>
-        </article>
-      }
-    </div>
-    @if (current.status === 'READY') {
-      <details class="combine-options">
-        <summary>Điều chỉnh bộ kết hợp</summary>
-        <div class="controls">
-          <label
-            >Trọng số thuật toán 1: {{ weight }}%<input
-              type="range"
-              min="0"
-              max="100"
-              step="5"
-              [(ngModel)]="weight"
-              [disabled]="busy() || rows().length > 0"
-          /></label>
-          <label
-            >Giữ số (tối đa 6)<input
-              [(ngModel)]="keep"
-              placeholder="Ví dụ: 10 22"
-              [disabled]="busy() || rows().length > 0"
-          /></label>
-          <label
-            >Bỏ số<input
-              [(ngModel)]="exclude"
-              placeholder="Ví dụ: 3 7"
-              [disabled]="busy() || rows().length > 0"
-          /></label>
-          <button (click)="recombine()" [disabled]="busy() || rows().length > 0">
-            Tính bộ kết hợp
+    <div class="desk-layout">
+      <div class="suggestion-pane">
+        <div class="source-tabs" role="group" aria-label="Nguồn gợi ý">
+          <button
+            [attr.aria-pressed]="sourceTab() === 'algorithms'"
+            (click)="sourceTab.set('algorithms')"
+          >
+            Thuật toán & kết hợp
+          </button>
+          <button
+            [attr.aria-pressed]="sourceTab() === 'portfolio'"
+            (click)="sourceTab.set('portfolio')"
+          >
+            Nhóm ít trùng
+          </button>
+          <button [attr.aria-pressed]="sourceTab() === 'lab'" (click)="sourceTab.set('lab')">
+            AI Lab
           </button>
         </div>
-        <p class="muted">
-          Điều chỉnh trước khi chọn vé. Trọng số thuật toán 2 là {{ 100 - weight }}%. Hai thuật toán
-          giống nhau được tính là một nguồn.
-        </p>
-      </details>
-    }
-    @if (current.portfolioDiagnostics; as diagnostics) {
-      <h3>Nhóm 3 vé ít trùng</h3>
-      <p class="muted">
-        Xếp hạng kết hợp hai thuật toán với trọng số bằng nhau từ gợi ý ban đầu.
-        {{ diagnostics.uniqueNumbers }} số khác nhau; mỗi cặp trùng tối đa
-        {{ diagnostics.maxPairOverlap }}/6 số. Đây là lựa chọn phân bổ cùng ngân sách 3 vé, chưa
-        chứng minh tăng khả năng trúng. Điều chỉnh bộ kết hợp ở trên không thay đổi nhóm này.
-      </p>
-      <div class="ticket-grid">
-        @for (ticket of current.portfolioTickets ?? []; track ticket.id) {
-          <article class="option">
-            <strong>{{ ticket.label }}</strong>
-            <p class="numbers">{{ ticket.numbers.join(' · ') }}</p>
-            <button (click)="add(ticket)" [disabled]="busy()">Chọn / sửa vé</button>
-            <button (click)="copy(ticket)" [disabled]="busy()">Sao chép</button>
-          </article>
+        @if (sourceTab() === 'algorithms') {
+          <h3>Gợi ý thuật toán</h3>
+          <p class="muted">
+            Nguồn lịch sử đến {{ current.trainingThrough || 'chưa có' }} · Gợi ý
+            {{ current.createdAt | date: 'dd/MM HH:mm' : '+0700' }} GMT+7
+          </p>
+          <div class="ticket-grid">
+            @for (ticket of algorithmTickets(); track ticket.id) {
+              <article class="option">
+                <strong>{{
+                  ticket.source === 'COMBINED'
+                    ? 'Bộ kết hợp'
+                    : ticket.id === 'primary'
+                      ? 'Thuật toán 1'
+                      : 'Thuật toán 2'
+                }}</strong>
+                <span class="muted">{{ ticket.label }}</span>
+                <p class="numbers">{{ ticket.numbers.join(' · ') }}</p>
+                <button (click)="add(ticket)" [disabled]="busy()">Chọn / sửa vé</button>
+                <button (click)="copy(ticket)" [disabled]="busy()">Sao chép</button>
+              </article>
+            }
+          </div>
+          @if (current.status === 'READY') {
+            <details class="combine-options">
+              <summary>Điều chỉnh bộ kết hợp</summary>
+              <div class="controls">
+                <label
+                  >Trọng số thuật toán 1: {{ weight }}%<input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    [(ngModel)]="weight"
+                    [disabled]="busy() || rows().length > 0"
+                /></label>
+                <label
+                  >Giữ số (tối đa 6)<input
+                    [(ngModel)]="keep"
+                    placeholder="Ví dụ: 10 22"
+                    [disabled]="busy() || rows().length > 0"
+                /></label>
+                <label
+                  >Bỏ số<input
+                    [(ngModel)]="exclude"
+                    placeholder="Ví dụ: 3 7"
+                    [disabled]="busy() || rows().length > 0"
+                /></label>
+                <button (click)="recombine()" [disabled]="busy() || rows().length > 0">
+                  Tính bộ kết hợp
+                </button>
+              </div>
+              <p class="muted">
+                Điều chỉnh trước khi chọn vé. Trọng số thuật toán 2 là {{ 100 - weight }}%. Hai
+                thuật toán giống nhau được tính là một nguồn.
+              </p>
+            </details>
+          }
+        }
+        @if (sourceTab() === 'portfolio') {
+          @if (current.portfolioDiagnostics; as diagnostics) {
+            <h3>Nhóm 3 vé ít trùng</h3>
+            <p class="muted">
+              Xếp hạng kết hợp hai thuật toán với trọng số bằng nhau từ gợi ý ban đầu.
+              {{ diagnostics.uniqueNumbers }} số khác nhau; mỗi cặp trùng tối đa
+              {{ diagnostics.maxPairOverlap }}/6 số. Đây là lựa chọn phân bổ cùng ngân sách 3 vé,
+              chưa chứng minh tăng khả năng trúng. Điều chỉnh bộ kết hợp ở trên không thay đổi nhóm
+              này.
+            </p>
+            <div class="ticket-grid">
+              @for (ticket of current.portfolioTickets ?? []; track ticket.id) {
+                <article class="option">
+                  <strong>{{ ticket.label }}</strong>
+                  <p class="numbers">{{ ticket.numbers.join(' · ') }}</p>
+                  <button (click)="add(ticket)" [disabled]="busy()">Chọn / sửa vé</button>
+                  <button (click)="copy(ticket)" [disabled]="busy()">Sao chép</button>
+                </article>
+              }
+            </div>
+          }
+          @if (!current.portfolioDiagnostics) {
+            <p class="notice">Chưa có nhóm ít trùng cho gợi ý này.</p>
+          }
+        }
+        @if (sourceTab() === 'lab') {
+          <div class="section-head">
+            <h3>Gợi ý từ AI Lab</h3>
+            <label
+              >Số dãy
+              <select
+                [ngModel]="labCount()"
+                (ngModelChange)="setLabCount(+$event)"
+                [disabled]="busy()"
+              >
+                <option [ngValue]="3">3</option>
+                <option [ngValue]="4">4</option>
+                <option [ngValue]="5">5</option>
+              </select></label
+            >
+          </div>
+          <p class="muted">
+            Vé đã lưu của đúng kỳ, chọn luân phiên từ các mô hình. Thứ tự hiển thị chưa chứng minh
+            khả năng trúng.
+          </p>
+          <div class="ticket-grid">
+            @for (ticket of labTickets(); track ticket.id) {
+              <article class="option lab">
+                <strong>{{ ticket.label }}</strong>
+                <p class="numbers">{{ ticket.numbers.join(' · ') }}</p>
+                @for (origin of ticket.labOrigins ?? []; track origin.id) {
+                  <small
+                    >{{ origin.modelVersion }} ·
+                    {{ origin.createdAt | date: 'dd/MM HH:mm' : '+0700' }} GMT+7</small
+                  >
+                }
+                <button (click)="add(ticket)" [disabled]="busy()">Chọn / sửa vé</button>
+                <button (click)="copy(ticket)" [disabled]="busy()">Sao chép</button>
+              </article>
+            } @empty {
+              <p class="notice">
+                AI Lab chưa có nhóm vé hợp lệ cho kỳ này. Bạn vẫn có thể chọn gợi ý thuật toán hoặc
+                tự nhập.
+              </p>
+            }
+          </div>
         }
       </div>
-    }
-    <div class="section-head">
-      <h3>Gợi ý từ AI Lab</h3>
-      <label
-        >Số dãy
-        <select [ngModel]="labCount()" (ngModelChange)="setLabCount(+$event)" [disabled]="busy()">
-          <option [ngValue]="3">3</option>
-          <option [ngValue]="4">4</option>
-          <option [ngValue]="5">5</option>
-        </select></label
-      >
-    </div>
-    <p class="muted">
-      Vé đã lưu của đúng kỳ, chọn luân phiên từ các mô hình. Thứ tự hiển thị chưa chứng minh khả
-      năng trúng.
-    </p>
-    <div class="ticket-grid">
-      @for (ticket of labTickets(); track ticket.id) {
-        <article class="option lab">
-          <strong>{{ ticket.label }}</strong>
-          <p class="numbers">{{ ticket.numbers.join(' · ') }}</p>
-          @for (origin of ticket.labOrigins ?? []; track origin.id) {
-            <small
-              >{{ origin.modelVersion }} ·
-              {{ origin.createdAt | date: 'dd/MM HH:mm' : '+0700' }} GMT+7</small
-            >
-          }
-          <button (click)="add(ticket)" [disabled]="busy()">Chọn / sửa vé</button>
-          <button (click)="copy(ticket)" [disabled]="busy()">Sao chép</button>
-        </article>
-      } @empty {
-        <p class="notice">
-          AI Lab chưa có nhóm vé hợp lệ cho kỳ này. Bạn vẫn có thể chọn gợi ý thuật toán hoặc tự
-          nhập.
+      <aside class="selection-pane" aria-label="Vé đang chọn">
+        <div class="section-head">
+          <h3>
+            Vé bạn chọn <span>({{ rows().length }}/25)</span>
+          </h3>
+          <button (click)="add()" [disabled]="busy()">＋ Tự nhập vé</button>
+        </div>
+        <p class="muted">
+          Nhập sáu số cách nhau bằng dấu cách hoặc dấu phẩy. Sửa vé vẫn giữ nguồn gợi ý để đối chiếu
+          với bản gốc.
         </p>
-      }
-    </div>
-    <div class="section-head">
-      <h3>
-        Vé bạn chọn <span>({{ rows().length }}/25)</span>
-      </h3>
-      <button (click)="add()" [disabled]="busy()">＋ Tự nhập vé</button>
-    </div>
-    <p class="muted">
-      Nhập sáu số cách nhau bằng dấu cách hoặc dấu phẩy. Sửa vé vẫn giữ nguồn gợi ý để đối chiếu với
-      bản gốc.
-    </p>
-    @if (concentration().validTickets > 1) {
-      <p class="notice" aria-live="polite">
-        {{ concentration().validTickets }} vé hợp lệ dùng {{ concentration().uniqueNumbers }} số
-        khác nhau. Cặp vé trùng nhiều nhất: {{ concentration().largestOverlap }}/6 số. Đây là mức
-        tập trung của nhóm vé, chưa phải xác suất trúng.
-      </p>
-    }
-    @for (row of rows(); track row.key; let index = $index) {
-      <div class="draft-row">
-        <label [for]="row.key"
-          >Vé {{ index + 1 }} · {{ row.label }}
-          @if (row.original) {
-            <small>Gốc: {{ row.original.join(' · ') }}</small>
-          }
-        </label>
-        <input
-          [id]="row.key"
-          [ngModel]="row.text"
-          (ngModelChange)="edit(row.key, $event)"
-          placeholder="01 02 03 04 05 06"
-          [disabled]="busy()"
-          autocomplete="off"
-        />
-        <button
-          (click)="remove(row.key)"
-          [disabled]="busy()"
-          [attr.aria-label]="'Bỏ vé ' + (index + 1)"
-        >
-          Bỏ
+        @if (concentration().validTickets > 1) {
+          <p class="notice" aria-live="polite">
+            {{ concentration().validTickets }} vé hợp lệ dùng {{ concentration().uniqueNumbers }} số
+            khác nhau. Cặp vé trùng nhiều nhất: {{ concentration().largestOverlap }}/6 số. Đây là
+            mức tập trung của nhóm vé, chưa phải xác suất trúng.
+          </p>
+        }
+        @for (row of rows(); track row.key; let index = $index) {
+          <div class="draft-row">
+            <label [for]="row.key"
+              >Vé {{ index + 1 }} · {{ row.label }}
+              @if (row.original) {
+                <small>Gốc: {{ row.original.join(' · ') }}</small>
+              }
+            </label>
+            <input
+              [id]="row.key"
+              [ngModel]="row.text"
+              (ngModelChange)="edit(row.key, $event)"
+              placeholder="01 02 03 04 05 06"
+              [disabled]="busy()"
+              autocomplete="off"
+            />
+            <button
+              (click)="remove(row.key)"
+              [disabled]="busy()"
+              [attr.aria-label]="'Bỏ vé ' + (index + 1)"
+            >
+              Bỏ
+            </button>
+          </div>
+        } @empty {
+          <p class="notice">Chưa chọn vé. Thêm từ gợi ý hoặc tự nhập để bắt đầu.</p>
+        }
+        <button class="commit" (click)="commit()" [disabled]="busy() || !rows().length">
+          {{ busy() ? 'Đang xử lý…' : 'Chốt danh sách vé trước kỳ' }}
         </button>
-      </div>
-    } @empty {
-      <p class="notice">Chưa chọn vé. Thêm từ gợi ý hoặc tự nhập để bắt đầu.</p>
-    }
-    <button class="commit" (click)="commit()" [disabled]="busy() || !rows().length">
-      {{ busy() ? 'Đang xử lý…' : 'Chốt danh sách vé trước kỳ' }}
-    </button>
-    <details class="user-history" open>
+      </aside>
+    </div>
+    <details class="user-history">
       <summary>Vé người dùng đã chốt và kết quả</summary>
       <div class="actions">
         <button (click)="loadHistory()" [disabled]="busy()">Tải lại lịch sử</button

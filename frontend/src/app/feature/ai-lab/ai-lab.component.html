@@ -5,22 +5,13 @@
         <span class="spark" aria-hidden="true">✳</span> AI LAB
         <span class="eyebrow-line"></span> KHÔNG GIAN THỬ NGHIỆM
       </div>
-      <h1>Ý tưởng mới.<br /><span>Bằng chứng thật.</span></h1>
+      <h1>Phòng thử nghiệm AI</h1>
       <p class="hero-description">
-        Để mô hình học, thử nghiệm và đối chiếu. Theo dõi từng bộ số đã chốt, khám phá hiệu quả qua
-        từng kỳ quay.
+        So sánh mô hình trên các vé đã chốt trước kỳ, cùng ngân sách và nguồn dữ liệu.
       </p>
       <div class="hero-tags">
         <span>Học từ lịch sử</span><span>Chốt trước kỳ quay</span><span>So sánh công bằng</span>
       </div>
-    </div>
-    <div class="hero-art" aria-hidden="true">
-      <div class="orbit orbit-one"></div>
-      <div class="orbit orbit-two"></div>
-      <div class="art-core">AI<span>LAB</span></div>
-      <span class="orbit-node node-one">01</span><span class="orbit-node node-two">06</span
-      ><span class="orbit-node node-three">55</span> <span class="art-spark">✳</span
-      ><span class="art-caption">QUAN SÁT. ĐO LƯỜNG. HỌC HỎI.</span>
     </div>
   </header>
 
@@ -105,7 +96,9 @@
                     ? group.feedbackEnabled
                       ? 'Học lịch sử và phản hồi từng số đúng/sai từ các vé đã chốt, gồm cả vé khớp 1–2 số.'
                       : 'Học từ lịch sử, không học thêm feedback; đối chứng để đo tác dụng của phản hồi.'
-                    : 'Ưu tiên dữ liệu gần đây với trọng số giảm dần theo thời gian.'
+                    : group.model === 'shrunk_frequency'
+                      ? 'Co tần suất về mức đồng đều 6/N. Là baseline xác suất, chưa chứng minh tăng khả năng trúng.'
+                      : 'Ưu tiên dữ liệu gần đây với trọng số giảm dần theo thời gian.'
                 }}
               </p>
               @if (group.progress; as evidence) {

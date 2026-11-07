@@ -61,14 +61,15 @@ class OnionPersistencePostgresTest {
             setup.execute(schemaDataSource);
             new ApplicationContextRunner()
                     .withConfiguration(AutoConfigurations.of(DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
-                            JdbcTemplateAutoConfiguration.class, TransactionAutoConfiguration.class))
+                            JdbcTemplateAutoConfiguration.class, TransactionAutoConfiguration.class,
+                            org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration.class))
                     .withUserConfiguration(Config.class)
                     .withPropertyValues("spring.datasource.url=" + schemaUrl, "spring.datasource.username=" + user,
                             "spring.datasource.password=", "spring.jpa.hibernate.ddl-auto=validate", "spring.jpa.open-in-view=false")
                     .run(context -> {
                         assertNull(context.getStartupFailure(), () -> Objects.toString(context.getStartupFailure()));
                         for (Class<?> service : List.of(AnalyzeService.class, ForecastService.class, AiLabService.class,
-                                WorkspaceService.class, MegaPortfolioService.class)) assertNotNull(context.getBean(service));
+                                WorkspaceService.class, MegaPortfolioService.class, PredictionResearchService.class)) assertNotNull(context.getBean(service));
                         var importer = context.getBean(LotteryResultImporter.class);
                         assertTrue(AopUtils.isAopProxy(importer));
                         assertTrue(AopUtils.isAopProxy(context.getBean(DrawAnalysisService.class)));

@@ -10,6 +10,17 @@ import static org.mockito.Mockito.*;
 import com.example.analyzeproject.application.port.out.*;
 
 class AiLabFeedbackTest {
+    @Test @SuppressWarnings("unchecked") void challengerCaptureCanBeDisabledWhileExistingEvidenceIsPreserved() {
+        var store=mock(AiLabStore.class);var repository=mock(LotteryNumberRepository.class);
+        var saved=new ArrayList<Map<String,Object>>();when(store.snapshots()).thenAnswer(call->new ArrayList<>(saved));
+        when(repository.findAllByOrderByDrawDateDescCreatedAtDesc()).thenReturn(known());
+        doAnswer(call->{saved.addAll((List<Map<String,Object>>)call.getArgument(0));return null;}).when(store).captureBatch(anyList());
+        var service=new AiLabService(store,repository,true,AiLabModel.FeedbackPolicy.defaults(),Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"),ZoneOffset.UTC),false);
+        service.run();assertEquals(15,saved.size());
+        assertTrue(saved.stream().noneMatch(f->Set.of("shrunk_frequency","logistic_coverage").contains(f.get("labModel"))));
+        String hash=ForecastProtocol.hash(saved);service.run();assertEquals(hash,ForecastProtocol.hash(saved));
+        verify(store,times(2)).reconcile(anyList(),any());
+    }
     private final Instant captured = Instant.parse("2026-10-25T10:00:00Z");
     private final Instant settled = Instant.parse("2026-10-25T12:01:00Z");
     private final LocalDate next = LocalDate.of(2026,10,28);
@@ -87,7 +98,7 @@ class AiLabFeedbackTest {
         doAnswer(call->{saved.addAll((List<Map<String,Object>>)call.getArgument(0));return null;}).when(store).captureBatch(anyList());
         Clock clock=Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"),ZoneOffset.UTC);
         var service=new AiLabService(store,repository,true,AiLabModel.FeedbackPolicy.defaults(),clock);service.run();
-        assertEquals(20,saved.size());assertEquals(original,ForecastProtocol.hash(old));
+        assertEquals(5+AiLabModel.MODELS.size()*AiLabModel.BUDGET,saved.size());assertEquals(original,ForecastProtocol.hash(old));
         var next=saved.get(5);assertEquals(AiLabModel.VERSION,next.get("modelVersion"));assertTrue(ForecastProtocol.isProspective(next));
         var explanation=(Map<String,Object>)next.get("explanation");var feedback=(Map<String,Object>)explanation.get("feedback");
         assertEquals(1,feedback.get("draws"));assertEquals(List.of(1,2,2,0,0,0,0),feedback.get("ticketMatchHistogram"));
@@ -95,6 +106,6 @@ class AiLabFeedbackTest {
         var fit=AiLabModel.fit(known(),"MEGA","logistic",evidence.rounds(),AiLabModel.FeedbackPolicy.defaults());
         var weights=(Map<String,Double>)explanation.get("modelWeights");assertEquals(fit.weights()[0],weights.get("intercept"));
         assertEquals(fit.weights()[1],weights.get("frequency"));
-        service.run();assertEquals(20,saved.size());verify(store,times(3)).captureBatch(anyList());
+        service.run();assertEquals(5+AiLabModel.MODELS.size()*AiLabModel.BUDGET,saved.size());verify(store,times(AiLabModel.MODELS.size())).captureBatch(anyList());
     }
 }

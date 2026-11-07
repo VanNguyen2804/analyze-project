@@ -15,9 +15,15 @@ export class ForecastApiService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl || '';
 
-  overview(category: LotteryCategory, page: number) {
+  overview(category: LotteryCategory, page: number, fromDate = '', toDate = '') {
     return this.http.get<ForecastOverview>(`${this.base}/api/forecasts/overview`, {
-      params: { category, page, size: 50 },
+      params: {
+        category,
+        page,
+        size: 50,
+        ...(fromDate ? { fromDate } : {}),
+        ...(toDate ? { toDate } : {}),
+      },
     });
   }
   mutate(action: 'capture' | 'reconcile') {

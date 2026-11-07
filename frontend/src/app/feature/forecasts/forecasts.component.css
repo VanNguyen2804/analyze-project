@@ -463,3 +463,90 @@ a:focus-visible {
     padding: 12px;
   }
 }
+
+.evidence-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+}
+.evidence-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  min-width: 0;
+}
+.evidence-filters select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink);
+  background: white;
+}
+.histogram-details {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding: 12px 0;
+}
+.histogram-details summary {
+  min-height: 44px;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 12px 0;
+  font-weight: 650;
+}
+.histogram-details p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.match-histogram {
+  max-width: 680px;
+}
+.match-histogram > div {
+  display: grid;
+  grid-template-columns: 50px 1fr 65px;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0;
+  font-size: 12px;
+}
+.match-histogram i {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--canvas);
+  overflow: hidden;
+}
+.match-histogram b {
+  display: block;
+  background: var(--accent);
+  height: 100%;
+  border-radius: 5px;
+}
+.research-placeholder {
+  min-height: 100px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  color: var(--muted);
+}
+.date-filters {
+  align-items: end;
+}
+.date-filters input {
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--ink);
+  background: white;
+  max-width: 100%;
+}
+.applied-window {
+  color: var(--muted);
+  font-size: 12px;
+  padding-bottom: 12px;
+}

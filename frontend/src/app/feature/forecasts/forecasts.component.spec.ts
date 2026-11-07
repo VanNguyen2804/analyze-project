@@ -33,6 +33,42 @@ describe('ForecastsComponent requests', () => {
     http.expectNone(`${base}/reconcile`);
     expect(fixture.componentInstance.busy()).toBeFalse();
   });
+  it('keeps the threshold denominator in evaluated draws and separates version filters', () => {
+    http.expectOne(overview()).flush({
+      ...payload,
+      evaluation: {
+        groups: [
+          {
+            cohort: 'v1',
+            algorithm: 'test',
+            modelVersion: 'v1',
+            configurationHash: 'one',
+            evaluatedDraws: 4,
+            savedForecasts: 6,
+            pendingOrUnavailable: 2,
+            matchHistogram: [1, 0, 0, 1, 1, 1, 0],
+          },
+          {
+            cohort: 'v2',
+            algorithm: 'test',
+            modelVersion: 'v2',
+            configurationHash: 'two',
+            evaluatedDraws: 0,
+            savedForecasts: 1,
+            pendingOrUnavailable: 1,
+            matchHistogram: [0, 0, 0, 0, 0, 0, 0],
+          },
+        ],
+      },
+    });
+    const view = fixture.componentInstance;
+    view.threshold.set(4);
+    expect(view.thresholdCount()).toBe(2);
+    expect(view.groupRate(view.groups()[0])).toBe(50);
+    expect(view.groupRate(view.groups()[1])).toBeNull();
+    view.cohortFilter.set('v2');
+    expect(view.visibleGroups().map((g) => g.cohort)).toEqual(['v2']);
+  });
   it('cancels the previous category request and cancels requests when leaving the page', () => {
     const previous = http.expectOne(overview());
     fixture.componentInstance.category.set('POWER');
@@ -49,6 +85,25 @@ describe('ForecastsComponent requests', () => {
     fixture.componentInstance.load();
     http.expectOne(overview()).flush(payload);
     expect(fixture.componentInstance.error()).toBe('');
+  });
+  it('applies date boundaries to the compact API and rejects a reversed interval', () => {
+    http.expectOne(overview()).flush(payload);
+    const view = fixture.componentInstance;
+    view.fromDate.set('2026-10-01');
+    view.toDate.set('2026-10-31');
+    view.load();
+    http
+      .expectOne(
+        (r) =>
+          r.url.endsWith('/overview') &&
+          r.params.get('fromDate') === '2026-10-01' &&
+          r.params.get('toDate') === '2026-10-31',
+      )
+      .flush(payload);
+    view.fromDate.set('2026-11-01');
+    view.load();
+    expect(view.error()).toContain('Ngày bắt đầu');
+    http.expectNone((r) => r.url.endsWith('/overview'));
   });
   it('prevents duplicate capture submissions and refreshes once after completion', () => {
     http.expectOne(overview()).flush(payload);

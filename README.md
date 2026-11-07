@@ -43,6 +43,8 @@ Flyway V14 tạo `mega_portfolio_snapshots` và `mega_portfolio_settlements`, t�
 
 ## Phòng thử nghiệm AI
 
+Bản nâng cấp 07/11 thêm tần suất làm trơn và Logistic ghép vé theo độ phủ, mỗi mô hình năm vé/kỳ, giữ riêng bằng chứng theo phiên bản. Có thể tắt chốt mới của hai ứng viên bằng `AI_LAB_CHALLENGERS_ENABLED=false`; bản cũ vẫn được đối soát. Tab lịch sử có bộ lọc ngày/phiên bản, các mức ≥3/≥4/≥5 và phần kiểm kê/benchmark chạy thủ công. Xem [hướng dẫn, API, kết quả và giới hạn](backend/docs/VIETLOTT_RESEARCH_IMPLEMENTATION.md).
+
 Mở `/ai-lab` từ menu để theo dõi nhiều dãy dự đoán trước kỳ: Logistic Regression và tần suất suy giảm theo thời gian, mỗi mô hình 5 vé/kỳ. Backend tự chốt và đối soát mỗi phút khi đang chạy; trang tự cập nhật mỗi phút. Chỉ học trên kết quả hợp lệ trước kỳ đích, cần ít nhất 10 kỳ và kỳ hoàn tất mới nhất.
 
 Khi triển khai bản mới, Flyway chạy migration V12 tạo ledger thử nghiệm riêng. Có thể đặt `AI_LAB_ENABLED=false` để tắt tạo vé mới; đối soát bản cũ vẫn hoạt động. `FORECAST_ENABLED` chỉ điều khiển ledger dự đoán chính.

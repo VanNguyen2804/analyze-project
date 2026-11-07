@@ -18,7 +18,9 @@ public class DrawAnalysisService {
     private final AiLabStore lab;
     private final WorkspaceStore workspace;
     private final Clock clock;
-    private static final Set<String> ALGORITHMS=Set.of("temporal_learning","bayesian_graph","deep_stacking","combined_ensemble","lab-logistic","lab-recency");
+    private static final Set<String> ALGORITHMS=java.util.stream.Stream.concat(
+            java.util.stream.Stream.of("temporal_learning","bayesian_graph","deep_stacking","combined_ensemble"),
+            AiLabModel.MODELS.stream().map(model->"lab-"+model)).collect(java.util.stream.Collectors.toUnmodifiableSet());
     public DrawAnalysisService(LotteryNumberRepository draws,UserTicketRepository users,ForecastStore forecasts,AiLabStore lab,WorkspaceStore workspace) {
         this(draws,users,forecasts,lab,workspace,Clock.systemUTC());
     }

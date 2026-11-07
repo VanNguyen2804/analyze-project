@@ -154,6 +154,11 @@ public final class ForecastProtocol {
                     "matchHistogram", histogram, "averageMatched", average(measured,"matched"), "frequencyAverageMatched", average(measured,"frequencyMatched"),
                     "randomAverageMatched", average(measured,"randomMatched"), "randomExpectedAverageMatched", 36.0 / ("POWER".equals(first.get("category")) ? 55 : 45),
                     "hit3RatePercent", n == 0 ? null : 100.0 * IntStream.rangeClosed(3,6).map(i -> histogram[i]).sum() / n,
+                    "hit4RatePercent", n == 0 ? null : 100.0 * IntStream.rangeClosed(4,6).map(i -> histogram[i]).sum() / n,
+                    "hit5RatePercent", n == 0 ? null : 100.0 * IntStream.rangeClosed(5,6).map(i -> histogram[i]).sum() / n,
+                    "hit4Count", IntStream.rangeClosed(4,6).map(i -> histogram[i]).sum(),
+                    "hit4Interval95", n == 0 ? null : PredictionBenchmark.wilson(IntStream.rangeClosed(4,6).map(i -> histogram[i]).sum(), n),
+                    "budget", 1, "evidenceType", "PROSPECTIVE_FROZEN", "evaluationVersion", "ticket-outcomes-v2",
                     "pairedDifferenceVsFrequency", n == 0 ? null : delta, "approximate95PercentInterval", n < 2 ? null : List.of(delta-margin,delta+margin),
                     "evidenceStatus", n < 30 ? "INSUFFICIENT_SAMPLE" : "DESCRIPTIVE_ONLY"));
         }

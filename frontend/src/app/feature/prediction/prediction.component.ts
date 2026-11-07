@@ -484,21 +484,21 @@ export class PredictionComponent implements OnInit {
   }
 
   copyTicketSuccessMsg: string | null = null;
-  copyTicket(numbers: number[], special?: number | null) {
-    const text =
-      numbers.map((n) => this.formatNumber(n)).join(' - ') +
-      (special ? ` (⭐${this.formatNumber(special)})` : '');
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(text);
+  async copyTicket(numbers: number[], _special?: number | null) {
+    const text = numbers.map((n) => this.formatNumber(n)).join(' - ');
+    try {
+      await navigator.clipboard.writeText(text);
+      this.copyTicketSuccessMsg = `Đã sao chép vé: [ ${text} ]`;
+    } catch {
+      this.copyTicketSuccessMsg = `Chưa sao chép được. Chọn và sao chép thủ công: ${text}`;
     }
-    this.copyTicketSuccessMsg = `Đã sao chép vé: [ ${text} ]`;
-    timer(3000)
+    this.cdr.markForCheck();
+    timer(5000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.copyTicketSuccessMsg = null;
         this.cdr.markForCheck();
       });
-    this.cdr.markForCheck();
   }
 
   getTargetDrawInfo(): {
@@ -677,7 +677,7 @@ export class PredictionComponent implements OnInit {
       let ruleBadge = 'bg-secondary text-white';
       let ruleIcon = '⚖️';
       let ruleFormula = `Số ${this.formatNumber(num)}`;
-      let ruleExplanation = `Cân bằng phương sai và dải phân bố xác suất XGBoost.`;
+      let ruleExplanation = `Cân bằng phương sai và dải điểm tần suất và độ trễ.`;
       const probability = this.getNumberProbability(num);
 
       if (latestWinning.includes(num)) {
@@ -773,17 +773,7 @@ export class PredictionComponent implements OnInit {
 
   copyHedgingTicket(): void {
     const drift = this.getNeighborDriftAnalysis();
-    if (drift?.hedgingTicketNumbers && drift.hedgingTicketNumbers.length > 0) {
-      this.copyTicket(drift.hedgingTicketNumbers, this.payload?.specialNumber);
-      this.copyTicketSuccessMsg = `Đã sao chép vé bọc lót hóa giải lệch 1 nút: [${drift.hedgingTicketNumbers.map((n: number) => String(n).padStart(2, '0')).join(', ')}]`;
-      this.cdr.markForCheck();
-      timer(3500)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => {
-          this.copyTicketSuccessMsg = null;
-          this.cdr.markForCheck();
-        });
-    }
+    if (drift?.hedgingTicketNumbers?.length) void this.copyTicket(drift.hedgingTicketNumbers);
   }
 
   // ==========================================

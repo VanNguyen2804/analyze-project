@@ -1,4 +1,18 @@
-<nav class="left-menu p-3">
+@if (navigation.open()) {
+  <button
+    class="menu-backdrop"
+    tabindex="-1"
+    aria-label="Đóng menu"
+    (click)="navigation.close()"
+  ></button>
+}
+<nav
+  id="primary-navigation"
+  class="left-menu p-3"
+  [class.is-open]="navigation.open()"
+  aria-label="Điều hướng chính"
+>
+  <button class="drawer-close" (click)="navigation.close()">Đóng menu ×</button>
   <!-- Zone 1: Main navigation -->
   <div class="menu-heading text-uppercase text-muted fw-bold small px-2 mb-2">Chức năng chính</div>
   <div class="menu-links d-flex flex-column gap-1 mb-4">
@@ -8,11 +22,29 @@
     <a routerLink="/ai-lab" routerLinkActive="active" class="menu-item">
       <span class="fs-5">🧪</span><span>Phòng thử nghiệm AI</span>
     </a>
-    <a routerLink="/analyze" routerLinkActive="active" class="menu-item">
+    <a
+      routerLink="/analyze"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page"
+      class="menu-item"
+    >
       <span class="fs-5">⚡</span>
       <span>Dự đoán &amp; kết quả</span>
     </a>
-    <a routerLink="/latest-analysis" routerLinkActive="active" class="menu-item">
+    <a
+      routerLink="/analyze/history"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      class="menu-item"
+      ><span class="fs-5">◷</span><span>Lịch sử & hiệu quả</span></a
+    >
+    <a
+      routerLink="/analyze/review"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      class="menu-item"
+    >
       <span class="fs-5">🎯</span>
       <div class="d-flex flex-column">
         <span>Phân tích Kỳ mới nhất</span>

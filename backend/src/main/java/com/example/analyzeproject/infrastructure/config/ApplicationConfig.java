@@ -32,6 +32,11 @@ public class ApplicationConfig {
     }
     @Bean Clock applicationClock() { return Clock.systemUTC(); }
 
+    @Bean PredictionResearchService predictionResearchService(LotteryNumberRepository draws, ForecastStore forecasts,
+            AiLabStore lab, Clock clock, AnalyzeService analyze) {
+        return new PredictionResearchService(draws, forecasts, lab, clock, analyze);
+    }
+
     @Bean AnalyzeService analyzeService(LotteryNumberRepository draws, UserTicketRepository tickets,
             AlgorithmHyperparameterRepository parameters, LotteryDeviationVariableRepository deviations) {
         return new AnalyzeService(draws, tickets, parameters, deviations);
@@ -54,8 +59,9 @@ public class ApplicationConfig {
             @Value("${ai-lab.enabled:true}") boolean enabled,
             @Value("${ai-lab.feedback.learning-rate:0.05}") double learningRate,
             @Value("${ai-lab.feedback.selected-extra-weight:0.25}") double selectedExtraWeight,
-            @Value("${ai-lab.feedback.maximum-draws:60}") int maximumDraws) {
-        return new AiLabService(store, draws, enabled, new com.example.analyzeproject.domain.service.AiLabModel.FeedbackPolicy(learningRate,selectedExtraWeight,maximumDraws),clock);
+            @Value("${ai-lab.feedback.maximum-draws:60}") int maximumDraws,
+            @Value("${ai-lab.challengers.enabled:true}") boolean challengersEnabled) {
+        return new AiLabService(store, draws, enabled, new com.example.analyzeproject.domain.service.AiLabModel.FeedbackPolicy(learningRate,selectedExtraWeight,maximumDraws),clock,challengersEnabled);
     }
 
     @Bean WorkspaceService workspaceService(AnalyzeService analyze, LotteryNumberRepository draws,

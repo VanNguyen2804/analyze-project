@@ -8,9 +8,17 @@ import java.util.stream.IntStream;
 public final class AiLabModel {
     public static final String VERSION = "ai-lab-dense-feedback-v2";
     public static final int BUDGET = 5;
-    public static final List<String> MODELS = List.of("logistic", "logistic_no_feedback", "recency");
+    public static final List<String> MODELS = List.of("logistic", "logistic_no_feedback", "recency", "shrunk_frequency", "logistic_coverage");
     private AiLabModel() {}
     public record Fit(double[] scores, double[][] features, double[] weights) {}
+    public record TrainingPolicy(int epochs, double learningRate, double l2, int featureMask, int windowDraws) {
+        public TrainingPolicy {
+            if (epochs < 1 || epochs > 200 || !Double.isFinite(learningRate) || learningRate <= 0 || learningRate > 1
+                    || !Double.isFinite(l2) || l2 < 0 || l2 > 10 || featureMask < 1 || featureMask > 15
+                    || windowDraws < 0 || windowDraws > 10000) throw new IllegalArgumentException("Invalid training policy");
+        }
+        public static TrainingPolicy defaults() { return new TrainingPolicy(80, .2, .05, 15, 0); }
+    }
     public record FeedbackPolicy(double learningRate, double selectedExtraWeight, int maximumDraws) {
         public FeedbackPolicy {
             if (!Double.isFinite(learningRate) || learningRate <= 0 || learningRate > .2
@@ -67,9 +75,14 @@ public final class AiLabModel {
         return fit(input,category,model).scores();
     }
     public static Fit fit(List<LotteryNumber> input, String category, String model) {
-        if ("logistic_no_feedback".equals(model)) model = "logistic";
+        return fit(input, category, model, TrainingPolicy.defaults());
+    }
+    public static Fit fit(List<LotteryNumber> input, String category, String model, TrainingPolicy policy) {
+        if (!Set.of("MEGA", "POWER").contains(category)) throw new IllegalArgumentException("Invalid category");
+        if (Set.of("logistic_no_feedback", "logistic_coverage").contains(model)) model = "logistic";
         var rows = DrawQuality.history(input).stream().filter(r -> category.equals(r.getCategory()))
                 .sorted(Comparator.comparing(LotteryNumber::getDrawDate)).toList();
+        if (policy.windowDraws() > 0) rows = rows.subList(Math.max(0, rows.size() - policy.windowDraws()), rows.size());
         int max = "POWER".equals(category) ? 55 : 45;
         double[] weights = { Math.log(6.0 / (max - 6)), 0, 0, 0, 0 };
         List<double[]> features = new ArrayList<>(); List<Double> labels = new ArrayList<>();
@@ -81,6 +94,7 @@ public final class AiLabModel {
         for(int t=0;t<=rows.size();t++) {
             for(int n=1;n<=max;n++) {
                 current[n]=new double[]{1,counts[n]/Math.max(1,t),recent[n]/Math.max(1,Math.min(10,t)),decay[n]/Math.max(1,totalWeight),Math.min(lastSeen[n]<0?t:t-1-lastSeen[n],30)/30.0};
+                for (int j = 1; j < current[n].length; j++) if ((policy.featureMask() & (1 << (j - 1))) == 0) current[n][j] = 0;
                 if("logistic".equals(model) && t>=5 && t<rows.size()) {
                     features.add(current[n]); labels.add(rows.get(t).getNumbers().contains(n)?1.0:0.0);
                 }
@@ -92,21 +106,33 @@ public final class AiLabModel {
             for(int n:rows.get(t).getNumbers()) { counts[n]++; recent[n]++; decay[n]++; lastSeen[n]=t; }
         }
         if ("logistic".equals(model)) {
-            for (int epoch = 0; epoch < 80 && !features.isEmpty(); epoch++) {
+            for (int epoch = 0; epoch < policy.epochs() && !features.isEmpty(); epoch++) {
                 double[] gradient = new double[weights.length];
                 for (int i = 0; i < features.size(); i++) {
                     double[] x = features.get(i); double error = sigmoid(dot(weights,x)) - labels.get(i);
                     for (int j = 0; j < weights.length; j++) gradient[j] += error*x[j];
                 }
-                for (int j = 0; j < weights.length; j++) weights[j] -= 0.2*(gradient[j]/features.size() + (j == 0 ? 0 : 0.05*weights[j]));
+                for (int j = 0; j < weights.length; j++) weights[j] -= policy.learningRate()*(gradient[j]/features.size() + (j == 0 ? 0 : policy.l2()*weights[j]));
             }
         }
         double[] scores = new double[max+1];
         for (int n = 1; n <= max; n++) {
             double[] x = current[n];
-            scores[n] = "logistic".equals(model) ? sigmoid(dot(weights,x)) : "frequency".equals(model) ? x[1]+0.01 : "random".equals(model) ? 1 : x[3]+0.01;
+            scores[n] = "logistic".equals(model) ? sigmoid(dot(weights,x)) : "shrunk_frequency".equals(model) ? (counts[n] + 16 * 6.0 / max) / (rows.size() + 16) : "frequency".equals(model) ? x[1]+0.01 : "random".equals(model) ? 1 : x[3]+0.01;
         }
         return new Fit(scores,current,weights);
+    }
+    /** Marginal baseline with six expected main numbers; shrinkage alone preserves frequency ranking. */
+    public static double[] shrunkFrequency(List<LotteryNumber> input, String category, double priorDraws) {
+        if (!Set.of("MEGA", "POWER").contains(category) || !Double.isFinite(priorDraws) || priorDraws <= 0 || priorDraws > 10000)
+            throw new IllegalArgumentException("Invalid category or prior strength");
+        var rows = DrawQuality.history(input).stream().filter(r -> category.equals(r.getCategory())).toList();
+        int max = "POWER".equals(category) ? 55 : 45;
+        double[] scores = new double[max + 1];
+        Arrays.fill(scores, priorDraws * 6.0 / max); scores[0] = 0;
+        for (var row : rows) for (int number : row.getNumbers()) scores[number]++;
+        for (int number = 1; number <= max; number++) scores[number] /= rows.size() + priorDraws;
+        return scores;
     }
     private static double dot(double[] a,double[] b) { double v=0; for(int i=0;i<a.length;i++) v+=a[i]*b[i]; return v; }
     private static double sigmoid(double x) { return 1/(1+Math.exp(-Math.max(-30,Math.min(30,x)))); }

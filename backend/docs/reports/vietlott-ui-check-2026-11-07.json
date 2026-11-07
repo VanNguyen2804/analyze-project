@@ -1,0 +1,172 @@
+{
+  "source": "Browser state fixtures and archived responses; not prospective accuracy evidence",
+  "checks": [
+    {
+      "viewport": {
+        "width": 1440,
+        "scroll": 1440
+      }
+    },
+    {
+      "draftAcrossCategory": true
+    },
+    {
+      "conflictRetainsDraft": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "drawerEscape": true
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "scroll": 360
+      }
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "scroll": 753
+      }
+    },
+    {
+      "drawerClosesOnDesktop": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "scroll": 1425
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "manualBenchmark": true,
+      "readOnlyHistory": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "scroll": 1425
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "scroll": 1425
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "scroll": 390
+      }
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/latest-draw?category=MEGA"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/algorithms"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8094/api/prediction-workspace/suggestions"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/mega-portfolio?page=0"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/prediction-workspace/history?category=MEGA"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/latest-draw?category=POWER"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8094/api/prediction-workspace/suggestions"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/prediction-workspace/history?category=POWER"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/latest-draw?category=MEGA"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8094/api/prediction-workspace/suggestions"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/mega-portfolio?page=0"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/prediction-workspace/history?category=MEGA"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8094/api/prediction-workspace/commit"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/latest-draw?category=MEGA"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/forecasts/overview?category=MEGA&page=0&size=50"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/prediction-research/inventory?category=MEGA"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8094/api/prediction-research/benchmark?category=MEGA"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/latest-draw?category=MEGA"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/ai-lab?category=MEGA&page=0"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/latest-draw?category=MEGA"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/algorithms"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8094/api/analyze/draw-report?category=MEGA&algorithm=temporal_learning"
+    }
+  ],
+  "errors": []
+}

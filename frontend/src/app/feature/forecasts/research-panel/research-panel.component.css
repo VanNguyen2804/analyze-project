@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  margin: 20px 0;
+}
+.research-panel {
+  padding: clamp(16px, 2vw, 26px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+header,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.eyebrow {
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  font-size: 10px;
+  font-weight: 750;
+}
+h3 {
+  font-size: 20px;
+  margin: 8px 0 20px;
+  letter-spacing: -0.03em;
+}
+button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+button:disabled {
+  opacity: 0.55;
+}
+button.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+article {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--canvas);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+article strong {
+  font-size: 25px;
+  letter-spacing: -0.04em;
+}
+article span {
+  font-size: 12px;
+  font-weight: 600;
+}
+article small,
+.source-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.source-note {
+  margin: 14px 0 0;
+}
+.warning {
+  background: #fff4d9;
+}
+.study {
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+.study p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.actions {
+  justify-content: flex-start;
+}
+.error {
+  background: #fff0ef;
+  color: #9d3028;
+  padding: 12px;
+  border-radius: 8px;
+}
+.table-scroll {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+caption {
+  caption-side: top;
+  color: var(--muted);
+  padding: 12px 0;
+}
+th,
+td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+thead {
+  background: var(--canvas);
+}
+@media (max-width: 1100px) {
+  .inventory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 500px) {
+  .inventory-grid {
+    grid-template-columns: 1fr;
+  }
+  article {
+    padding: 12px;
+  }
+}

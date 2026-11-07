@@ -15,8 +15,8 @@ class AiLabTest {
         var actual=TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,25),"MEGA",List.of(1,2,3,30,31,32),null,null));
         for (String model:List.of("logistic","logistic_no_feedback")) for(int slot=0;slot<5;slot++) {
             var f=ForecastProtocol.prepare(history(),"MEGA","lab-"+model+"-"+slot,AiLabModel.VERSION,"code",
-                    Map.of("budget",5,"feedbackPolicy",model),List.of(1,2,3,4,5,6),before);
-            f.put("labModel",model); snapshots.add(f); events.add(ForecastProtocol.settle(f,List.of(actual),after,null));
+                    Map.of("budget",5,"feedbackPolicy",model),List.of(1,2,3,4,5,6+slot),before);
+            f.put("labModel",model); f.put("slot",slot); snapshots.add(f); events.add(ForecastProtocol.settle(f,List.of(actual),after,null));
         }
         var report=AiLabService.evaluate(snapshots,events).stream().filter(g->"logistic".equals(g.get("model"))).findFirst().orElseThrow();
         var comparison=(Map<?,?>)report.get("feedbackComparison");
@@ -51,8 +51,8 @@ class AiLabTest {
         List<Map<String,Object>> snapshots=new ArrayList<>(), events=new ArrayList<>();
         var actual=TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,25),"MEGA",List.of(1,2,3,30,31,32),null,null));
         for(int i=0;i<5;i++) {
-            var f=ForecastProtocol.prepare(history(),"MEGA","lab-logistic-"+i,AiLabModel.VERSION,"code",Map.of("budget",5),List.of(1,2,3,4,5,6),before);
-            f.put("labModel","logistic"); snapshots.add(f); events.add(ForecastProtocol.settle(f,List.of(actual),after,null));
+            var f=ForecastProtocol.prepare(history(),"MEGA","lab-logistic-"+i,AiLabModel.VERSION,"code",Map.of("budget",5),List.of(1,2,3,4,5,6+i),before);
+            f.put("labModel","logistic"); f.put("slot",i); snapshots.add(f); events.add(ForecastProtocol.settle(f,List.of(actual),after,null));
         }
         var report=AiLabService.evaluate(snapshots,events).get(0);
         assertEquals(1,report.get("evaluatedDraws")); assertEquals(100.0,report.get("ticketHit3Percent")); assertEquals(100.0,report.get("drawHit3Percent"));
@@ -83,7 +83,7 @@ class AiLabTest {
         List<Map<String,Object>> saved=new ArrayList<>(); when(store.snapshots()).thenAnswer(call->new ArrayList<>(saved));
         doAnswer(call->{ List<Map<String,Object>> batch=call.getArgument(0); assertEquals(5,batch.size()); saved.addAll(batch); return null; }).when(store).captureBatch(anyList());
         var lab=new AiLabService(store,repository,true); lab.run();
-        assertEquals(15,saved.size());
+        assertEquals(AiLabModel.MODELS.size()*AiLabModel.BUDGET,saved.size());
         for(var f:saved) {
             assertTrue(ForecastProtocol.isProspective(f)); assertEquals(12,((List<?>)f.get("history")).size());
             assertEquals(6,((List<?>)f.get("frequencyNumbers")).size()); assertEquals(6,((List<?>)f.get("randomNumbers")).size());
@@ -92,7 +92,7 @@ class AiLabTest {
             assertEquals(saved.get(i).get("frequencyNumbers"),saved.get(i+5).get("frequencyNumbers"));
             assertEquals(saved.get(i).get("randomNumbers"),saved.get(i+5).get("randomNumbers"));
         }
-        lab.run(); assertEquals(15,saved.size()); verify(store,times(3)).captureBatch(anyList());
+        lab.run(); assertEquals(AiLabModel.MODELS.size()*AiLabModel.BUDGET,saved.size()); verify(store,times(AiLabModel.MODELS.size())).captureBatch(anyList());
     }
     @Test void disabledCaptureStillReconcilesAndStaleHistoryDoesNotProduceTickets() {
         var store=mock(AiLabStore.class); var repository=mock(LotteryNumberRepository.class);
@@ -113,7 +113,7 @@ class AiLabTest {
             var actual=TestDraws.verified(new LotteryNumber(target,"MEGA",List.of(1,2,3,4,5,6),null,null));
             for(int slot=0;slot<5;slot++) {
                 var f=ForecastProtocol.prepare(history,"MEGA","lab-logistic-"+slot,"v1","code",Map.of(),List.of(1,2,3,4,5,6+slot),created);
-                f.put("labModel","logistic"); f.put("frequencyNumbers",List.of(20,21,22,23,24,25)); f.put("randomNumbers",List.of(30,31,32,33,34,35));
+                f.put("labModel","logistic"); f.put("slot",slot); f.put("frequencyNumbers",List.of(20,21,22,23,24,25)); f.put("randomNumbers",List.of(30,31,32,33,34,35));
                 snapshots.add(f); events.add(ForecastProtocol.settle(f,List.of(actual),created.plusSeconds(7200),null));
             }
             target=TemporalRelationshipModel.scheduledAfter(target,"MEGA");

@@ -1,5 +1,11 @@
 # Kế hoạch phát triển hướng tới mục tiêu dự đoán
 
+## Điều chỉnh ưu tiên ngày 07/11/2026
+
+Đã triển khai mã và kiểm chứng phần nền của kế hoạch: [bàn giao Vietlott/UI](VIETLOTT_RESEARCH_IMPLEMENTATION.md). Replay không cho thấy lợi thế ổn định; các bước còn phụ thuộc dữ liệu là audit production, đăng ký/xác nhận trên kỳ tương lai và quyết định có cần XGBoost. Không đánh dấu các bước này hoàn tất từ kết quả unit test.
+
+Kế hoạch tiếp theo cho thuật toán và UI: [Nâng cấp dự đoán Vietlott và giao diện](VIETLOTT_PREDICTION_AND_UI_PLAN.md). Người dùng chọn lập kế hoạch chi tiết trước, chưa triển khai. Tận dụng Logistic, đối chứng feedback, metric hiệu chuẩn và workspace hiện có; ưu tiên kiểm kê dữ liệu thực tế, benchmark theo thời gian/cùng ngân sách, tách cải tiến ranking và ghép vé, đồng thời thống nhất giao diện. API production hết thời gian chờ khi rà soát, nên chưa xác minh được quy mô dữ liệu mới nhất. Lộ trình mới thay thứ tự ưu tiên lịch sử dưới đây; các báo cáo cũ giữ nguyên phạm vi dữ liệu/phiên bản của chúng.
+
 ## Điều chỉnh ưu tiên ngày 28/10/2026
 
 Trang dự đoán chuyển sang luồng người dùng chọn/chỉnh/chốt vé; AI Lab cung cấp thêm 3–5 gợi ý qua kênh chỉ đọc, giữ ledger và đánh giá độc lập. Kế hoạch đã rà soát, các lỗ hổng và tiêu chí nghiệm thu: [Prediction Workspace](PREDICTION_WORKSPACE_PLAN.md). Đã triển khai bản đầu trong workspace, gồm migration V13, giao diện chọn/chỉnh/chốt, kiểm thử PostgreSQL và báo cáo phát lại phát triển; chưa deploy. Thứ tự trong kế hoạch mới thay cho ưu tiên cũ đối với trang dự đoán.

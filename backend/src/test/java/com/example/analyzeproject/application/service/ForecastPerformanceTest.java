@@ -57,6 +57,26 @@ class ForecastPerformanceTest {
         service.overview("MEGA",0,50); service.reconcile(); service.overview("MEGA",0,50);
         verify(store,times(2)).readLedger(); verify(store,times(1)).reconcile(anyList(),any());
     }
+    @Test @SuppressWarnings("unchecked") void dateWindowFiltersBothTicketsAndMeasuredDenominatorsWithoutRefitting() {
+        var history=new ArrayList<com.example.analyzeproject.domain.model.LotteryNumber>();
+        for(int day:List.of(14,16,18,21,23)) history.add(TestDraws.verified(new com.example.analyzeproject.domain.model.LotteryNumber(
+                java.time.LocalDate.of(2026,10,day),"MEGA",List.of(1,2,3,4,5,6),null,null)));
+        var first=ForecastProtocol.prepare(history,"MEGA","temporal_learning","v1","code",Map.of(),List.of(1,2,3,4,5,6),Instant.parse("2026-10-24T10:00:00Z"));
+        var actual1=TestDraws.verified(new com.example.analyzeproject.domain.model.LotteryNumber(java.time.LocalDate.of(2026,10,25),"MEGA",List.of(1,2,3,4,7,8),null,null));
+        history.add(actual1);
+        var second=ForecastProtocol.prepare(history,"MEGA","temporal_learning","v1","code",Map.of(),List.of(1,2,3,4,5,6),Instant.parse("2026-10-26T10:00:00Z"));
+        var actual2=TestDraws.verified(new com.example.analyzeproject.domain.model.LotteryNumber(java.time.LocalDate.of(2026,10,28),"MEGA",List.of(1,2,3,7,8,9),null,null));
+        when(store.readLedger()).thenReturn(ForecastProtocol.map("forecasts",List.of(first,second),"settlements",List.of(
+                ForecastProtocol.settle(first,List.of(actual1),Instant.parse("2026-10-25T13:00:00Z"),null),
+                ForecastProtocol.settle(second,List.of(actual2),Instant.parse("2026-10-28T13:00:00Z"),null))));
+        var window=service.overview("MEGA",0,50,"2026-10-28","2026-10-28");
+        assertEquals(1,window.get("totalRows"));
+        var groups=(List<Map<String,Object>>)((Map<?,?>)window.get("evaluation")).get("groups");
+        assertEquals(1,groups.get(0).get("evaluatedDraws"));assertEquals(0.0,groups.get(0).get("hit4RatePercent"));
+        assertEquals(2,service.overview("MEGA",0,50).get("totalRows"));verify(store,times(1)).readLedger();verifyNoInteractions(draws,analyze);
+        assertThrows(IllegalArgumentException.class,()->service.overview("MEGA",0,50,"2026-11-01","2026-10-01"));
+        assertThrows(IllegalArgumentException.class,()->service.overview("MEGA",0,50,"2026-02-30",null));
+    }
 
     @Test void overlappingMutationsReturnBusyInsteadOfWaitingForAnotherDatabaseLock() throws Exception {
         var entered = new CountDownLatch(1); var release = new CountDownLatch(1);

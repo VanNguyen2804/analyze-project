@@ -53,6 +53,7 @@ export class UserDeskComponent implements OnChanges {
   readonly busy = signal(false);
   readonly historyError = signal('');
   readonly labCount = signal(5);
+  readonly sourceTab = signal<'algorithms' | 'portfolio' | 'lab'>('algorithms');
   readonly concentration = computed(() => {
     const max = this.view()?.category === 'POWER' ? 55 : 45;
     const valid: number[][] = [];

@@ -110,7 +110,7 @@ describe('Stocks page', () => {
     expect(harness.routeNativeElement?.textContent).toContain('Chưa đủ dữ liệu');
     http.verify({ ignoreCancelled: true });
   });
-  it('hides the lottery selector on direct stock routes and restores it on lottery routes', async () => {
+  it('keeps lottery controls in page context and preserves the category across stock routes', async () => {
     const harness = await RouterTestingHarness.create();
     const http = TestBed.inject(HttpTestingController);
     const header = TestBed.createComponent(HeaderComponent);
@@ -120,9 +120,12 @@ describe('Stocks page', () => {
     header.detectChanges();
     expect(TestBed.inject(SectionService).stocks()).toBeTrue();
     expect(header.nativeElement.querySelector('.category-picker')).toBeNull();
+    TestBed.inject(CategoryService).setCategory('POWER');
     await harness.navigateByUrl('/analyze');
     header.detectChanges();
-    expect(header.nativeElement.querySelector('.category-picker')).not.toBeNull();
+    expect(TestBed.inject(SectionService).stocks()).toBeFalse();
+    expect(TestBed.inject(CategoryService).category()).toBe('POWER');
+    expect(header.nativeElement.querySelector('.category-picker')).toBeNull();
     header.destroy();
     http.verify();
   });

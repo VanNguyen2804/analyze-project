@@ -1,6 +1,7 @@
 import { ForecastApiService } from '../../core/services/forecast-api.service';
 import { LotteryCategory } from '../../core/models/lottery-category.model';
-import { ForecastOverview, SavedForecast } from '../../core/models/forecast.model';
+import { ForecastGroup, ForecastOverview, SavedForecast } from '../../core/models/forecast.model';
+import { ResearchPanelComponent } from './research-panel/research-panel.component';
 import {
   Component,
   OnInit,
@@ -20,7 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-forecasts',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, DecimalPipe],
+  imports: [FormsModule, RouterLink, DatePipe, DecimalPipe, ResearchPanelComponent],
   templateUrl: './forecasts.component.html',
   styleUrl: './forecasts.component.css',
 })
@@ -37,11 +38,20 @@ export class ForecastsComponent implements OnInit {
   readonly totalRows = computed(() => this.ledger()?.totalRows ?? 0);
   readonly mutating = signal(false);
   readonly statusFilter = signal('ALL');
+  readonly threshold = signal(3);
+  readonly fromDate = signal('');
+  readonly toDate = signal('');
+  readonly cohortFilter = signal('ALL');
+  readonly visibleGroups = computed(() =>
+    this.groups().filter((g) => this.cohortFilter() === 'ALL' || g.cohort === this.cohortFilter()),
+  );
   private loadedCategory = '';
   private readonly destroyRef = inject(DestroyRef);
   private readonly requests = new Subject<{
     category: LotteryCategory;
     page: number;
+    fromDate: string;
+    toDate: string;
   }>();
   private readonly api = inject(ForecastApiService);
   ngOnInit() {
@@ -50,7 +60,7 @@ export class ForecastsComponent implements OnInit {
         switchMap((query) => {
           this.busy.set(true);
           this.error.set('');
-          return this.api.overview(query.category, query.page).pipe(
+          return this.api.overview(query.category, query.page, query.fromDate, query.toDate).pipe(
             tap((payload) => {
               this.ledger.set(payload);
 
@@ -77,6 +87,7 @@ export class ForecastsComponent implements OnInit {
       .subscribe((category) => {
         this.category.set(category === 'POWER' ? 'POWER' : 'MEGA');
         this.statusFilter.set('ALL');
+        this.cohortFilter.set('ALL');
         if (this.category() !== this.loadedCategory) {
           this.ledger.set(undefined);
         }
@@ -100,6 +111,22 @@ export class ForecastsComponent implements OnInit {
     ),
   );
   readonly pageCount = computed(() => Math.max(1, Math.ceil(this.totalRows() / 50)));
+  readonly thresholdCount = computed(() =>
+    this.groups().reduce(
+      (sum, g) => sum + g.matchHistogram.slice(this.threshold()).reduce((a, b) => a + b, 0),
+      0,
+    ),
+  );
+  groupRate(group: ForecastGroup) {
+    if (!group.evaluatedDraws) return null;
+    return (
+      (100 * group.matchHistogram.slice(this.threshold()).reduce((a, b) => a + b, 0)) /
+      group.evaluatedDraws
+    );
+  }
+  histogramWidth(group: ForecastGroup, count: number) {
+    return (100 * count) / Math.max(1, ...group.matchHistogram);
+  }
   readonly filteredRows = computed(() =>
     this.statusFilter() === 'ALL'
       ? this.rows()
@@ -122,7 +149,7 @@ export class ForecastsComponent implements OnInit {
     );
   }
   metric(value: number | null | undefined) {
-    return value == null ? 'N/A' : value.toFixed(3);
+    return value == null ? 'Chưa đo' : value.toFixed(3);
   }
   status(value?: string) {
     return value === 'SETTLED'
@@ -133,11 +160,20 @@ export class ForecastsComponent implements OnInit {
   }
   load(resetPage = true) {
     if (this.mutating()) return;
+    if (this.fromDate() && this.toDate() && this.fromDate() > this.toDate()) {
+      this.error.set('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
+      return;
+    }
     if (this.category() !== this.loadedCategory) {
       this.ledger.set(undefined);
     }
     if (resetPage) this.page.set(0);
-    this.requests.next({ category: this.category(), page: this.page() });
+    this.requests.next({
+      category: this.category(),
+      page: this.page(),
+      fromDate: this.fromDate(),
+      toDate: this.toDate(),
+    });
   }
   changePage(delta: number) {
     if (!this.busy()) {
@@ -165,7 +201,7 @@ export class ForecastsComponent implements OnInit {
           this.mutating.set(false);
           this.message.set(
             result.status === 'BUSY'
-              ? (result.message ?? '?ang x? l?, vui l?ng ch?.')
+              ? (result.message ?? 'Đang xử lý, vui lòng chờ.')
               : action === 'capture'
                 ? 'Đã kiểm tra lưu kỳ tiếp theo. Xem các bộ số đã chốt bên dưới; bản đầu tiên luôn được giữ nguyên.'
                 : 'Đã đối soát kết quả hiện có.',

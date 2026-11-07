@@ -32,8 +32,17 @@ export interface ForecastGroup {
   frequencyAverageMatched: number | null;
   randomAverageMatched: number | null;
   hit3RatePercent: number | null;
+  hit4RatePercent?: number | null;
+  hit5RatePercent?: number | null;
+  hit4Count?: number;
+  hit4Interval95?: number[] | null;
+  firstTargetDate?: string;
+  lastTargetDate?: string;
+  budget?: number;
+  evidenceType?: string;
 }
 export interface ForecastOverview {
+  evaluationWindow?: { fromDate: string | null; toDate: string | null };
   enabled: boolean;
   asOf?: string;
   rows: SavedForecast[];

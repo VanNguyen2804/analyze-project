@@ -1,0 +1,129 @@
+<section
+  class="research-panel"
+  aria-label="Chất lượng dữ liệu và kiểm chứng"
+  [attr.aria-busy]="loading()"
+>
+  <header>
+    <div>
+      <span class="eyebrow">DỮ LIỆU & BẰNG CHỨNG</span>
+      <h3>Đo đúng trước khi cải tiến</h3>
+    </div>
+    <button (click)="load()" [disabled]="loading()">Tải kiểm kê</button>
+  </header>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (loading() && !inventory()) {
+    <p role="status">Đang kiểm tra dữ liệu {{ category() }}…</p>
+  }
+  @if (inventory(); as data) {
+    <div class="inventory-grid">
+      <article>
+        <strong>{{ data.eligibleDraws }}</strong
+        ><span>kỳ hợp lệ để học</span
+        ><small
+          >{{ data.fromDate | date: 'dd/MM/yyyy' }} –
+          {{ data.trainingThrough | date: 'dd/MM/yyyy' }}</small
+        >
+      </article>
+      <article>
+        <strong>{{ data.forecasts.settledDraws }}</strong
+        ><span>kỳ dự đoán chính đã đối soát</span
+        ><small>{{ data.forecasts.savedTickets }} vé đã lưu, nhiều vé có thể cùng kỳ</small>
+      </article>
+      <article>
+        <strong>{{ data.lab.settledDraws }}</strong
+        ><span>kỳ AI Lab đã đối soát</span><small>Tách riêng theo mô hình và phiên bản</small>
+      </article>
+      <article [class.warning]="!data.fresh">
+        <strong>{{ data.fresh ? 'Đủ mới' : 'Đang chờ' }}</strong
+        ><span>cần dữ liệu đến {{ data.expectedThrough | date: 'dd/MM/yyyy' }}</span
+        ><small
+          >{{ data.ineligibleRows }} bản chưa hợp lệ · {{ data.missingDrawDates.length }} kỳ thiếu
+          trong khoảng lịch sử</small
+        >
+      </article>
+    </div>
+    <p class="source-note">
+      {{ data.sourceNote }} Kiểm kê lúc {{ data.asOf | date: 'HH:mm dd/MM/yyyy' : '+0700' }} (VN).
+    </p>
+    @if (data.missingDrawDates.length) {
+      <details>
+        <summary>Các kỳ đang thiếu</summary>
+        <p>{{ data.missingDrawDates.join(' · ') }}</p>
+      </details>
+    }
+  }
+  <details class="study">
+    <summary>Benchmark phát triển · so sánh cùng 3 vé mỗi kỳ</summary>
+    <p>
+      Chọn tham số trên đoạn thời gian trước, rồi phát lại đoạn sau. Đây là dữ liệu phát triển; kết
+      quả chưa đủ để đổi mô hình mặc định. Chạy khi bạn yêu cầu, không sửa sổ dự đoán.
+    </p>
+    <div class="actions">
+      <button class="primary" (click)="run()" [disabled]="running()">
+        {{ running() ? 'Đang chạy benchmark…' : 'Chạy so sánh trên dữ liệu hiện có' }}
+      </button>
+      @if (report()) {
+        <button (click)="download()">Tải báo cáo JSON</button>
+      }
+    </div>
+    @if (studyError()) {
+      <p class="error" role="alert">{{ studyError() }}</p>
+    }
+    @if (report(); as result) {
+      @if (result.manifest?.selection; as split) {
+        <p class="source-note">
+          Chọn tham số: {{ split.innerFrom }} – {{ split.innerThrough }} · Đánh giá phát lại:
+          {{ split.outerFrom }} – {{ split.outerThrough }}.
+        </p>
+      }
+      @if (result.status !== 'COMPLETED') {
+        <p role="status">Chưa đủ kỳ hợp lệ hoặc kỳ validation để chạy phép so sánh này.</p>
+      }
+      @if (result.summary?.length) {
+        <div class="table-scroll">
+          <table>
+            <caption>
+              Thống kê mô tả · mỗi hàng cùng số kỳ và ngân sách; ≥4 là tỷ lệ kỳ có ít nhất một vé
+              đạt mức đó.
+            </caption>
+            <thead>
+              <tr>
+                <th>Mô hình / cách ghép</th>
+                <th>Kỳ / vé</th>
+                <th>Khớp TB/vé</th>
+                <th>Kỳ ≥3</th>
+                <th>Kỳ ≥4</th>
+                <th>Brier</th>
+                <th>Chênh TB so ngẫu nhiên</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of result.summary; track row.model) {
+                <tr>
+                  <th scope="row">{{ modelName(row.model) }}</th>
+                  <td>{{ row.evaluatedDraws }} / {{ row.evaluatedTickets }}</td>
+                  <td>{{ row.averageMatched | number: '1.2-3' }}</td>
+                  <td>{{ row.drawHit3Percent | number: '1.1-2' }}%</td>
+                  <td>
+                    {{ row.drawHit4Count }}/{{ row.evaluatedDraws }} ·
+                    {{ row.drawHit4Percent | number: '1.1-2' }}%
+                  </td>
+                  <td>
+                    {{ row.brier === null ? 'Không áp dụng' : (row.brier | number: '1.4-4') }}
+                  </td>
+                  <td>{{ row.pairedDifferenceVsUniform | number: '1.2-3' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="source-note">
+          Đã so nhiều ứng viên trên dữ liệu phát triển. Chênh lệch trên bảng chưa xác nhận lợi thế
+          dự đoán; khoảng bất định và vé từng kỳ có trong file JSON.
+        </p>
+      }
+    }
+  </details>
+</section>

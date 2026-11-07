@@ -159,12 +159,21 @@ public class WorkspaceService {
             var f=model.getValue().get(slot); var nums=((List<Integer>)f.get("numbers")).stream().sorted().toList();
             var origin=map("id",f.get("id"),"model",f.get("labModel"),"modelVersion",f.get("modelVersion"),"codeVersion",f.get("codeVersion"),"createdAt",f.get("createdAt"),"trainingThrough",f.get("trainingThrough"));
             var item=unique.get(nums);
-            if(item==null) { item=map("id","lab:"+f.get("id"),"source","AI_LAB","label",("logistic".equals(f.get("labModel"))?"Logistic Regression":"Tần suất suy giảm")+" · vé "+(slot+1),"numbers",nums,"labOrigins",new ArrayList<Map<String,Object>>()); unique.put(nums,item); }
+            if(item==null) { item=map("id","lab:"+f.get("id"),"source","AI_LAB","label",labName(Objects.toString(f.get("labModel")))+" · vé "+(slot+1),"numbers",nums,"labOrigins",new ArrayList<Map<String,Object>>()); unique.put(nums,item); }
             ((List<Map<String,Object>>)item.get("labOrigins")).add(origin);
         }
         return map("status",unique.size()>=3?"READY":"PARTIAL","policy",LAB_POLICY,"tickets",unique.values().stream().limit(5).toList());
     }
     public Map<String,Object> labSuggestions(String category,String target) { return labSuggestions(category,target,training(category,clock.instant())); }
+    private static String labName(String model) {
+        return switch (model) {
+            case "logistic" -> "Logistic Regression";
+            case "logistic_no_feedback" -> "Logistic không feedback";
+            case "shrunk_frequency" -> "Tần suất làm trơn (thử nghiệm)";
+            case "logistic_coverage" -> "Logistic + độ phủ (thử nghiệm)";
+            default -> "Tần suất suy giảm";
+        };
+    }
     public Map<String,Object> history(String category) { return store.history(WorkspaceProtocol.category(category)); }
     public Map<String,Object> reconcile() { store.reconcile(draws.findAllByOrderByDrawDateDescCreatedAtDesc(),Instant.now()); return map("status","COMPLETED"); }
     public void tick() { try { reconcile(); } catch(Exception e) { System.getLogger(getClass().getName()).log(System.Logger.Level.WARNING,"Workspace reconciliation failed",e); } }

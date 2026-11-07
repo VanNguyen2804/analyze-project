@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { NavigationService } from './core/services/navigation.service';
 
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './share/components/header/header.component';
@@ -13,5 +14,6 @@ import { LeftMenuComponent } from './share/components/left-menu/left-menu.compon
   styleUrl: './app.component.css',
 })
 export class AppComponent {
+  readonly navigation = inject(NavigationService);
   title = 'Analyze Project';
 }

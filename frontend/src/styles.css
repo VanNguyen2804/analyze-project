@@ -1,4 +1,31 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --canvas: #f4f7f6;
+  --surface: #ffffff;
+  --ink: #172d27;
+  --muted: #5d7069;
+  --border: #dfe8e3;
+  --accent: #146c50;
+  --accent-soft: #e8f4ed;
+  --radius: 16px;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+:where(button, a, input, select, summary, textarea):focus-visible {
+  outline: 3px solid #208c68;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 body {
   margin: 0;
   font-family:
@@ -13,8 +40,8 @@ body {
     'Open Sans',
     'Helvetica Neue',
     sans-serif;
-  background-color: #f8f9fa;
-  color: #212529;
+  background-color: var(--canvas);
+  color: var(--ink);
 }
 
 .ball {

@@ -4,6 +4,33 @@ import { PredictionComponent } from './prediction.component';
 import { AnalyzeService } from '@app/core/services/analyze.service';
 
 describe('Prediction request category isolation', () => {
+  it('copies six POWER numbers and waits for clipboard completion before reporting success', async () => {
+    TestBed.configureTestingModule({ providers: [{ provide: AnalyzeService, useValue: {} }] });
+    const fixture = TestBed.createComponent(PredictionComponent);
+    const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    let complete!: () => void;
+    const writeText = jasmine.createSpy().and.returnValue(
+      new Promise<void>((resolve) => {
+        complete = resolve;
+      }),
+    );
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    try {
+      const pending = fixture.componentInstance.copyTicket([1, 2, 3, 4, 5, 6], 55);
+      expect(writeText).toHaveBeenCalledWith('01 - 02 - 03 - 04 - 05 - 06');
+      expect(fixture.componentInstance.copyTicketSuccessMsg).toBeNull();
+      complete();
+      await pending;
+      expect(fixture.componentInstance.copyTicketSuccessMsg).toContain('Đã sao chép');
+      writeText.and.returnValue(Promise.reject(new Error('Denied')));
+      await fixture.componentInstance.copyTicket([1, 2, 3, 4, 5, 6], 55);
+      expect(fixture.componentInstance.copyTicketSuccessMsg).toContain('Chưa sao chép');
+    } finally {
+      if (original) Object.defineProperty(navigator, 'clipboard', original);
+      else Reflect.deleteProperty(navigator, 'clipboard');
+      fixture.destroy();
+    }
+  });
   it('passes original and Lab tickets for the current target to experimental deduplication', () => {
     TestBed.configureTestingModule({ providers: [{ provide: AnalyzeService, useValue: {} }] });
     const fixture = TestBed.createComponent(PredictionComponent);

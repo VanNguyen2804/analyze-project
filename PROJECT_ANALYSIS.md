@@ -1,5 +1,17 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Triển khai Vietlott và UI — 07/11/2026
+
+Đã triển khai [công cụ nghiên cứu và UI theo kế hoạch](backend/docs/VIETLOTT_RESEARCH_IMPLEMENTATION.md): inventory runtime; benchmark chronological với validation riêng, ablation Logistic/feedback mô phỏng/calibration, shrinkage và coverage generator; hai ứng viên Lab chốt song song có công tắc riêng. Snapshot cũ giữ nguyên, cohort không tự gộp, không promote mô hình theo replay. Lịch sử có lọc ngày/cấu hình và mức ≥3/≥4/≥5; shell responsive, khay chọn vé và review/Lab thống nhất, sao chép POWER sáu số và xử lý clipboard đúng.
+
+Replay fixture 39 kỳ hợp lệ mỗi loại, 15 kỳ outer/loại và ba vé/kỳ chưa có vé ≥4; coverage/feedback chưa cho thấy cải thiện ổn định. API production vẫn timeout nên chưa xác minh dữ liệu live. Angular typecheck/74 test/build đạt; Java 158 test, 153 đạt/năm có điều kiện bỏ qua, gồm năm test PostgreSQL thật; kiểm tra browser dùng fixture riêng. Chưa deploy hosting, thêm XGBoost hoặc thu thập đủ bằng chứng xác nhận tương lai. Chi tiết và JSON tại tài liệu triển khai; kế hoạch dưới đây giữ như mốc lịch sử.
+
+## Kế hoạch dự đoán Vietlott và UI — 07/11/2026
+
+Đã lập [kế hoạch chi tiết](backend/docs/VIETLOTT_PREDICTION_AND_UI_PLAN.md) theo yêu cầu chỉ lập plan trước. Rà soát xác nhận đã có Logistic học thật, bản không feedback, Brier/log loss, đối chứng và portfolio; nhánh `deep_stacking` vẫn là heuristic, chưa phải XGBoost được huấn luyện. Kế hoạch ưu tiên kiểm kê dữ liệu, benchmark theo thời gian/cùng ngân sách, ablation và thử ghép vé riêng với ranking; UI thống nhất shell, luồng chọn/chốt, báo cáo mẫu số/phiên bản và cách sao chép sáu số POWER.
+
+Fixture trong repo vẫn có 39 kỳ hợp lệ mỗi loại; API production hết thời gian chờ trong lần kiểm tra nên chưa xác minh được lượng dữ liệu hoặc thành tích hiện tại. Không suy ra mức cải thiện từ tên thuật toán hoặc số vé đã dò. Chưa sửa code ứng dụng, dữ liệu hoặc triển khai; chỉ kiểm tra tài liệu/liên kết/diff, không chạy lại build ứng dụng.
+
 ## Chart production và nhận định ngày — 04/11/2026
 
 Tái hiện lỗi chỉ hiện trục giá trên production bundle với response VIC: hai timestamp 1672099200/1672106400 cùng business date 27/12/2022 khiến renderer Lightweight Charts ném `Value is null`. Adapter và frontend chuẩn hóa một nến/ngày, lấy timestamp muộn nhất, không cộng volume. Regression dùng đúng hai timestamp này và kiểm tra pixel nến/EMA trong pane; đã đối chiếu ảnh production trước/sau trên cùng response thật.

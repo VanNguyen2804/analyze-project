@@ -17,6 +17,7 @@ public class AiLabService {
     private final String codeVersion;
     private final AiLabModel.FeedbackPolicy feedbackPolicy;
     private final Clock clock;
+    private final boolean challengersEnabled;
     public AiLabService(AiLabStore store,LotteryNumberRepository draws,boolean enabled) {
         this(store,draws,enabled,AiLabModel.FeedbackPolicy.defaults());
     }
@@ -24,10 +25,14 @@ public class AiLabService {
         this(store,draws,enabled,feedbackPolicy,Clock.systemUTC());
     }
     public AiLabService(AiLabStore store,LotteryNumberRepository draws,boolean enabled,AiLabModel.FeedbackPolicy feedbackPolicy,Clock clock) {
+        this(store,draws,enabled,feedbackPolicy,clock,true);
+    }
+    public AiLabService(AiLabStore store,LotteryNumberRepository draws,boolean enabled,AiLabModel.FeedbackPolicy feedbackPolicy,Clock clock,boolean challengersEnabled) {
         this.store=store; this.draws=draws; this.enabled=enabled;
         this.feedbackPolicy=feedbackPolicy;
         this.clock=clock;
-        codeVersion=WorkspaceProtocol.fingerprint(AiLabModel.class,AiLabService.class,AiLabFeedback.class,AiLabProbability.class,ForecastProtocol.class,DrawQuality.class);
+        this.challengersEnabled=challengersEnabled;
+        codeVersion=WorkspaceProtocol.fingerprint(AiLabModel.class,AiLabModel.TrainingPolicy.class,AiLabService.class,AiLabFeedback.class,AiLabProbability.class,ForecastProtocol.class,DrawQuality.class,CoveragePortfolio.class,CoveragePortfolio.Policy.class);
     }
     public Map<String,Object> run() {
         if(!lock.tryLock()) return map("status","BUSY");
@@ -41,17 +46,23 @@ public class AiLabService {
                     if(history.size()<10) throw new IllegalStateException("HISTORY_NOT_READY: cần ít nhất 10 kỳ hợp lệ để huấn luyện");
                     String target=ForecastProtocol.target(category,now).toString();
                     for(String model:AiLabModel.MODELS) {
+                        if(!challengersEnabled && Set.of("shrunk_frequency","logistic_coverage").contains(model)) continue;
                         String prefix=category+":"+target+":lab-"+model+"-";
                         if(ids.contains(prefix+0)) { outcomes.add(map("category",category,"model",model,"status","ALREADY_SAVED")); continue; }
                         var config=map("protocol",AiLabModel.VERSION,"budget",AiLabModel.BUDGET,"epochs",80,"learningRate",0.2,"l2",0.05,
                                 "features",List.of("frequency","recent10","decay10","gap30"),"minimumDraws",60,"windowDraws",30,"minimumWindowHitRate",0.5);
                         config.put("feedbackPolicy","logistic".equals(model)?map("version","dense-signed-feedback-v1","learningRate",feedbackPolicy.learningRate(),"selectedExtraWeight",feedbackPolicy.selectedExtraWeight(),"maximumDraws",feedbackPolicy.maximumDraws()):map("version","not_applied"));
+                        config.put("generatorPolicy", "logistic_coverage".equals(model) ? CoveragePortfolio.VERSION : "seeded-weighted-v1");
+                        if ("logistic_coverage".equals(model)) config.put("coveragePolicy", CoveragePortfolio.Policy.defaults());
+                        if ("shrunk_frequency".equals(model)) config.put("priorDraws", 16);
                         // Validate freshness before fitting; do not capture a partially trained or stale batch.
                         ForecastProtocol.prepare(history,category,"validation",AiLabModel.VERSION,codeVersion,config,List.of(1,2,3,4,5,6),now);
                         String seed=AiLabModel.VERSION+":"+category+":"+target;
                         var feedback=AiLabFeedback.collect(existing,history,category,LocalDate.parse(target),now,feedbackPolicy.maximumDraws());
                         var fit=AiLabModel.fit(history,category,model,feedback.rounds(),feedbackPolicy);var modelScores=fit.scores();
-                        var tickets=AiLabModel.tickets(modelScores,seed+":"+(model.startsWith("logistic")?"logistic":model));
+                        var tickets="logistic_coverage".equals(model)
+                                ? CoveragePortfolio.select(PredictionExplanation.ranking(modelScores),modelScores.length-1,AiLabModel.BUDGET,seed,CoveragePortfolio.Policy.defaults())
+                                : AiLabModel.tickets(modelScores,seed+":"+(model.startsWith("logistic")?"logistic":model));
                         var frequency=AiLabModel.tickets(AiLabModel.scores(history,category,"frequency"),seed+":frequency");
                         var random=AiLabModel.tickets(AiLabModel.scores(history,category,"random"),seed+":random");
                         Instant capturedAt=clock.instant();
@@ -61,7 +72,10 @@ public class AiLabService {
                             var f=ForecastProtocol.prepare(history,category,"lab-"+model+"-"+slot,AiLabModel.VERSION,codeVersion,config,tickets.get(slot),capturedAt);
                             var explanation=PredictionExplanation.lab(fit,model);
                             if("logistic".equals(model))explanation.put("feedback",feedback.audit());
-                            explanation.put("selectionPolicy",slot==0?"top_six":"seeded_weighted_sample");
+                            explanation.put("selectionPolicy","logistic_coverage".equals(model)?CoveragePortfolio.VERSION:slot==0?"top_six":"seeded_weighted_sample");
+                            f.put("experimentId","vietlott-challengers-2026-11");
+                            f.put("modelPolicyVersion",model+":v1");
+                            f.put("evaluationVersion","lab-outcomes-v2");
                             f.put("explanation",explanation);
                             f.put("labModel",model); f.put("slot",slot); f.put("frequencyNumbers",frequency.get(slot)); f.put("randomNumbers",random.get(slot)); batch.add(f);
                         }
@@ -88,7 +102,7 @@ public class AiLabService {
         var events=(List<Map<String,Object>>)ledger.get("settlements"); Map<Object,Map<String,Object>> latest=new HashMap<>(); events.forEach(e->latest.put(e.get("forecastId"),e));
         var rows=forecasts.stream().skip((long)page*50).limit(50).map(f->map("id",f.get("id"),"model",f.get("labModel"),"targetDate",f.get("targetDate"),"numbers",f.get("numbers"),
                 "createdAt",f.get("createdAt"),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
-        return map("enabled",enabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",forecasts.size(),"rows",rows,"groups",evaluate(forecasts,events));
+        return map("enabled",enabled,"challengersEnabled",challengersEnabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",forecasts.size(),"rows",rows,"groups",evaluate(forecasts,events));
     }
     private static Object feedbackSummary(Map<String,Object> forecast) {
         if (forecast.get("explanation") instanceof Map<?,?> explanation && explanation.get("feedback") instanceof Map<?,?> feedback)
@@ -111,7 +125,7 @@ public class AiLabService {
             var probability = new AiLabProbability();
             for(var date:dates.entrySet()) {
                 var tickets=date.getValue();
-                if(tickets.size()!=AiLabModel.BUDGET || tickets.stream().anyMatch(f->latest.get(f.get("id"))==null || !"SETTLED".equals(latest.get(f.get("id")).get("status")))) continue;
+                if(!completeBatch(tickets) || !settledTogether(tickets,latest)) continue;
                 probability.add(tickets.get(0),latest.get(tickets.get(0).get("id")));
                 int[] hits=new int[3]; List<AiLabProgress.Ticket> progressTickets=new ArrayList<>();
                 for(var f:tickets) {
@@ -127,8 +141,10 @@ public class AiLabService {
             int n=measured.size(); var recent=measured.subList(Math.max(0,n-30),n); var prior=measured.subList(Math.max(0,n-60),Math.max(0,n-30));
             boolean continuous=n>=60;
             for(int i=Math.max(1,n-59);i<n;i++) if(!TemporalRelationshipModel.scheduledAfter(LocalDate.parse(measuredDates.get(i-1)),(String)first.get("category")).equals(LocalDate.parse(measuredDates.get(i)))) continuous=false;
-            boolean candidate=continuous && rate(recent,0)>=50 && rate(prior,0)>=50 && lowerDifference(measured,1)>0 && lowerDifference(measured,2)>0;
+            boolean candidate=!Set.of("shrunk_frequency","logistic_coverage").contains(first.get("labModel")) && continuous && rate(recent,0)>=50 && rate(prior,0)>=50 && lowerDifference(measured,1)>0 && lowerDifference(measured,2)>0;
             reports.add(map("cohort",cohort.getKey(),"model",first.get("labModel"),"modelVersion",first.get("modelVersion"),"savedDraws",dates.size(),"evaluatedDraws",n,
+                    "budget",AiLabModel.BUDGET,"evidenceType","PROSPECTIVE_FROZEN","evaluationVersion","lab-outcomes-v2",
+                    "experimentId",first.get("experimentId"),"modelPolicyVersion",first.get("modelPolicyVersion"),
                     "feedbackEnabled","logistic".equals(first.get("labModel")) && first.get("configuration") instanceof Map<?,?> configuration && configuration.get("feedbackPolicy") instanceof Map<?,?> policy && "dense-signed-feedback-v1".equals(policy.get("version")),
                     "probability",probability.report(),
                     "feedbackComparison",feedbackComparison(cohort.getValue(),forecasts,latest),
@@ -154,7 +170,7 @@ public class AiLabService {
                     && List.of("category","targetDate","modelVersion","codeVersion","historyHash").stream()
                         .allMatch(key->Objects.equals(first.get(key),f.get(key)))
                     && comparisonConfiguration(first).equals(comparisonConfiguration(f))).toList();
-            if (batch.size()!=AiLabModel.BUDGET || control.size()!=AiLabModel.BUDGET) continue;
+            if (!completeBatch(batch) || !completeBatch(control)) continue;
             var both=new ArrayList<>(batch); both.addAll(control);
             if (both.stream().anyMatch(f->latest.get(f.get("id"))==null
                     || !"SETTLED".equals(latest.get(f.get("id")).get("status")))) continue;
@@ -173,6 +189,18 @@ public class AiLabService {
         if (forecast.get("configuration") instanceof Map<?,?> values) config.putAll(values);
         config.remove("feedbackPolicy");
         return config;
+    }
+    static boolean completeBatch(List<Map<String,Object>> batch) {
+        return batch.size()==AiLabModel.BUDGET
+                && batch.stream().map(f->f.get("slot")).collect(java.util.stream.Collectors.toSet()).equals(Set.of(0,1,2,3,4))
+                && batch.stream().map(f->f.get("numbers")).distinct().count()==AiLabModel.BUDGET
+                && batch.stream().map(f->f.get("historyHash")).distinct().count()==1;
+    }
+    private static boolean settledTogether(List<Map<String,Object>> batch,Map<Object,Map<String,Object>> latest) {
+        var first=latest.get(batch.get(0).get("id"));
+        if(first==null || first.get("actualNumbers")==null) return false;
+        return batch.stream().allMatch(f->{var e=latest.get(f.get("id"));return e!=null&&"SETTLED".equals(e.get("status"))
+                && Objects.equals(first.get("actualNumbers"),e.get("actualNumbers"))&&Objects.equals(first.get("resultFingerprint"),e.get("resultFingerprint"));});
     }
     private static Double rate(List<int[]> rows,int index) { return rows.isEmpty()?null:100.0*rows.stream().mapToInt(r->r[index]).sum()/rows.size(); }
     private static double lowerDifference(List<int[]> rows,int control) {

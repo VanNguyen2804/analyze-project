@@ -105,10 +105,17 @@ public class ForecastService {
     /** Compact page payload; full immutable history remains available through the ledger endpoint. */
     @SuppressWarnings("unchecked")
     public Map<String,Object> overview(String category, int page, int size) {
+        return overview(category,page,size,null,null);
+    }
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> overview(String category, int page, int size,String fromDate,String toDate) {
         if (!Set.of("MEGA","POWER").contains(category) || page < 0 || size < 1 || size > 100) throw new IllegalArgumentException("Invalid category or pagination");
+        String from=parseBoundary(fromDate),to=parseBoundary(toDate);
+        if(from!=null&&to!=null&&from.compareTo(to)>0) throw new IllegalArgumentException("Start date must not follow end date");
         var view = readView();
         var forecasts = ((List<Map<String,Object>>)view.ledger().get("forecasts")).stream()
                 .filter(f -> category.equals(f.get("category")))
+                .filter(f -> (from==null||from.compareTo((String)f.get("targetDate"))<=0)&&(to==null||to.compareTo((String)f.get("targetDate"))>=0))
                 .sorted(Comparator.<Map<String,Object>,String>comparing(f -> (String)f.get("targetDate")).reversed().thenComparing(f -> (String)f.get("id"))).toList();
         Map<Object,Map<String,Object>> latest = new HashMap<>();
         ((List<Map<String,Object>>)view.ledger().get("settlements")).forEach(s -> latest.put(s.get("forecastId"),s));
@@ -118,7 +125,13 @@ public class ForecastService {
             row.put("settlement",latest.get(f.get("id"))); return row;
         }).toList();
         return ForecastProtocol.map("enabled",enabled,"lastRun",lastRun,"asOf",view.loadedAt().toString(),"cacheSeconds",10,
-                "rows",rows,"page",page,"size",size,"totalRows",forecasts.size(),"evaluation",view.evaluations().get(category));
+                "rows",rows,"page",page,"size",size,"totalRows",forecasts.size(),"evaluationWindow",ForecastProtocol.map("fromDate",from,"toDate",to),
+                "evaluation",from==null&&to==null?view.evaluations().get(category):ForecastProtocol.evaluate(forecasts,(List<Map<String,Object>>)view.ledger().get("settlements"),category));
+    }
+    private static String parseBoundary(String value) {
+        if(value==null||value.isBlank()) return null;
+        try{return java.time.LocalDate.parse(value).toString();}
+        catch(java.time.DateTimeException e){throw new IllegalArgumentException("Invalid date boundary");}
     }
     public void tick() {
         try { captureAll(); }

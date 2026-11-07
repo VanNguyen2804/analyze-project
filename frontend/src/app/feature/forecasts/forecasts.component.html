@@ -30,6 +30,18 @@
       >
     </div>
   </div>
+  <div class="evidence-filters date-filters" aria-label="Khoảng ngày kỳ mục tiêu">
+    <label>Từ ngày<input type="date" [(ngModel)]="fromDate" [disabled]="mutating()" /></label>
+    <label>Đến ngày<input type="date" [(ngModel)]="toDate" [disabled]="mutating()" /></label>
+    <button class="action secondary" (click)="load()" [disabled]="busy()">
+      Áp dụng khoảng ngày
+    </button>
+    @if (view?.evaluationWindow; as window) {
+      <span class="applied-window"
+        >Đang hiển thị: {{ window.fromDate || 'từ đầu' }} – {{ window.toDate || 'mới nhất' }}</span
+      >
+    }
+  </div>
 
   @if (error()) {
     <div class="notice error" role="alert">
@@ -66,12 +78,17 @@
         ><small>Chờ kết quả hoặc cần xác minh</small>
       </article>
       <article class="stat-card accent">
-        <span>Khớp từ 3 số</span><strong>{{ hit3Count() }}</strong
+        <span>Khớp từ {{ threshold() }} số</span><strong>{{ thresholdCount() }}</strong
         ><small>Trong các bộ đã đánh giá</small>
       </article>
     </div>
   }
 
+  @defer (on viewport) {
+    <app-research-panel [category]="category()" />
+  } @placeholder {
+    <div class="research-placeholder">Kiểm kê dữ liệu & benchmark</div>
+  }
   <section class="panel">
     <header class="panel-heading">
       <div>
@@ -197,6 +214,28 @@
   </section>
 
   <section class="panel comparison-panel">
+    <div class="evidence-filters">
+      <label
+        >Mức khớp
+        <select [ngModel]="threshold()" (ngModelChange)="threshold.set(+$event)">
+          <option [ngValue]="3">≥3 số</option>
+          <option [ngValue]="4">≥4 số</option>
+          <option [ngValue]="5">≥5 số</option>
+        </select></label
+      >
+      <label
+        >Phiên bản
+        <select [ngModel]="cohortFilter()" (ngModelChange)="cohortFilter.set($event)">
+          <option value="ALL">Tất cả (từng nhóm riêng)</option>
+          @for (group of groups(); track group.cohort) {
+            <option [value]="group.cohort">
+              {{ algorithmName(group.algorithm) }} · {{ group.modelVersion }} ·
+              {{ group.configurationHash.slice(0, 8) }}
+            </option>
+          }
+        </select></label
+      >
+    </div>
     <header class="panel-heading">
       <div>
         <h3>Hiệu quả so với đối chứng</h3>
@@ -214,11 +253,11 @@
               <th>Khớp TB / bộ</th>
               <th>Tần suất nền</th>
               <th>Ngẫu nhiên</th>
-              <th>Khớp ≥3 số</th>
+              <th>Vé khớp ≥{{ threshold() }} số</th>
             </tr>
           </thead>
           <tbody>
-            @for (group of groups(); track group.cohort) {
+            @for (group of visibleGroups(); track group.cohort) {
               <tr>
                 <td>
                   <strong>{{ algorithmName(group.algorithm) }}</strong
@@ -232,7 +271,8 @@
                 <td>{{ metric(group.frequencyAverageMatched) }}</td>
                 <td>{{ metric(group.randomAverageMatched) }}</td>
                 <td>
-                  {{ metric(group.hit3RatePercent) }}{{ group.hit3RatePercent == null ? '' : '%' }}
+                  {{ metric(groupRate(group)) }}{{ groupRate(group) == null ? '' : '%'
+                  }}<small>{{ group.evaluatedDraws }} kỳ · 1 vé/kỳ</small>
                 </td>
               </tr>
             }
@@ -249,8 +289,36 @@
       </p>
     }
     <p class="evidence-note">
-      N/A nghĩa là chưa đo được. Mẫu nhỏ và chênh lệch trung bình chưa chứng minh thuật toán dự đoán
-      tốt hơn. Các bộ đối chứng được chốt cùng thời điểm với dự đoán.
+      “Chưa đo” nghĩa là chưa có mẫu đủ điều kiện. Mẫu nhỏ và chênh lệch trung bình chưa chứng minh
+      thuật toán dự đoán tốt hơn. Các bộ đối chứng được chốt cùng thời điểm với dự đoán.
     </p>
+    @for (group of visibleGroups(); track group.cohort) {
+      <details class="histogram-details">
+        <summary>
+          {{ algorithmName(group.algorithm) }} · Phân bố 0–6 số · {{ group.evaluatedDraws }} kỳ
+        </summary>
+        <p>
+          {{ group.firstTargetDate || 'Chưa rõ ngày đầu' }} –
+          {{ group.lastTargetDate || 'Chưa rõ ngày cuối' }} · {{ group.modelVersion }} · Dự đoán lưu
+          trước kỳ
+        </p>
+        <div class="match-histogram" role="list" aria-label="Phân bố số khớp trong một vé">
+          @for (count of group.matchHistogram; track $index; let matched = $index) {
+            <div role="listitem">
+              <span>{{ matched }} số</span
+              ><i><b [style.width.%]="histogramWidth(group, count)"></b></i
+              ><strong>{{ count }} vé</strong>
+            </div>
+          }
+        </div>
+        @if (group.hit4Interval95?.length) {
+          <p>
+            Khoảng Wilson 95% cho tỷ lệ vé ≥4: {{ group.hit4Interval95![0] | number: '1.2-2' }}% –
+            {{ group.hit4Interval95![1] | number: '1.2-2' }}%. Thống kê mô tả, chưa điều chỉnh nhiều
+            phép so sánh.
+          </p>
+        }
+      </details>
+    }
   </section>
 </section>

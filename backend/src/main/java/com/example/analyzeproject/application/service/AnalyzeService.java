@@ -640,15 +640,15 @@ public class AnalyzeService {
             response.setAlgorithmDesc("Trọng số học tuần tự từ các kỳ trước; chuyển tiếp được làm trơn theo số mẫu và kiểm tra trước khi cập nhật kết quả.");
         } else if (algorithm != null && (algorithm.toLowerCase().contains("bayes") || algorithm.toLowerCase().contains("graph") || algorithm.toLowerCase().contains("begn"))) {
             response.setAlgorithm("bayesian_graph");
-            response.setAlgorithmName("Mạng Đồ Thị Bayes AI (BEGN)");
+            response.setAlgorithmName("Heuristic Bayes và liên kết cặp số");
             response.setAlgorithmDesc("Mô hình mạng đồ thị kết hợp xác suất hậu nghiệm Bayes (Beta-Binomial), tương tác cụm liên kết (Graph Clique Synergy), cộng hưởng sóng hài Fourier và cầu nối chuyển vị banh phụ.");
         } else if (algorithm == null || algorithm.toLowerCase().contains("deep") || algorithm.toLowerCase().contains("stack") || algorithm.equalsIgnoreCase("dse_copula")) {
             response.setAlgorithm("deep_stacking");
-            response.setAlgorithmName("Xếp Chồng Học Máy AI & Copula (DSE-Copula)");
-            response.setAlgorithmDesc("Mô hình học máy xếp chồng đa tầng (Ensemble Stacking Meta-Learner) kết hợp ma trận phụ thuộc đa biến Empirical Copula Jaccard, độ trễ chuẩn hóa Z-Score theo phương sai cá thể trong Database và giải thuật Pareto Wheeling bảo toàn tối đa độ phủ giải thưởng.");
+            response.setAlgorithmName("Heuristic kết hợp tần suất và liên kết");
+            response.setAlgorithmDesc("Kết hợp điểm tần suất, độ trễ, liên kết cặp và thống kê đồng xuất hiện bằng trọng số cấu hình. Đây là heuristic, chưa phải XGBoost hoặc stacking được huấn luyện; điểm không phải xác suất trúng.");
         } else if ("xgboost".equalsIgnoreCase(algorithm)) {
-            response.setAlgorithmName("AI XGBoost + Wheeling System");
-            response.setAlgorithmDesc("Kết hợp XGBoost để chọn 10 số tiềm năng và Wheeling System để trải thành 10 vé tối ưu đối chuẩn US Powerball/Mega Millions.");
+            response.setAlgorithmName("Heuristic xếp hạng và ghép vé");
+            response.setAlgorithmDesc("Xếp hạng từ thống kê lịch sử và tạo các vé tham khảo. Chưa có bằng chứng cải thiện ngoài mẫu so với đối chứng cùng ngân sách.");
         } else {
             response.setAlgorithmName(algorithm);
             response.setAlgorithmDesc("Phân tích thuật toán " + algorithm);
@@ -1078,7 +1078,7 @@ public class AnalyzeService {
         neighborDriftAnalysis.put("cycleDiagnosis", totalDriftCount + "/" + driftEvaluated + " stored transitions contain at least two neighbor shifts.");
         neighborDriftAnalysis.put("riskCandidates", driftRiskCandidates);
         neighborDriftAnalysis.put("hedgingTicketNumbers", hedgingTicketNumbers);
-        neighborDriftAnalysis.put("hedgingRationale", "Dãy vé bọc lót hóa giải bẫy lệch 1 nút: Áp dụng chuyển dịch sai phân Δ = ±1 cho các bóng chịu áp lực nén cao nhất, bảo toàn tối đa xác suất trúng giải Jackpot và tránh trượt sát nút đáng tiếc.");
+        neighborDriftAnalysis.put("hedgingRationale", "Biến thể dịch số lân cận từ ranking lịch sử; đây là thử nghiệm phân bổ vé, chưa có bằng chứng tăng khả năng trúng.");
 
         response.setNeighborDriftAnalysis(neighborDriftAnalysis);
 
@@ -1263,7 +1263,7 @@ public class AnalyzeService {
         String newVersion = "v1." + (count + 1) + ".0";
         String effectiveDate = (drawDate != null && !drawDate.trim().isEmpty()) ? drawDate : java.time.LocalDate.now().toString();
         String effectiveCat = (category != null && !category.trim().isEmpty()) ? category.toUpperCase() : "POWER";
-        String effectiveNote = (note != null && !note.trim().isEmpty()) ? note : "Cập nhật thuật toán XGBoost tối ưu đa nhân tố đối chuẩn US Powerball & Mega Millions";
+        String effectiveNote = (note != null && !note.trim().isEmpty()) ? note : "Cập nhật cấu hình heuristic theo phiên bản";
         String modelName = "Configured prediction parameters";
 
         AlgorithmHyperparameter newParam = new AlgorithmHyperparameter(

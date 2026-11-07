@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-07",
+  "frontendTests": 74,
+  "java": {
+    "tests": 158,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 5
+  },
+  "postgres": [
+    {
+      "name": "DrawAnalysisPostgresTest",
+      "tests": 1,
+      "skipped": 0
+    },
+    {
+      "name": "MegaPortfolioStorePostgresTest",
+      "tests": 1,
+      "skipped": 0
+    },
+    {
+      "name": "ResearchStorePostgresTest",
+      "tests": 1,
+      "skipped": 0
+    },
+    {
+      "name": "WorkspaceStorePostgresTest",
+      "tests": 1,
+      "skipped": 0
+    },
+    {
+      "name": "OnionPersistencePostgresTest",
+      "tests": 1,
+      "skipped": 0
+    }
+  ],
+  "angularAssetsInJar": 25,
+  "jarSha256": "e6fb2537525d30ce71719379767bc62773f6ab490ae92bcf9da2014a54f02ada",
+  "scope": "Local verification, no hosting deployment or production data write",
+  "browserReport": "vietlott-ui-check-2026-11-07.json"
+}

@@ -11,7 +11,7 @@ final class AiLabProbability {
     private final double[] sums = new double[10];
 
     void add(Map<String,Object> forecast, Map<String,Object> settlement) {
-        if (!Set.of("logistic", "logistic_no_feedback").contains(forecast.get("labModel"))) return;
+        if (!Set.of("logistic", "logistic_no_feedback", "logistic_coverage", "shrunk_frequency").contains(forecast.get("labModel"))) return;
         if (!(forecast.get("explanation") instanceof Map<?,?> explanation)
                 || !(explanation.get("details") instanceof List<?> details)
                 || !(settlement.get("actualNumbers") instanceof List<?> actual)) return;

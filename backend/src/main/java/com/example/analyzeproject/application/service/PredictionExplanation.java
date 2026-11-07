@@ -18,13 +18,16 @@ public final class PredictionExplanation {
     }
     public static Map<String,Object> lab(AiLabModel.Fit fit,String model) {
         double[] scores=fit.scores();
-        var ranking=IntStream.range(1,scores.length).boxed().sorted(Comparator.<Integer>comparingDouble(n->scores[n]).reversed().thenComparingInt(n->n)).toList();
+        var ranking=ranking(scores);
         String[] names={"intercept","frequency","recent10","decay10","gap30"};Map<String,Double> weights=new LinkedHashMap<>();
-        if("logistic".equals(model)) for(int i=0;i<names.length;i++) weights.put(names[i],fit.weights()[i]);
+        if(model.startsWith("logistic")) for(int i=0;i<names.length;i++) weights.put(names[i],fit.weights()[i]);
         return map("schemaVersion",VERSION,"scoreType","uncalibrated_model_score","ranking",ranking,
                 "details",ranking.stream().map(n->{ Map<String,Double> values=new LinkedHashMap<>();
-                    for(int i=0;i<names.length;i++) if("logistic".equals(model)||i==3) values.put(names[i],fit.features()[n][i]);
+                    for(int i=0;i<names.length;i++) if(model.startsWith("logistic")||i==3) values.put(names[i],fit.features()[n][i]);
                     return map("number",n,"score",scores[n],"features",values); }).toList(),"tieBreak","number_ascending","modelWeights",weights,"scoringPolicy",model);
+    }
+    public static List<Integer> ranking(double[] scores) {
+        return IntStream.range(1,scores.length).boxed().sorted(Comparator.<Integer>comparingDouble(n->scores[n]).reversed().thenComparingInt(n->n)).toList();
     }
     public static Map<String,Object> combined(List<Integer> first,List<Integer> second,double weight) {
         Map<Integer,Double> scores=new HashMap<>();

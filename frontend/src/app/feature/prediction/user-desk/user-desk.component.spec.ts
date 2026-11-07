@@ -68,6 +68,8 @@ describe('User prediction desk', () => {
     view.portfolioDiagnostics = { ticketCount: 3, uniqueNumbers: 15, maxPairOverlap: 3 };
     fixture.componentRef.setInput('suggestion', view);
     fixture.detectChanges();
+    fixture.componentInstance.sourceTab.set('portfolio');
+    fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Nhóm 3 vé ít trùng');
     const button = Array.from(fixture.nativeElement.querySelectorAll('article')).find((node: any) =>
       node.textContent.includes('Nhóm ít trùng'),
