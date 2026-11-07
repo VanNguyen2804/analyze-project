@@ -1,0 +1,101 @@
+@let p = scenarios();
+<section aria-label="Kịch bản mua và bán theo nến">
+  <header>
+    <span class="eyebrow">TỰ LẬP TỪ BIỂU ĐỒ NẾN</span>
+    <h3>Kịch bản mua & bán</h3>
+    <p>{{ p.summary }}</p>
+  </header>
+  @if (stale()) {
+    <p class="notice" role="status">
+      Vị thế hoặc biểu đồ vừa thay đổi. Cập nhật lại để có kịch bản phù hợp.
+    </p>
+  }
+  @if (!p.confirmed) {
+    <p class="notice">Dữ liệu tham khảo · các điều kiện chưa được xác nhận.</p>
+  }
+  <div class="reference">
+    <span
+      >Nến đánh giá <strong>{{ p.asOf * 1000 | date: 'dd/MM HH:mm' : '+0700' }} (VN)</strong></span
+    ><span
+      >Giá đóng <strong>{{ p.referencePrice | number: '1.0-0' }} VND</strong></span
+    ><span
+      >Mốc giảm rủi ro <strong class="risk">{{ p.stopPrice | number: '1.0-0' }} VND</strong></span
+    >
+  </div>
+  <p class="note">
+    Hai cách mua là phương án thay thế. Các bước bán theo kháng cự và bán bảo vệ cũng là những tình
+    huống khác nhau.
+  </p>
+  @for (item of p.items; track item.id) {
+    <article
+      [class.buy]="item.side === 'BUY'"
+      [class.protect]="item.id === 'SELL_PROTECT'"
+      [class.met]="item.status === 'CONDITION_MET' && !stale()"
+    >
+      <div class="step-title">
+        <h4>{{ item.title }}</h4>
+        <span>{{ stale() ? 'Chờ cập nhật' : status(item.status) }}</span>
+      </div>
+      <div class="price">
+        {{ item.triggerPrice | number: '1.0-0' }} <small>VND / cổ phiếu</small>
+      </div>
+      <p>
+        Lượng mô phỏng: <strong>{{ item.suggestedQuantity | number: '1.0-0' }} CP</strong>
+      </p>
+      @if (item.side === 'BUY') {
+        <p>
+          Vốn cần bổ sung: <strong>{{ item.additionalCash | number: '1.0-0' }} VND</strong>
+        </p>
+      }
+      <details>
+        <summary>Điều kiện nến và tác động lên vị thế</summary>
+        <ul>
+          @for (condition of item.conditions; track condition.label) {
+            <li [class.confirmed]="condition.met && !stale()">
+              {{ condition.met && !stale() ? '✓' : '○' }} {{ condition.label }}
+            </li>
+          }
+        </ul>
+        <dl>
+          <div>
+            <dt>Giá vốn sau phương án</dt>
+            <dd>{{ item.averageAfter | number: '1.0-0' }} VND</dd>
+          </div>
+          <div>
+            <dt>Lượng sau phương án</dt>
+            <dd>{{ item.quantityAfter | number: '1.0-0' }} CP</dd>
+          </div>
+          <div>
+            <dt>
+              {{
+                item.side === 'BUY'
+                  ? 'Lãi/lỗ vị thế tại giá mua thêm'
+                  : 'Lãi/lỗ phần bán tại mốc giá'
+              }}
+            </dt>
+            <dd>{{ item.estimatedPnlAtTrigger | number: '1.0-0' }} VND</dd>
+          </div>
+        </dl>
+        @if (item.id === 'SELL_EXTENSION') {
+          <p class="note">
+            Lượng bán ở đây là phần còn lại sau phương án bán tại kháng cự; chưa ghi nhận giao dịch
+            thực tế.
+          </p>
+        }
+      </details>
+    </article>
+  }
+  <details class="method">
+    <summary>Cách hệ thống tự tính</summary>
+    <ul>
+      @for (line of p.methodology; track line) {
+        <li>{{ line }}</li>
+      }
+    </ul>
+  </details>
+  <div class="cautions">
+    @for (line of p.cautions; track line) {
+      <p>{{ line }}</p>
+    }
+  </div>
+</section>

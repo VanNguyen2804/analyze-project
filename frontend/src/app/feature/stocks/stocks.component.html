@@ -3,7 +3,7 @@
     <div>
       <p class="eyebrow">VIETNAM EQUITIES / POSITION DESK</p>
       <h2>Chủ động với <span>vị thế của bạn.</span></h2>
-      <p class="muted">Theo dõi giá vốn. Đặt giới hạn. Lên kế hoạch cho bước tiếp theo.</p>
+      <p class="muted">Nhập giá vốn và số lượng. Theo dõi kịch bản mua & bán từ biểu đồ nến.</p>
     </div>
     <button class="secondary" (click)="refresh()" [disabled]="loading() || positionBusy()">
       {{ loading() ? 'Đang cập nhật…' : '↻ Cập nhật thị trường' }}
@@ -138,13 +138,15 @@
             Nhận định chỉ xác nhận theo nến đã đóng. Cơ sở giá: {{ s.data.priceBasis }}.
           </p>
         </article>
-        <section class="panel position-workspace" aria-labelledby="position-heading">
+      </div>
+      <aside class="panel plan-panel">
+        <section class="position-workspace" aria-labelledby="position-heading">
           <details [open]="!position()?.positionPlan">
             <summary id="position-heading">
               <span
                 ><span class="eyebrow">VỊ THẾ CỦA TÔI · {{ s.symbol }}</span
-                ><b>Giá vốn &amp; hạn mức</b></span
-              ><span class="edit-hint">Chỉnh kế hoạch ↗</span>
+                ><b>Giá vốn &amp; số lượng</b></span
+              ><span class="edit-hint">Chỉ cần 2 thông tin ↗</span>
             </summary>
             <app-stock-position-form
               [value]="input"
@@ -155,15 +157,22 @@
             />
           </details>
         </section>
-      </div>
-      <aside class="panel plan-panel">
-        <app-stock-position-plan
-          [plan]="position()?.positionPlan ?? null"
-          [busy]="loading() || positionBusy() || positionStale()"
-          (recorded)="recordExecution($event)"
-        />
+        @if (position()?.scenarios; as scenarios) {
+          <app-stock-candle-scenarios
+            [scenarios]="scenarios"
+            [stale]="loading() || positionBusy() || positionStale()"
+          />
+        }
+
+        @if (!position()?.scenarios) {
+          <app-stock-position-plan
+            [plan]="position()?.positionPlan ?? null"
+            [busy]="loading() || positionBusy() || positionStale()"
+            (recorded)="recordExecution($event)"
+          />
+        }
         @if (position(); as p) {
-          @if (!p.positionPlan) {
+          @if (!p.positionPlan && !p.scenarios) {
             <div class="legacy-result">
               <h3>{{ label(p.status) }}</h3>
               @for (reason of p.reasons; track reason) {

@@ -42,10 +42,20 @@ import { StockPositionInput, StockPositionResult } from '../../core/models/stock
         >
       </div>
       <div>
-        <span>VỐN ĐÃ ĐƯA VÀO KẾ HOẠCH</span
-        ><strong>{{ plan ? (plan.capitalCommitted | number: '1.0-0') : '—' }}</strong
+        <span>GIÁ TRỊ VỐN ĐANG GIỮ</span
+        ><strong>{{
+          plan
+            ? (plan.capitalCommitted | number: '1.0-0')
+            : position().purchasePrice && position().quantity
+              ? (position().purchasePrice! * position().quantity! | number: '1.0-0')
+              : '—'
+        }}</strong
         ><small>{{
-          plan ? (plan.quantity | number: '1.0-0') + ' cổ phiếu còn giữ' : 'Nhập vị thế để bắt đầu'
+          plan
+            ? (plan.quantity | number: '1.0-0') + ' cổ phiếu còn giữ'
+            : position().quantity
+              ? (position().quantity | number: '1.0-0') + ' cổ phiếu đang giữ'
+              : 'Nhập vị thế để bắt đầu'
         }}</small>
       </div>
     </div>

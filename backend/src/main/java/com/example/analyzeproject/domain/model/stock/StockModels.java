@@ -54,9 +54,12 @@ public final class StockModels {
         @Override public String toString(){return "PositionInput[redacted]";}
     }
     public record PositionResult(String snapshotId, String status, Double price, Double changePercent,
-                                 Double grossPnl, Double estimatedNetPnl, Double breakEven, List<String> reasons, PositionPlan positionPlan) {
+                                 Double grossPnl, Double estimatedNetPnl, Double breakEven, List<String> reasons, PositionPlan positionPlan, CandleScenarios scenarios) {
         public PositionResult(String id,String status,Double price,Double change,Double gross,Double net,Double breakEven,List<String> reasons) {
-            this(id,status,price,change,gross,net,breakEven,reasons,null);
+            this(id,status,price,change,gross,net,breakEven,reasons,null,null);
+        }
+        public PositionResult(String id,String status,Double price,Double change,Double gross,Double net,Double breakEven,List<String> reasons,PositionPlan plan) {
+            this(id,status,price,change,gross,net,breakEven,reasons,plan,null);
         }
         @Override public String toString(){return "PositionResult[redacted]";}
     }
@@ -78,4 +81,11 @@ public final class StockModels {
                                double saleProceeds, double realizedPnl, double totalPnl, double remainingBudget,
                                double alertPrice, double originalStop, double effectiveStop, Double observedPeak,
                                List<PlanStep> steps, List<String> cautions) {}
+    public record CandleScenario(String id,String side,String title,String status,double triggerPrice,double suggestedQuantity,
+                                 double additionalCash,double averageAfter,double quantityAfter,double estimatedPnlAtTrigger,
+                                 List<PlanCondition> conditions,List<String> blockers) {}
+    public record CandleScenarios(String version,String snapshotId,String status,String summary,boolean confirmed,
+                                  long asOf,double referencePrice,double averageCost,double holdingQuantity,double stopPrice,
+                                  List<CandleScenario> items,List<String> methodology,List<String> cautions) {}
+
 }

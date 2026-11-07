@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.chart {
+  height: 480px;
+  width: 100%;
+  min-width: 0;
+}
+.chart-tools {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.legend,
+.ranges {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 10px;
+  color: #a6b6ce;
+}
+.legend {
+  flex-wrap: wrap;
+}
+.legend label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.legend input {
+  accent-color: #059669;
+}
+.ema20 {
+  color: #6366f1;
+}
+.ema50 {
+  color: #d97706;
+}
+.ranges {
+  gap: 3px;
+}
+.ranges button {
+  border: 1px solid #304462;
+  border-radius: 5px;
+  padding: 5px 8px;
+  background: #15253e;
+  color: #e6eef8;
+  font-size: 10px;
+  cursor: pointer;
+}
+.ranges button:hover {
+  background: #304268;
+}
+.credit {
+  font-size: 10px;
+  color: #a6b6ce;
+  margin: 8px 0;
+}
+@media (max-width: 600px) {
+  .chart {
+    height: 350px;
+  }
+}
+.projection-tools {
+  display: flex;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 12px;
+  background: #16223b;
+  border: 1px solid #34415e;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: #dbe4f6;
+}
+.projection-tools label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  cursor: pointer;
+}
+.projection-tools input {
+  accent-color: #a78bfa;
+}
+.projection-tools select {
+  background: #101a2c;
+  border: 1px solid #455472;
+  border-radius: 6px;
+  color: #dbe4f6;
+  padding: 5px;
+  max-width: 110px;
+  color-scheme: dark;
+}
+.projection-tools :is(input, select):focus-visible,
+.projection-help summary:focus-visible {
+  outline: 2px solid #67e8f9;
+  outline-offset: 3px;
+}
+.projection-note {
+  display: grid;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.7;
+  color: #acbdd5;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.projection-note strong {
+  color: #c4b5fd;
+  font-size: 11px;
+}
+.projection-help {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #acbdd5;
+  margin: 10px 0;
+}
+.projection-help summary {
+  cursor: pointer;
+  color: #c4b5fd;
+}

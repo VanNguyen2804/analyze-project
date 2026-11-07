@@ -53,3 +53,9 @@ Build dùng `@angular/build:application`; test dùng `@angular/build:karma`. Kh�
 
 
 Trang tạo dự đoán dùng bảng màu xanh đêm, tím và cyan. Theme tại `feature/prediction/prediction-night.css`, import từ `src/styles.css`, được giới hạn bằng `.prediction-night` và workspace đang chứa `app-prediction`; hỗ trợ component con có style encapsulation, không thay palette của AI Lab/chứng khoán khi mở riêng. Kiểm tra trình duyệt bằng fixture: desktop 1440 px, mobile 390 px, chọn vé và đổi MEGA/POWER; không dùng fixture để đánh giá dự đoán.
+
+
+Stock: `stock-position-form` chỉ nhập giá vốn và lượng giữ, đặt đầu cột vị thế; `stock-candle-scenarios` hiển thị `scenarios` từ backend, điều kiện nến, lượng/vốn mô phỏng và cảnh báo. `stock-position-plan` chỉ dành cho response kế hoạch thủ công cũ; mặc định session mới không tạo policy hạn mức.
+
+
+Chart Stock: `stock-chart-projections.ts` tính nhịp neo/Fibonacci/hồi quy từ nến đóng; `stock-projection-layer.ts` vẽ primitive và vùng bên phải, không thêm candle hoặc ngày tương lai. Checkbox chọn quạt/Fib ngang/kênh và cửa sổ 30/60/120 nến trong `stock-chart.component.html`; [công thức và kiểm chứng](../backend/docs/STOCK_CHART_TECHNICAL_TOOLS.md).

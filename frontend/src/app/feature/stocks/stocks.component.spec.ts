@@ -65,6 +65,31 @@ const emptySnapshot = (symbol: string): StockSnapshot => ({
 });
 
 describe('Stocks page', () => {
+  it('posts only the two position inputs without assigning a budget or sellable shares', () => {
+    const fixture = TestBed.createComponent(StocksComponent),
+      http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    fixture.componentInstance.input.purchasePrice = 25000;
+    fixture.componentInstance.input.quantity = 100;
+    fixture.componentInstance.analyzePosition();
+    const request = http.expectOne((r) => r.url.endsWith('/FPT/position-analysis'));
+    expect(request.request.body).toEqual({ purchasePrice: 25000, quantity: 100 });
+    expect(request.request.params.get('snapshotId')).toBe('FPT-snapshot');
+    request.flush({
+      snapshotId: 'FPT-snapshot',
+      status: 'WATCH',
+      price: null,
+      changePercent: null,
+      grossPnl: null,
+      estimatedNetPnl: null,
+      breakEven: null,
+      reasons: [],
+    });
+    fixture.destroy();
+    http.verify();
+  });
   it('refreshes only the selected analysis each minute and the watchlist every five minutes', fakeAsync(() => {
     spyOnProperty(document, 'hidden', 'get').and.returnValue(false);
     const fixture = TestBed.createComponent(StocksComponent);
@@ -184,7 +209,7 @@ describe('Stocks page', () => {
     harness.detectChanges();
     expect(harness.routeNativeElement?.querySelector('input[name="buyFee"]')).toBeNull();
     expect(harness.routeNativeElement?.querySelector('input[name="sellCost"]')).toBeNull();
-    expect(harness.routeNativeElement?.querySelector('input[name="maxLoss"]')).not.toBeNull();
+    expect(harness.routeNativeElement?.querySelector('input[name="maxLoss"]')).toBeNull();
     expect(
       !!harness.routeNativeElement?.querySelector(
         '.main-grid .position-workspace app-stock-position-form',
@@ -264,10 +289,9 @@ describe('Stocks page', () => {
     http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
     page.input.purchasePrice = 30000;
     page.input.quantity = 1000;
-    page.input.plan!.availableQuantity = 100;
     page.input.sellableQuantity = 400;
     page.resetPosition();
-    expect(page.input.plan!.availableQuantity).toBeNull();
+    expect(page.input.plan).toBeUndefined();
     page.analyzePosition();
     const result = {
       snapshotId: 'FPT-snapshot',

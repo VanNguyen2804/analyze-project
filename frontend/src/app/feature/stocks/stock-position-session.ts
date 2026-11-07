@@ -6,28 +6,11 @@ export function newStockPosition(): StockPositionInput {
     purchaseDate: '',
     purchasePrice: null,
     quantity: null,
-    maxLossPercent: 10,
+    maxLossPercent: null,
     sellableQuantity: null,
-    plan: {
-      startedAt: new Date().toISOString(),
-      observedPeak: null,
-      availableQuantity: null,
-      executions: [],
-      policy: {
-        alertLossPercent: 5,
-        maxLossVnd: null,
-        additionalBudget: 0,
-        maxCapital: null,
-        averagingBudgets: [0, 0],
-        targets: [
-          { gainPercent: 10, price: null, sellPercent: 30 },
-          { gainPercent: 20, price: null, sellPercent: 30 },
-        ],
-        trailingPercent: null,
-      },
-    },
   };
 }
+
 export interface StockPositionSession {
   input: StockPositionInput;
   result: StockPositionResult | null;

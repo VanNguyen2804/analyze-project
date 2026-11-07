@@ -1,10 +1,11 @@
 @let v = value();
 <form (ngSubmit)="calculate.emit()" #form="ngForm">
   <p class="note">
-    Vị thế được giữ riêng theo mã trong phiên này. Tải lại trang sẽ xóa dữ liệu đã nhập.
+    Nhập hai thông tin dưới đây. Hệ thống tự tính vùng mua thêm, bán và giảm rủi ro từ nến đã đóng.
+    Vị thế giữ riêng theo mã trong phiên này.
   </p>
   <fieldset [disabled]="busy() || locked()">
-    <legend>Vị thế ban đầu</legend>
+    <legend>Vị thế đang nắm giữ</legend>
     <div class="fields">
       <label
         >Giá vốn bình quân · VND<input
@@ -16,7 +17,7 @@
           required
       /></label>
       <label
-        >Số cổ phiếu đang giữ<input
+        >Số cổ phiếu nắm giữ<input
           type="number"
           name="quantity"
           [(ngModel)]="v.quantity"
@@ -26,185 +27,18 @@
           pattern="[0-9]+"
           required
       /></label>
-      <label
-        >Ngày mua · tùy chọn<input
-          type="date"
-          name="purchaseDate"
-          [(ngModel)]="v.purchaseDate"
-          (ngModelChange)="edit()"
-      /></label>
-      <label
-        >Lượng có thể bán ban đầu<input
-          type="number"
-          name="sellable"
-          [(ngModel)]="v.sellableQuantity"
-          (ngModelChange)="edit()"
-          min="0"
-          [max]="v.quantity ?? 0"
-          step="1"
-          pattern="[0-9]+"
-      /></label>
     </div>
-    @if (v.plan; as plan) {
-      <legend>Hạn mức của bạn</legend>
-      <p class="note">
-        Các % điền sẵn là giả định mô phỏng, có thể thay đổi theo kế hoạch của bạn.
-      </p>
-      <div class="fields">
-        <label
-          >Cảnh báo lỗ · %<input
-            type="number"
-            name="alertLoss"
-            [(ngModel)]="plan.policy.alertLossPercent"
-            (ngModelChange)="edit()"
-            min="0.01"
-            [max]="v.maxLossPercent ?? 99"
-            required
-        /></label>
-        <label
-          >Giới hạn dừng lỗ · %<input
-            type="number"
-            name="maxLoss"
-            [(ngModel)]="v.maxLossPercent"
-            (ngModelChange)="edit()"
-            min="0.01"
-            max="99.99"
-            required
-        /></label>
-        <label
-          >Ngân sách mua thêm · VND<input
-            type="number"
-            name="additionalBudget"
-            [(ngModel)]="plan.policy.additionalBudget"
-            (ngModelChange)="edit()"
-            min="0"
-            required
-        /></label>
-        <label
-          >Tổng vốn tối đa cho mã · VND<input
-            type="number"
-            name="maxCapital"
-            [(ngModel)]="plan.policy.maxCapital"
-            (ngModelChange)="edit()"
-            min="1"
-            required
-        /></label>
-        <label
-          >Trần lỗ cả kế hoạch · VND<input
-            type="number"
-            name="maxLossVnd"
-            [(ngModel)]="plan.policy.maxLossVnd"
-            (ngModelChange)="edit()"
-            min="1"
-            required
-        /></label>
-      </div>
-      <button type="button" class="text-button" (click)="fillLimits()">
-        Điền hạn mức từ vốn và % dừng lỗ
-      </button>
-      <details>
-        <summary>Phân bổ mua thêm và mục tiêu chốt lời</summary>
-        <div class="fields">
-          @for (budget of plan.policy.averagingBudgets; track $index; let i = $index) {
-            <label
-              >Ngân sách bình giá đợt {{ i + 1 }} · VND<input
-                type="number"
-                [name]="'budget' + i"
-                [(ngModel)]="plan.policy.averagingBudgets[i]"
-                (ngModelChange)="edit()"
-                min="0"
-                required
-            /></label>
-          }
-        </div>
-        <p class="note">Đặt 0 để không mua thêm ở đợt đó. Hai đợt không vượt ngân sách mua thêm.</p>
-        @for (target of plan.policy.targets; track $index; let i = $index) {
-          <div class="target-heading">
-            TP{{ i + 1 }} · tính theo giá vốn và lượng gốc lúc lập kế hoạch
-          </div>
-          <div class="fields">
-            <label
-              >Cách đặt mục tiêu<select
-                [name]="'targetMode' + i"
-                [ngModel]="target.price === null ? 'percent' : 'price'"
-                (ngModelChange)="
-                  target.price =
-                    $event === 'price' ? (v.purchasePrice || 0) * (1 + (i + 1) / 10) : null;
-                  target.gainPercent = $event === 'percent' ? (i + 1) * 10 : null;
-                  edit()
-                "
-              >
-                <option value="percent">Theo % lãi</option>
-                <option value="price">Theo giá VND</option>
-              </select></label
-            >
-            @if (target.price === null) {
-              <label
-                >Mục tiêu lãi · %<input
-                  type="number"
-                  [name]="'gain' + i"
-                  [(ngModel)]="target.gainPercent"
-                  (ngModelChange)="edit()"
-                  min="0.01"
-                  required
-              /></label>
-            } @else {
-              <label
-                >Giá mục tiêu · VND<input
-                  type="number"
-                  [name]="'targetPrice' + i"
-                  [(ngModel)]="target.price"
-                  (ngModelChange)="edit()"
-                  min="0.01"
-                  required
-              /></label>
-            }
-            <label
-              >Tỷ lệ bán trên lượng gốc · %<input
-                type="number"
-                [name]="'sellPercent' + i"
-                [(ngModel)]="target.sellPercent"
-                (ngModelChange)="edit()"
-                min="0.01"
-                max="100"
-                required
-            /></label>
-          </div>
-        }
-        <label class="trailing"
-          >Bảo vệ phần còn lại sau TP1 · % dưới đỉnh đóng cửa<input
-            type="number"
-            name="trailingPercent"
-            [(ngModel)]="plan.policy.trailingPercent"
-            (ngModelChange)="edit()"
-            min="0.01"
-            max="99.99"
-            placeholder="Để trống nếu không dùng"
-        /></label>
-        <p class="note">
-          Đỉnh bắt đầu theo dõi sau khi bạn ghi nhận chốt lời. Mốc bảo vệ chỉ được nâng lên.
-        </p>
-      </details>
-    }
   </fieldset>
-  @if (locked() && v.plan; as plan) {
-    <p class="note">Đã có giao dịch: mốc giá vốn và hạn mức gốc được giữ cố định.</p>
-    <label
-      >Xác nhận số cổ phiếu hiện có thể bán<input
-        type="number"
-        name="availableQuantity"
-        [(ngModel)]="plan.availableQuantity"
-        (ngModelChange)="edit()"
-        min="0"
-        step="1"
-        pattern="[0-9]+"
-        [disabled]="busy()"
-    /></label>
+  @if (locked()) {
+    <p class="note">
+      Vị thế cũ có giao dịch đã ghi nhận. Chuyển sang lập kịch bản từ lượng còn giữ để nhập lại hai
+      thông tin.
+    </p>
     <button class="text-button" type="button" (click)="restart.emit()" [disabled]="busy()">
-      Lập kế hoạch mới từ vị thế còn lại
+      Dùng vị thế còn lại
     </button>
   }
-  <button class="primary" type="submit" [disabled]="form.invalid || busy()">
-    {{ busy() ? 'Đang cập nhật…' : 'Cập nhật kế hoạch vị thế' }}
+  <button class="primary" type="submit" [disabled]="form.invalid || busy() || locked()">
+    {{ busy() ? 'Đang tính kịch bản…' : 'Lập kịch bản mua & bán' }}
   </button>
 </form>

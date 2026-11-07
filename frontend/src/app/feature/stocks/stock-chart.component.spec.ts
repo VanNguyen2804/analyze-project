@@ -3,6 +3,64 @@ import { StockChartComponent } from './stock-chart.component';
 import { stockChartCandles } from './stock-chart-data';
 
 describe('Stock chart with the real chart library', () => {
+  it('projects into the right margin without adding fake candles and clears layers for another short history', async () => {
+    const text = spyOn(CanvasRenderingContext2D.prototype, 'fillText').and.callThrough();
+    const fixture = TestBed.createComponent(StockChartComponent);
+    fixture.nativeElement.style.width = '900px';
+    const bars = Array.from({ length: 60 }, (_, i) => ({
+      time: 1700000000 + i * 86400,
+      open: 100 + i * 2,
+      high: 103 + i * 2,
+      low: 99 + i * 2,
+      close: 102 + i * 2,
+      volume: 1000,
+      closed: true,
+    }));
+    fixture.componentRef.setInput('candles', bars);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.projection()).not.toBeNull();
+    expect(fixture.componentInstance['candlesSeries']!.data().length).toBe(60);
+    fixture.componentInstance.toggleProjection('channel');
+    fixture.componentInstance.toggleProjection('levels');
+    for (let i = 0; i < 5; i++)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    expect(
+      fixture.componentInstance['chart']!.timeScale().getVisibleLogicalRange()!.to,
+    ).toBeGreaterThan(75);
+    const chart = fixture.componentInstance['chart']!,
+      futureX = Math.ceil(chart.timeScale().logicalToCoordinate(60 as any)!);
+    const boundaryLabel = text.calls
+      .allArgs()
+      .filter((args) => args[0] === 'KỊCH BẢN')
+      .at(-1)!;
+    expect(boundaryLabel).toBeDefined();
+    expect(boundaryLabel[1]).toBeGreaterThan(futureX - 10);
+    expect(boundaryLabel[1]).toBeLessThan(futureX + 20);
+    const picture = chart.takeScreenshot(),
+      pixels = picture
+        .getContext('2d')!
+        .getImageData(
+          futureX,
+          20,
+          Math.max(1, picture.width - futureX - 90),
+          Math.floor(picture.height * 0.7),
+        ).data;
+    let drawn = 0;
+    for (let i = 0; i < pixels.length; i += 4)
+      if ((pixels[i] > 130 && pixels[i + 2] > 160) || (pixels[i + 1] > 130 && pixels[i + 2] > 170))
+        drawn++;
+    expect(drawn)
+      .withContext('Fan/channel lines must paint visible pixels in the future margin')
+      .toBeGreaterThan(25);
+    expect(fixture.componentInstance['candlesSeries']!.data().length).toBe(60);
+    fixture.componentInstance.toggleProjection('fan');
+    expect(fixture.componentInstance.fanVisible()).toBeFalse();
+    fixture.componentRef.setInput('candles', bars.slice(0, 5));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.projection()).toBeNull();
+    expect(fixture.componentInstance.renderError()).toBe('');
+    fixture.destroy();
+  });
   it('replaces position price lines and removes them when the layer is hidden', () => {
     const fixture = TestBed.createComponent(StockChartComponent);
     fixture.nativeElement.style.width = '900px';

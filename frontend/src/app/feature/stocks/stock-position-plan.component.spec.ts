@@ -85,26 +85,25 @@ describe('Position plan interaction', () => {
     expect(c.canRecord(step)).toBeFalse();
     fixture.destroy();
   });
-  it('locks original cost and risk settings once executions exist while allowing sellable confirmation', () => {
+  it('requires only average cost and held quantity for the automatic scenario form', async () => {
     const fixture = TestBed.createComponent(StockPositionFormComponent),
       value = newStockPosition();
     value.purchasePrice = 30000;
     value.quantity = 1000;
-    value.plan!.executions = [
-      {
-        stepId: 'AVG1',
-        quantity: 100,
-        price: 27000,
-        executedAt: '2026-11-03T01:00:00Z',
-        sellableBefore: null,
-      },
-    ];
     fixture.componentRef.setInput('value', value);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('fieldset').disabled).toBeTrue();
+    await fixture.whenStable();
+    fixture.detectChanges();
     expect(
-      fixture.nativeElement.querySelector('input[name="availableQuantity"]').disabled,
-    ).toBeFalse();
+      [...fixture.nativeElement.querySelectorAll('input')].map((input: any) => input.name),
+    ).toEqual(['purchasePrice', 'quantity']);
+    expect(value.plan).toBeUndefined();
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBeFalse();
+    const calculate = spyOn(fixture.componentInstance.calculate, 'emit');
+    fixture.nativeElement
+      .querySelector('form')
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    expect(calculate).toHaveBeenCalled();
     fixture.destroy();
   });
 });

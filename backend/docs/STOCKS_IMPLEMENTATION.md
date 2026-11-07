@@ -1,5 +1,7 @@
 # Trang chứng khoán — triển khai 03/11/2026
 
+Luồng vị thế mặc định hiện chỉ nhập giá vốn và số lượng; tự lập kịch bản theo nến. Xem [thiết kế hai thông tin](STOCK_TWO_INPUT_SCENARIOS.md). Các mục hạn mức và execution bên dưới mô tả kế hoạch thủ công cũ, vẫn được giữ tương thích ở API.
+
 Cập nhật 04/11/2026: sửa vùng vẽ khi layout ban đầu chưa có kích thước; chủ động resize ở animation frame kế tiếp, chuẩn hóa ngày nến độc lập locale. Bỏ hai ô phí mua/chi phí bán và số lãi/lỗ ròng trên giao diện. Phân tích vị thế trả lãi/lỗ theo giá tham khảo khi có đơn vị quy đổi rõ ràng, tách khỏi điều kiện xác nhận tín hiệu mua/bán.
 
 Kiểm chứng bản sửa 04/11: Angular build và Maven install đạt; 54 kiểm thử Angular và 113 kiểm thử Java đạt, tám kiểm thử Java có điều kiện bỏ qua. Typecheck/Prettier phần frontend sửa đạt; 24 assets khớp byte trong JAR. Kiểm thử có tình huống vùng biểu đồ ban đầu ẩn rồi hiện, đổi khung, nhập vị thế không có phí, quy đổi nghìn VND đúng một lần và dữ liệu giá cũ. Truy cập đọc nguồn Entrade thành công cho cả bốn mã; chưa triển khai hosting hoặc kiểm thử toàn ứng dụng với PostgreSQL thật trong lần sửa này.

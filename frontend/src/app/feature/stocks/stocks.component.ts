@@ -1,3 +1,4 @@
+import { StockCandleScenariosComponent } from './stock-candle-scenarios.component';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -53,6 +54,7 @@ import { StockPositionSessions, newStockPosition } from './stock-position-sessio
     StockPositionFormComponent,
     StockPositionSummaryComponent,
     StockPositionPlanComponent,
+    StockCandleScenariosComponent,
   ],
   templateUrl: './stocks.component.html',
   styleUrl: './stocks.component.css',
@@ -88,10 +90,23 @@ export class StocksComponent implements OnInit {
   readonly chartLevels = computed<StockPlanLevel[]>(() => {
     const p = this.position()?.positionPlan,
       s = this.data();
-    if (!p || !s || this.positionStale() || !s.data.verified || s.data.priceBasis !== 'RAW')
-      return [];
+    if (!s || this.positionStale() || !s.data.verified || s.data.priceBasis !== 'RAW') return [];
     const factor = s.data.unit === 'VND' ? 1 : s.data.unit === 'THOUSAND_VND' ? 1000 : 0;
     if (!factor) return [];
+    const scenarios = this.position()?.scenarios;
+    if (scenarios)
+      return [
+        { price: scenarios.averageCost / factor, title: 'Giá vốn', color: '#a78bfa' },
+        ...scenarios.items
+          .filter((item) => item.suggestedQuantity > 0)
+          .map((item) => ({
+            price: item.triggerPrice / factor,
+            title: item.title,
+            color: item.side === 'BUY' ? '#38bdf8' : '#fb7185',
+          })),
+      ];
+    if (!p) return [];
+
     return [
       { price: p.averageCost / factor, title: 'Giá vốn', color: '#a78bfa' },
       { price: p.alertPrice / factor, title: 'Cảnh báo lỗ', color: '#fbbf24' },
@@ -279,9 +294,6 @@ export class StocksComponent implements OnInit {
     const next = newStockPosition();
     next.purchasePrice = p.averageCost;
     next.quantity = p.quantity || null;
-    next.sellableQuantity = p.sellableQuantity;
-    next.plan!.policy.maxCapital = p.averageCost * p.quantity;
-    next.plan!.policy.maxLossVnd = p.averageCost * p.quantity * 0.1;
     this.input = next;
     this.session.result = null;
     this.position.set(null);

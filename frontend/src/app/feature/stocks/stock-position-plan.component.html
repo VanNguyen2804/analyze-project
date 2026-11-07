@@ -34,8 +34,7 @@
     </p>
     @if (!hasAveraging()) {
       <p class="note">
-        Chưa phân bổ vốn cho bình giá. Mở “Giá vốn & hạn mức” để đặt ngân sách từng đợt nếu muốn mô
-        phỏng mua thêm.
+        Kế hoạch cũ chưa phân bổ vốn bình giá. Có thể lập kịch bản mới từ giá vốn và lượng còn giữ.
       </p>
     }
     @for (step of p.steps; track step.id) {
@@ -164,7 +163,11 @@
   <section class="plan-empty">
     <span class="orb">◎</span>
     <h3>Mỗi vị thế, một kế hoạch</h3>
-    <p>Nhập giá vốn và hạn mức để xem khi nào cần đánh giá bình giá, giảm rủi ro hoặc chốt lời.</p>
-    <div>01 · Nhập vị thế<br />02 · Đặt hạn mức<br />03 · Theo dõi từng bước</div>
+    <p>
+      Nhập giá vốn bình quân và số cổ phiếu nắm giữ để tự lập vùng mua thêm, bán và giảm rủi ro.
+    </p>
+    <div>
+      01 · Nhập hai thông tin<br />02 · Xem vùng giá theo nến<br />03 · Theo dõi điều kiện mua/bán
+    </div>
   </section>
 }

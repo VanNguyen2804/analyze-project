@@ -151,6 +151,7 @@ export interface StockPositionResult {
   breakEven: number | null;
   reasons: string[];
   positionPlan?: StockPositionPlan | null;
+  scenarios?: StockCandleScenarios | null;
 }
 export interface StockProfitTarget {
   gainPercent: number | null;
@@ -229,4 +230,34 @@ export interface StockPlanLevel {
   price: number;
   title: string;
   color: string;
+}
+
+export interface StockCandleScenario {
+  id: string;
+  side: string;
+  title: string;
+  status: string;
+  triggerPrice: number;
+  suggestedQuantity: number;
+  additionalCash: number;
+  averageAfter: number;
+  quantityAfter: number;
+  estimatedPnlAtTrigger: number;
+  conditions: { label: string; met: boolean }[];
+  blockers: string[];
+}
+export interface StockCandleScenarios {
+  version: string;
+  snapshotId: string;
+  status: string;
+  summary: string;
+  confirmed: boolean;
+  asOf: number;
+  referencePrice: number;
+  averageCost: number;
+  holdingQuantity: number;
+  stopPrice: number;
+  items: StockCandleScenario[];
+  methodology: string[];
+  cautions: string[];
 }

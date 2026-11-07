@@ -7,6 +7,7 @@ import com.example.analyzeproject.domain.service.stock.StockRecommendationEngine
 import com.example.analyzeproject.domain.service.stock.StockDailyDesk;
 import com.example.analyzeproject.domain.service.stock.StockDataQuality;
 import com.example.analyzeproject.domain.service.stock.StockPositionPlanEngine;
+import com.example.analyzeproject.domain.service.stock.StockCandleScenarios;
 import java.time.*;
 import java.util.*;
 import java.security.MessageDigest;
@@ -125,6 +126,13 @@ public final class StockService {
         String status="UNAVAILABLE".equals(s.analysis().recommendation().action())?"WATCH":s.analysis().recommendation().action();List<String> reasons=new ArrayList<>();
         reasons.add(s.analysis().recommendation().summary());
         String currentFreshness=freshness(s.data(),s.mode(),s.lastClosedBarAt());
+        if(p.plan()==null&&p.maxLossPercent()==null&&p.quantity()!=null) {
+            var scenarios=StockCandleScenarios.evaluate(s,p,currentFreshness,StockCandleScenarios.Policy.defaults());
+            reasons.clear();reasons.add(scenarios==null?"Cần ít nhất 55 nến đóng và ATR dương để tự lập kịch bản; không tạo mốc giá khi thiếu dữ liệu.":scenarios.summary());
+            reasons.add("Lãi/lỗ theo giá hiện có, chưa tính phí/thuế; kịch bản dùng nến đã đóng.");
+            String scenarioStatus=scenarios==null||!scenarios.confirmed()?"WATCH":"RISK".equals(scenarios.status())?"SELL":"HOLD";
+            return new PositionResult(id,scenarioStatus,price,change,(price-p.purchasePrice())*p.quantity(),null,null,List.copyOf(reasons),null,scenarios);
+        }
         double maxLoss=p.maxLossPercent()==null?10:p.maxLossPercent();
         if(maxLoss<=0||maxLoss>=100)throw new IllegalArgumentException("Giới hạn lỗ phải trong (0,100%).");
         var closed=s.data().candles().stream().filter(Candle::closed).toList();

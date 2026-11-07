@@ -1,0 +1,94 @@
+<div class="chart-tools">
+  <div class="legend">
+    <span>● Nến / Volume</span><span class="ema20">━ EMA20</span><span class="ema50">━ EMA50</span
+    ><label
+      ><input type="checkbox" [checked]="cloudVisible()" (change)="toggleCloud()" /> Mây
+      Ichimoku</label
+    ><label
+      ><input type="checkbox" [checked]="planVisible()" (change)="togglePlan()" /> Mốc vị thế</label
+    >
+  </div>
+  <div class="ranges">
+    <button type="button" (click)="setRange(intraday ? 16 : 21)">
+      {{ intraday ? '1 phiên' : '1M' }}</button
+    ><button type="button" (click)="setRange(intraday ? 80 : 63)">
+      {{ intraday ? '5 phiên' : '3M' }}</button
+    ><button type="button" (click)="setRange(intraday ? 320 : 126)">
+      {{ intraday ? '20 phiên' : '6M' }}</button
+    ><button type="button" (click)="setRange(100000)">Tất cả</button>
+  </div>
+</div>
+<div class="projection-tools" role="group" aria-label="Công cụ kỹ thuật tự động">
+  <label
+    ><input type="checkbox" [checked]="fanVisible()" (change)="toggleProjection('fan')" /> Fibonacci
+    hình quạt</label
+  >
+  <label
+    ><input type="checkbox" [checked]="fibVisible()" (change)="toggleProjection('levels')" /> Fib
+    ngang</label
+  >
+  <label
+    ><input type="checkbox" [checked]="channelVisible()" (change)="toggleProjection('channel')" />
+    Kênh xu hướng</label
+  >
+  <label
+    >Nhịp giá
+    <select [value]="projectionWindow()" (change)="setProjectionWindow($any($event.target).value)">
+      <option value="30">30 nến</option>
+      <option value="60">60 nến</option>
+      <option value="120">120 nến</option>
+    </select></label
+  >
+</div>
+<div
+  #host
+  class="chart"
+  role="img"
+  aria-label="Biểu đồ nến, EMA, Ichimoku, Fibonacci hình quạt và kênh xu hướng; có thể kéo và thu phóng"
+></div>
+@if (projection(); as p) {
+  <div class="projection-note">
+    <strong>Nhịp {{ p.direction === 'UP' ? 'tăng' : 'giảm' }} · {{ p.window }} nến đóng</strong>
+    <span
+      >A: {{ p.start.time * 1000 | date: 'dd/MM HH:mm' : '+0700' }} ·
+      {{ p.start.price | number: '1.0-2' }} → B:
+      {{ p.end.time * 1000 | date: 'dd/MM HH:mm' : '+0700' }} ·
+      {{ p.end.price | number: '1.0-2' }}</span
+    >
+    <span>{{
+      p.anchorMethod === 'pivots'
+        ? 'Hai điểm xoay đã có hai nến xác nhận bên phải.'
+        : 'Dùng biên cao/thấp của cửa sổ; điểm neo có thể đổi khi có nến mới.'
+    }}</span>
+    <span
+      >Vùng phải: ngoại suy {{ projectionHorizon }} khoảng nến, không gán lịch giao dịch. Đường đứt
+      là kịch bản, không phải nến hoặc giá tương lai đã biết.</span
+    >
+  </div>
+  <details class="projection-help">
+    <summary>Đọc các công cụ này như thế nào?</summary>
+    <p>
+      Quạt 38,2% / 50% / 61,8% nối từ A qua các mức hồi của nhịp A–B, tạo các vùng hỗ trợ/kháng cự
+      động. Fib ngang dùng cùng hai điểm neo.
+    </p>
+    <p>
+      Kênh xu hướng khớp đường thẳng theo giá đóng trong cửa sổ, hai biên cách đường giữa hai lần độ
+      lệch dư. Đây không phải khoảng tin cậy 95% hoặc xác suất thắng.
+    </p>
+    <p>
+      Chỉ vẽ từ nến đã đóng của mã và khung đang xem. Các vùng có thể bị phá; kết hợp điều kiện
+      giá/khối lượng và kịch bản vị thế trước khi quyết định.
+    </p>
+  </details>
+} @else {
+  <p class="projection-note">
+    Cần ít nhất 20 nến đóng và một nhịp giá đủ rõ để vẽ các công cụ tự động.
+  </p>
+}
+@if (renderError()) {
+  <p role="alert">{{ renderError() }}</p>
+}
+<p class="credit">
+  TradingView Lightweight Charts™ · Copyright (с) 2025 TradingView, Inc.
+  <a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView</a>
+</p>

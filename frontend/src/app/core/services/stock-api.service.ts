@@ -26,7 +26,9 @@ export class StockApiService {
     return this.http
       .post<StockPositionResult>(
         `${this.base}/${symbol}/position-analysis`,
-        { ...input, purchaseDate: input.purchaseDate || null },
+        !input.plan && input.maxLossPercent == null
+          ? { purchasePrice: input.purchasePrice, quantity: input.quantity }
+          : { ...input, purchaseDate: input.purchaseDate || null },
         {
           params: { snapshotId },
         },

@@ -1,5 +1,13 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Stock: công cụ kỹ thuật trên biểu đồ
+
+Đã thêm quạt Fibonacci tự nhận diện A/B từ nến đóng, Fib ngang và kênh hồi quy, với lựa chọn cửa sổ 30/60/120. Vùng phải ngoại suy 20 khoảng nến không thêm OHLCV hoặc lịch giao dịch giả. Hiển thị hai điểm neo và giải thích kênh không phải khoảng tin cậy/xác suất thắng; bật/tắt riêng từng lớp và detach khi rời trang. Xem [công thức, giới hạn và kiểm chứng](backend/docs/STOCK_CHART_TECHNICAL_TOOLS.md).
+
+## Stock: kịch bản từ giá vốn và số lượng
+
+Form vị thế chỉ còn hai giá trị; backend tự tính các phương án mua tại hỗ trợ/vượt kháng cự, bán tại kháng cự/vùng ATR mở rộng và giảm rủi ro. Số lượng mua là giả định theo tỷ lệ lượng đang giữ, không suy ra ngân sách hoặc lượng có thể bán. Dùng nến đóng, phân biệt dữ liệu tham khảo và xác nhận, giữ tương thích kế hoạch thủ công cũ. Xem [policy, công thức và giới hạn](backend/docs/STOCK_TWO_INPUT_SCENARIOS.md).
+
 ## Dự đoán mới từ mô hình Lab từng trúng ≥3 số — 07/11/2026
 
 Đầu AI Lab và trang dự đoán hiển thị các dãy **đúng kỳ sắp tới** đã lưu của thuật toán từng có vé prospective đối soát trúng ≥3 số ở kỳ trước. Gom các dãy dưới tiêu đề thuật toán/phiên bản hiện tại; thành tích tốt nhất, số vé/kỳ đạt ≥3 và ngày gần nhất hiển thị một lần. Có breakdown theo đúng nhóm đánh giá AI Lab, mã nhóm khớp giữa hai trang; tổng lịch sử ghi rõ có thể gồm bản cũ; không hiển thị lại số cũ như gợi ý mới. Thành tích xét toàn bộ lịch sử hợp lệ của thuật toán (có thể gồm phiên bản cũ), không chỉ trang hiện tại; dùng settlement mới nhất, loại kết quả bị rút và snapshot không hợp lệ. Không có snapshot đúng kỳ thì chờ cập nhật, không tự sinh thêm vé. Endpoint GET `/api/ai-lab/highlights` dùng chung compact cache, không huấn luyện hoặc ghi dữ liệu. Chi tiết tại [ghi chú triển khai](backend/docs/AI_LAB_CURRENT_HIGHLIGHTS.md).

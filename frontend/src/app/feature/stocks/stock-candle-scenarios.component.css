@@ -1,0 +1,144 @@
+:host {
+  display: block;
+  color: #e6eef8;
+}
+header {
+  margin-bottom: 18px;
+}
+.eyebrow {
+  color: #a78bfa;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+h3 {
+  margin: 8px 0;
+  font-size: 22px;
+}
+h4 {
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 8px 0;
+}
+.reference {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: #101c30;
+  border-radius: 12px;
+}
+.reference span {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  color: #a6b6ce;
+  font-size: 12px;
+}
+.reference strong {
+  color: #e6eef8;
+}
+.reference .risk {
+  color: #fda4af;
+}
+article {
+  margin: 14px 0;
+  padding: 16px;
+  background: #122036;
+  border: 1px solid #304462;
+  border-left: 3px solid #c4b5fd;
+  border-radius: 12px;
+}
+article.buy {
+  border-left-color: #38bdf8;
+}
+article.protect {
+  border-left-color: #fb7185;
+}
+article.met {
+  background: #1c2544;
+  border-color: #a78bfa;
+}
+.step-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+.step-title span {
+  font-size: 11px;
+  color: #c4b5fd;
+}
+.price {
+  font-size: 24px;
+  font-weight: 750;
+  margin: 12px 0;
+  font-variant-numeric: tabular-nums;
+}
+.price small {
+  font-size: 11px;
+  color: #a6b6ce;
+  font-weight: 400;
+}
+.note,
+.cautions {
+  color: #a6b6ce;
+}
+.notice {
+  background: #34283a;
+  color: #fbd38d;
+  border-radius: 8px;
+  padding: 10px;
+}
+details {
+  margin-top: 12px;
+  font-size: 12px;
+}
+summary {
+  cursor: pointer;
+  color: #c4b5fd;
+  line-height: 1.6;
+}
+summary:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 3px;
+}
+ul {
+  padding-left: 18px;
+}
+li {
+  color: #a6b6ce;
+  line-height: 1.7;
+  margin: 5px 0;
+}
+li.confirmed {
+  color: #7dd3fc;
+}
+dl {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+dl div {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+dt {
+  color: #a6b6ce;
+  font-weight: 400;
+}
+dd {
+  margin: 0;
+}
+.cautions {
+  border-top: 1px solid #304462;
+  margin-top: 18px;
+  padding-top: 8px;
+}
