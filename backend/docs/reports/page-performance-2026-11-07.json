@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-07",
+  "scope": "Local synthetic fixture; not production latency or an accuracy evaluation",
+  "fixture": {
+    "candles": 1250,
+    "seed": 7441,
+    "mode": "SWING"
+  },
+  "before": {
+    "milliseconds": 139.8967,
+    "allocatedBytes": 246158512
+  },
+  "after": {
+    "milliseconds": 56.8953,
+    "allocatedBytes": 471504
+  },
+  "modelOutputExactlyEqual": true,
+  "method": "One warm-up plus one timed fit per implementation; ThreadMXBean current-thread allocated bytes. Timing is illustrative and varies by machine/JIT.",
+  "validation": {
+    "frontendTestsPassed": 77,
+    "backendTestsPassed": 161,
+    "backendTestsSkipped": 7,
+    "frontendBuild": "PASS",
+    "backendInstall": "PASS",
+    "packagedFrontendFilesByteMatched": 25
+  },
+  "hostingProbe": {
+    "initial": "HTTP 503 root, stock watchlist and AI Lab; later root timeout",
+    "final": {
+      "root": {
+        "http": 200,
+        "seconds": 1.0
+      },
+      "stockWatchlist": {
+        "http": 200,
+        "seconds": 5.2
+      },
+      "aiLabMegaPage0": {
+        "http": 200,
+        "seconds": 5.7
+      }
+    },
+    "changesDeployed": false,
+    "rootCause": "Not established; hosting logs unavailable"
+  }
+}

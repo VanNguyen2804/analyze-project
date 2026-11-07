@@ -1,5 +1,7 @@
 # Analyze Project
 
+Hiệu năng Stock/AI Lab và health check `/api/health`: xem [cấu hình, kiểm chứng và triển khai](backend/docs/PAGE_PERFORMANCE.md).
+
 ## Chứng khoán Việt Nam
 
 Mở `/stocks` hoặc `/stocks/FPT` để xem VIC, FPT, SZC, MBB: nến ngày/15 phút, volume, EMA20, VNINDEX, phân tích vị thế và mô hình học máy ba lớp mua/theo dõi/bán. MEGA/POWER và lịch xổ số được ẩn trên trang chứng khoán. Mô hình thực sự huấn luyện từ lịch sử, có kiểm định theo thời gian và đối chứng; chưa chứng minh lợi thế giao dịch.

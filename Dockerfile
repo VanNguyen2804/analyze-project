@@ -60,6 +60,9 @@ COPY --from=frontend-builder /app/frontend-dist /app/public
 ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=prod
 
+# Reserve room for native memory, database/client pools and request threads on small instances.
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=15 -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2"
+
 EXPOSE 8080
 
 ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar /app/app.jar"]

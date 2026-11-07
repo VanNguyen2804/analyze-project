@@ -81,6 +81,8 @@ class AiLabTest {
         rows.add(TestDraws.verified(new LotteryNumber(ForecastProtocol.target("MEGA",now),"MEGA",List.of(30,31,32,33,34,35),null,null)));
         when(repository.findAllByOrderByDrawDateDescCreatedAtDesc()).thenReturn(rows);
         List<Map<String,Object>> saved=new ArrayList<>(); when(store.snapshots()).thenAnswer(call->new ArrayList<>(saved));
+        when(store.snapshotIds()).thenAnswer(call->saved.stream().map(f->(String)f.get("id")).collect(java.util.stream.Collectors.toSet()));
+        when(store.feedbackSnapshots(anyString(),any(),anyInt(),any())).thenAnswer(call->new ArrayList<>(saved));
         doAnswer(call->{ List<Map<String,Object>> batch=call.getArgument(0); assertEquals(5,batch.size()); saved.addAll(batch); return null; }).when(store).captureBatch(anyList());
         var lab=new AiLabService(store,repository,true); lab.run();
         assertEquals(AiLabModel.MODELS.size()*AiLabModel.BUDGET,saved.size());

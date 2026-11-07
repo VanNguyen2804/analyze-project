@@ -10,14 +10,19 @@ import static com.example.analyzeproject.application.service.ForecastProtocol.ma
 public final class AiLabFeedback {
     private AiLabFeedback() {}
     public record Evidence(List<AiLabModel.FeedbackRound> rounds, Map<String,Object> audit) {}
+    public static boolean eligible(Map<String,Object> f,String category,LocalDate target,Instant now) {
+        if(!category.equals(f.get("category"))||!"logistic".equals(f.get("labModel"))
+                ||!("ai-lab-logistic-v1".equals(f.get("modelVersion"))||AiLabModel.VERSION.equals(f.get("modelVersion")))||!ForecastProtocol.isProspective(f))return false;
+        var date=LocalDate.parse((String)f.get("targetDate"));
+        return date.isBefore(target)&&!now.isBefore(date.atTime(19,0).atZone(ForecastProtocol.ZONE).toInstant());
+    }
 
     @SuppressWarnings("unchecked")
     public static Evidence collect(List<Map<String,Object>> snapshots, List<LotteryNumber> history,
                                    String category, LocalDate target, Instant now, int maximumDraws) {
         Map<String,List<Map<String,Object>>> batches = new TreeMap<>();
         for (var f : snapshots) {
-            if (!category.equals(f.get("category")) || !"logistic".equals(f.get("labModel"))
-                    || !("ai-lab-logistic-v1".equals(f.get("modelVersion")) || AiLabModel.VERSION.equals(f.get("modelVersion"))) || !ForecastProtocol.isProspective(f)) continue;
+            if (!eligible(f,category,target,now)) continue;
             String date = (String) f.get("targetDate");
             if (!LocalDate.parse(date).isBefore(target) || now.isBefore(LocalDate.parse(date).atTime(19,0).atZone(ForecastProtocol.ZONE).toInstant())) continue;
             batches.computeIfAbsent(date, k -> new ArrayList<>()).add(f);

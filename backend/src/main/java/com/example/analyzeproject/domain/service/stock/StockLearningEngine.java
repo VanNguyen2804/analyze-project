@@ -19,8 +19,7 @@ public final class StockLearningEngine {
         int h = mode == Mode.SWING ? 10 : 4;
         int end=candles.size()-h, start=55, total=end-start;
         if (total < 240) return unavailable(h, "Cần ít nhất " + (295+h) + " nến đã đóng để huấn luyện và kiểm định.");
-        double[][] features = new double[candles.size()][];
-        for (int i=start;i<candles.size();i++) features[i]=features(candles,i);
+        double[][] features = featureMatrix(candles,start);
         int[] labels=new int[candles.size()];Arrays.fill(labels,-1);
         for (int i=start;i<end;i++) {
             if(mode==Mode.INTRADAY&&!sameSession(candles.get(i),candles.get(i+h)))continue;
@@ -74,6 +73,24 @@ public final class StockLearningEngine {
         return new double[]{close/c.get(i-1).close()-1,close/c.get(i-5).close()-1,
                 fast/slow-1,(rsi(c,i)-50)/50,atr(c,i)/close,Math.log1p(c.get(i).volume()/Math.max(1,volume/20))};
     }
+    /** Same recurrences and arithmetic as features(), computed once per chronological prefix. */
+    static double[][] featureMatrix(List<Candle> candles,int start) {
+        double[][] result=new double[candles.size()][];if(candles.isEmpty())return result;
+        double fast=candles.get(0).close(),slow=fast,gain=0,loss=0;
+        double fastAlpha=2.0/(9+1),slowAlpha=2.0/(21+1);
+        for(int i=1;i<candles.size();i++) {
+            double close=candles.get(i).close(),change=close-candles.get(i-1).close();
+            fast+=fastAlpha*(close-fast);slow+=slowAlpha*(close-slow);
+            if(i<=14){gain+=Math.max(0,change)/14;loss+=Math.max(0,-change)/14;}
+            else {gain=(gain*13+Math.max(0,change))/14;loss=(loss*13+Math.max(0,-change))/14;}
+            if(i<start)continue;
+            double rsi=gain+loss==0?50:loss==0?100:100-100/(1+gain/loss),volume=0;
+            for(int j=i-20;j<i;j++)volume+=candles.get(j).volume();
+            result[i]=new double[]{close/candles.get(i-1).close()-1,close/candles.get(i-5).close()-1,
+                    fast/slow-1,(rsi-50)/50,atr(candles,i)/close,Math.log1p(candles.get(i).volume()/Math.max(1,volume/20))};
+        }
+        return result;
+    }
     public static Indicator indicators(List<Candle> c,Mode mode){
         int i=c.size()-1; double support=Double.POSITIVE_INFINITY,resistance=0;
         for(int j=Math.max(0,i-20);j<i;j++){support=Math.min(support,c.get(j).low());resistance=Math.max(resistance,c.get(j).high());}
@@ -89,16 +106,20 @@ public final class StockLearningEngine {
         for(int i=from;i<to;i++)if(y[i]>=0)for(int j=0;j<d;j++)scale[j]+=Math.pow(x[i][j]-mean[j],2)/n;
         for(int j=0;j<d;j++)scale[j]=Math.max(1e-8,Math.sqrt(scale[j]));
         Model m=new Model(w,mean,scale);
+        double[][] transformed=new double[to-from][];
+        for(int i=from;i<to;i++)if(y[i]>=0)transformed[i-from]=m.transform(x[i]);
+        double[][] grad=new double[3][d+1];double[] probabilities=new double[3];
         for(int epoch=0;epoch<180;epoch++){
-            double[][] grad=new double[3][d+1];
-            for(int i=from;i<to;i++){if(y[i]<0)continue;double[] z=m.transform(x[i]),p=m.predict(x[i]);for(int k=0;k<3;k++)for(int j=0;j<=d;j++)grad[k][j]+=(p[k]-(y[i]==k?1:0))*z[j]/n;}
+            for(var row:grad)Arrays.fill(row,0);
+            for(int i=from;i<to;i++){if(y[i]<0)continue;double[] z=transformed[i-from];m.predictInto(z,probabilities);for(int k=0;k<3;k++)for(int j=0;j<=d;j++)grad[k][j]+=(probabilities[k]-(y[i]==k?1:0))*z[j]/n;}
             for(int k=0;k<3;k++)for(int j=0;j<=d;j++)w[k][j]-=.08*(grad[k][j]+(j==0?0:.02*w[k][j]));
         }
         return m;
     }
     private record Model(double[][] w,double[] mean,double[] scale){
         double[] transform(double[] x){double[] z=new double[x.length+1];z[0]=1;for(int j=0;j<x.length;j++)z[j+1]=Math.max(-6,Math.min(6,(x[j]-mean[j])/scale[j]));return z;}
-        double[] predict(double[] x){double[] z=transform(x),p=new double[3];for(int k=0;k<3;k++)for(int j=0;j<z.length;j++)p[k]+=w[k][j]*z[j];double max=Arrays.stream(p).max().orElse(0),sum=0;for(int k=0;k<3;k++){p[k]=Math.exp(p[k]-max);sum+=p[k];}for(int k=0;k<3;k++)p[k]/=sum;return p;}
+        double[] predict(double[] x){double[] p=new double[3];predictInto(transform(x),p);return p;}
+        void predictInto(double[] z,double[] p){Arrays.fill(p,0);for(int k=0;k<3;k++)for(int j=0;j<z.length;j++)p[k]+=w[k][j]*z[j];double max=Double.NEGATIVE_INFINITY,sum=0;for(double v:p)max=Math.max(max,v);for(int k=0;k<3;k++){p[k]=Math.exp(p[k]-max);sum+=p[k];}for(int k=0;k<3;k++)p[k]/=sum;}
     }
     private static int argmax(double[] v){int a=0;for(int i=1;i<v.length;i++)if(v[i]>v[a])a=i;return a;}
     private static int argmax(int[] v){int a=0;for(int i=1;i<v.length;i++)if(v[i]>v[a])a=i;return a;}

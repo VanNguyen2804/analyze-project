@@ -40,6 +40,10 @@ public final class AiLabModel {
                           List<FeedbackRound> feedback, FeedbackPolicy policy) {
         Fit base = fit(input, category, model);
         if (!"logistic".equals(model) || feedback.isEmpty()) return base;
+        return applyFeedback(base,input,category,feedback,policy);
+    }
+    public static Fit applyFeedback(Fit base,List<LotteryNumber> input,String category,List<FeedbackRound> feedback,FeedbackPolicy policy) {
+        if(feedback.isEmpty())return base;
         var actual = new HashMap<String,Set<Integer>>();
         DrawQuality.history(input).stream().filter(r -> category.equals(r.getCategory()))
                 .forEach(r -> actual.put(r.getDrawDate().toString(), new HashSet<>(r.getNumbers())));

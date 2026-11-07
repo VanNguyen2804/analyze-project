@@ -1,5 +1,9 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Stock và AI Lab: hiệu năng — 07/11/2026
+
+Đã tối ưu feature/training stock, cache theo nến đóng, khóa riêng từng mã và giới hạn thời gian gọi provider; AI Lab đọc projection gọn, cache 30 giây, tái sử dụng Logistic fit và bỏ đối soát không đổi. Giữ snapshot/audit và xử lý revision/withdrawal; kiểm tra PostgreSQL thật và regression model. Benchmark local 1.250 nến: khoảng 140 → 57 ms, allocation 246 → 0,47 MB; output fixture không đổi, không suy ra độ chính xác tốt hơn. Thêm health liveness riêng và polling/timeout để trang không giữ loading vô hạn. Xem [phạm vi, kiểm chứng và rollout](backend/docs/PAGE_PERFORMANCE.md). Production trả 503/timeout; chưa xác định nguyên nhân từ hosting logs và chưa deploy.
+
 ## Triển khai Vietlott và UI — 07/11/2026
 
 Đã triển khai [công cụ nghiên cứu và UI theo kế hoạch](backend/docs/VIETLOTT_RESEARCH_IMPLEMENTATION.md): inventory runtime; benchmark chronological với validation riêng, ablation Logistic/feedback mô phỏng/calibration, shrinkage và coverage generator; hai ứng viên Lab chốt song song có công tắc riêng. Snapshot cũ giữ nguyên, cohort không tự gộp, không promote mô hình theo replay. Lịch sử có lọc ngày/cấu hình và mức ≥3/≥4/≥5; shell responsive, khay chọn vé và review/Lab thống nhất, sao chép POWER sáu số và xử lý clipboard đúng.

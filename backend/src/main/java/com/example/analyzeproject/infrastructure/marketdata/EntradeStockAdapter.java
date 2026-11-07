@@ -7,29 +7,54 @@ import java.net.URI;
 import java.net.http.*;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /** No authentication, browser impersonation, persistent data storage or automatic provider fallback. */
 public final class EntradeStockAdapter implements StockMarketDataPort {
-    private final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+    private final HttpClient client;
     private final ObjectMapper json;
     private final Clock clock;
     private final double scale;
     private final boolean verified,enabled;
     private final String basis;
-    private final Map<String,Entry> cache=new HashMap<>();
+    private final Map<String,Entry> cache=new ConcurrentHashMap<>();
+    private final Map<String,ReentrantLock> loadLocks=new ConcurrentHashMap<>();
+    private final Semaphore providerSlots=new Semaphore(2);
     private record Entry(Feed feed, Instant retryAfter) {}
     public EntradeStockAdapter(ObjectMapper json,Clock clock,boolean enabled,double scale,String basis,boolean verified){
+        this(json,clock,enabled,scale,basis,verified,HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build());
+    }
+    EntradeStockAdapter(ObjectMapper json,Clock clock,boolean enabled,double scale,String basis,boolean verified,HttpClient client){
         if(!Double.isFinite(scale)||scale<=0||!Set.of("UNKNOWN","RAW","ADJUSTED").contains(basis))throw new IllegalArgumentException("Cấu hình nguồn không hợp lệ");
         this.json=json;this.clock=clock;this.enabled=enabled;this.scale=scale;this.basis=basis;this.verified=verified;
+        this.client=client;
     }
-    @Override public synchronized Feed load(String symbol,Mode mode){
+    @Override public Feed load(String symbol,Mode mode){return loadBounded(symbol,mode,false);}
+    @Override public Feed quote(String symbol){
+        var full=cache.get(symbol+Mode.SWING);if(full!=null&&clock.instant().isBefore(full.retryAfter()))return full.feed();
+        return loadBounded(symbol,Mode.SWING,true);
+    }
+    private Feed loadBounded(String symbol,Mode mode,boolean quote){
         if(!Set.of("VIC","FPT","SZC","MBB","VNINDEX").contains(symbol))throw new IllegalArgumentException("Mã không hỗ trợ");
-        String key=symbol+mode;Instant now=clock.instant();Entry old=cache.get(key);
+        String key=symbol+(quote?"QUOTE":mode);Instant now=clock.instant();Entry old=cache.get(key);
         if(old!=null&&now.isBefore(old.retryAfter()))return old.feed();
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(quote?4:12);
+        var lock=loadLocks.computeIfAbsent(key,k->new ReentrantLock());
+        try {
+            if(!lock.tryLock(Math.max(0,deadline-System.nanoTime()),TimeUnit.NANOSECONDS))return unavailable(old,now);
+        }catch(InterruptedException e){Thread.currentThread().interrupt();return unavailable(old,now);}
+        try {
+            old=cache.get(key);now=clock.instant();
+            if(old!=null&&now.isBefore(old.retryAfter()))return old.feed();
+            return loadLocked(symbol,mode,quote,key,now,old,deadline);
+        }finally{lock.unlock();}
+    }
+    private Feed loadLocked(String symbol,Mode mode,boolean quote,String key,Instant now,Entry old,long deadline){
         if(!enabled)return new Feed(List.of(),now,"DNSE / Entrade","SOURCE","UNKNOWN",false,List.of("Nguồn chưa được bật. Cần xác minh quyền sử dụng và cấu hình nguồn trước khi sử dụng live."));
         long cooldown=60;
         try{
-            long from=now.minus(Duration.ofDays(mode==Mode.SWING?1826:60)).getEpochSecond(),to=now.getEpochSecond();
+            long from=now.minus(Duration.ofDays(quote?30:mode==Mode.SWING?1826:60)).getEpochSecond(),to=now.getEpochSecond();
             TreeMap<Long,Candle> bars=new TreeMap<>();List<String> warnings=new ArrayList<>();
             if(!verified)warnings.add("Chưa xác minh đầy đủ cơ sở giá, timestamp và lịch sàn; tín hiệu mua/bán bị hạn chế. Lãi/lỗ theo giá chỉ là số liệu tham khảo.");
             warnings.add("Nguồn công khai thực nghiệm; độ trễ chưa xác định. Chưa xác nhận quyền tái phân phối; chỉ cache tạm trong bộ nhớ.");
@@ -38,7 +63,12 @@ public final class EntradeStockAdapter implements StockMarketDataPort {
             for(long a=from;a<to;a+=step){
                 long b=Math.min(to,a+step-1);
                 URI uri=URI.create("https://services.entrade.com.vn/chart-api/v2/ohlcs/"+(symbol.equals("VNINDEX")?"index":"stock")+"?symbol="+symbol+"&resolution="+(mode==Mode.SWING?"1D":"15")+"&from="+a+"&to="+b);
-                HttpResponse<String> response=client.send(HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(15)).GET().build(),HttpResponse.BodyHandlers.ofString());
+                long remaining=deadline-System.nanoTime();if(remaining<=0||!providerSlots.tryAcquire(remaining,TimeUnit.NANOSECONDS))throw new TimeoutException("Provider deadline");
+                HttpResponse<String> response;
+                try {
+                    remaining=deadline-System.nanoTime();if(remaining<=0)throw new TimeoutException("Provider deadline");
+                    response=client.send(HttpRequest.newBuilder(uri).timeout(Duration.ofNanos(Math.min(remaining,TimeUnit.SECONDS.toNanos(5)))).GET().build(),HttpResponse.BodyHandlers.ofString());
+                }finally{providerSlots.release();}
                 if(response.statusCode()==429){
                     String retry=response.headers().firstValue("Retry-After").orElse("60");
                     try{cooldown=Math.max(60,Long.parseLong(retry));}catch(NumberFormatException e){
@@ -86,10 +116,13 @@ public final class EntradeStockAdapter implements StockMarketDataPort {
         return verified?"VND":"SOURCE";
     }
     private Feed failed(String key,Entry old,Instant now,long cooldown){
+        Feed feed=unavailable(old,now);cache.put(key,new Entry(feed,now.plusSeconds(cooldown)));return feed;
+    }
+    private Feed unavailable(Entry old,Instant now){
         List<String> warnings=new ArrayList<>(old==null?List.of():old.feed().warnings());
         if(!warnings.contains("Nguồn không khả dụng; dữ liệu cache có thể đã cũ."))warnings.add("Nguồn không khả dụng; dữ liệu cache có thể đã cũ.");
         Feed feed=old==null?new Feed(List.of(),now,"DNSE / Entrade","SOURCE",basis,false,warnings)
                 :new Feed(old.feed().candles(),old.feed().fetchedAt(),old.feed().source(),old.feed().unit(),old.feed().priceBasis(),false,warnings);
-        cache.put(key,new Entry(feed,now.plusSeconds(cooldown)));return feed;
+        return feed;
     }
 }

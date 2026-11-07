@@ -66,6 +66,7 @@ export class StocksComponent implements OnInit {
   private activeSymbol = 'FPT';
   private readonly modeChanges = new BehaviorSubject<StockMode>('SWING');
   private readonly refreshChanges = new BehaviorSubject(0);
+  private readonly quoteRefreshChanges = new BehaviorSubject(0);
   private readonly cancelPosition = new Subject<void>();
   readonly mode = signal<StockMode>('SWING');
   readonly data = signal<StockSnapshot | null>(null);
@@ -105,7 +106,7 @@ export class StocksComponent implements OnInit {
     ];
   });
   ngOnInit() {
-    this.refreshChanges
+    this.quoteRefreshChanges
       .pipe(
         switchMap(() => this.api.watchlist().pipe(catchError(() => of([])))),
         takeUntilDestroyed(this.destroy),
@@ -132,7 +133,11 @@ export class StocksComponent implements OnInit {
         switchMap(([params, mode]) =>
           this.api.analyze(params.get('symbol') || 'FPT', mode).pipe(
             catchError((err) => {
-              this.error.set(err.error?.message || 'Không tải được dữ liệu. Hãy thử lại.');
+              this.error.set(
+                err.name === 'TimeoutError'
+                  ? 'Máy chủ phản hồi chậm. Hãy thử tải lại; dữ liệu đang xem được giữ nguyên.'
+                  : err.error?.message || 'Không tải được dữ liệu. Hãy thử lại.',
+              );
               return of(null);
             }),
           ),
@@ -146,8 +151,12 @@ export class StocksComponent implements OnInit {
       });
     interval(60000)
       .pipe(takeUntilDestroyed(this.destroy))
-      .subscribe(() => {
-        if (!document.hidden && !this.loading() && !this.positionBusy()) this.refresh();
+      .subscribe((minute) => {
+        if (!document.hidden && !this.loading() && !this.positionBusy()) {
+          this.refreshChanges.next(this.refreshChanges.value + 1);
+          if ((minute + 1) % 5 === 0)
+            this.quoteRefreshChanges.next(this.quoteRefreshChanges.value + 1);
+        }
       });
     this.destroy.onDestroy(() => {
       this.cancelPosition.next();
@@ -162,6 +171,7 @@ export class StocksComponent implements OnInit {
   }
   refresh() {
     this.refreshChanges.next(this.refreshChanges.value + 1);
+    this.quoteRefreshChanges.next(this.quoteRefreshChanges.value + 1);
   }
   resetPosition() {
     this.cancelPosition.next();

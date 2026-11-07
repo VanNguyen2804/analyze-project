@@ -71,7 +71,7 @@ export class AiLabComponent implements OnInit {
     timer(60000, 60000)
       .pipe(takeUntilDestroyed(this.destroy))
       .subscribe(() => {
-        if (!this.busy() && !this.mutating()) this.load();
+        if (!document.hidden && !this.busy() && !this.mutating()) this.load();
       });
   }
   load() {

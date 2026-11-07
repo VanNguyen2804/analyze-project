@@ -125,6 +125,26 @@ describe('AI lab', () => {
     expect(fixture.componentInstance.data()).toEqual(payload);
     fixture.destroy();
   }));
+  it('pauses polling while hidden and times out stalled reads without discarding the displayed data', fakeAsync(() => {
+    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    fixture.destroy();
+    const hidden = spyOnProperty(document, 'hidden', 'get').and.returnValue(true);
+    fixture = TestBed.createComponent(AiLabComponent);
+    fixture.detectChanges();
+    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    tick(60000);
+    http.expectNone(`${base}?category=MEGA&page=0`);
+    hidden.and.returnValue(false);
+    tick(60000);
+    const stalled = http.expectOne(`${base}?category=MEGA&page=0`);
+    tick(15001);
+    expect(stalled.cancelled).toBeTrue();
+    expect(fixture.componentInstance.busy()).toBeFalse();
+    expect(fixture.componentInstance.data()).toEqual(payload);
+    expect(fixture.componentInstance.error()).toContain('Không tải');
+    http.expectNone(`${base}/run`);
+    fixture.destroy();
+  }));
   it('shows an observed two-match stage without promoting it to a validated model', () => {
     http.expectOne(`${base}?category=MEGA&page=0`).flush({
       ...payload,

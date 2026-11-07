@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideHttpClient } from '@angular/common/http';
@@ -65,6 +65,39 @@ const emptySnapshot = (symbol: string): StockSnapshot => ({
 });
 
 describe('Stocks page', () => {
+  it('refreshes only the selected analysis each minute and the watchlist every five minutes', fakeAsync(() => {
+    spyOnProperty(document, 'hidden', 'get').and.returnValue(false);
+    const fixture = TestBed.createComponent(StocksComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    for (let minute = 1; minute <= 5; minute++) {
+      tick(60000);
+      http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+      if (minute === 5) http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+      else http.expectNone((r) => r.url.endsWith('/watchlist'));
+    }
+    fixture.destroy();
+    http.verify();
+  }));
+  it('stops a stalled stock refresh and retains the displayed snapshot', fakeAsync(() => {
+    const fixture = TestBed.createComponent(StocksComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    fixture.componentInstance.refresh();
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    const stalled = http.expectOne((r) => r.url.endsWith('/FPT/analysis'));
+    tick(40001);
+    expect(stalled.cancelled).toBeTrue();
+    expect(fixture.componentInstance.loading()).toBeFalse();
+    expect(fixture.componentInstance.data()?.snapshotId).toBe('FPT-snapshot');
+    expect(fixture.componentInstance.error()).toContain('phản hồi chậm');
+    fixture.destroy();
+    http.verify({ ignoreCancelled: true });
+  }));
   beforeEach(() =>
     TestBed.configureTestingModule({
       providers: [

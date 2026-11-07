@@ -6,6 +6,10 @@ import com.example.analyzeproject.application.port.out.*;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+import com.example.analyzeproject.application.dto.AiLabReadView;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import com.example.analyzeproject.application.exception.ServiceBusyException;
 import static com.example.analyzeproject.application.service.ForecastProtocol.map;
 
 public class AiLabService {
@@ -18,6 +22,34 @@ public class AiLabService {
     private final AiLabModel.FeedbackPolicy feedbackPolicy;
     private final Clock clock;
     private final boolean challengersEnabled;
+    private record OverviewCache(List<Map<String,Object>> rows,List<Map<String,Object>> groups,Instant asOf,long expiresAt) {}
+    private final Map<String,OverviewCache> overviewCache=new ConcurrentHashMap<>();
+    private final Map<String,ReentrantLock> readMonitors=Map.of("MEGA",new ReentrantLock(),"POWER",new ReentrantLock());
+    private final AtomicLong readEpoch=new AtomicLong();
+    private void invalidateOverview(){readEpoch.incrementAndGet();overviewCache.clear();}
+    private OverviewCache readOverview(String category) {
+        var cached=overviewCache.get(category);if(cached!=null&&System.nanoTime()<cached.expiresAt())return cached;
+        var monitor=readMonitors.get(category);
+        try {if(!monitor.tryLock(250,java.util.concurrent.TimeUnit.MILLISECONDS))throw new ServiceBusyException("Phòng thử nghiệm đang cập nhật. Vui lòng tải lại sau ít giây.");}
+        catch(InterruptedException error){Thread.currentThread().interrupt();throw new ServiceBusyException("Tác vụ đọc đã bị gián đoạn. Vui lòng thử lại.");}
+        try {
+            cached=overviewCache.get(category);if(cached!=null&&System.nanoTime()<cached.expiresAt())return cached;
+            long epoch=readEpoch.get();var view=store.readOverview(category);
+            // Compatibility with ports that only implement the original ledger contract.
+            if(view==null)view=AiLabReadView.fromLedger(store.ledger(),category);
+            var forecasts=view.forecasts().stream().map(AiLabReadView.Snapshot::data)
+                    .sorted(Comparator.<Map<String,Object>,String>comparing(f->(String)f.get("targetDate")).reversed().thenComparing(f->(String)f.get("id"))).toList();
+            Map<Object,Map<String,Object>> latest=new HashMap<>();view.settlements().forEach(e->latest.put(e.get("forecastId"),e));
+            var eligible=view.forecasts().stream().filter(AiLabReadView.Snapshot::prospective).map(AiLabReadView.Snapshot::data).toList();
+            var groups=evaluateEligible(eligible,view.settlements());
+            var rows=forecasts.stream().map(f->map("id",f.get("id"),"model",f.get("labModel"),"targetDate",f.get("targetDate"),"numbers",f.get("numbers"),
+                    "createdAt",f.get("createdAt"),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
+            // Retain only the rendered rows/statistics, never full configurations or probability matrices.
+            var result=new OverviewCache(rows,groups,clock.instant(),System.nanoTime()+30_000_000_000L);
+            if(readEpoch.get()==epoch)overviewCache.put(category,result);
+            return result;
+        }finally{monitor.unlock();}
+    }
     public AiLabService(AiLabStore store,LotteryNumberRepository draws,boolean enabled) {
         this(store,draws,enabled,AiLabModel.FeedbackPolicy.defaults());
     }
@@ -38,13 +70,16 @@ public class AiLabService {
         if(!lock.tryLock()) return map("status","BUSY");
         try {
             Instant now=clock.instant(); var all=draws.findAllByOrderByDrawDateDescCreatedAtDesc();
-            var existing=store.snapshots(); Set<Object> ids=new HashSet<>(); existing.forEach(f->ids.add(f.get("id")));
+            Set<String> ids=store.snapshotIds();
+            if(ids==null)ids=store.snapshots().stream().map(f->Objects.toString(f.get("id"))).collect(java.util.stream.Collectors.toSet());
             List<Map<String,Object>> outcomes=new ArrayList<>();
             if(enabled) for(String category:List.of("MEGA","POWER")) {
                 try {
                     var history=ForecastProtocol.training(all,category,now);
                     if(history.size()<10) throw new IllegalStateException("HISTORY_NOT_READY: cần ít nhất 10 kỳ hợp lệ để huấn luyện");
                     String target=ForecastProtocol.target(category,now).toString();
+                    AiLabModel.Fit logisticBase=null;AiLabFeedback.Evidence feedback=null;
+                    List<List<Integer>> frequency=null,random=null;
                     for(String model:AiLabModel.MODELS) {
                         if(!challengersEnabled && Set.of("shrunk_frequency","logistic_coverage").contains(model)) continue;
                         String prefix=category+":"+target+":lab-"+model+"-";
@@ -58,13 +93,19 @@ public class AiLabService {
                         // Validate freshness before fitting; do not capture a partially trained or stale batch.
                         ForecastProtocol.prepare(history,category,"validation",AiLabModel.VERSION,codeVersion,config,List.of(1,2,3,4,5,6),now);
                         String seed=AiLabModel.VERSION+":"+category+":"+target;
-                        var feedback=AiLabFeedback.collect(existing,history,category,LocalDate.parse(target),now,feedbackPolicy.maximumDraws());
-                        var fit=AiLabModel.fit(history,category,model,feedback.rounds(),feedbackPolicy);var modelScores=fit.scores();
+                        if(model.startsWith("logistic")&&logisticBase==null)logisticBase=AiLabModel.fit(history,category,"logistic_no_feedback");
+                        if("logistic".equals(model)&&feedback==null) {
+                            var previous=store.feedbackSnapshots(category,LocalDate.parse(target),feedbackPolicy.maximumDraws(),now);
+                            if(previous==null)previous=store.snapshots();
+                            feedback=AiLabFeedback.collect(previous,history,category,LocalDate.parse(target),now,feedbackPolicy.maximumDraws());
+                        }
+                        var fit="logistic".equals(model)?AiLabModel.applyFeedback(logisticBase,history,category,feedback.rounds(),feedbackPolicy)
+                                :model.startsWith("logistic")?logisticBase:AiLabModel.fit(history,category,model);var modelScores=fit.scores();
                         var tickets="logistic_coverage".equals(model)
                                 ? CoveragePortfolio.select(PredictionExplanation.ranking(modelScores),modelScores.length-1,AiLabModel.BUDGET,seed,CoveragePortfolio.Policy.defaults())
                                 : AiLabModel.tickets(modelScores,seed+":"+(model.startsWith("logistic")?"logistic":model));
-                        var frequency=AiLabModel.tickets(AiLabModel.scores(history,category,"frequency"),seed+":frequency");
-                        var random=AiLabModel.tickets(AiLabModel.scores(history,category,"random"),seed+":random");
+                        if(frequency==null)frequency=AiLabModel.tickets(AiLabModel.scores(history,category,"frequency"),seed+":frequency");
+                        if(random==null)random=AiLabModel.tickets(AiLabModel.scores(history,category,"random"),seed+":random");
                         Instant capturedAt=clock.instant();
                         if(!ForecastProtocol.target(category,capturedAt).toString().equals(target)) throw new IllegalStateException("CUTOFF_CHANGED");
                         List<Map<String,Object>> batch=new ArrayList<>();
@@ -88,7 +129,7 @@ public class AiLabService {
             store.reconcile(all,clock.instant());
             lastRun=map("status",enabled?"COMPLETED":"CAPTURE_DISABLED","checkedAt",clock.instant().toString(),"outcomes",outcomes);
             return lastRun;
-        } finally { lock.unlock(); }
+        } finally { invalidateOverview();lock.unlock(); }
     }
     public void tick() {
         try { run(); } catch(Exception e) { lastRun=map("status","ERROR","checkedAt",clock.instant().toString(),"message",Objects.toString(e.getMessage(),"Error")); }
@@ -96,13 +137,9 @@ public class AiLabService {
     @SuppressWarnings("unchecked")
     public Map<String,Object> overview(String category,int page) {
         if(!Set.of("MEGA","POWER").contains(category)||page<0) throw new IllegalArgumentException("Invalid category or page");
-        var ledger=store.ledger();
-        var forecasts=((List<Map<String,Object>>)ledger.get("forecasts")).stream().filter(f->category.equals(f.get("category")))
-                .sorted(Comparator.<Map<String,Object>,String>comparing(f->(String)f.get("targetDate")).reversed().thenComparing(f->(String)f.get("id"))).toList();
-        var events=(List<Map<String,Object>>)ledger.get("settlements"); Map<Object,Map<String,Object>> latest=new HashMap<>(); events.forEach(e->latest.put(e.get("forecastId"),e));
-        var rows=forecasts.stream().skip((long)page*50).limit(50).map(f->map("id",f.get("id"),"model",f.get("labModel"),"targetDate",f.get("targetDate"),"numbers",f.get("numbers"),
-                "createdAt",f.get("createdAt"),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
-        return map("enabled",enabled,"challengersEnabled",challengersEnabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",forecasts.size(),"rows",rows,"groups",evaluate(forecasts,events));
+        var view=readOverview(category);
+        var rows=view.rows().stream().skip((long)page*50).limit(50).toList();
+        return map("enabled",enabled,"challengersEnabled",challengersEnabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",view.rows().size(),"rows",rows,"groups",view.groups(),"asOf",view.asOf().toString(),"cacheSeconds",30);
     }
     private static Object feedbackSummary(Map<String,Object> forecast) {
         if (forecast.get("explanation") instanceof Map<?,?> explanation && explanation.get("feedback") instanceof Map<?,?> feedback)
@@ -110,9 +147,14 @@ public class AiLabService {
         return null;
     }
     public static List<Map<String,Object>> evaluate(List<Map<String,Object>> forecasts,List<Map<String,Object>> events) {
+        return evaluateEligible(forecasts.stream().filter(ForecastProtocol::isProspective).toList(),events);
+    }
+    private static List<Map<String,Object>> evaluateEligible(List<Map<String,Object>> forecasts,List<Map<String,Object>> events) {
         Map<Object,Map<String,Object>> latest=new HashMap<>(); events.forEach(e->latest.put(e.get("forecastId"),e));
         Map<String,List<Map<String,Object>>> cohorts=new TreeMap<>();
-        for(var f:forecasts) if(ForecastProtocol.isProspective(f)) {
+        Map<ComparisonKey,List<Map<String,Object>>> controls=new HashMap<>();
+        for(var f:forecasts) {
+            if("logistic_no_feedback".equals(f.get("labModel")))controls.computeIfAbsent(comparisonKey(f),k->new ArrayList<>()).add(f);
             String key=f.get("category")+"|"+f.get("labModel")+"|"+f.get("modelVersion")+"|"+f.get("codeVersion")+"|"+f.get("configurationHash");
             cohorts.computeIfAbsent(key,k->new ArrayList<>()).add(f);
         }
@@ -126,7 +168,8 @@ public class AiLabService {
             for(var date:dates.entrySet()) {
                 var tickets=date.getValue();
                 if(!completeBatch(tickets) || !settledTogether(tickets,latest)) continue;
-                probability.add(tickets.get(0),latest.get(tickets.get(0).get("id")));
+                var scored=tickets.stream().filter(f->Objects.equals(f.get("slot"),0)).findFirst().orElseThrow();
+                probability.add(scored,latest.get(scored.get("id")));
                 int[] hits=new int[3]; List<AiLabProgress.Ticket> progressTickets=new ArrayList<>();
                 for(var f:tickets) {
                     var e=latest.get(f.get("id")); int matched=((Number)e.get("matched")).intValue();
@@ -147,7 +190,7 @@ public class AiLabService {
                     "experimentId",first.get("experimentId"),"modelPolicyVersion",first.get("modelPolicyVersion"),
                     "feedbackEnabled","logistic".equals(first.get("labModel")) && first.get("configuration") instanceof Map<?,?> configuration && configuration.get("feedbackPolicy") instanceof Map<?,?> policy && "dense-signed-feedback-v1".equals(policy.get("version")),
                     "probability",probability.report(),
-                    "feedbackComparison",feedbackComparison(cohort.getValue(),forecasts,latest),
+                    "feedbackComparison",feedbackComparison(cohort.getValue(),controls,latest),
                     "candidatePolicy",map("minimumDraws",60,"windowDraws",30,"minimumWindowHitPercent",50,"automaticPromotion",false),
                     "progress",AiLabProgress.summarize(progressDraws),
                     "ticketHit3Percent",n==0?null:100.0*ticketHits/(n*AiLabModel.BUDGET),"drawHit3Percent",rate(measured,0),"frequencyHit3Percent",rate(measured,1),"randomHit3Percent",rate(measured,2),
@@ -158,18 +201,14 @@ public class AiLabService {
         return reports;
     }
     private static Map<String,Object> feedbackComparison(List<Map<String,Object>> cohort,
-            List<Map<String,Object>> forecasts, Map<Object,Map<String,Object>> latest) {
+            Map<ComparisonKey,List<Map<String,Object>>> controls, Map<Object,Map<String,Object>> latest) {
         if (!"logistic".equals(cohort.get(0).get("labModel"))) return null;
         int draws=0, matches=0, controlMatches=0;
         var dates=new TreeMap<Object,List<Map<String,Object>>>();
         cohort.forEach(f->dates.computeIfAbsent(f.get("targetDate"),k->new ArrayList<>()).add(f));
         for (var batch:dates.values()) {
             var first=batch.get(0);
-            var control=forecasts.stream().filter(f->"logistic_no_feedback".equals(f.get("labModel"))
-                    && ForecastProtocol.isProspective(f)
-                    && List.of("category","targetDate","modelVersion","codeVersion","historyHash").stream()
-                        .allMatch(key->Objects.equals(first.get(key),f.get(key)))
-                    && comparisonConfiguration(first).equals(comparisonConfiguration(f))).toList();
+            var control=controls.getOrDefault(comparisonKey(first),List.of());
             if (!completeBatch(batch) || !completeBatch(control)) continue;
             var both=new ArrayList<>(batch); both.addAll(control);
             if (both.stream().anyMatch(f->latest.get(f.get("id"))==null
@@ -189,6 +228,10 @@ public class AiLabService {
         if (forecast.get("configuration") instanceof Map<?,?> values) config.putAll(values);
         config.remove("feedbackPolicy");
         return config;
+    }
+    private record ComparisonKey(Object category,Object target,Object version,Object code,Object history,Map<Object,Object> configuration) {}
+    private static ComparisonKey comparisonKey(Map<String,Object> f) {
+        return new ComparisonKey(f.get("category"),f.get("targetDate"),f.get("modelVersion"),f.get("codeVersion"),f.get("historyHash"),comparisonConfiguration(f));
     }
     static boolean completeBatch(List<Map<String,Object>> batch) {
         return batch.size()==AiLabModel.BUDGET

@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ForecastMutationResult,
@@ -30,9 +31,11 @@ export class ForecastApiService {
     return this.http.post<ForecastMutationResult>(`${this.base}/api/forecasts/${action}`, {});
   }
   labOverview(category: LotteryCategory, page: number) {
-    return this.http.get<LabOverview>(`${this.base}/api/ai-lab`, { params: { category, page } });
+    return this.http
+      .get<LabOverview>(`${this.base}/api/ai-lab`, { params: { category, page } })
+      .pipe(timeout(15000));
   }
   runLab() {
-    return this.http.post<LabRun>(`${this.base}/api/ai-lab/run`, {});
+    return this.http.post<LabRun>(`${this.base}/api/ai-lab/run`, {}).pipe(timeout(60000));
   }
 }

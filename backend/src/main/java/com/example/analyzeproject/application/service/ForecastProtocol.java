@@ -101,6 +101,13 @@ public final class ForecastProtocol {
     public static Map<String,Object> settle(Map<String,Object> forecast, List<LotteryNumber> rows, Instant now, Map<String,Object> previous) {
         var date = LocalDate.parse((String) forecast.get("targetDate"));
         var actual = DrawQuality.history(rows).stream().filter(r -> forecast.get("category").equals(r.getCategory()) && date.equals(r.getDrawDate())).findFirst().orElse(null);
+        return settleSelected(forecast,actual,now,previous);
+    }
+    /** Caller selects the latest revision once; still validate category/date/quality before settling. */
+    @SuppressWarnings("unchecked")
+    public static Map<String,Object> settleSelected(Map<String,Object> forecast,LotteryNumber actual,Instant now,Map<String,Object> previous) {
+        var date=LocalDate.parse((String)forecast.get("targetDate"));
+        if(actual!=null&&(!DrawQuality.eligible(actual)||!forecast.get("category").equals(actual.getCategory())||!date.equals(actual.getDrawDate())))actual=null;
         boolean ready = actual != null && !now.isBefore(date.atTime(19,0).atZone(ZONE).toInstant());
         String status = ready ? "SETTLED" : previous != null && Set.of("SETTLED","RESULT_UNAVAILABLE").contains(previous.get("status")) ? "RESULT_UNAVAILABLE" : "PENDING";
         return map("forecastId", forecast.get("id"), "checkedAt", now.toString(), "resultFingerprint", ready ? DrawQuality.fingerprint(actual) : null,

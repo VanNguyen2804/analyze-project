@@ -13,6 +13,8 @@ class AiLabFeedbackTest {
     @Test @SuppressWarnings("unchecked") void challengerCaptureCanBeDisabledWhileExistingEvidenceIsPreserved() {
         var store=mock(AiLabStore.class);var repository=mock(LotteryNumberRepository.class);
         var saved=new ArrayList<Map<String,Object>>();when(store.snapshots()).thenAnswer(call->new ArrayList<>(saved));
+        when(store.snapshotIds()).thenAnswer(call->saved.stream().map(f->(String)f.get("id")).collect(java.util.stream.Collectors.toSet()));
+        when(store.feedbackSnapshots(anyString(),any(),anyInt(),any())).thenAnswer(call->new ArrayList<>(saved));
         when(repository.findAllByOrderByDrawDateDescCreatedAtDesc()).thenReturn(known());
         doAnswer(call->{saved.addAll((List<Map<String,Object>>)call.getArgument(0));return null;}).when(store).captureBatch(anyList());
         var service=new AiLabService(store,repository,true,AiLabModel.FeedbackPolicy.defaults(),Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"),ZoneOffset.UTC),false);
@@ -94,6 +96,8 @@ class AiLabFeedbackTest {
         var store=mock(AiLabStore.class);var repository=mock(LotteryNumberRepository.class);
         var old=snapshots();String original=ForecastProtocol.hash(old);List<Map<String,Object>> saved=new ArrayList<>(old);
         when(store.snapshots()).thenAnswer(call->new ArrayList<>(saved));
+        when(store.snapshotIds()).thenAnswer(call->saved.stream().map(f->(String)f.get("id")).collect(java.util.stream.Collectors.toSet()));
+        when(store.feedbackSnapshots(anyString(),any(),anyInt(),any())).thenAnswer(call->new ArrayList<>(saved));
         when(repository.findAllByOrderByDrawDateDescCreatedAtDesc()).thenReturn(known());
         doAnswer(call->{saved.addAll((List<Map<String,Object>>)call.getArgument(0));return null;}).when(store).captureBatch(anyList());
         Clock clock=Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"),ZoneOffset.UTC);
