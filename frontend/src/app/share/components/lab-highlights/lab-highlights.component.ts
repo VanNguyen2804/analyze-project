@@ -28,7 +28,6 @@ export class LabHighlightsComponent {
   readonly remote = input(false);
   readonly loading = signal(false);
   readonly error = signal('');
-  readonly expanded = signal(false);
   private readonly loaded = signal<LabTicket[]>([]);
   private readonly api = inject(ForecastApiService);
   private readonly destroy = inject(DestroyRef);
@@ -37,16 +36,44 @@ export class LabHighlightsComponent {
       (t) => (t.pastPerformance?.bestMatched ?? 0) >= 3,
     ),
   );
-  readonly visible = computed(() =>
-    this.expanded() ? this.results() : this.results().slice(0, 6),
-  );
+  readonly groups = computed(() => {
+    const groups = new Map<
+      string,
+      {
+        key: string;
+        model: string;
+        modelVersion?: string;
+        targetDate: string;
+        performance: NonNullable<LabTicket['pastPerformance']>;
+        tickets: LabTicket[];
+      }
+    >();
+    for (const ticket of this.results()) {
+      const key = JSON.stringify([
+        ticket.model,
+        ticket.cohort ?? ticket.modelVersion ?? '',
+        ticket.targetDate,
+      ]);
+      const group = groups.get(key);
+      if (group) group.tickets.push(ticket);
+      else
+        groups.set(key, {
+          key,
+          model: ticket.model,
+          modelVersion: ticket.modelVersion,
+          targetDate: ticket.targetDate,
+          performance: ticket.pastPerformance!,
+          tickets: [ticket],
+        });
+    }
+    return [...groups.values()];
+  });
   constructor() {
     combineLatest([toObservable(this.category), toObservable(this.remote)])
       .pipe(
         tap(() => {
           this.loaded.set([]);
           this.error.set('');
-          this.expanded.set(false);
           this.loading.set(false);
         }),
         switchMap(([category, remote]) =>

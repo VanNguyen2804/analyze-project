@@ -43,7 +43,7 @@ public class AiLabService {
             var eligible=view.forecasts().stream().filter(AiLabReadView.Snapshot::prospective).map(AiLabReadView.Snapshot::data).toList();
             var groups=evaluateEligible(eligible,view.settlements());
             var rows=forecasts.stream().map(f->map("id",f.get("id"),"model",f.get("labModel"),"targetDate",f.get("targetDate"),"numbers",f.get("numbers"),
-                    "createdAt",f.get("createdAt"),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
+                    "createdAt",f.get("createdAt"),"modelVersion",f.get("modelVersion"),"cohort",cohortKey(f),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
             // Retain only the rendered rows/statistics, never full configurations or probability matrices.
             Set<Object> validIds=eligible.stream().map(f->f.get("id")).collect(java.util.stream.Collectors.toSet());
             var eligibleRows=rows.stream().filter(f->validIds.contains(f.get("id"))).toList();
@@ -163,7 +163,16 @@ public class AiLabService {
             int best=past.stream().mapToInt(f->((Number)((Map<?,?>)f.get("settlement")).get("matched")).intValue()).max().orElse(0);
             String latest=past.stream().map(f->(String)f.get("targetDate")).max(String::compareTo).orElseThrow();
             var highlighted=new LinkedHashMap<>(row);
-            highlighted.put("pastPerformance",map("bestMatched",best,"hitTickets",past.size(),"hitDraws",past.stream().map(f->f.get("targetDate")).distinct().count(),"latestHitDate",latest));
+            Map<String,List<Map<String,Object>>> historicalGroups=new TreeMap<>();
+            past.forEach(f->historicalGroups.computeIfAbsent((String)f.get("cohort"),key->new ArrayList<>()).add(f));
+            var breakdown=historicalGroups.entrySet().stream().map(entry->{
+                var hits=entry.getValue();String key=entry.getKey();
+                return map("cohort",key,"cohortTag",cohortTag(key),"modelVersion",hits.get(0).get("modelVersion"),
+                        "hitTickets",hits.size(),"hitDraws",hits.stream().map(f->f.get("targetDate")).distinct().count(),
+                        "bestMatched",hits.stream().mapToInt(f->((Number)((Map<?,?>)f.get("settlement")).get("matched")).intValue()).max().orElse(0),
+                        "latestHitDate",hits.stream().map(f->(String)f.get("targetDate")).max(String::compareTo).orElseThrow());
+            }).toList();
+            highlighted.put("pastPerformance",map("bestMatched",best,"hitTickets",past.size(),"hitDraws",past.stream().map(f->f.get("targetDate")).distinct().count(),"latestHitDate",latest,"cohorts",breakdown));
             result.add(highlighted);
         }
         result.sort(Comparator.<Map<String,Object>>comparingInt(f->((Number)((Map<?,?>)f.get("pastPerformance")).get("bestMatched")).intValue()).reversed()
@@ -171,6 +180,10 @@ public class AiLabService {
                 .thenComparing(f->(String)f.get("model")).thenComparing(f->(String)f.get("id")));
         return result;
     }
+    private static String cohortKey(Map<String,Object> f) {
+        return f.get("category")+"|"+f.get("labModel")+"|"+f.get("modelVersion")+"|"+f.get("codeVersion")+"|"+f.get("configurationHash");
+    }
+    private static String cohortTag(String key) { return ForecastProtocol.hash(key).substring(0,8); }
     private static Object feedbackSummary(Map<String,Object> forecast) {
         if (forecast.get("explanation") instanceof Map<?,?> explanation && explanation.get("feedback") instanceof Map<?,?> feedback)
             return map("draws",feedback.get("draws"),"tickets",feedback.get("tickets"),"ticketMatchHistogram",feedback.get("ticketMatchHistogram"));
@@ -185,7 +198,7 @@ public class AiLabService {
         Map<ComparisonKey,List<Map<String,Object>>> controls=new HashMap<>();
         for(var f:forecasts) {
             if("logistic_no_feedback".equals(f.get("labModel")))controls.computeIfAbsent(comparisonKey(f),k->new ArrayList<>()).add(f);
-            String key=f.get("category")+"|"+f.get("labModel")+"|"+f.get("modelVersion")+"|"+f.get("codeVersion")+"|"+f.get("configurationHash");
+            String key=cohortKey(f);
             cohorts.computeIfAbsent(key,k->new ArrayList<>()).add(f);
         }
         List<Map<String,Object>> reports=new ArrayList<>();
@@ -215,7 +228,7 @@ public class AiLabService {
             boolean continuous=n>=60;
             for(int i=Math.max(1,n-59);i<n;i++) if(!TemporalRelationshipModel.scheduledAfter(LocalDate.parse(measuredDates.get(i-1)),(String)first.get("category")).equals(LocalDate.parse(measuredDates.get(i)))) continuous=false;
             boolean candidate=!Set.of("shrunk_frequency","logistic_coverage").contains(first.get("labModel")) && continuous && rate(recent,0)>=50 && rate(prior,0)>=50 && lowerDifference(measured,1)>0 && lowerDifference(measured,2)>0;
-            reports.add(map("cohort",cohort.getKey(),"model",first.get("labModel"),"modelVersion",first.get("modelVersion"),"savedDraws",dates.size(),"evaluatedDraws",n,
+            reports.add(map("cohort",cohort.getKey(),"cohortTag",cohortTag(cohort.getKey()),"model",first.get("labModel"),"modelVersion",first.get("modelVersion"),"savedDraws",dates.size(),"evaluatedDraws",n,
                     "budget",AiLabModel.BUDGET,"evidenceType","PROSPECTIVE_FROZEN","evaluationVersion","lab-outcomes-v2",
                     "experimentId",first.get("experimentId"),"modelPolicyVersion",first.get("modelPolicyVersion"),
                     "feedbackEnabled","logistic".equals(first.get("labModel")) && first.get("configuration") instanceof Map<?,?> configuration && configuration.get("feedbackPolicy") instanceof Map<?,?> policy && "dense-signed-feedback-v1".equals(policy.get("version")),

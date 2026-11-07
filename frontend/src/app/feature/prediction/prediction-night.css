@@ -1,0 +1,411 @@
+/* Route-scoped skin: shared components keep their own palette outside Prediction. */
+app-prediction-workspace:has(app-prediction) {
+  --canvas: #0b1020;
+  --surface: #131c31;
+  --ink: #edf2ff;
+  --muted: #acb8d0;
+  --border: #2c3855;
+  --accent: #a78bfa;
+  --accent-soft: #242044;
+}
+app-prediction-workspace:has(app-prediction) .workspace {
+  padding: clamp(14px, 2.4vw, 30px);
+  border: 1px solid #26314e;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 0% 0%, #35205d66, transparent 46%), #0b1020;
+  box-shadow: 0 24px 70px #080d2024;
+}
+app-prediction-workspace:has(app-prediction) .workspace .workspace-tabs.workspace-tabs {
+  background: #151e33;
+}
+app-prediction-workspace:has(app-prediction) .workspace .workspace-tabs.workspace-tabs a.selected {
+  background: #2b2450;
+  color: #ddd0ff;
+}
+app-prediction .prediction-container.prediction-night {
+  color-scheme: dark;
+  color: #edf2ff;
+  --canvas: #0b1020;
+  --surface: #131c31;
+  --ink: #edf2ff;
+  --muted: #acb8d0;
+  --border: #2c3855;
+  --accent: #a78bfa;
+  --accent-soft: #242044;
+}
+
+app-prediction .prediction-container.prediction-night app-prediction-overview {
+  --muted: #acb8d0;
+  --line: #2c3855;
+  --teal: #b8a1ff;
+  color: #edf2ff;
+}
+
+app-prediction .prediction-container.prediction-night .desk,
+app-prediction .prediction-container.prediction-night .result-card,
+app-prediction .prediction-container.prediction-night .ranking-panel,
+app-prediction .prediction-container.prediction-night .overlap-panel,
+app-prediction .prediction-container.prediction-night .mega-trial,
+app-prediction .prediction-container.prediction-night .studio-settings,
+app-prediction .prediction-container.prediction-night .explore-section,
+app-prediction .prediction-container.prediction-night .focus-section-card,
+app-prediction .prediction-container.prediction-night .focus-card,
+app-prediction .prediction-container.prediction-night .expanded-ticket,
+app-prediction .prediction-container.prediction-night .trial-ticket,
+app-prediction .prediction-container.prediction-night .control-ticket,
+app-prediction .prediction-container.prediction-night .batch,
+app-prediction .prediction-container.prediction-night .card,
+app-prediction .prediction-container.prediction-night .flow-draw-card {
+  background: #131c31;
+  color: #edf2ff;
+  border-color: #2c3855;
+  box-shadow: 0 8px 24px #0206171a;
+}
+
+app-prediction .prediction-container.prediction-night .desk {
+  background: linear-gradient(145deg, #161e36, #10192c);
+}
+
+app-prediction .prediction-container.prediction-night .selection-pane,
+app-prediction .prediction-container.prediction-night .option,
+app-prediction .prediction-container.prediction-night .option.lab,
+app-prediction .prediction-container.prediction-night .chart-row.selected,
+app-prediction .prediction-container.prediction-night .number-detail,
+app-prediction .prediction-container.prediction-night .expand-button,
+app-prediction .prediction-container.prediction-night .trial-context,
+app-prediction .prediction-container.prediction-night .prediction-loading,
+app-prediction .prediction-container.prediction-night .pressure-card,
+app-prediction .prediction-container.prediction-night .connector-bridge-box {
+  background: #18213a;
+  color: #d8e1f4;
+  border-color: #34415f;
+}
+
+app-prediction .prediction-container.prediction-night .option.lab {
+  background: #201d3b;
+  border-color: #494064;
+}
+
+app-prediction .prediction-container.prediction-night .result-card {
+  --accent: #c4b5fd;
+  --soft: #2b244a;
+  border-top-color: #a78bfa;
+}
+
+app-prediction .prediction-container.prediction-night .result-card.secondary {
+  --accent: #67e8f9;
+  --soft: #123443;
+  border-top-color: #22d3ee;
+}
+
+app-prediction .prediction-container.prediction-night .result-card.consensus {
+  --accent: #f0abfc;
+  --soft: #382240;
+  border-top-color: #e879f9;
+}
+
+app-prediction .prediction-container.prediction-night h2,
+app-prediction .prediction-container.prediction-night h3,
+app-prediction .prediction-container.prediction-night h4,
+app-prediction .prediction-container.prediction-night .alg-title,
+app-prediction .prediction-container.prediction-night .section-head,
+app-prediction .prediction-container.prediction-night .chart-number,
+app-prediction .prediction-container.prediction-night .chart-row strong,
+app-prediction .prediction-container.prediction-night .matrix-row > strong {
+  color: #edf2ff;
+}
+
+app-prediction .prediction-container.prediction-night .muted,
+app-prediction .prediction-container.prediction-night small,
+app-prediction .prediction-container.prediction-night .text-muted,
+app-prediction .prediction-container.prediction-night .draw-date,
+app-prediction .prediction-container.prediction-night .section-note,
+app-prediction .prediction-container.prediction-night .history-source,
+app-prediction .prediction-container.prediction-night .draw-schedule,
+app-prediction .prediction-container.prediction-night .draw-label,
+app-prediction .prediction-container.prediction-night .chart-caption,
+app-prediction .prediction-container.prediction-night .matrix-caption,
+app-prediction .prediction-container.prediction-night .chart-heading p,
+app-prediction .prediction-container.prediction-night .prediction-note,
+app-prediction .prediction-container.prediction-night .result-bottom,
+app-prediction .prediction-container.prediction-night .copy-button,
+app-prediction .prediction-container.prediction-night .chart-empty,
+app-prediction .prediction-container.prediction-night .list-heading p,
+app-prediction .prediction-container.prediction-night .ticket-label,
+app-prediction .prediction-container.prediction-night .cohort-heading span,
+app-prediction .prediction-container.prediction-night .trial-draw span,
+app-prediction .prediction-container.prediction-night caption {
+  color: #acb8d0;
+}
+
+app-prediction .prediction-container.prediction-night .prediction-kicker,
+app-prediction .prediction-container.prediction-night .eyebrow,
+app-prediction .prediction-container.prediction-night .trial-eyebrow,
+app-prediction .prediction-container.prediction-night .draw-icon,
+app-prediction .prediction-container.prediction-night .history-count strong,
+app-prediction .prediction-container.prediction-night .match-count,
+app-prediction .prediction-container.prediction-night .kicker,
+app-prediction .prediction-container.prediction-night .expand-button > span:first-child,
+app-prediction .prediction-container.prediction-night .prediction-note a {
+  color: #c4b5fd;
+}
+
+app-prediction .prediction-container.prediction-night .prediction-kicker > span {
+  color: #67e8f9;
+}
+
+app-prediction .prediction-container.prediction-night input,
+app-prediction .prediction-container.prediction-night select,
+app-prediction .prediction-container.prediction-night textarea,
+app-prediction .prediction-container.prediction-night .algorithm-btn,
+app-prediction .prediction-container.prediction-night .category-switch,
+app-prediction .prediction-container.prediction-night .source-tabs button,
+app-prediction .prediction-container.prediction-night .metric-switch button,
+app-prediction .prediction-container.prediction-night .list-heading select,
+app-prediction .prediction-container.prediction-night .trial-pagination button {
+  background: #10192d;
+  color: #dce5f9;
+  border-color: #3a4764;
+  accent-color: #a78bfa;
+}
+
+app-prediction .prediction-container.prediction-night input::placeholder,
+app-prediction .prediction-container.prediction-night textarea::placeholder {
+  color: #91a1bd;
+  opacity: 1;
+}
+
+app-prediction .prediction-container.prediction-night button,
+app-prediction .prediction-container.prediction-night a {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+app-prediction .prediction-container.prediction-night .category-switch button,
+app-prediction .prediction-container.prediction-night .model-switch button {
+  color: #acb8d0;
+}
+
+app-prediction .prediction-container.prediction-night .category-switch button.active,
+app-prediction .prediction-container.prediction-night .model-switch .active,
+app-prediction .prediction-container.prediction-night .metric-switch .active,
+app-prediction .prediction-container.prediction-night .algorithm-btn.active,
+app-prediction .prediction-container.prediction-night .source-tabs button[aria-pressed='true'] {
+  background: #30234f;
+  color: #e5dbff;
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 1px #a78bfa22;
+}
+
+app-prediction .prediction-container.prediction-night .category-switch button.active span,
+app-prediction .prediction-container.prediction-night .algorithm-btn.active .alg-title {
+  color: #e5dbff;
+}
+
+app-prediction .prediction-container.prediction-night .model-switch,
+app-prediction .prediction-container.prediction-night .bar-track {
+  background: #1b2640;
+}
+
+app-prediction .prediction-container.prediction-night .bar-fill {
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+}
+
+app-prediction .prediction-container.prediction-night .matrix-cell {
+  color: #64748b;
+}
+
+app-prediction .prediction-container.prediction-night .matrix-cell.present {
+  color: #67e8f9;
+}
+
+app-prediction .prediction-container.prediction-night .matrix-cell.combined-cell.present {
+  color: #e879f9;
+}
+
+app-prediction .prediction-container.prediction-night app-user-desk button {
+  background: #222942;
+  color: #e2e8fa;
+  border-color: #52607d;
+}
+
+app-prediction .prediction-container.prediction-night .commit,
+app-prediction .prediction-container.prediction-night .primary-action,
+app-prediction .prediction-container.prediction-night .btn-success {
+  background: linear-gradient(120deg, #6d28d9, #4f46e5);
+  color: #fff;
+  border-color: #9c83f4;
+  box-shadow: 0 6px 20px #6d28d92e;
+}
+
+app-prediction .prediction-container.prediction-night .commit:hover:not(:disabled),
+app-prediction .prediction-container.prediction-night .primary-action:hover:not(:disabled) {
+  background: linear-gradient(120deg, #7c3aed, #6366f1);
+  box-shadow: 0 8px 26px #7c3aed40;
+}
+
+app-prediction .prediction-container.prediction-night .option button:first-of-type {
+  color: #d6c8ff;
+  border-color: #68518d;
+}
+
+app-prediction .prediction-container.prediction-night .option:hover,
+app-prediction .prediction-container.prediction-night .algorithm-btn:hover,
+app-prediction .prediction-container.prediction-night .focus-card:hover,
+app-prediction .prediction-container.prediction-night .expand-button:hover,
+app-prediction .prediction-container.prediction-night .history-ball:hover {
+  background: #24243f;
+  border-color: #8b75bb;
+  color: #edf2ff;
+}
+
+app-prediction .prediction-container.prediction-night .notice,
+app-prediction .prediction-container.prediction-night .saved-strip,
+app-prediction .prediction-container.prediction-night .copy-alert,
+app-prediction .prediction-container.prediction-night .trial-empty,
+app-prediction .prediction-container.prediction-night .table-success-subtle {
+  background: #23213e;
+  color: #ddd0ff;
+  border-color: #4f426e;
+}
+
+app-prediction .prediction-container.prediction-night .error,
+app-prediction .prediction-container.prediction-night .error-alert,
+app-prediction .prediction-container.prediction-night .trial-error {
+  background: #351c30;
+  color: #fda4af;
+  border-color: #7d354d;
+}
+
+app-prediction .prediction-container.prediction-night .draw-strip {
+  background: linear-gradient(110deg, #241d3f, #152b40);
+  color: #edf2ff;
+  border-color: #3b3d61;
+}
+
+app-prediction .prediction-container.prediction-night .draw-icon,
+app-prediction .prediction-container.prediction-night .explore-icon {
+  background: #2d2450;
+  color: #c4b5fd;
+}
+
+app-prediction .prediction-container.prediction-night .result-bottom,
+app-prediction .prediction-container.prediction-night .visual-section,
+app-prediction .prediction-container.prediction-night .number-detail,
+app-prediction .prediction-container.prediction-night .user-history,
+app-prediction .prediction-container.prediction-night .source-tabs,
+app-prediction .prediction-container.prediction-night .history-source,
+app-prediction .prediction-container.prediction-night .algorithm-group,
+app-prediction .prediction-container.prediction-night th,
+app-prediction .prediction-container.prediction-night td {
+  border-color: #2c3855;
+}
+
+app-prediction .prediction-container.prediction-night .highlights {
+  background:
+    radial-gradient(ellipse at 100% 0%, #49306c66, transparent 64%),
+    linear-gradient(125deg, #191b36, #12243b);
+  border-color: #514274;
+  box-shadow: 0 12px 34px #07091926;
+}
+
+app-prediction .prediction-container.prediction-night .highlights article {
+  background: #111c32;
+  border-color: #354262;
+}
+
+app-prediction .prediction-container.prediction-night .highlights .count,
+app-prediction .prediction-container.prediction-night .highlights .context,
+app-prediction .prediction-container.prediction-night .highlights .draw-date,
+app-prediction .prediction-container.prediction-night .history-count,
+app-prediction .prediction-container.prediction-night .history-breakdown,
+app-prediction .prediction-container.prediction-night .history-count span {
+  color: #b8c4dc;
+}
+
+app-prediction .prediction-container.prediction-night .highlights .numbers span,
+app-prediction .prediction-container.prediction-night .ticket-numbers span,
+app-prediction .prediction-container.prediction-night .number-row span {
+  background: #2a234a;
+  color: #e1d7ff;
+  border-color: #67538e;
+}
+
+app-prediction .prediction-container.prediction-night .highlights .numbers span {
+  box-shadow: inset 0 1px 0 #ffffff14;
+}
+
+app-prediction .prediction-container.prediction-night .loading-orbit {
+  border-color: #352d54;
+  border-top-color: #b794ff;
+}
+
+app-prediction
+  .prediction-container.prediction-night
+  :is(
+    button,
+    app-prediction .prediction-container.prediction-night a,
+    app-prediction .prediction-container.prediction-night input,
+    app-prediction .prediction-container.prediction-night select,
+    app-prediction .prediction-container.prediction-night textarea,
+    app-prediction .prediction-container.prediction-night summary
+  ):focus-visible {
+  outline: 3px solid #67e8f9;
+  outline-offset: 3px;
+}
+
+app-prediction .prediction-container.prediction-night .bg-white,
+app-prediction .prediction-container.prediction-night .bg-light {
+  background-color: #172137 !important;
+}
+
+app-prediction .prediction-container.prediction-night .bg-success,
+app-prediction .prediction-container.prediction-night .bg-success-subtle {
+  background-color: #352454 !important;
+}
+
+app-prediction .prediction-container.prediction-night .text-success,
+app-prediction .prediction-container.prediction-night .text-dark,
+app-prediction .prediction-container.prediction-night .text-body {
+  color: #c4b5fd !important;
+}
+
+app-prediction .prediction-container.prediction-night .text-muted,
+app-prediction .prediction-container.prediction-night .text-secondary {
+  color: #acb8d0 !important;
+}
+
+app-prediction .prediction-container.prediction-night .border-success {
+  border-color: #a78bfa !important;
+}
+
+app-prediction .prediction-container.prediction-night .ball-highlight {
+  background: radial-gradient(circle at 30% 25%, #c4b5fd, #6d28d9) !important;
+  border-color: #b794ff !important;
+  box-shadow: 0 0 18px #8b5cf655 !important;
+}
+
+app-prediction .prediction-container.prediction-night .table {
+  --bs-table-bg: #131c31;
+  --bs-table-color: #edf2ff;
+  --bs-table-border-color: #2c3855;
+  --bs-table-hover-bg: #242a46;
+  --bs-table-hover-color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  app-prediction .prediction-container.prediction-night :is(button, a) {
+    transition: none;
+  }
+}
+
+app-prediction-workspace:has(app-prediction) .workspace .workspace-tabs.workspace-tabs a {
+  color: #b6c3dc;
+}
+app-prediction-workspace:has(app-prediction) .workspace .workspace-tabs.workspace-tabs a.selected {
+  color: #e4d9ff;
+  border: 1px solid #695387;
+  background: #2d234b;
+}

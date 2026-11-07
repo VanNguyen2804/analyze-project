@@ -91,6 +91,9 @@
               <h3>
                 {{ name(group.model) }}
               </h3>
+              @if (group.cohortTag) {
+                <span class="model-type">Nhóm {{ group.cohortTag }}</span>
+              }
               <p class="model-description">
                 {{
                   group.model.startsWith('logistic')
@@ -249,7 +252,12 @@
                     <p>Chưa có kỳ đối soát với điểm xác suất đã lưu đầy đủ.</p>
                   }
                 }
-                <p class="version">{{ group.modelVersion }}</p>
+                <p class="version">
+                  {{ group.modelVersion }}
+                  @if (group.cohortTag) {
+                    · Nhóm {{ group.cohortTag }}
+                  }
+                </p>
                 <span class="detail-label">Nhóm đánh giá</span><code>{{ group.cohort }}</code>
               </details>
             </article>

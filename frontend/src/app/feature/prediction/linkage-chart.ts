@@ -116,7 +116,7 @@ export function buildLinkageChartData(
             toIndex: tIdx,
             type: 'REPEAT',
             typeLabel: 'Lặp số chính xác (Δ=0)',
-            color: '#10b981',
+            color: '#22d3ee',
             delta: 0,
             description: `Bóng [${String(fn).padStart(2, '0')}] bảo toàn nguyên vị trí từ kỳ ${fromNode.drawDateFormatted} sang kỳ ${toNode.drawDateFormatted}`,
           });

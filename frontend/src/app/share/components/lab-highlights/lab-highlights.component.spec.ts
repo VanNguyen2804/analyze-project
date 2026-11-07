@@ -27,13 +27,78 @@ describe('Current predictions from successful AI Lab algorithms', () => {
       .querySelector('.history-count')
       .textContent.replace(/\s+/g, ' ')
       .trim();
-    expect(history).toContain('Thuật toán đã trúng ≥3 số: 3 lần');
+    expect(history).toContain('Tổng lịch sử thuật toán: 3 lần trúng ≥3 số');
     expect(history).toContain('(3 vé / 2 kỳ)');
     expect(text).toContain('08/11/2026');
     expect(text).toContain('25/10/2026');
     expect(fixture.nativeElement.querySelectorAll('.numbers span').length).toBe(6);
     expect(fixture.nativeElement.querySelectorAll('.numbers .hit').length).toBe(0);
     TestBed.inject(HttpTestingController).expectNone((r) => r.url.includes('/api/ai-lab'));
+    fixture.destroy();
+  });
+  it('groups five tickets under one algorithm and never sums repeated historical counts', () => {
+    const fixture = TestBed.createComponent(LabHighlightsComponent);
+    const tickets = Array.from({ length: 5 }, (_, i) => ({ ...current, id: 'new-' + i }));
+    fixture.componentRef.setInput('tickets', tickets);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('h3').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.history-count').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.history-count').textContent).toContain(
+      '3 lần trúng',
+    );
+    expect(fixture.nativeElement.querySelectorAll('.tickets article').length).toBe(5);
+    expect(fixture.nativeElement.textContent).toContain('5 dãy cùng thuật toán');
+    fixture.destroy();
+  });
+  it('keeps algorithms and historical evaluation groups distinct under their headings', () => {
+    const fixture = TestBed.createComponent(LabHighlightsComponent);
+    fixture.componentRef.setInput('tickets', [
+      {
+        ...current,
+        pastPerformance: {
+          ...current.pastPerformance,
+          cohorts: [
+            {
+              cohort: 'a',
+              cohortTag: 'group-a',
+              modelVersion: 'v1',
+              bestMatched: 3,
+              hitTickets: 1,
+              hitDraws: 1,
+              latestHitDate: '2026-10-25',
+            },
+            {
+              cohort: 'b',
+              cohortTag: 'group-b',
+              modelVersion: 'v2',
+              bestMatched: 4,
+              hitTickets: 2,
+              hitDraws: 1,
+              latestHitDate: '2026-10-28',
+            },
+          ],
+        },
+      },
+      {
+        ...current,
+        id: 'other',
+        model: 'recency',
+        pastPerformance: { ...current.pastPerformance, hitTickets: 1, hitDraws: 1 },
+      },
+    ]);
+    fixture.detectChanges();
+    const groups = fixture.nativeElement.querySelectorAll('.algorithm-group');
+    expect(groups.length).toBe(2);
+    expect(groups[0].querySelector('h3').textContent).toContain('Logistic không feedback');
+    expect(groups[0].querySelectorAll('.history-breakdown li').length).toBe(2);
+    expect(groups[0].querySelectorAll('.history-breakdown li')[0].textContent).toContain(
+      '1 vé trúng',
+    );
+    expect(groups[0].querySelectorAll('.history-breakdown li')[1].textContent).toContain(
+      '2 vé trúng',
+    );
+    expect(groups[1].querySelector('h3').textContent).toContain('Tần suất suy giảm');
+    expect(groups[1].querySelector('.history-count').textContent).toContain('1 lần trúng');
     fixture.destroy();
   });
   it('cancels old categories, clears their results and never requests training', fakeAsync(() => {

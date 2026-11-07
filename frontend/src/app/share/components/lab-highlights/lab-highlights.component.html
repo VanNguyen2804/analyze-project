@@ -8,7 +8,7 @@
       <span class="kicker">AI LAB · {{ category() }}</span>
       <h2>Dự đoán từ thuật toán từng trúng ≥3 số</h2>
     </div>
-    <span class="count">{{ results().length }} vé cho kỳ tới</span>
+    <span class="count">{{ groups().length }} nhóm · {{ results().length }} dãy cho kỳ tới</span>
   </header>
   <p class="context">
     Dãy mới của các thuật toán AI Lab từng dự đoán trúng từ 3 số ở kỳ trước. Thành tích lịch sử
@@ -25,37 +25,65 @@
       nhật.
     </p>
   }
-  <div class="tickets">
-    @for (ticket of visible(); track ticket.id) {
-      <article>
-        <div class="ticket-heading">
-          <strong class="match-count"
-            >Từng trúng {{ ticket.pastPerformance?.bestMatched }}/6 số</strong
-          ><span class="algorithm">{{ name(ticket.model) }}</span>
-        </div>
+  <div class="algorithm-groups">
+    @for (group of groups(); track group.key) {
+      <section class="algorithm-group" [attr.aria-label]="name(group.model)">
+        <header class="group-heading">
+          <div>
+            <h3>{{ name(group.model) }}</h3>
+            @if (group.modelVersion) {
+              <span class="draw-date">Bản dự đoán hiện tại: {{ group.modelVersion }}</span>
+            }
+          </div>
+          <strong class="match-count">Từng trúng {{ group.performance.bestMatched }}/6 số</strong>
+        </header>
         <p class="history-count">
-          Thuật toán đã trúng ≥3 số: <strong>{{ ticket.pastPerformance?.hitTickets }} lần</strong>
-          <span
-            >({{ ticket.pastPerformance?.hitTickets }} vé /
-            {{ ticket.pastPerformance?.hitDraws }} kỳ)</span
-          >
+          Tổng lịch sử thuật toán:
+          <strong>{{ group.performance.hitTickets }} lần trúng ≥3 số</strong>
+          <span>({{ group.performance.hitTickets }} vé / {{ group.performance.hitDraws }} kỳ)</span>
         </p>
-        <div class="numbers">
-          @for (number of ticket.numbers; track number) {
-            <span>{{ number < 10 ? '0' + number : number }}</span>
+        @if (group.performance.cohorts?.length) {
+          <p class="draw-date">
+            Tổng trên gồm các nhóm lịch sử bên dưới, có thể thuộc phiên bản khác với bản dự đoán
+            hiện tại.
+          </p>
+          <details class="history-breakdown">
+            <summary>
+              Thành tích theo {{ group.performance.cohorts!.length }} nhóm đánh giá trong AI Lab
+            </summary>
+            <ul>
+              @for (history of group.performance.cohorts; track history.cohort) {
+                <li>
+                  <strong>{{ history.modelVersion }} · Nhóm {{ history.cohortTag }}</strong>
+                  <span
+                    >{{ history.hitTickets }} vé trúng ≥3 số / {{ history.hitDraws }} kỳ · Gần nhất
+                    {{ history.latestHitDate | date: 'dd/MM/yyyy' }}</span
+                  >
+                </li>
+              }
+            </ul>
+          </details>
+        }
+        <p class="draw-date">
+          Kỳ trúng ≥3 số gần nhất: {{ group.performance.latestHitDate | date: 'dd/MM/yyyy' }}
+        </p>
+        <div class="new-draw">
+          <strong>Dự đoán kỳ {{ group.targetDate | date: 'dd/MM/yyyy' }}</strong
+          ><span>{{ group.tickets.length }} dãy cùng thuật toán</span>
+        </div>
+        <div class="tickets">
+          @for (ticket of group.tickets; track ticket.id; let index = $index) {
+            <article>
+              <span class="ticket-label">Dãy {{ index + 1 }}</span>
+              <div class="numbers">
+                @for (number of ticket.numbers; track number) {
+                  <span>{{ number < 10 ? '0' + number : number }}</span>
+                }
+              </div>
+            </article>
           }
         </div>
-        <span class="draw-date">Dự đoán kỳ {{ ticket.targetDate | date: 'dd/MM/yyyy' }}</span>
-        <p class="draw-date">
-          Kỳ trúng ≥3 số gần nhất:
-          {{ ticket.pastPerformance?.latestHitDate | date: 'dd/MM/yyyy' }}
-        </p>
-      </article>
+      </section>
     }
   </div>
-  @if (results().length > 6) {
-    <button type="button" (click)="expanded.set(!expanded())">
-      {{ expanded() ? 'Thu gọn' : 'Xem tất cả ' + results().length + ' vé' }}
-    </button>
-  }
 </section>

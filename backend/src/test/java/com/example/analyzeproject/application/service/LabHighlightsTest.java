@@ -60,4 +60,22 @@ class LabHighlightsTest {
         assertTrue(lab.highlights("MEGA").isEmpty());
     }
 
+    @Test void historicalHitBreakdownSeparatesVersionsAndConfigurationsAndSharesLabCohortKeys() {
+        String target=ForecastProtocol.target("MEGA",clock.instant()).toString();
+        var a=row("a","logistic","2026-10-25");a.put("modelVersion","v1");
+        var b=row("b","logistic","2026-10-28");b.put("modelVersion","v2");
+        var c=row("c","logistic","2026-10-28");c.put("modelVersion","v2");c.put("configurationHash","other");
+        var snapshots=new ArrayList<AiLabReadView.Snapshot>();
+        List.of(a,b,c,row("new","logistic",target)).forEach(f->snapshots.add(new AiLabReadView.Snapshot(f,true)));
+        var events=List.of(map("forecastId","a","status","SETTLED","matched",3),map("forecastId","b","status","SETTLED","matched",4),map("forecastId","c","status","SETTLED","matched",3));
+        var store=mock(AiLabStore.class);when(store.readOverview("MEGA")).thenReturn(new AiLabReadView(snapshots,events));
+        var lab=new AiLabService(store,mock(LotteryNumberRepository.class),true,com.example.analyzeproject.domain.service.AiLabModel.FeedbackPolicy.defaults(),clock);
+        var performance=(Map<?,?>)lab.highlights("MEGA").get(0).get("pastPerformance");
+        assertEquals(3,performance.get("hitTickets"));assertEquals(2L,performance.get("hitDraws"));
+        @SuppressWarnings("unchecked") var breakdown=(List<Map<String,Object>>)performance.get("cohorts");
+        assertEquals(3,breakdown.size());breakdown.forEach(g->assertEquals(1,g.get("hitTickets")));
+        @SuppressWarnings("unchecked") var overview=(List<Map<String,Object>>)lab.overview("MEGA",0).get("groups");
+        for(var history:breakdown)assertTrue(overview.stream().anyMatch(g->g.get("cohort").equals(history.get("cohort"))&&g.get("cohortTag").equals(history.get("cohortTag"))));
+    }
+
 }

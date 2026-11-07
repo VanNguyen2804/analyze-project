@@ -2,7 +2,7 @@
 
 ## Dự đoán mới từ mô hình Lab từng trúng ≥3 số — 07/11/2026
 
-Đầu AI Lab và trang dự đoán hiển thị các dãy **đúng kỳ sắp tới** đã lưu của thuật toán từng có vé prospective đối soát trúng ≥3 số ở kỳ trước. Kèm tên thuật toán, thành tích tốt nhất, số vé/kỳ đạt ≥3 và ngày gần nhất; không hiển thị lại số cũ như gợi ý mới. Thành tích xét toàn bộ lịch sử hợp lệ của thuật toán (có thể gồm phiên bản cũ), không chỉ trang hiện tại; dùng settlement mới nhất, loại kết quả bị rút và snapshot không hợp lệ. Không có snapshot đúng kỳ thì chờ cập nhật, không tự sinh thêm vé. Endpoint GET `/api/ai-lab/highlights` dùng chung compact cache, không huấn luyện hoặc ghi dữ liệu. Chi tiết tại [ghi chú triển khai](backend/docs/AI_LAB_CURRENT_HIGHLIGHTS.md).
+Đầu AI Lab và trang dự đoán hiển thị các dãy **đúng kỳ sắp tới** đã lưu của thuật toán từng có vé prospective đối soát trúng ≥3 số ở kỳ trước. Gom các dãy dưới tiêu đề thuật toán/phiên bản hiện tại; thành tích tốt nhất, số vé/kỳ đạt ≥3 và ngày gần nhất hiển thị một lần. Có breakdown theo đúng nhóm đánh giá AI Lab, mã nhóm khớp giữa hai trang; tổng lịch sử ghi rõ có thể gồm bản cũ; không hiển thị lại số cũ như gợi ý mới. Thành tích xét toàn bộ lịch sử hợp lệ của thuật toán (có thể gồm phiên bản cũ), không chỉ trang hiện tại; dùng settlement mới nhất, loại kết quả bị rút và snapshot không hợp lệ. Không có snapshot đúng kỳ thì chờ cập nhật, không tự sinh thêm vé. Endpoint GET `/api/ai-lab/highlights` dùng chung compact cache, không huấn luyện hoặc ghi dữ liệu. Chi tiết tại [ghi chú triển khai](backend/docs/AI_LAB_CURRENT_HIGHLIGHTS.md).
 
 ## Stock và AI Lab: hiệu năng — 07/11/2026
 

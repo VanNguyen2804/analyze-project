@@ -61,8 +61,20 @@ export interface LabRun {
   message?: string;
   outcomes?: LabOutcome[];
 }
+export interface LabHistoricalHits {
+  cohort: string;
+  cohortTag: string;
+  modelVersion: string;
+  bestMatched: number;
+  hitTickets: number;
+  hitDraws: number;
+  latestHitDate: string;
+}
 export interface LabTicket extends ForecastTicket {
+  cohort?: string;
+  modelVersion?: string;
   pastPerformance?: {
+    cohorts?: LabHistoricalHits[];
     bestMatched: number;
     hitTickets: number;
     hitDraws: number;
@@ -100,6 +112,7 @@ export interface LabProgress {
   }[];
 }
 export interface LabGroup {
+  cohortTag?: string;
   feedbackComparison?: {
     pairedDraws: number;
     averageMatched: number | null;

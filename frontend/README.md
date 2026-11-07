@@ -50,3 +50,6 @@ Build dùng `@angular/build:application`; test dùng `@angular/build:karma`. Kh�
 
 
 `share/components/lab-highlights/` hiển thị dự đoán kỳ tới của thuật toán Lab từng trúng ≥3 số, cùng thành tích lịch sử. AI Lab truyền highlights từ overview; Prediction dùng chế độ đọc endpoint highlights riêng, hủy request khi đổi category và dừng polling khi ẩn tab. Không đưa vé lịch sử vào khay chốt vé hiện tại.
+
+
+Trang tạo dự đoán dùng bảng màu xanh đêm, tím và cyan. Theme tại `feature/prediction/prediction-night.css`, import từ `src/styles.css`, được giới hạn bằng `.prediction-night` và workspace đang chứa `app-prediction`; hỗ trợ component con có style encapsulation, không thay palette của AI Lab/chứng khoán khi mở riêng. Kiểm tra trình duyệt bằng fixture: desktop 1440 px, mobile 390 px, chọn vé và đổi MEGA/POWER; không dùng fixture để đánh giá dự đoán.
