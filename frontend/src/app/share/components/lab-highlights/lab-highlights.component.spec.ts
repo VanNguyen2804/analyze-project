@@ -1,3 +1,5 @@
+import { BackendReadinessService } from '../../../core/services/backend-readiness.service';
+import { of as readyNow } from 'rxjs';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -12,6 +14,20 @@ const current = {
   pastPerformance: { bestMatched: 3, hitTickets: 3, hitDraws: 2, latestHitDate: '2026-10-25' },
 };
 describe('Current predictions from successful AI Lab algorithms', () => {
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: BackendReadinessService,
+          useValue: {
+            ready: () => readyNow(undefined),
+            waiting: () => false,
+            invalidate: () => {},
+          },
+        },
+      ],
+    }),
+  );
   beforeEach(() =>
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -107,12 +123,16 @@ describe('Current predictions from successful AI Lab algorithms', () => {
     fixture.componentRef.setInput('remote', true);
     fixture.detectChanges();
     tick(0);
-    const old = http.expectOne(`${environment.apiUrl || ''}/api/ai-lab/highlights?category=MEGA`);
+    const old = http.expectOne(
+      `${environment.apiUrl || ''}/api/ai-lab/highlights?category=MEGA&async=true`,
+    );
     fixture.componentRef.setInput('category', 'POWER');
     fixture.detectChanges();
     tick(0);
     expect(old.cancelled).toBeTrue();
-    http.expectOne(`${environment.apiUrl || ''}/api/ai-lab/highlights?category=POWER`).flush([]);
+    http
+      .expectOne(`${environment.apiUrl || ''}/api/ai-lab/highlights?category=POWER&async=true`)
+      .flush([]);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Chờ AI Lab cập nhật');
     http.expectNone((r) => r.method === 'POST');

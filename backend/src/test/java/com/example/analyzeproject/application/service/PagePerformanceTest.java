@@ -13,10 +13,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class PagePerformanceTest {
+    @Test void pageSnapshotCacheReturnsBeforeProviderIoAndRefreshesAfterItsDeadline() {
+        var now=new AtomicReference<>(Instant.parse("2026-11-07T01:00:00Z"));
+        var clock=new Clock(){public ZoneId getZone(){return ZoneOffset.UTC;}public Clock withZone(ZoneId zone){return this;}public Instant instant(){return now.get();}};
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        var service=new StockService((symbol,mode)->{calls.incrementAndGet();return new Feed(StockPerformanceReportTest.candles(100),now.get(),"TEST","VND","RAW",true,List.of());},clock,new StockLearningEngine(.6,.6,.004));
+        var first=service.analyzeCached("FPT",Mode.SWING);assertEquals(2,calls.get());
+        assertSame(first,service.analyzeCached("FPT",Mode.SWING));assertEquals(2,calls.get());
+        now.set(now.get().plusSeconds(61));service.analyzeCached("FPT",Mode.SWING);assertEquals(4,calls.get());
+    }
     @Test void capacityRejectionIsRetryableAndHealthDoesNotDependOnFeeds() throws Exception {
         var service=mock(AiLabService.class);when(service.overview("MEGA",0)).thenThrow(new com.example.analyzeproject.application.exception.ServiceBusyException("busy"));
         var mvc=org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(
-                new com.example.analyzeproject.presentation.rest.AiLabController(service),new com.example.analyzeproject.presentation.rest.HealthController())
+                new com.example.analyzeproject.presentation.rest.AiLabController(service,mock(PageJobService.class)),new com.example.analyzeproject.presentation.rest.HealthController())
                 .setControllerAdvice(new com.example.analyzeproject.presentation.rest.PageCapacityAdvice()).build();
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/ai-lab"))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isServiceUnavailable())

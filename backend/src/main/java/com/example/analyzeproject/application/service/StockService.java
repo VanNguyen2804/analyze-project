@@ -21,6 +21,7 @@ public final class StockService {
     private final StockRecommendationEngine recommendations;
     private final Map<String,Snapshot> snapshots=Collections.synchronizedMap(new LinkedHashMap<>());
     private final Map<String,java.util.concurrent.locks.ReentrantLock> analysisLocks=new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String,Snapshot> latestSnapshots=new java.util.concurrent.ConcurrentHashMap<>();
     private record LearningKey(Mode mode,List<Candle> closed) {}
     private final Map<LearningKey,Learning> learned=new LinkedHashMap<>();
     private record Quotes(List<Feed> feeds,long expiresAt) {}
@@ -50,6 +51,13 @@ public final class StockService {
         return result;
     }
     private void validate(String symbol){if(instruments().stream().noneMatch(i->i.get("symbol").equals(symbol)))throw new IllegalArgumentException("Chỉ hỗ trợ VIC, FPT, SZC, MBB");}
+    public Snapshot analyzeCached(String symbol,Mode mode){
+        validate(symbol);
+        var latest=latestSnapshots.get(symbol+mode);
+        if(latest!=null&&Duration.between(latest.data().fetchedAt(),clock.instant()).getSeconds()<60
+                &&freshness(latest.data(),mode,latest.lastClosedBarAt()).equals(latest.freshness()))return latest;
+        return analyze(symbol,mode);
+    }
     public Snapshot analyze(String symbol,Mode mode){
         validate(symbol);
         var lock=analysisLocks.computeIfAbsent(symbol+mode,key->new java.util.concurrent.locks.ReentrantLock());
@@ -82,7 +90,7 @@ public final class StockService {
         if(mode==Mode.INTRADAY)reasons.add("Tín hiệu trong ngày không xác nhận cổ phiếu có thể bán ngay; cần kiểm tra số lượng sẵn có và thanh toán.");
         Recommendation recommendation=recommendations.evaluate(data,mode,fresh,ml);
         Snapshot result=new Snapshot(symbol,mode,mode==Mode.SWING?"1D":"15",id,data,benchmark,fresh,"UNVERIFIED_CALENDAR",last,new Analysis(signal,List.copyOf(reasons),indicators,ml,recommendation),StockDailyDesk.build(daily,recommendation.volumeConfirmation()));
-        synchronized(snapshots){snapshots.put(id,result);while(snapshots.size()>24)snapshots.remove(snapshots.keySet().iterator().next());}return result;
+        synchronized(snapshots){snapshots.put(id,result);while(snapshots.size()>24)snapshots.remove(snapshots.keySet().iterator().next());}latestSnapshots.put(symbol+mode,result);return result;
     }
     private Learning learn(List<Candle> closed,Mode mode) {
         // Only CPU training is serialized. Provider I/O and position reads never hold this monitor.

@@ -27,6 +27,8 @@ public class AiLabService {
     private final Map<String,ReentrantLock> readMonitors=Map.of("MEGA",new ReentrantLock(),"POWER",new ReentrantLock());
     private final AtomicLong readEpoch=new AtomicLong();
     private void invalidateOverview(){readEpoch.incrementAndGet();overviewCache.clear();}
+    /** Durable page jobs carry a database revision; rebuild the local view when a new job is accepted. */
+    public void refreshReadCache(){invalidateOverview();}
     private OverviewCache readOverview(String category) {
         var cached=overviewCache.get(category);if(cached!=null&&System.nanoTime()<cached.expiresAt())return cached;
         var monitor=readMonitors.get(category);
@@ -123,11 +125,13 @@ public class AiLabService {
                             f.put("labModel",model); f.put("slot",slot); f.put("frequencyNumbers",frequency.get(slot)); f.put("randomNumbers",random.get(slot)); batch.add(f);
                         }
                         if(!ForecastProtocol.target(category,clock.instant()).toString().equals(target)) throw new IllegalStateException("CUTOFF_CHANGED");
+                        if(Thread.currentThread().isInterrupted())throw new IllegalStateException("Tác vụ đã hết thời gian xử lý.");
                         store.captureBatch(batch);
                         outcomes.add(map("category",category,"model",model,"status","SAVED"));
                     }
                 } catch(Exception e) { outcomes.add(map("category",category,"status","NOT_SAVED","message",Objects.toString(e.getMessage(),"Error"))); }
             }
+            if(Thread.currentThread().isInterrupted())throw new IllegalStateException("Tác vụ đã hết thời gian xử lý.");
             store.reconcile(all,clock.instant());
             lastRun=map("status",enabled?"COMPLETED":"CAPTURE_DISABLED","checkedAt",clock.instant().toString(),"outcomes",outcomes);
             return lastRun;
@@ -140,7 +144,12 @@ public class AiLabService {
     public Map<String,Object> overview(String category,int page) {
         if(!Set.of("MEGA","POWER").contains(category)||page<0) throw new IllegalArgumentException("Invalid category or page");
         var view=readOverview(category);
+        var ids=store.pageIds(category,page);
         var rows=view.rows().stream().skip((long)page*50).limit(50).toList();
+        if(ids!=null&&ids.isPresent()) {
+            Map<Object,Map<String,Object>> byId=new HashMap<>();view.rows().forEach(row->byId.put(row.get("id"),row));
+            rows=ids.get().stream().map(byId::get).filter(Objects::nonNull).toList();
+        }
         return map("enabled",enabled,"challengersEnabled",challengersEnabled,"lastRun",lastRun,"budget",AiLabModel.BUDGET,"page",page,"totalRows",view.rows().size(),"rows",rows,"highlights",currentHighlights(category,view),"groups",view.groups(),"asOf",view.asOf().toString(),"cacheSeconds",30);
     }
     public List<Map<String,Object>> highlights(String category) {

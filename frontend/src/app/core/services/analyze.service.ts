@@ -6,12 +6,14 @@ import { AlgorithmOption } from '../models/algorithm.model';
 import { PredictionPayload } from '../models/prediction-payload.model';
 import { DrawReport, AnalyzedTicketGroup } from '../models/draw-report.model';
 import { environment } from '../../../environments/environment'; // Import file environment của bạn
+import { PageJob, PageJobApiService } from './page-job-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AnalyzeService {
   private readonly http = inject(HttpClient);
+  private readonly jobs = inject(PageJobApiService);
 
   private apiUrl = `${environment.apiUrl || ''}/api/analyze`;
 
@@ -32,13 +34,16 @@ export class AnalyzeService {
     algorithm: string,
     algorithm2?: string,
   ): Observable<PredictionPayload> {
-    return this.http.post<PredictionPayload>(
-      `${environment.apiUrl || ''}/api/prediction-workspace/suggestions`,
-      {
-        category,
-        algorithm,
-        algorithm2: algorithm2 || 'bayesian_graph',
-      },
+    return this.jobs.follow(
+      this.http.post<PredictionPayload | PageJob<PredictionPayload>>(
+        `${environment.apiUrl || ''}/api/prediction-workspace/suggestions`,
+        {
+          category,
+          algorithm,
+          algorithm2: algorithm2 || 'bayesian_graph',
+        },
+        { params: { async: true } },
+      ),
     );
   }
 

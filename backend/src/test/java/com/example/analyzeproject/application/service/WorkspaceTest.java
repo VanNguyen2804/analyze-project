@@ -58,6 +58,7 @@ class WorkspaceTest {
             f.put("labModel",model); f.put("slot",slot); snapshots.add(f);
         }
         var lab=mock(AiLabStore.class); when(lab.snapshots()).thenReturn(snapshots);
+        when(lab.snapshotsForTarget(anyString(),anyString())).thenCallRealMethod();
         var service=new WorkspaceService(mock(AnalyzeService.class),mock(LotteryNumberRepository.class),lab,mock(WorkspaceStore.class));
         var result=service.labSuggestions("MEGA","2026-10-28",history);
         var tickets=(List<?>)result.get("tickets"); assertEquals(5,tickets.size());

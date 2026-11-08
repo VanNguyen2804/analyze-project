@@ -36,7 +36,7 @@ class LabHighlightsTest {
         assertEquals(target,result.get(0).get("targetDate"));assertEquals(List.of(10,11,12,13,14,15),result.get(0).get("numbers"));
         assertEquals(3,((Map<?,?>)result.get(0).get("pastPerformance")).get("bestMatched"));
         assertEquals(result,lab.overview("MEGA",1).get("highlights"));
-        verify(store,times(1)).readOverview("MEGA");verifyNoMoreInteractions(store);verifyNoInteractions(draws);
+        verify(store,times(1)).readOverview("MEGA");verify(store).pageIds("MEGA",1);verifyNoMoreInteractions(store);verifyNoInteractions(draws);
         assertThrows(IllegalArgumentException.class,()->lab.highlights("OTHER"));
     }
     @Test void successfulHistoryWithoutACurrentSnapshotDoesNotRecycleOldNumbers() {

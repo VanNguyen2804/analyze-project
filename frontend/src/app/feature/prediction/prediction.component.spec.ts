@@ -1,9 +1,25 @@
+import { BackendReadinessService } from '../../core/services/backend-readiness.service';
+import { of as readyNow } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 import { PredictionComponent } from './prediction.component';
 import { AnalyzeService } from '@app/core/services/analyze.service';
 
 describe('Prediction request category isolation', () => {
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: BackendReadinessService,
+          useValue: {
+            ready: () => readyNow(undefined),
+            waiting: () => false,
+            invalidate: () => {},
+          },
+        },
+      ],
+    }),
+  );
   it('copies six POWER numbers and waits for clipboard completion before reporting success', async () => {
     TestBed.configureTestingModule({ providers: [{ provide: AnalyzeService, useValue: {} }] });
     const fixture = TestBed.createComponent(PredictionComponent);

@@ -1,5 +1,7 @@
 ﻿# Frontend Angular
 
+Stock, AI Lab v? Analyze d?ng health check chung r?i nh?n/poll t?c v? n?n; tr?ng th?i kh?i ??ng/c?p nh?t d?ng signal, gi? k?t qu? khi refresh v? h?y polling khi r?i trang. Xem [h?p ??ng async v? c?u h?nh Render worker](../backend/docs/ASYNC_PAGE_JOBS.md).
+
 Frontend dùng Angular 22.2.0 với standalone components, OnPush và lazy routes. Các package Angular runtime/compiler/CLI/builder được chốt cùng phiên bản trong package và lockfile. Mã nguồn chia thành `src/app/core/`, `feature/`, `share/`; route cấu hình trong `src/app/app.routes.ts`.
 
 Chạy trong thư mục `frontend/`, với Node tương thích dependencies đã khai báo:

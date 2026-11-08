@@ -1,3 +1,5 @@
+import { BackendReadinessService } from '../../core/services/backend-readiness.service';
+import { of as readyNow } from 'rxjs';
 import { Component } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import {
@@ -73,6 +75,20 @@ const emptySnapshot = (symbol: string): StockSnapshot => ({
 });
 
 describe('Stocks page', () => {
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: BackendReadinessService,
+          useValue: {
+            ready: () => readyNow(undefined),
+            waiting: () => false,
+            invalidate: () => {},
+          },
+        },
+      ],
+    }),
+  );
   it('creates the chart only after deferred activation and passes the latest symbol data', async () => {
     TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual });
     const fixture = TestBed.createComponent(StocksComponent);
@@ -151,7 +167,7 @@ describe('Stocks page', () => {
     fixture.componentInstance.refresh();
     http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
     const stalled = http.expectOne((r) => r.url.endsWith('/FPT/analysis'));
-    tick(40001);
+    tick(180001);
     expect(stalled.cancelled).toBeTrue();
     expect(fixture.componentInstance.loading()).toBeFalse();
     expect(fixture.componentInstance.data()?.snapshotId).toBe('FPT-snapshot');

@@ -1,5 +1,7 @@
 # Dự đoán mới từ thuật toán AI Lab từng trúng ≥3 số
 
+Frontend hi?n d?ng `async=true` ?? ??c highlights qua t?c v? n?n; xem [lu?ng async v? projection ??c](ASYNC_PAGE_JOBS.md). GET kh?ng hu?n luy?n ho?c ch?t d? ?o?n; h?ng ??i/cache/projection ??c c? th? ???c c?p nh?t.
+
 Đầu `/ai-lab` và `/analyze` hiển thị **dãy dự đoán mới đã lưu cho kỳ mục tiêu hiện tại**, từ thuật toán Lab từng có vé dự đoán trước kỳ và sau đó đối soát trúng ít nhất ba số chính. Không lấy các số của vé thắng cũ làm dự đoán mới.
 
 Mỗi tiêu đề nhóm ghi tên thuật toán và phiên bản hiện tại; bên dưới là các dãy mới đánh số 1–5 cho cùng kỳ. Thành tích chung (vé/kỳ đạt ≥3, mức tốt nhất, ngày gần nhất) chỉ xuất hiện một lần ở đầu nhóm, không cộng lại theo số dãy mới. Có thể có thành tích từ phiên bản cũ; đây không phải xác nhận độ chính xác hay thứ hạng xác suất của phiên bản hiện tại.

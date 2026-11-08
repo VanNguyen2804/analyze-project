@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 /** Scheduling is an input adapter; application use cases have no Spring lifecycle. */
 @Component
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name="app.scheduling.enabled",havingValue="true",matchIfMissing=true)
 public class PredictionScheduler {
     private final ForecastService forecasts;
     private final AiLabService lab;

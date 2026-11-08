@@ -11,6 +11,7 @@ import {
 import { DecimalPipe, PercentPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BackendReadinessService } from '../../core/services/backend-readiness.service';
 import {
   BehaviorSubject,
   Subject,
@@ -60,6 +61,7 @@ import { StockPositionSessions, newStockPosition } from './stock-position-sessio
   styleUrl: './stocks.component.css',
 })
 export class StocksComponent implements OnInit {
+  readonly backend = inject(BackendReadinessService);
   private readonly api = inject(StockApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroy = inject(DestroyRef);
@@ -123,10 +125,12 @@ export class StocksComponent implements OnInit {
   ngOnInit() {
     this.quoteRefreshChanges
       .pipe(
-        switchMap(() => this.api.watchlist().pipe(catchError(() => of([])))),
+        switchMap(() => this.api.watchlist().pipe(catchError(() => of(null)))),
         takeUntilDestroyed(this.destroy),
       )
-      .subscribe((quotes) => this.quotes.set(Object.fromEntries(quotes.map((q) => [q.symbol, q]))));
+      .subscribe((quotes) => {
+        if (quotes) this.quotes.set(Object.fromEntries(quotes.map((q) => [q.symbol, q])));
+      });
     combineLatest([this.route.paramMap, this.modeChanges, this.refreshChanges])
       .pipe(
         tap(([params, mode]) => {
@@ -167,7 +171,7 @@ export class StocksComponent implements OnInit {
     interval(60000)
       .pipe(takeUntilDestroyed(this.destroy))
       .subscribe((minute) => {
-        if (!document.hidden && !this.loading() && !this.positionBusy()) {
+        if (!document.hidden && !this.loading() && !this.positionBusy() && !this.error()) {
           this.refreshChanges.next(this.refreshChanges.value + 1);
           if ((minute + 1) % 5 === 0)
             this.quoteRefreshChanges.next(this.quoteRefreshChanges.value + 1);

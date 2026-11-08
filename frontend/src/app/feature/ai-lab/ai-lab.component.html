@@ -53,7 +53,12 @@
   }
   @if (busy() && !data()) {
     <div class="loading-state" role="status">
-      <span class="loading-dot"></span> Đang kết nối phòng thử nghiệm…
+      <span class="loading-dot"></span>
+      {{
+        backend.waiting()
+          ? 'Đang kết nối máy chủ. Máy chủ có thể cần thời gian khởi động…'
+          : 'Đang cập nhật phòng thử nghiệm…'
+      }}
     </div>
   }
 

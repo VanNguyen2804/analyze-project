@@ -28,6 +28,10 @@ public class WorkspaceService {
         if(id==null || analyze.getAlgorithmCatalog().stream().noneMatch(a->id.equals(a.get("id")))) throw new IllegalArgumentException("Thuật toán không hợp lệ.");
     }
     private List<LotteryNumber> training(String category,Instant now) { return ForecastProtocol.training(draws.findByCategoryOrderByDrawDateDescCreatedAtDesc(category),category,now); }
+    public void validate(Create request) {
+        if(request==null)throw new IllegalArgumentException("Thiếu yêu cầu phân tích.");
+        WorkspaceProtocol.category(request.category());algorithm(request.algorithm());algorithm(request.algorithm2());
+    }
     public PredictionResponseDto create(Create request) {
         String category=WorkspaceProtocol.category(request.category()); algorithm(request.algorithm()); algorithm(request.algorithm2());
         Instant now=clock.instant(); LocalDate target=ForecastProtocol.target(category,now); var history=training(category,now);
@@ -69,6 +73,7 @@ public class WorkspaceService {
             suggestion.put("secondaryModelVersion",AnalyzeService.modelVersionFor(request.algorithm2()));
             suggestion.put("combinedModelVersion","reciprocal-rank-fusion-v1");
         }
+        if(Thread.currentThread().isInterrupted())throw new IllegalStateException("Tác vụ đã hết thời gian xử lý.");
         store.saveSuggestion(suggestion);
         response.setStatus(ready?"SUCCESS":"WAITING"); response.setCategory(category); response.setTargetDrawDate(target.toString());
         response.setWorkspace(publicView(suggestion)); return response;
@@ -143,7 +148,7 @@ public class WorkspaceService {
         WorkspaceProtocol.category(category); LocalDate date=LocalDate.parse(target);
         if(!WorkspaceProtocol.ready(history,category,date)) return map("status","WAITING_HISTORY","policy",LAB_POLICY,"tickets",List.of());
         List<Map<String,Object>> snapshots;
-        try { snapshots=lab.snapshots(); } catch(Exception e) { return map("status","UNAVAILABLE","policy",LAB_POLICY,"tickets",List.of()); }
+        try { snapshots=lab.snapshotsForTarget(category,target); } catch(Exception e) { return map("status","UNAVAILABLE","policy",LAB_POLICY,"tickets",List.of()); }
         Map<String,List<Map<String,Object>>> models=new LinkedHashMap<>();
         for(String model:AiLabModel.MODELS) {
             var batch=snapshots.stream().filter(f->category.equals(f.get("category"))&&target.equals(f.get("targetDate"))&&model.equals(f.get("labModel")))

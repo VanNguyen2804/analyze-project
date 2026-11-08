@@ -35,7 +35,7 @@ class DrawAnalysisPostgresTest {
             return new com.example.analyzeproject.infrastructure.persistence.TransactionalDrawAnalysisService(d,u,f,l,w,Clock.fixed(Instant.parse("2026-10-29T14:00:00Z"),ZoneOffset.UTC));
         }
     }
-    @Test void frozenAndLegacySnapshotsReadBackWithoutCreatingAnyRows() {
+    @Test void frozenAndLegacySnapshotsReadBackWithoutCreatingAnyRows() throws Exception {
         String schema="analysis_it_"+UUID.randomUUID().toString().replace("-","");
         String url=System.getenv("WORKSPACE_TEST_JDBC"), user=System.getenv().getOrDefault("WORKSPACE_TEST_USER","workspace_test");
         var admin=new JdbcTemplate(new DriverManagerDataSource(url,user,"")); admin.execute("CREATE SCHEMA "+schema);
@@ -43,6 +43,7 @@ class DrawAnalysisPostgresTest {
         var context=new AnnotationConfigApplicationContext();
         try {
             new ResourceDatabasePopulator(new ClassPathResource("db/migration/V11__add_forecast_ledger.sql"),new ClassPathResource("db/migration/V12__add_ai_lab.sql"),new ClassPathResource("db/migration/V13__add_prediction_workspace.sql")).execute(ds);
+            new JdbcTemplate(ds).execute(new ClassPathResource("db/migration/V17__add_lab_read_projection.sql").getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
             context.registerBean(DataSource.class,()->ds);context.register(Config.class);context.refresh();
             var history=List.of(17,20,22,24,27).stream().map(day->TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,day),"POWER",List.of(7,9,18,27,31,50),53,null))).toList();
             var actual=TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,29),"POWER",List.of(9,29,33,38,45,46),53,null));

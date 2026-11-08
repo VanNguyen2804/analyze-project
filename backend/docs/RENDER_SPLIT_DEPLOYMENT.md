@@ -1,5 +1,7 @@
 # Tách Angular Static Site và Spring Boot trên Render
 
+Stock, AI Lab và Analyze đã có luồng tác vụ nền. Xem [hướng dẫn async và tách worker](ASYNC_PAGE_JOBS.md) để cấu hình vai trò API/worker/scheduler và kiểm tra response `202`. Cấu hình mặc định chạy worker trong backend hiện có; không cần tạo thêm service để dùng ngay.
+
 ## Cấu hình cuối cùng
 
 | Service | Vai trò | URL dự kiến |

@@ -17,6 +17,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BackendReadinessService } from '../../core/services/backend-readiness.service';
 import { NgClass, NgStyle, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -47,6 +48,7 @@ import { AnalyzeService } from '@app/core/services/analyze.service';
   styleUrl: './prediction.component.css',
 })
 export class PredictionComponent implements OnInit {
+  readonly backend = inject(BackendReadinessService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly analyzeService = inject(AnalyzeService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -167,7 +169,12 @@ export class PredictionComponent implements OnInit {
   predict() {
     this.predictionCancelled.next();
     const requestedCategory = this.category;
-    this.payload = null;
+    if (
+      this.payload?.category !== this.category ||
+      this.payload?.primaryAlgorithmResult?.id !== this.selectedAlgorithm ||
+      this.payload?.secondaryAlgorithmResult?.id !== this.selectedAlgorithm2
+    )
+      this.payload = null;
     this.isSpinning = true;
     this.errorMessage = null;
     this.closePopup();

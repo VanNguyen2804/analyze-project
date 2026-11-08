@@ -26,6 +26,7 @@ class ResearchStorePostgresTest {
             var ds=new DriverManagerDataSource(url+"?currentSchema="+schema,user,"");
             new ResourceDatabasePopulator(new ClassPathResource("db/migration/V12__add_ai_lab.sql")).execute(ds);
             var tx=new TransactionTemplate(new DataSourceTransactionManager(ds));var jdbc=new JdbcTemplate(ds);
+            jdbc.execute(new ClassPathResource("db/migration/V17__add_lab_read_projection.sql").getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
             var store=new JdbcAiLabStore(jdbc);var repository=mock(LotteryNumberRepository.class);
             var rows=new ArrayList<LotteryNumber>();LocalDate date=LocalDate.of(2026,9,30);
             while(date.isBefore(LocalDate.of(2026,10,26))) {

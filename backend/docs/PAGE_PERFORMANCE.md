@@ -1,5 +1,7 @@
 # Stock and AI Lab performance — 7 November 2026
 
+The later [async page implementation](ASYNC_PAGE_JOBS.md) adds bounded workers, durable lottery jobs, a persisted validated Lab projection and SQL pagination. The measurements and limitations below describe the earlier implementation, not a production benchmark of the async release.
+
 The public host returned HTTP 503 for the root, AI Lab and stock watchlist during the initial check; a later root request timed out. A final recheck returned HTTP 200 for all three endpoints (root about 1.0 seconds, watchlist 5.2 seconds, AI Lab 5.7 seconds), before any deployment of this work. These observations do not establish a hosting root cause. Render logs are not connected in this workspace, and these changes have not been deployed.
 
 ## Stock requests

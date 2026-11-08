@@ -18,6 +18,8 @@ public class LotteryResultScheduler implements com.example.analyzeproject.applic
     private final LotteryFeedClient client;
     private final LotteryResultImporter importer;
     private volatile Map<String, Object> lastRun = Map.of("status", "NOT_RUN");
+    @org.springframework.beans.factory.annotation.Value("${app.scheduling.enabled:true}")
+    private boolean schedulingEnabled=true;
 
     public LotteryResultScheduler(LotterySyncProperties properties, LotteryFeedClient client, LotteryResultImporter importer) {
         this.properties = properties; this.client = client; this.importer = importer;
@@ -27,7 +29,7 @@ public class LotteryResultScheduler implements com.example.analyzeproject.applic
             initialDelayString = "${lottery.sync.startup-delay-seconds:10}", timeUnit = TimeUnit.SECONDS)
     @Scheduled(cron = "0 0 19 * * *", zone = "Asia/Ho_Chi_Minh")
     public void sync() {
-        if (!properties.isEnabled()) return;
+        if (!schedulingEnabled || !properties.isEnabled()) return;
         runAt(ZonedDateTime.now(LotteryFeedClient.ZONE));
     }
 

@@ -20,6 +20,11 @@ public interface AiLabStore {
         return com.example.analyzeproject.application.dto.AiLabReadView.fromLedger(ledger(),category);
     }
     List<Map<String,Object>> snapshots();
+    default List<Map<String,Object>> snapshotsForTarget(String category,String target) {
+        return snapshots().stream().filter(f->category.equals(f.get("category"))&&target.equals(f.get("targetDate"))).toList();
+    }
+    /** Database adapters page before returning IDs; legacy adapters can use the in-memory view. */
+    default Optional<List<String>> pageIds(String category,int page) { return Optional.empty(); }
     Map<String,Object> ledger();
     void captureBatch(List<Map<String,Object>> snapshots);
     void reconcile(List<LotteryNumber> rows,Instant now);

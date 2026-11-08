@@ -1,5 +1,9 @@
 # Hiện trạng và hướng phát triển dự án
 
+## Stock, AI Lab và Analyze: tác vụ bất đồng bộ — 08/11/2026
+
+Frontend dùng `async=true`, nhận mã job và poll nhẹ; có health check dùng chung khi backend khởi động, hủy polling khi đổi trang/đầu vào, giữ kết quả khi refresh. Stock có worker/cache RAM riêng; AI Lab và Analyze dùng hàng đợi PostgreSQL có giới hạn, chống chạy trùng, lease/claim token và cache theo revision dữ liệu/kỳ/code. V16 thêm hàng đợi và revision trigger; V17 thêm projection Lab đã kiểm tra hợp lệ, phiên bản projection và index phân trang SQL. Analyze chỉ đọc Lab của đúng kỳ. Profile `worker` cho phép chạy một Render Background Worker không mở HTTP; cấu hình mặc định vẫn giữ một backend, không tự tạo compute trả phí. Chưa đo p95 production hoặc triển khai lên Render. Xem [API, giới hạn và các bước Render](backend/docs/ASYNC_PAGE_JOBS.md).
+
 ## Stock: công cụ kỹ thuật trên biểu đồ
 
 Đã thêm quạt Fibonacci tự nhận diện A/B từ nến đóng, Fib ngang và kênh hồi quy, với lựa chọn cửa sổ 30/60/120. Vùng phải ngoại suy 20 khoảng nến không thêm OHLCV hoặc lịch giao dịch giả. Hiển thị hai điểm neo và giải thích kênh không phải khoảng tin cậy/xác suất thắng; bật/tắt riêng từng lớp và detach khi rời trang. Xem [công thức, giới hạn và kiểm chứng](backend/docs/STOCK_CHART_TECHNICAL_TOOLS.md).

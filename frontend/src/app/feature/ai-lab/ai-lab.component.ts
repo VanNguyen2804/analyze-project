@@ -16,6 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, distinctUntilChanged, finalize, switchMap, timer } from 'rxjs';
 import { AnalyzeService } from '../../core/services/analyze.service';
 import { LabProgressComponent } from './lab-progress/lab-progress.component';
+import { BackendReadinessService } from '../../core/services/backend-readiness.service';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ai-lab',
@@ -25,6 +26,7 @@ import { LabProgressComponent } from './lab-progress/lab-progress.component';
   styleUrl: './ai-lab.component.css',
 })
 export class AiLabComponent implements OnInit {
+  readonly backend = inject(BackendReadinessService);
   readonly category = signal<LotteryCategory>('MEGA');
   readonly page = signal(0);
   readonly data = signal<LabOverview | undefined>(undefined);
@@ -72,7 +74,7 @@ export class AiLabComponent implements OnInit {
     timer(60000, 60000)
       .pipe(takeUntilDestroyed(this.destroy))
       .subscribe(() => {
-        if (!document.hidden && !this.busy() && !this.mutating()) this.load();
+        if (!document.hidden && !this.busy() && !this.mutating() && !this.error()) this.load();
       });
   }
   load() {

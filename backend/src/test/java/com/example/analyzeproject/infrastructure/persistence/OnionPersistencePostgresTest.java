@@ -4,6 +4,7 @@ import com.example.analyzeproject.application.port.out.*;
 import com.example.analyzeproject.application.service.*;
 import com.example.analyzeproject.domain.model.*;
 import com.example.analyzeproject.infrastructure.config.ApplicationConfig;
+import com.example.analyzeproject.infrastructure.config.PageJobConfig;
 import com.example.analyzeproject.infrastructure.persistence.entity.LotteryNumberEntity;
 import com.example.analyzeproject.infrastructure.persistence.jdbc.*;
 import com.example.analyzeproject.infrastructure.persistence.jpa.*;
@@ -35,7 +36,7 @@ class OnionPersistencePostgresTest {
     @Configuration(proxyBeanMethods = false)
     @EntityScan(basePackageClasses = LotteryNumberEntity.class)
     @EnableJpaRepositories(basePackageClasses = SpringDataLotteryNumberRepository.class)
-    @Import({ApplicationConfig.class, JpaLotteryNumberAdapter.class, JpaUserTicketAdapter.class,
+    @Import({ApplicationConfig.class, PageJobConfig.class, JpaLotteryNumberAdapter.class, JpaUserTicketAdapter.class,
             JpaAlgorithmHyperparameterAdapter.class, JpaLotteryDeviationVariableAdapter.class,
             JdbcForecastStore.class, JdbcAiLabStore.class, JdbcWorkspaceStore.class, JdbcMegaPortfolioStore.class})
     static class Config {}
@@ -59,17 +60,20 @@ class OnionPersistencePostgresTest {
                     "V13__add_prediction_workspace.sql", "V14__add_mega_portfolio_experiment.sql", "V15__version_mega_portfolio_batches.sql"))
                 setup.addScript(new ClassPathResource("db/migration/" + name));
             setup.execute(schemaDataSource);
+            new JdbcTemplate(schemaDataSource).execute(new ClassPathResource("db/migration/V16__add_page_jobs.sql").getContentAsString(StandardCharsets.UTF_8));
+            new JdbcTemplate(schemaDataSource).execute(new ClassPathResource("db/migration/V17__add_lab_read_projection.sql").getContentAsString(StandardCharsets.UTF_8));
             new ApplicationContextRunner()
                     .withConfiguration(AutoConfigurations.of(DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
                             JdbcTemplateAutoConfiguration.class, TransactionAutoConfiguration.class,
                             org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration.class))
                     .withUserConfiguration(Config.class)
                     .withPropertyValues("spring.datasource.url=" + schemaUrl, "spring.datasource.username=" + user,
-                            "spring.datasource.password=", "spring.jpa.hibernate.ddl-auto=validate", "spring.jpa.open-in-view=false")
+                            "spring.datasource.password=", "spring.jpa.hibernate.ddl-auto=validate", "spring.jpa.open-in-view=false",
+                            "app.jobs.worker-enabled=false", "app.jobs.stock-enabled=false")
                     .run(context -> {
                         assertNull(context.getStartupFailure(), () -> Objects.toString(context.getStartupFailure()));
                         for (Class<?> service : List.of(AnalyzeService.class, ForecastService.class, AiLabService.class,
-                                WorkspaceService.class, MegaPortfolioService.class, PredictionResearchService.class)) assertNotNull(context.getBean(service));
+                                WorkspaceService.class, MegaPortfolioService.class, PredictionResearchService.class,PageJobService.class)) assertNotNull(context.getBean(service));
                         var importer = context.getBean(LotteryResultImporter.class);
                         assertTrue(AopUtils.isAopProxy(importer));
                         assertTrue(AopUtils.isAopProxy(context.getBean(DrawAnalysisService.class)));

@@ -18,14 +18,14 @@ class AiLabHttpTest {
         var service=mock(AiLabService.class);
         when(service.overview("MEGA",0)).thenReturn(Map.of("totalRows",0));
         when(service.overview("INVALID",0)).thenThrow(new IllegalArgumentException("Invalid category or page"));
-        var http=MockMvcBuilders.standaloneSetup(new AiLabController(service)).build();
+        var http=MockMvcBuilders.standaloneSetup(new AiLabController(service, org.mockito.Mockito.mock(com.example.analyzeproject.application.service.PageJobService.class))).build();
         http.perform(get("/api/ai-lab")).andExpect(status().isOk()).andExpect(jsonPath("$.totalRows").value(0));
         http.perform(get("/api/ai-lab").param("category","invalid")).andExpect(status().isBadRequest());
         verify(service,never()).run();
     }
     @Test void runRequiresPost() throws Exception {
         var service=mock(AiLabService.class); when(service.run()).thenReturn(Map.of("status","COMPLETED"));
-        MockMvcBuilders.standaloneSetup(new AiLabController(service)).build().perform(post("/api/ai-lab/run"))
+        MockMvcBuilders.standaloneSetup(new AiLabController(service, org.mockito.Mockito.mock(com.example.analyzeproject.application.service.PageJobService.class))).build().perform(post("/api/ai-lab/run"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("COMPLETED"));
         verify(service).run();
     }

@@ -1,5 +1,7 @@
 # Analyze Project
 
+Stock, AI Lab v? Analyze ?? h? tr? t?c v? n?n: xem [API async v? c?c b??c c?u h?nh worker tr?n Render](backend/docs/ASYNC_PAGE_JOBS.md).
+
 Hiệu năng Stock/AI Lab và health check `/api/health`: xem [cấu hình, kiểm chứng và triển khai](backend/docs/PAGE_PERFORMANCE.md).
 
 ## Chứng khoán Việt Nam

@@ -24,7 +24,9 @@
     <div class="prediction-loading" role="status">
       <span class="loading-orbit" aria-hidden="true"></span>
       <div>
-        <strong>Đang chuẩn bị các bộ số…</strong>
+        <strong>{{
+          backend.waiting() ? 'Đang kết nối máy chủ…' : 'Đang chuẩn bị các bộ số…'
+        }}</strong>
         <p>
           Tính từ lịch sử {{ category === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }} trước kỳ mục tiêu.
         </p>
@@ -42,10 +44,10 @@
       }}<button (click)="copyTicketSuccessMsg = null" aria-label="Đóng thông báo">×</button>
     </div>
   }
-  @if (!isSpinning && payload?.workspace; as workspace) {
+  @if (payload?.workspace; as workspace) {
     <app-user-desk [suggestion]="workspace" (changed)="workspaceChanged($event)" />
   }
-  @if (!isSpinning && payload && payload.status === 'SUCCESS') {
+  @if (payload && payload.status === 'SUCCESS') {
     <div class="draw-strip">
       <span class="draw-icon" aria-hidden="true">◷</span>
       <div>
@@ -158,7 +160,7 @@
       </p>
     </div>
   </details>
-  @if (!isSpinning && payload) {
+  @if (payload) {
     <details class="explore-section" (toggle)="historyChartOpened = true">
       <summary>
         <span class="explore-icon" aria-hidden="true">⌁</span>

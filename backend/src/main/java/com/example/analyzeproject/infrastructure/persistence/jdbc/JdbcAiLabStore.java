@@ -18,10 +18,21 @@ import java.util.*;
 public class JdbcAiLabStore implements AiLabStore {
     private final JdbcTemplate jdbc;
     private final ObjectMapper json = new ObjectMapper();
+    private final String projectionVersion=com.example.analyzeproject.application.service.WorkspaceProtocol.fingerprint(AiLabReadView.class,ForecastProtocol.class,DrawQuality.class);
     public JdbcAiLabStore(JdbcTemplate jdbc) { this.jdbc=jdbc; }
     private String encode(Object value) { try { return json.writeValueAsString(value); } catch(Exception e) { throw new IllegalStateException(e); } }
     private Map<String,Object> decode(String value) { try { return json.readValue(value,new TypeReference<>() {}); } catch(Exception e) { throw new IllegalStateException(e); } }
     public List<Map<String,Object>> snapshots() { return jdbc.query("SELECT snapshot_json FROM ai_lab_snapshots ORDER BY id",(r,i)->decode(r.getString(1))); }
+    @Override public List<Map<String,Object>> snapshotsForTarget(String category,String target) {
+        if(!Set.of("MEGA","POWER").contains(category))throw new IllegalArgumentException("Invalid category");
+        java.time.LocalDate.parse(target);
+        return jdbc.query("SELECT snapshot_json FROM ai_lab_snapshots WHERE id LIKE ? AND snapshot_json::jsonb->>'category'=? AND snapshot_json::jsonb->>'targetDate'=? ORDER BY id",(r,i)->decode(r.getString(1)),category+":"+target+":%",category,target);
+    }
+    @Override public Optional<List<String>> pageIds(String category,int page) {
+        if(!Set.of("MEGA","POWER").contains(category)||page<0)throw new IllegalArgumentException("Invalid category or page");
+        return Optional.of(jdbc.query("SELECT id FROM ai_lab_snapshots WHERE id LIKE ? AND read_projection_json::jsonb #>> '{data,category}' = ? ORDER BY read_projection_json::jsonb #>> '{data,targetDate}' DESC,id LIMIT 50 OFFSET ?",
+                (r,i)->r.getString(1),category+":%",category,(long)page*50));
+    }
     @Override public Set<String> snapshotIds() { return new HashSet<>(jdbc.query("SELECT id FROM ai_lab_snapshots",(r,i)->r.getString(1))); }
     @Override @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public List<Map<String,Object>> feedbackSnapshots(String category,java.time.LocalDate target,int maximumDraws,Instant now) {
@@ -41,15 +52,21 @@ public class JdbcAiLabStore implements AiLabStore {
     public Map<String,Object> ledger() {
         return ForecastProtocol.map("forecasts",snapshots(),"settlements",jdbc.query("SELECT settlement_json FROM ai_lab_settlements ORDER BY id",(r,i)->decode(r.getString(1))));
     }
-    /** Stream one full snapshot at a time; retain only the small, validated page/evaluation projection. */
-    @Override @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    /** Backfill compact, validated projections on the worker. Subsequent reads avoid raw history payloads. */
+    @Override @Transactional(isolation=Isolation.REPEATABLE_READ)
     public AiLabReadView readOverview(String category) {
         if(!Set.of("MEGA","POWER").contains(category))throw new IllegalArgumentException("Invalid category");
         List<AiLabReadView.Snapshot> projected=new ArrayList<>();
-        jdbc.query(connection->{var statement=connection.prepareStatement("SELECT snapshot_json FROM ai_lab_snapshots WHERE id LIKE ? ORDER BY id");
-                    statement.setString(1,category+":%");statement.setFetchSize(25);return statement;},
-                (org.springframework.jdbc.core.RowCallbackHandler)row->{var raw=decode(row.getString(1));
-                    if(category.equals(raw.get("category")))projected.add(AiLabReadView.project(raw));});
+        jdbc.query(connection->{var statement=connection.prepareStatement("SELECT id,snapshot_json FROM ai_lab_snapshots WHERE id LIKE ? AND (read_projection_json IS NULL OR read_projection_version IS DISTINCT FROM ?) ORDER BY id");
+                    statement.setString(1,category+":%");statement.setString(2,projectionVersion);statement.setFetchSize(25);return statement;},
+                (org.springframework.jdbc.core.RowCallbackHandler)row->{var raw=decode(row.getString(2));
+                    var projection=AiLabReadView.project(raw);
+                    jdbc.update("UPDATE ai_lab_snapshots SET read_projection_json=?,read_projection_version=? WHERE id=? AND (read_projection_json IS NULL OR read_projection_version IS DISTINCT FROM ?)",
+                            encode(Map.of("data",projection.data(),"prospective",projection.prospective())),projectionVersion,row.getString(1),projectionVersion);});
+        jdbc.query("SELECT read_projection_json FROM ai_lab_snapshots WHERE id LIKE ? ORDER BY id",
+                (org.springframework.jdbc.core.RowCallbackHandler)row->{var compact=decode(row.getString(1));
+                    @SuppressWarnings("unchecked") var data=(Map<String,Object>)compact.get("data");
+                    if(category.equals(data.get("category")))projected.add(new AiLabReadView.Snapshot(data,Boolean.TRUE.equals(compact.get("prospective"))));},category+":%");
         var events=jdbc.query("SELECT DISTINCT ON (forecast_id) settlement_json FROM ai_lab_settlements WHERE forecast_id LIKE ? ORDER BY forecast_id,id DESC",
                 (r,i)->decode(r.getString(1)),category+":%");
         return new AiLabReadView(projected,events);
@@ -58,7 +75,8 @@ public class JdbcAiLabStore implements AiLabStore {
     public void captureBatch(List<Map<String,Object>> snapshots) {
         for(var f:snapshots) {
             if(!ForecastProtocol.isProspective(f)) throw new IllegalArgumentException("Invalid lab snapshot");
-            jdbc.update("INSERT INTO ai_lab_snapshots(id,snapshot_json) VALUES (?,?) ON CONFLICT (id) DO NOTHING",f.get("id"),encode(f));
+            var projection=AiLabReadView.project(f);
+            jdbc.update("INSERT INTO ai_lab_snapshots(id,snapshot_json,read_projection_json,read_projection_version) VALUES (?,?,?,?) ON CONFLICT (id) DO NOTHING",f.get("id"),encode(f),encode(Map.of("data",projection.data(),"prospective",projection.prospective())),projectionVersion);
         }
     }
     @Transactional

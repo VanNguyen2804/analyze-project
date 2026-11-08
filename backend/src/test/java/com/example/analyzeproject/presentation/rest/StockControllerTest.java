@@ -16,7 +16,7 @@ class StockControllerTest {
         var candle=new Candle(clock.instant().minusSeconds(3600).getEpochSecond(),27000,27500,26500,27000,100000,true);
         var service=new StockService((symbol,mode)->new Feed(List.of(candle),clock.instant(),"TEST","VND","RAW",true,List.of()),clock,new StockLearningEngine(.6,.6,.004));
         var snapshot=service.analyze("FPT",Mode.SWING);
-        var mvc=MockMvcBuilders.standaloneSetup(new StockController(service)).build();
+        var mvc=MockMvcBuilders.standaloneSetup(new StockController(service, org.mockito.Mockito.mock(com.example.analyzeproject.application.service.PageJobService.class))).build();
         String body="""
             {"purchasePrice":30000,"quantity":1000,"maxLossPercent":15,"sellableQuantity":800,
              "plan":{"startedAt":"2026-11-06T01:00:00Z","executions":[],"observedPeak":null,"availableQuantity":null,
@@ -36,7 +36,7 @@ class StockControllerTest {
         return new StockService((symbol,mode)->new Feed(List.of(),clock.instant(),"TEST","SOURCE","UNKNOWN",false,List.of()),clock,new StockLearningEngine(.6,.6,.004));
     }
     @Test void emptyDataSerializesExplicitUnavailableInsteadOfInventingPrices() throws Exception {
-        var mvc=MockMvcBuilders.standaloneSetup(new StockController(service())).build();
+        var mvc=MockMvcBuilders.standaloneSetup(new StockController(service(), org.mockito.Mockito.mock(com.example.analyzeproject.application.service.PageJobService.class))).build();
         mvc.perform(get("/api/stocks/FPT/analysis").param("mode","SWING")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.symbol").value("FPT")).andExpect(jsonPath("$.data.candles").isEmpty())
                 .andExpect(jsonPath("$.analysis.signal").value("UNAVAILABLE"))
@@ -46,7 +46,7 @@ class StockControllerTest {
     }
     @Test void positionResponsesAreNotCacheableAndUnknownSnapshotIsRejected() throws Exception {
         var stocks=service();String id=stocks.analyze("FPT",Mode.SWING).snapshotId();
-        var mvc=MockMvcBuilders.standaloneSetup(new StockController(stocks)).build();
+        var mvc=MockMvcBuilders.standaloneSetup(new StockController(stocks, org.mockito.Mockito.mock(com.example.analyzeproject.application.service.PageJobService.class))).build();
         String body="{\"purchaseDate\":\"2026-10-01\",\"purchasePrice\":20000}";
         mvc.perform(post("/api/stocks/FPT/position-analysis").param("snapshotId",id).contentType("application/json").content(body))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"))

@@ -1,3 +1,5 @@
+import { BackendReadinessService } from '../../core/services/backend-readiness.service';
+import { of as readyNow } from 'rxjs';
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -5,6 +7,20 @@ import { AiLabComponent } from './ai-lab.component';
 import { environment } from '../../../environments/environment';
 
 describe('AI lab', () => {
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: BackendReadinessService,
+          useValue: {
+            ready: () => readyNow(undefined),
+            waiting: () => false,
+            invalidate: () => {},
+          },
+        },
+      ],
+    }),
+  );
   let fixture: ComponentFixture<AiLabComponent>;
   let http: HttpTestingController;
   const base = `${environment.apiUrl || ''}/api/ai-lab`;
@@ -31,7 +47,7 @@ describe('AI lab', () => {
     http.verify({ ignoreCancelled: true });
   });
   it('places current predictions from historically successful models before the Lab header', () => {
-    http.expectOne(`${base}?category=MEGA&page=0`).flush({
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush({
       ...payload,
       rows: [],
       highlights: [
@@ -61,14 +77,14 @@ describe('AI lab', () => {
     );
   });
   it('loads read-only data and cancels category requests', () => {
-    const old = http.expectOne(`${base}?category=MEGA&page=0`);
+    const old = http.expectOne(`${base}?category=MEGA&page=0&async=true`);
     fixture.componentInstance.select('POWER');
     expect(old.cancelled).toBeTrue();
-    http.expectOne(`${base}?category=POWER&page=0`).flush(payload);
-    http.expectNone(`${base}/run`);
+    http.expectOne(`${base}?category=POWER&page=0&async=true`).flush(payload);
+    http.expectNone(`${base}/run?async=true`);
   });
   it('labels the no-feedback control and shows paired probability evidence', () => {
-    http.expectOne(`${base}?category=MEGA&page=0`).flush({
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush({
       ...payload,
       groups: [
         {
@@ -115,17 +131,17 @@ describe('AI lab', () => {
     ).toBeFalse();
   });
   it('prevents duplicate submissions and refreshes after a run', () => {
-    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush(payload);
     fixture.componentInstance.run();
     fixture.componentInstance.run();
-    const run = http.expectOne(`${base}/run`);
+    const run = http.expectOne(`${base}/run?async=true`);
     expect(run.request.method).toBe('POST');
     run.flush({ status: 'COMPLETED' });
-    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush(payload);
     expect(fixture.componentInstance.mutating()).toBeFalse();
   });
   it('shows actual matching numbers and keeps unmeasured values empty', () => {
-    http.expectOne(`${base}?category=MEGA&page=0`).flush({
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush({
       ...payload,
       totalRows: 1,
       rows: [
@@ -144,39 +160,39 @@ describe('AI lab', () => {
     expect(fixture.componentInstance.percent(null)).toBe('Chưa có');
   });
   it('refreshes every minute without creating tickets on GET', fakeAsync(() => {
-    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush(payload);
     fixture.destroy();
     fixture = TestBed.createComponent(AiLabComponent);
     fixture.detectChanges();
-    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush(payload);
     tick(60000);
-    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
-    http.expectNone(`${base}/run`);
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush(payload);
+    http.expectNone(`${base}/run?async=true`);
     expect(fixture.componentInstance.data()).toEqual(payload);
     fixture.destroy();
   }));
   it('pauses polling while hidden and times out stalled reads without discarding the displayed data', fakeAsync(() => {
-    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush(payload);
     fixture.destroy();
     const hidden = spyOnProperty(document, 'hidden', 'get').and.returnValue(true);
     fixture = TestBed.createComponent(AiLabComponent);
     fixture.detectChanges();
-    http.expectOne(`${base}?category=MEGA&page=0`).flush(payload);
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush(payload);
     tick(60000);
-    http.expectNone(`${base}?category=MEGA&page=0`);
+    http.expectNone(`${base}?category=MEGA&page=0&async=true`);
     hidden.and.returnValue(false);
     tick(60000);
-    const stalled = http.expectOne(`${base}?category=MEGA&page=0`);
-    tick(15001);
+    const stalled = http.expectOne(`${base}?category=MEGA&page=0&async=true`);
+    tick(180001);
     expect(stalled.cancelled).toBeTrue();
     expect(fixture.componentInstance.busy()).toBeFalse();
     expect(fixture.componentInstance.data()).toEqual(payload);
     expect(fixture.componentInstance.error()).toContain('Không tải');
-    http.expectNone(`${base}/run`);
+    http.expectNone(`${base}/run?async=true`);
     fixture.destroy();
   }));
   it('shows an observed two-match stage without promoting it to a validated model', () => {
-    http.expectOne(`${base}?category=MEGA&page=0`).flush({
+    http.expectOne(`${base}?category=MEGA&page=0&async=true`).flush({
       ...payload,
       groups: [
         {

@@ -38,7 +38,11 @@
   @if (loading() && !data()) {
     <div class="panel empty" role="status">
       <div class="loading-bar"></div>
-      Đang lấy dữ liệu và nhận định…
+      {{
+        backend.waiting()
+          ? 'Đang kết nối máy chủ. Máy chủ có thể cần thời gian khởi động…'
+          : 'Đang cập nhật dữ liệu và nhận định…'
+      }}
     </div>
   }
   @if (error()) {

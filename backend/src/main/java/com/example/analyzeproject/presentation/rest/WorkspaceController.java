@@ -4,6 +4,7 @@ import com.example.analyzeproject.domain.service.*;
 import com.example.analyzeproject.application.dto.WorkspaceRequests.*;
 import com.example.analyzeproject.application.dto.PredictionResponseDto;
 import com.example.analyzeproject.application.service.WorkspaceService;
+import com.example.analyzeproject.application.service.PageJobService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import java.util.Map;
@@ -12,8 +13,12 @@ import java.util.Map;
 @RequestMapping("/api/prediction-workspace")
 public class WorkspaceController {
     private final WorkspaceService workspace;
-    public WorkspaceController(WorkspaceService workspace) { this.workspace=workspace; }
-    @PostMapping("/suggestions") public PredictionResponseDto create(@RequestBody Create request) { return workspace.create(request); }
+    private final PageJobService jobs;
+    public WorkspaceController(WorkspaceService workspace,PageJobService jobs) { this.workspace=workspace;this.jobs=jobs; }
+    @PostMapping("/suggestions") public Object create(@RequestBody Create request,@RequestParam(defaultValue="false") boolean async) {
+        workspace.validate(request);
+        return async?PageJobController.response(jobs.submit("ANALYZE",Map.of("category",com.example.analyzeproject.application.service.WorkspaceProtocol.category(request.category()),"algorithm",request.algorithm(),"algorithm2",request.algorithm2()))):workspace.create(request);
+    }
     @PostMapping("/suggestions/{id}/combine") public Map<String,Object> combine(@PathVariable String id,@RequestBody Combine request) { return workspace.combine(id,request); }
     @GetMapping("/lab-suggestions") public Map<String,Object> lab(@RequestParam String category,@RequestParam String targetDate) { return workspace.labSuggestions(category,targetDate); }
     @PostMapping("/commit") public Map<String,Object> commit(@RequestBody Commit request) { return workspace.commit(request); }
