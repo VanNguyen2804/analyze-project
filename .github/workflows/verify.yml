@@ -55,13 +55,18 @@ jobs:
       - name: Test all Angular features
         working-directory: frontend
         run: npm run test:ci
+      - name: Test public frontend configuration
+        working-directory: frontend
+        run: node --test scripts/render-config.test.mjs
       - name: Build Angular production assets
         working-directory: frontend
-        run: npm run build
+        env:
+          API_BASE_URL: https://analyze-project.onrender.com
+        run: npm run build:render
       - name: Test and package Spring Boot
         working-directory: backend
         run: mvn --batch-mode --no-transfer-progress clean install
-      - name: Verify packaged Angular assets
+      - name: Verify independent frontend and backend artifacts
         shell: python
         run: |
           from pathlib import Path
@@ -70,12 +75,9 @@ jobs:
           jars = list(Path('backend/target').glob('*.jar'))
           assert len(jars) == 1, f'Expected one executable JAR, found {jars}'
           assert (assets / 'index.html').is_file(), 'Missing Angular index.html'
-          files = [p for p in assets.rglob('*') if p.is_file()]
           with ZipFile(jars[0]) as jar:
-              for source in files:
-                  entry = 'BOOT-INF/classes/static/' + source.relative_to(assets).as_posix()
-                  assert jar.read(entry) == source.read_bytes(), f'Asset differs: {entry}'
-          print(f'Verified {len(files)} Angular assets in {jars[0].name}')
+              assert not any(name.startswith('BOOT-INF/classes/static/') for name in jar.namelist()), 'Backend must not bundle Angular'
+          print('Verified standalone Angular output and API-only JAR')
       - name: Upload Java test reports
         if: always()
         uses: actions/upload-artifact@v4

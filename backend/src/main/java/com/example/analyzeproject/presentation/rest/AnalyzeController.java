@@ -20,7 +20,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analyze")
-@CrossOrigin(origins = "*")
 public class AnalyzeController {
 
     private final AnalyzeService analyzeService;

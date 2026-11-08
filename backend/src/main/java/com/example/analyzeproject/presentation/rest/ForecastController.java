@@ -9,7 +9,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/forecasts")
-@CrossOrigin(origins = "*")
 public class ForecastController {
     private final ForecastService forecasts;
     public ForecastController(ForecastService forecasts) { this.forecasts = forecasts; }

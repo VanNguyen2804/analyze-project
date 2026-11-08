@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/mega-portfolio")
-@CrossOrigin(origins="*")
 public class MegaPortfolioController {
     private final MegaPortfolioService service;
     public MegaPortfolioController(MegaPortfolioService service) { this.service=service; }

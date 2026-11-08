@@ -8,7 +8,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/ai-lab")
-@CrossOrigin(origins="*")
 public class AiLabController {
     private final AiLabService lab;
     public AiLabController(AiLabService lab) { this.lab=lab; }

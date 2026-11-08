@@ -16,7 +16,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/numbers")
-@CrossOrigin(origins = "*")
 public class LotteryNumberController {
 
     private final LotteryNumberService service;

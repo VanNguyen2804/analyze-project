@@ -145,6 +145,12 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes><exclude>static/**</exclude></excludes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -154,10 +160,7 @@
   </build>
   <profiles>
     <profile>
-      <id>local-frontend-build</id>
-      <activation>
-        <file><exists>../frontend/dist/analyzeproject/index.html</exists></file>
-      </activation>
+      <id>bundle-frontend</id>
       <build>
         <resources>
           <resource>

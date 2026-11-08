@@ -15,6 +15,8 @@ WORKDIR /app
 
 COPY --from=builder /app/target/analyzeproject-*.jar /app/app.jar
 
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=15 -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2"
 ENV PORT=8080
 EXPOSE 8080
 

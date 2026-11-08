@@ -1,5 +1,6 @@
 package com.example.analyzeproject.presentation.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -8,6 +9,7 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 
 import java.io.IOException;
 
+@ConditionalOnProperty(name = "app.frontend.enabled", havingValue = "true")
 @Configuration
 public class SpaWebConfig implements WebMvcConfigurer {
 

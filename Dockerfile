@@ -39,10 +39,10 @@ COPY backend/src ./src
 
 # Inject freshly built Angular frontend from Stage 1 into backend's static directory before packaging JAR
 RUN rm -rf ./src/main/resources/static/*
-COPY --from=frontend-builder /app/frontend-dist/ ./src/main/resources/static/
+COPY --from=frontend-builder /app/frontend-dist/ /app/frontend/dist/analyzeproject/
 
 # Build production jar skipping tests
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -Pbundle-frontend -DskipTests -B
 
 # ==========================================
 # STAGE 3: Final Unified Production Container
@@ -59,6 +59,7 @@ COPY --from=frontend-builder /app/frontend-dist /app/public
 # Default environment configuration for Render
 ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=prod
+ENV APP_FRONTEND_ENABLED=true
 
 # Reserve room for native memory, database/client pools and request threads on small instances.
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=15 -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2"

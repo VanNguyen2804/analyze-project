@@ -25,7 +25,7 @@ Trang `/analyze` tạo dự đoán; `/analyze/history` xem ledger tự động; 
 
 Router dùng `NoPreloading`: các trang standalone dùng `loadComponent`; `/analyze` tải cấu hình `prediction.routes.ts` qua `loadChildren`, rồi tải riêng từng tab. Các URL truy cập trực tiếp và redirect cũ được giữ, URL không khớp quay về trang chủ. Biểu đồ chứng khoán (gồm thư viện chart) và MEGA portfolio dùng `@defer (on viewport)`; placeholder giữ chỗ, lỗi tải chunk có thông báo. Các component này nhận đầu vào hiện tại khi được khởi tạo; portfolio vẫn bị hủy khi chuyển sang POWER.
 
-Lazy loading giảm công việc trên trình duyệt và tránh gọi API trang dự đoán khi mở trang chủ. Vì Render vẫn phục vụ Angular từ Spring Boot, cơ chế này không loại bỏ thời gian khởi động backend.
+Lazy loading giảm công việc trên trình duyệt và tránh gọi API trang dự đoán khi mở trang chủ. Trên cấu hình Render tách riêng, Static Site phục vụ landing ngay cả khi backend ngủ; các chức năng gọi API vẫn phải chờ backend khởi động.
 
 ### Tách component và stylesheet
 
@@ -54,7 +54,11 @@ Build dùng `@angular/build:application`; test dùng `@angular/build:karma`. Kh�
 
 `npm run build:sync` build và đồng bộ asset sang backend bằng script Node chạy trên Windows/Linux; chỉ xóa các bundle sinh tự động cũ. Đầu ra vẫn ở `dist/analyzeproject/` để tương thích Maven, Docker và CI.
 
-Để đóng gói chung, build Angular trước rồi chạy Maven trong `backend/`. Xem [hướng dẫn toàn dự án](../README.md).
+Maven mặc định không đóng gói frontend. Để chạy chung tùy chọn, build Angular rồi dùng `mvn clean install -Pbundle-frontend` và `APP_FRONTEND_ENABLED=true`. Xem [hướng dẫn toàn dự án](../README.md).
+
+### Render Static Site
+
+Dùng `API_BASE_URL=https://analyze-project.onrender.com` và `npm run build:render`; publish `dist/analyzeproject`. Script sinh cấu hình API công khai `assets/app-config.js` trước bootstrap, không gọi server để đọc cấu hình. Không đặt secrets vào biến này. `npm run build` thông thường giữ mặc định same-origin. API có timeout 180 giây và không tự retry ghi dữ liệu. Xem [hướng dẫn cấu hình Render và CORS](../backend/docs/RENDER_SPLIT_DEPLOYMENT.md).
 
 
 `share/components/lab-highlights/` hiển thị dự đoán kỳ tới của thuật toán Lab từng trúng ≥3 số, cùng thành tích lịch sử. AI Lab truyền highlights từ overview; Prediction dùng chế độ đọc endpoint highlights riêng, hủy request khi đổi category và dừng polling khi ẩn tab. Không đưa vé lịch sử vào khay chốt vé hiện tại.

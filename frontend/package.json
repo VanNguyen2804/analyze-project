@@ -5,6 +5,7 @@
     "ng": "node ./node_modules/@angular/cli/bin/ng.js",
     "start": "node ./node_modules/@angular/cli/bin/ng.js serve",
     "build": "node ./node_modules/@angular/cli/bin/ng.js build",
+    "build:render": "npm run build && node scripts/render-config.mjs",
     "build:sync": "npm run build && node scripts/sync-static.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "node ./node_modules/@angular/cli/bin/ng.js test",

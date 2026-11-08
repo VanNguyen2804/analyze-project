@@ -1,25 +1,46 @@
-# Render Blueprint Specification (Infrastructure as Code)
-# https://render.com/docs/blueprint-spec
+# Keep the existing backend service and its database environment variables.
 services:
-  # ====================================================================
-  # Web Service: Unified Docker (Angular Frontend + Spring Boot Backend)
-  # ====================================================================
   - type: web
     name: analyze-project
     runtime: docker
+    rootDir: backend
     dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     region: singapore
+    healthCheckPath: /api/health
     envVars:
       - key: PORT
-        value: 10000
+        value: "10000"
       - key: SPRING_PROFILES_ACTIVE
         value: prod
+      - key: APP_FRONTEND_ENABLED
+        value: "false"
+      - key: APP_CORS_ALLOWED_ORIGINS
+        sync: false
       - key: SPRING_DATASOURCE_URL
         sync: false
       - key: SPRING_DATASOURCE_USERNAME
         sync: false
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false
-    healthCheckPath: /api/health
 
+  - type: web
+    name: analyze-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build:render
+    staticPublishPath: dist/analyzeproject
+    envVars:
+      - key: NODE_VERSION
+        value: 24.22.1
+      - key: API_BASE_URL
+        value: https://analyze-project.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/app-config.js
+        name: Cache-Control
+        value: no-cache

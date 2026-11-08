@@ -14,7 +14,7 @@ description: Analyze and refactor analyze-project, replace hard-coded prediction
 | Spring Boot | `backend/src/main/java/com/example/analyzeproject/application/service/AnalyzeService.java`, `backend/src/main/java/com/example/analyzeproject/domain/service/PredictionSupport.java` | PostgreSQL, `backend/src/test/` |
 | Angular | `frontend/src/app/feature/prediction/`, `frontend/src/app/core/models/` và các service | `frontend/package.json`, `frontend/angular.json` |
 
-Các đường dẫn code tính từ root repo; chạy lệnh build trong đúng thư mục frontend/backend. Docker ở root build Angular và Spring Boot. Ứng dụng Node/Vite ở root đã bị loại bỏ theo yêu cầu người dùng. Dữ liệu cũ được giữ tại `backend/archive/legacy-node-data/`, không tự nhập vào PostgreSQL; báo cáo lịch sử tại `backend/docs/reports/`.
+Các đường dẫn code tính từ root repo; chạy lệnh build trong đúng thư mục frontend/backend. Render mặc định tách Angular Static Site và backend Web Service (`backend/Dockerfile`); Maven mặc định không đóng gói Angular. Docker ở root chỉ giữ chế độ chạy chung tùy chọn với profile `bundle-frontend` và `APP_FRONTEND_ENABLED=true`. Xem `backend/docs/RENDER_SPLIT_DEPLOYMENT.md`. Ứng dụng Node/Vite ở root đã bị loại bỏ theo yêu cầu người dùng. Dữ liệu cũ được giữ tại `backend/archive/legacy-node-data/`, không tự nhập vào PostgreSQL; báo cáo lịch sử tại `backend/docs/reports/`.
 
 Backend dùng Onion Architecture: domain thuần Java; application dùng repository/store ports; Spring/JPA/JDBC/scheduler nằm trong infrastructure và HTTP nằm trong presentation. Wiring tại `infrastructure/config/ApplicationConfig.java`. Giữ chiều phụ thuộc vào trong và chạy `OnionArchitectureTest`; xem [bản đồ kiến trúc](../../../backend/docs/ONION_ARCHITECTURE.md).
 
@@ -60,7 +60,7 @@ Kiểm tra Node thực tế và `engines` của toolchain trước khi build Ang
 
 Không gọi unit test có mock là kiểm thử PostgreSQL thật. Nếu không chạy được check, ghi rõ check, nguyên nhân và phần chưa xác minh.
 
-Khi học liên kết giữa các kỳ, không coi hai bản ghi liền nhau là hai kỳ quay liên tiếp nếu thiếu kỳ ở giữa theo lịch. So sánh mô hình học với phương pháp nền trên cùng cửa sổ kiểm tra; phân biệt số khớp trong một vé và tổng độ phủ nhiều vé. Vé người dùng cung cấp sau kỳ quay chỉ dùng đối chiếu, không làm bằng chứng dự đoán trước kỳ. Với dữ liệu nhập mới, kiểm tra nguồn, trùng dữ liệu và xung đột; tạo migration mới thay vì sửa migration lịch sử. Khi build JAR sau Angular, kiểm tra JAR chứa đúng assets vừa build.
+Khi học liên kết giữa các kỳ, không coi hai bản ghi liền nhau là hai kỳ quay liên tiếp nếu thiếu kỳ ở giữa theo lịch. So sánh mô hình học với phương pháp nền trên cùng cửa sổ kiểm tra; phân biệt số khớp trong một vé và tổng độ phủ nhiều vé. Vé người dùng cung cấp sau kỳ quay chỉ dùng đối chiếu, không làm bằng chứng dự đoán trước kỳ. Với dữ liệu nhập mới, kiểm tra nguồn, trùng dữ liệu và xung đột; tạo migration mới thay vì sửa migration lịch sử. Build mặc định phải có Angular output độc lập và JAR không chứa static assets; chỉ khi chủ động build chung mới kiểm tra assets trong JAR khớp Angular vừa build. Dùng Maven clean khi đổi chế độ để tránh assets cũ trong target/classes.
 
 ## Kết thúc và ghi nhận
 

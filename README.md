@@ -64,13 +64,17 @@ Mốc sàng lọc ≥3, 60 kỳ và hai khối 30 kỳ vẫn là quy ước th�
 - `frontend/`: Angular, giao diện `/analyze` gồm tab Tạo dự đoán và Lịch sử & đối soát.
 - `backend/`: Spring Boot Java 17, PostgreSQL, Flyway và kiểm thử Java.
 - Backend tổ chức theo Onion Architecture: `presentation → application → domain`, `infrastructure → application`; xem [bản đồ và quy tắc phụ thuộc](backend/docs/ONION_ARCHITECTURE.md).
-- `Dockerfile`, `render.yaml`: build/triển khai Angular cùng Spring Boot.
+- `render.yaml`: Angular Static Site và Spring Boot Web Service độc lập; `backend/Dockerfile` build API. Dockerfile gốc giữ chế độ chạy chung tùy chọn.
 - `.github/`: hướng dẫn agent và skills; `.vscode/`: cấu hình IDE.
 - `.env.example`: mẫu biến môi trường; `metadata.json`: metadata AI Studio được giữ lại.
 - `backend/docs/reports/`: bằng chứng kiểm chứng lịch sử.
 - `backend/archive/legacy-node-data/`: dữ liệu của ứng dụng Node/Vite cũ, giữ để đối chiếu, không tự nhập vào database.
 
 Ứng dụng Node/Vite riêng ở root đã được loại bỏ. Không còn lệnh npm tại root; chạy npm trong `frontend/` và Maven trong `backend/`.
+
+## Triển khai Render riêng frontend/backend
+
+Xem [hướng dẫn chuyển đổi từng bước trên Render](backend/docs/RENDER_SPLIT_DEPLOYMENT.md): frontend dùng Root Directory `frontend`, Web Service hiện có dùng `backend`, cấu hình API_BASE_URL/CORS và rewrite SPA. Static Site phục vụ `/landing` độc lập với cold start backend.
 
 ## Chạy và kiểm tra
 
@@ -92,7 +96,7 @@ mvn.cmd install
 java -jar target/analyzeproject-0.0.1-SNAPSHOT.jar
 ```
 
-Build Angular trước Maven để profile `local-frontend-build` đóng gói giao diện mới vào JAR. Spring mặc định dùng cổng 8080, có thể cấu hình `PORT`. Để phát triển giao diện riêng, chạy `npm.cmd start` trong `frontend/` và cấu hình `frontend/src/environments/environment.ts` trỏ đến backend; cấu hình hiện tại gọi API cùng origin.
+Maven mặc định build API độc lập, không đóng gói Angular. Chế độ chạy chung chỉ bật khi chủ động dùng `-Pbundle-frontend` và `APP_FRONTEND_ENABLED=true`. Spring mặc định dùng cổng 8080, có thể cấu hình `PORT`. Để phát triển giao diện riêng, chạy `npm.cmd start` trong `frontend/` và cấu hình `frontend/src/environments/environment.ts` trỏ đến backend; cấu hình hiện tại gọi API cùng origin.
 
 ## Đồng bộ kết quả
 
