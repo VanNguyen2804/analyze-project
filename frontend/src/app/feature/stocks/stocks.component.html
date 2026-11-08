@@ -119,13 +119,21 @@
             </div>
           </div>
           @if (s.data.candles.length) {
-            <app-stock-chart
-              [candles]="s.data.candles"
-              [intraday]="mode() === 'INTRADAY'"
-              [purchasePrice]="purchaseChartPrice(s)"
-              [purchaseDate]="input.purchaseDate"
-              [planLevels]="chartLevels()"
-            />
+            @defer (on viewport) {
+              <app-stock-chart
+                [candles]="s.data.candles"
+                [intraday]="mode() === 'INTRADAY'"
+                [purchasePrice]="purchaseChartPrice(s)"
+                [purchaseDate]="input.purchaseDate"
+                [planLevels]="chartLevels()"
+              />
+            } @placeholder {
+              <div class="deferred-chart" aria-hidden="true"></div>
+            } @error {
+              <p class="notice danger" role="alert">
+                Không tải được biểu đồ. Vui lòng tải lại trang.
+              </p>
+            }
           } @else {
             <p class="empty">Nguồn chưa trả dữ liệu. Chưa đủ dữ liệu để vẽ biểu đồ.</p>
           }

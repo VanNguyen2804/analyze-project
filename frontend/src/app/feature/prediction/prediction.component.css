@@ -549,3 +549,6 @@ details[open] > summary > .expand-symbol {
     font-size: 9px;
   }
 }
+.deferred-portfolio {
+  min-height: 1px;
+}

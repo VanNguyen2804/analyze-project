@@ -16,6 +16,14 @@
   <!-- Zone 1: Main navigation -->
   <div class="menu-heading text-uppercase text-muted fw-bold small px-2 mb-2">Chức năng chính</div>
   <div class="menu-links d-flex flex-column gap-1 mb-4">
+    <a
+      routerLink="/landing"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page"
+      class="menu-item"
+      ><span class="fs-5">⌂</span><span>Trang chủ</span></a
+    >
     <a routerLink="/stocks" routerLinkActive="active" class="menu-item"
       ><span class="fs-5">📈</span><span>Chứng khoán Việt Nam</span></a
     >

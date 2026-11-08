@@ -19,6 +19,14 @@ Trang `/analyze` tạo dự đoán; `/analyze/history` xem ledger tự động; 
 
 ## Quy ước frontend
 
+### Trang chào và tải theo nhu cầu
+
+`/` hiển thị `feature/welcome/` với lời chào Analyze, không tự chuyển sang trang dự đoán. Logo và mục Trang chủ quay về đây; nút Khám phá menu mở menu hiện có. Trang chào không gọi API nghiệp vụ. Badge kết quả ở menu chỉ tải trên các trang xổ số, không tải tại trang chủ hoặc chứng khoán.
+
+Router dùng `NoPreloading`: các trang standalone dùng `loadComponent`; `/analyze` tải cấu hình `prediction.routes.ts` qua `loadChildren`, rồi tải riêng từng tab. Các URL truy cập trực tiếp và redirect cũ được giữ, URL không khớp quay về trang chủ. Biểu đồ chứng khoán (gồm thư viện chart) và MEGA portfolio dùng `@defer (on viewport)`; placeholder giữ chỗ, lỗi tải chunk có thông báo. Các component này nhận đầu vào hiện tại khi được khởi tạo; portfolio vẫn bị hủy khi chuyển sang POWER.
+
+Lazy loading giảm công việc trên trình duyệt và tránh gọi API trang dự đoán khi mở trang chủ. Vì Render vẫn phục vụ Angular từ Spring Boot, cơ chế này không loại bỏ thời gian khởi động backend.
+
 ### Tách component và stylesheet
 
 - Mỗi component có template và stylesheet riêng khi nội dung đáng kể; không đặt thẻ `<style>` trong HTML. Các style tĩnh của header, bộ ghép vé và hộp xem cấu hình nằm trong CSS; binding style phụ thuộc dữ liệu vẫn được giữ khi cần.

@@ -5,6 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { routes } from '../../app.routes';
+import { predictionRoutes } from './prediction.routes';
 import { AnalyzeService } from '../../core/services/analyze.service';
 import { environment } from '../../../environments/environment';
 
@@ -20,11 +21,15 @@ describe('Prediction workspace routing', () => {
       route.path === 'analyze'
         ? {
             ...route,
-            children: route.children!.map((child) =>
-              child.path === ''
-                ? { ...child, loadComponent: undefined, component: PredictionStub }
-                : child,
-            ),
+            loadChildren: async () =>
+              predictionRoutes.map((workspace) => ({
+                ...workspace,
+                children: workspace.children!.map((child) =>
+                  child.path === ''
+                    ? { ...child, loadComponent: undefined, component: PredictionStub }
+                    : child,
+                ),
+              })),
           }
         : route,
     );

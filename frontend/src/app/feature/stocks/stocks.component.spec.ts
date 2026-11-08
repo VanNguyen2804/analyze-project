@@ -1,5 +1,12 @@
 import { Component } from '@angular/core';
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import {
+  DeferBlockBehavior,
+  DeferBlockState,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideHttpClient } from '@angular/common/http';
@@ -10,6 +17,7 @@ import { HeaderComponent } from '../../share/components/header/header.component'
 import { SectionService } from '../../core/services/section.service';
 import { CategoryService } from '../../core/services/category.service';
 import { StockSnapshot } from '../../core/models/stock.model';
+import { StockChartComponent } from './stock-chart.component';
 
 @Component({ template: '' })
 class EmptyComponent {}
@@ -65,6 +73,34 @@ const emptySnapshot = (symbol: string): StockSnapshot => ({
 });
 
 describe('Stocks page', () => {
+  it('creates the chart only after deferred activation and passes the latest symbol data', async () => {
+    TestBed.configureTestingModule({ deferBlockBehavior: DeferBlockBehavior.Manual });
+    const fixture = TestBed.createComponent(StocksComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
+    const snapshot = emptySnapshot('FPT');
+    snapshot.data.candles = [
+      { time: 1700000000, open: 10, high: 12, low: 9, close: 11, volume: 100, closed: true },
+    ];
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(snapshot);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-stock-chart')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.deferred-chart')).not.toBeNull();
+    const [chart] = await fixture.getDeferBlocks();
+    fixture.componentInstance.setMode('INTRADAY');
+    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush({ ...snapshot, mode: 'INTRADAY' });
+    fixture.detectChanges();
+    await chart.render(DeferBlockState.Complete);
+    expect(fixture.nativeElement.querySelector('app-stock-chart')).not.toBeNull();
+    const rendered = fixture.debugElement.query(By.directive(StockChartComponent))
+      .componentInstance as StockChartComponent;
+    expect(rendered.intraday).toBeTrue();
+    expect(rendered.candles).toEqual(snapshot.data.candles);
+    expect(fixture.nativeElement.querySelector('.deferred-chart')).toBeNull();
+    fixture.destroy();
+    http.verify();
+  });
   it('posts only the two position inputs without assigning a budget or sellable shares', () => {
     const fixture = TestBed.createComponent(StocksComponent),
       http = TestBed.inject(HttpTestingController);

@@ -1,0 +1,18 @@
+<section class="welcome" aria-labelledby="welcome-title">
+  <span class="eyebrow">KHÔNG GIAN PHÂN TÍCH DỮ LIỆU</span>
+  <span class="welcome-mark" aria-hidden="true">✳</span>
+  <h1 id="welcome-title">Welcome tới <span>Analyze.</span></h1>
+  <p>Theo dõi dữ liệu, khám phá xu hướng và xem lại kết quả trong một không gian.</p>
+  <button
+    type="button"
+    (click)="navigation.toggle()"
+    aria-controls="primary-navigation"
+    [attr.aria-expanded]="navigation.open()"
+  >
+    Khám phá menu <span aria-hidden="true">↗</span>
+  </button>
+  <div class="welcome-topics" aria-label="Các lĩnh vực phân tích">
+    <span>Chứng khoán</span><span>Dự đoán &amp; kết quả</span><span>Phòng thử nghiệm AI</span>
+  </div>
+  <p class="hint">Chọn một chức năng trong menu để bắt đầu.</p>
+</section>

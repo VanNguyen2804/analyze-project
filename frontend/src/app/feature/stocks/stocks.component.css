@@ -494,3 +494,6 @@ p {
   padding-bottom: 20px;
   border-bottom: 1px solid #304462;
 }
+.deferred-chart {
+  min-height: 540px;
+}

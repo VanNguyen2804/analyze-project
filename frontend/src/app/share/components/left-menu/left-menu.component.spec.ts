@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { LeftMenuComponent } from './left-menu.component';
 import { CategoryService } from '../../../core/services/category.service';
 
@@ -10,6 +10,7 @@ describe('Latest result badge', () => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
+    spyOnProperty(TestBed.inject(Router), 'url', 'get').and.returnValue('/entry');
     const http = TestBed.inject(HttpTestingController),
       fixture = TestBed.createComponent(LeftMenuComponent);
     fixture.detectChanges();

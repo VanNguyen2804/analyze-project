@@ -108,7 +108,13 @@
     </app-prediction-overview>
   }
   @if (category === 'MEGA') {
-    <app-mega-portfolio [context]="getMegaPortfolioContext()" (copied)="copyTicket($event)" />
+    @defer (on viewport) {
+      <app-mega-portfolio [context]="getMegaPortfolioContext()" (copied)="copyTicket($event)" />
+    } @placeholder {
+      <div class="deferred-portfolio" aria-hidden="true"></div>
+    } @error {
+      <p role="alert">Không tải được danh mục MEGA. Vui lòng tải lại trang.</p>
+    }
   }
   <details class="studio-settings">
     <summary>
