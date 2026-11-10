@@ -85,27 +85,27 @@ public class AiLabService {
                     AiLabModel.Fit logisticBase=null;AiLabFeedback.Evidence feedback=null;
                     List<List<Integer>> frequency=null,random=null;
                     for(String model:AiLabModel.MODELS) {
-                        if(!challengersEnabled && Set.of("shrunk_frequency","logistic_coverage").contains(model)) continue;
+                        if(!challengersEnabled && Set.of("shrunk_frequency","logistic_coverage","logistic_feedback_coverage").contains(model)) continue;
                         String prefix=category+":"+target+":lab-"+model+"-";
                         if(ids.contains(prefix+0)) { outcomes.add(map("category",category,"model",model,"status","ALREADY_SAVED")); continue; }
                         var config=map("protocol",AiLabModel.VERSION,"budget",AiLabModel.BUDGET,"epochs",80,"learningRate",0.2,"l2",0.05,
                                 "features",List.of("frequency","recent10","decay10","gap30"),"minimumDraws",60,"windowDraws",30,"minimumWindowHitRate",0.5);
-                        config.put("feedbackPolicy","logistic".equals(model)?map("version","dense-signed-feedback-v1","learningRate",feedbackPolicy.learningRate(),"selectedExtraWeight",feedbackPolicy.selectedExtraWeight(),"maximumDraws",feedbackPolicy.maximumDraws()):map("version","not_applied"));
-                        config.put("generatorPolicy", "logistic_coverage".equals(model) ? CoveragePortfolio.VERSION : "seeded-weighted-v1");
-                        if ("logistic_coverage".equals(model)) config.put("coveragePolicy", CoveragePortfolio.Policy.defaults());
+                        config.put("feedbackPolicy",AiLabModel.usesFeedback(model)?map("version","dense-signed-feedback-v1","learningRate",feedbackPolicy.learningRate(),"selectedExtraWeight",feedbackPolicy.selectedExtraWeight(),"maximumDraws",feedbackPolicy.maximumDraws()):map("version","not_applied"));
+                        config.put("generatorPolicy", AiLabModel.usesCoverage(model) ? CoveragePortfolio.VERSION : "seeded-weighted-v1");
+                        if (AiLabModel.usesCoverage(model)) config.put("coveragePolicy", CoveragePortfolio.Policy.defaults());
                         if ("shrunk_frequency".equals(model)) config.put("priorDraws", 16);
                         // Validate freshness before fitting; do not capture a partially trained or stale batch.
                         ForecastProtocol.prepare(history,category,"validation",AiLabModel.VERSION,codeVersion,config,List.of(1,2,3,4,5,6),now);
                         String seed=AiLabModel.VERSION+":"+category+":"+target;
                         if(model.startsWith("logistic")&&logisticBase==null)logisticBase=AiLabModel.fit(history,category,"logistic_no_feedback");
-                        if("logistic".equals(model)&&feedback==null) {
+                        if(AiLabModel.usesFeedback(model)&&feedback==null) {
                             var previous=store.feedbackSnapshots(category,LocalDate.parse(target),feedbackPolicy.maximumDraws(),now);
                             if(previous==null)previous=store.snapshots();
                             feedback=AiLabFeedback.collect(previous,history,category,LocalDate.parse(target),now,feedbackPolicy.maximumDraws());
                         }
-                        var fit="logistic".equals(model)?AiLabModel.applyFeedback(logisticBase,history,category,feedback.rounds(),feedbackPolicy)
+                        var fit=AiLabModel.usesFeedback(model)?AiLabModel.applyFeedback(logisticBase,history,category,feedback.rounds(),feedbackPolicy)
                                 :model.startsWith("logistic")?logisticBase:AiLabModel.fit(history,category,model);var modelScores=fit.scores();
-                        var tickets="logistic_coverage".equals(model)
+                        var tickets=AiLabModel.usesCoverage(model)
                                 ? CoveragePortfolio.select(PredictionExplanation.ranking(modelScores),modelScores.length-1,AiLabModel.BUDGET,seed,CoveragePortfolio.Policy.defaults())
                                 : AiLabModel.tickets(modelScores,seed+":"+(model.startsWith("logistic")?"logistic":model));
                         if(frequency==null)frequency=AiLabModel.tickets(AiLabModel.scores(history,category,"frequency"),seed+":frequency");
@@ -116,8 +116,8 @@ public class AiLabService {
                         for(int slot=0;slot<AiLabModel.BUDGET;slot++) {
                             var f=ForecastProtocol.prepare(history,category,"lab-"+model+"-"+slot,AiLabModel.VERSION,codeVersion,config,tickets.get(slot),capturedAt);
                             var explanation=PredictionExplanation.lab(fit,model);
-                            if("logistic".equals(model))explanation.put("feedback",feedback.audit());
-                            explanation.put("selectionPolicy","logistic_coverage".equals(model)?CoveragePortfolio.VERSION:slot==0?"top_six":"seeded_weighted_sample");
+                            if(AiLabModel.usesFeedback(model))explanation.put("feedback",feedback.audit());
+                            explanation.put("selectionPolicy",AiLabModel.usesCoverage(model)?CoveragePortfolio.VERSION:slot==0?"top_six":"seeded_weighted_sample");
                             f.put("experimentId","vietlott-challengers-2026-11");
                             f.put("modelPolicyVersion",model+":v1");
                             f.put("evaluationVersion","lab-outcomes-v2");
@@ -206,7 +206,7 @@ public class AiLabService {
         Map<String,List<Map<String,Object>>> cohorts=new TreeMap<>();
         Map<ComparisonKey,List<Map<String,Object>>> controls=new HashMap<>();
         for(var f:forecasts) {
-            if("logistic_no_feedback".equals(f.get("labModel")))controls.computeIfAbsent(comparisonKey(f),k->new ArrayList<>()).add(f);
+            if(Set.of("logistic_no_feedback","logistic_coverage").contains(f.get("labModel")))controls.computeIfAbsent(comparisonKey(f),k->new ArrayList<>()).add(f);
             String key=cohortKey(f);
             cohorts.computeIfAbsent(key,k->new ArrayList<>()).add(f);
         }
@@ -240,7 +240,7 @@ public class AiLabService {
             reports.add(map("cohort",cohort.getKey(),"cohortTag",cohortTag(cohort.getKey()),"model",first.get("labModel"),"modelVersion",first.get("modelVersion"),"savedDraws",dates.size(),"evaluatedDraws",n,
                     "budget",AiLabModel.BUDGET,"evidenceType","PROSPECTIVE_FROZEN","evaluationVersion","lab-outcomes-v2",
                     "experimentId",first.get("experimentId"),"modelPolicyVersion",first.get("modelPolicyVersion"),
-                    "feedbackEnabled","logistic".equals(first.get("labModel")) && first.get("configuration") instanceof Map<?,?> configuration && configuration.get("feedbackPolicy") instanceof Map<?,?> policy && "dense-signed-feedback-v1".equals(policy.get("version")),
+                    "feedbackEnabled",AiLabModel.usesFeedback(Objects.toString(first.get("labModel"))) && first.get("configuration") instanceof Map<?,?> configuration && configuration.get("feedbackPolicy") instanceof Map<?,?> policy && "dense-signed-feedback-v1".equals(policy.get("version")),
                     "probability",probability.report(),
                     "feedbackComparison",feedbackComparison(cohort.getValue(),controls,latest),
                     "candidatePolicy",map("minimumDraws",60,"windowDraws",30,"minimumWindowHitPercent",50,"automaticPromotion",false),
@@ -254,7 +254,7 @@ public class AiLabService {
     }
     private static Map<String,Object> feedbackComparison(List<Map<String,Object>> cohort,
             Map<ComparisonKey,List<Map<String,Object>>> controls, Map<Object,Map<String,Object>> latest) {
-        if (!"logistic".equals(cohort.get(0).get("labModel"))) return null;
+        if (!AiLabModel.usesFeedback(Objects.toString(cohort.get(0).get("labModel")))) return null;
         int draws=0, matches=0, controlMatches=0;
         var dates=new TreeMap<Object,List<Map<String,Object>>>();
         cohort.forEach(f->dates.computeIfAbsent(f.get("targetDate"),k->new ArrayList<>()).add(f));

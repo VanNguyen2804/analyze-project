@@ -108,6 +108,7 @@ export class LabHighlightsComponent {
         {
           logistic: 'Logistic Regression (học máy)',
           logistic_no_feedback: 'Logistic không feedback',
+          logistic_feedback_coverage: 'Logistic học phản hồi + độ phủ (10/11)',
           logistic_coverage: 'Logistic + ghép vé độ phủ (không feedback)',
           shrunk_frequency: 'Tần suất làm trơn (prior 16 kỳ)',
           recency: 'Tần suất suy giảm theo thời gian',

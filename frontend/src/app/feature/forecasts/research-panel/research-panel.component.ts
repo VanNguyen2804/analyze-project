@@ -106,6 +106,7 @@ export class ResearchPanelComponent implements OnChanges {
           logistic_calibrated: 'Logistic hiệu chuẩn',
           logistic_feedback_simulated: 'Logistic + feedback mô phỏng',
           logistic_rank_portfolio: 'Logistic + nhóm ít trùng',
+          logistic_feedback_coverage: 'Logistic học phản hồi + độ phủ (10/11)',
           logistic_coverage: 'Logistic + độ phủ',
           temporal_learning: 'Liên kết giữa các kỳ',
           bayesian_graph: 'Bayes & cặp số',

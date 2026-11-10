@@ -117,6 +117,10 @@ export class LatestDrawAnalysisComponent implements OnInit {
             { id: 'lab-recency', name: 'AI Lab · Tần suất suy giảm' },
             { id: 'lab-logistic_no_feedback', name: 'AI Lab · Logistic không feedback' },
             { id: 'lab-shrunk_frequency', name: 'AI Lab · Tần suất làm trơn' },
+            {
+              id: 'lab-logistic_feedback_coverage',
+              name: 'AI Lab · Logistic học phản hồi + độ phủ',
+            },
             { id: 'lab-logistic_coverage', name: 'AI Lab · Logistic + độ phủ' },
           ];
           this.cdr.markForCheck();

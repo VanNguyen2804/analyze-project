@@ -115,6 +115,7 @@ export class AiLabComponent implements OnInit {
       });
   }
   name(model: string) {
+    if (model === 'logistic_feedback_coverage') return 'Logistic học phản hồi + độ phủ (10/11)';
     if (model === 'shrunk_frequency') return 'Tần suất làm trơn (prior 16 kỳ)';
     if (model === 'logistic_coverage') return 'Logistic + ghép vé độ phủ (không feedback)';
     if (model === 'logistic_no_feedback') return 'Logistic không feedback';
