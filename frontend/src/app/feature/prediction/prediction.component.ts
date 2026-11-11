@@ -1,791 +1,121 @@
-import { LabHighlightsComponent } from '../../share/components/lab-highlights/lab-highlights.component';
-import { UserDeskComponent } from './user-desk/user-desk.component';
-import { WorkspaceSuggestion } from '@app/core/models/workspace.model';
-import { PredictionChartComponent } from './prediction-chart/prediction-chart.component';
-import { PredictionOverviewComponent } from './prediction-overview/prediction-overview.component';
-import { ExpandedTicketsComponent } from './expanded-tickets/expanded-tickets.component';
-import { MegaPortfolioComponent } from './mega-portfolio/mega-portfolio.component';
-import { MegaPortfolioContext } from '@app/core/models/mega-portfolio.model';
-import { TicketMixerComponent } from './ticket-mixer/ticket-mixer.component';
-import { AlgorithmOption } from '../../core/models/algorithm.model';
 import {
-  Component,
-  OnInit,
-  ChangeDetectorRef,
-  inject,
-  DestroyRef,
   ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BackendReadinessService } from '../../core/services/backend-readiness.service';
-import { NgClass, NgStyle, DatePipe, DecimalPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { distinctUntilChanged, timer, Subject, takeUntil } from 'rxjs';
-import { PredictionPayload } from '@app/core/models/prediction-payload.model';
-import { AnalyzeService } from '@app/core/services/analyze.service';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { EMPTY, Subject, catchError, exhaustMap, filter, merge, switchMap, tap, timer } from 'rxjs';
+import { CategoryService } from '../../core/services/category.service';
+import { ForecastApiService } from '../../core/services/forecast-api.service';
+import { LabPredictionPerformance, LabPredictions } from '../../core/models/forecast.model';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-prediction',
   standalone: true,
-  imports: [
-    LabHighlightsComponent,
-    UserDeskComponent,
-    PredictionChartComponent,
-    PredictionOverviewComponent,
-    ExpandedTicketsComponent,
-    MegaPortfolioComponent,
-    TicketMixerComponent,
-    FormsModule,
-    RouterLink,
-    DatePipe,
-    DecimalPipe,
-    NgClass,
-    NgStyle,
-  ],
+  imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './prediction.component.html',
   styleUrl: './prediction.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PredictionComponent implements OnInit {
-  readonly backend = inject(BackendReadinessService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly analyzeService = inject(AnalyzeService);
-  private readonly cdr = inject(ChangeDetectorRef);
-  private readonly predictionCancelled = new Subject<void>();
+export class PredictionComponent {
+  private readonly categories = inject(CategoryService);
+  private readonly api = inject(ForecastApiService);
+  private readonly destroy = inject(DestroyRef);
+  private readonly reload = new Subject<void>();
+  private readonly response = signal<LabPredictions | null>(null);
+  private readonly now = signal(Date.now());
+  readonly category = this.categories.category;
+  readonly loading = signal(false);
+  readonly error = signal('');
+  readonly copyMessage = signal('');
+  readonly view = computed(() => {
+    const value = this.response();
+    return value?.category === this.category() ? value : null;
+  });
+  readonly groups = computed(() =>
+    (this.view()?.groups ?? []).filter(
+      (group) =>
+        group.targetDate === this.view()?.targetDate &&
+        Date.parse(`${group.targetDate}T18:00:00+07:00`) > this.now(),
+    ),
+  );
+  readonly ticketCount = computed(() =>
+    this.groups().reduce((sum, group) => sum + group.tickets.length, 0),
+  );
 
-  payload: PredictionPayload | null = null;
-  isSpinning = false;
-  errorMessage: string | null = null;
-  showAllReasons = false;
-  historyChartOpened = false;
-  advancedOpened = false;
+  constructor() {
+    toObservable(this.category)
+      .pipe(
+        tap(() => {
+          this.response.set(null);
+          this.error.set('');
+          this.copyMessage.set('');
+        }),
+        switchMap((category) =>
+          merge(timer(0, 60_000), this.reload).pipe(
+            filter(() => !document.hidden),
+            tap(() => this.now.set(Date.now())),
+            exhaustMap(() => {
+              this.loading.set(true);
+              return this.api.labPredictions(category).pipe(
+                tap((value) => {
+                  if (value.category !== category) throw new Error('Loại xổ số không khớp.');
+                  this.response.set(value);
+                  this.now.set(Date.now());
+                  this.error.set('');
+                  this.loading.set(false);
+                }),
+                catchError(() => {
+                  this.loading.set(false);
+                  this.error.set('Chưa tải được dự đoán AI Lab. Hãy thử lại sau ít giây.');
+                  return EMPTY;
+                }),
+              );
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroy),
+      )
+      .subscribe();
+  }
 
   selectCategory(category: string) {
-    this.analyzeService.setCategory(category);
+    this.categories.setCategory(category);
   }
-
-  // --- BIẾN QUẢN LÝ BIỂU ĐỒ LIÊN KẾT DÃY SỐ CSDL (HISTORICAL SEQUENCE LINKAGE CHART) ---
-
-  // --- 1. BIẾN QUẢN LÝ THUẬT TOÁN (SẮP XẾP TỪ KHẢ NĂNG CHO KẾT QUẢ ĐÚNG NHẤT: TOP 1 -> TOP 7) ---
-  selectedAlgorithm: string = 'temporal_learning'; // Mặc định thuật toán 1: Top 1 BEGN
-  selectedAlgorithm2: string = 'bayesian_graph'; // Mặc định thuật toán 2: Top 2 DSE-Copula
-  algorithms: AlgorithmOption[] = [];
-
-  // --- 2. BIẾN QUẢN LÝ TAB & FOCUS ANALYSIS (TỪ HTML) ---
-  activeFocusTab: string = 'target3';
-  selectedFocusNumber: number | null = null;
-  scoreSearchTerm: string = '';
-
-  // --- 3. BIẾN QUẢN LÝ POPUP HOVER & GHIM (TỪ HTML) ---
-  hoveredNumber: number | null = null;
-  hoveredNumberDetail: any = null;
-  hoveredNumberHistory: any[] = [];
-  isPopupPinned: boolean = false; // Phục vụ class .pinned
-  popupStyle: Record<string, string> = { top: '0px', left: '0px' };
-
-  category: string = 'MEGA';
-
-  ngOnInit() {
-    this.loadAlgorithms();
-    this.analyzeService.currentCategory$
-      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-      .subscribe((newCategory) => {
-        if (newCategory) {
-          this.category = newCategory;
-          this.resetState();
-          // Mặc định luôn là thuật toán tốt nhất (Top 1)
-          this.selectedAlgorithm = this.algorithms[0]?.id || 'temporal_learning';
-          this.predict();
-        }
-      });
+  refresh() {
+    this.reload.next();
   }
-
-  loadAlgorithms() {
-    this.analyzeService
-      .getAlgorithms()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (list) => {
-          if (Array.isArray(list) && list.length > 0) {
-            this.algorithms = list;
-            this.cdr.markForCheck();
-          }
-        },
-        error: () => {},
-      });
+  level(performance: LabPredictionPerformance, threshold: number) {
+    return performance.levels.find((level) => level.threshold === threshold);
   }
-
-  resetState() {
-    this.payload = null;
-    this.errorMessage = null;
-    this.showAllReasons = false;
-    this.activeFocusTab = 'target3';
-    this.selectedFocusNumber = null;
-    this.scoreSearchTerm = '';
-    this.closePopup();
-    this.cdr.markForCheck();
-  }
-
-  // --- XỬ LÝ THUẬT TOÁN ---
-  selectAlgorithm(id: string) {
-    if (this.selectedAlgorithm !== id) {
-      this.selectedAlgorithm = id;
-      this.predict();
-    }
-  }
-
-  selectAlgorithm2(id: string) {
-    if (this.selectedAlgorithm2 !== id) {
-      this.selectedAlgorithm2 = id;
-      this.predict();
-    }
-  }
-
-  getCurrentAlgorithmInfo() {
+  name(model: string) {
     return (
-      this.algorithms.find((a) => a.id === this.selectedAlgorithm) || {
-        name: this.payload?.algorithmName ?? 'Đang tải thuật toán',
-        icon: '',
-        formula: '',
-        description: '',
-        rankBadge: '',
-      }
+      (
+        {
+          logistic: 'Logistic Regression',
+          logistic_no_feedback: 'Logistic không feedback',
+          logistic_feedback_coverage: 'Logistic học phản hồi + độ phủ',
+          logistic_coverage: 'Logistic + ghép vé độ phủ',
+          shrunk_frequency: 'Tần suất làm trơn',
+          recency: 'Tần suất suy giảm theo thời gian',
+        } as Record<string, string>
+      )[model] ?? model
     );
   }
-
-  getSecondaryAlgorithmInfo() {
-    return (
-      this.algorithms.find((a) => a.id === this.selectedAlgorithm2) || {
-        name: this.payload?.secondaryAlgorithmResult?.name ?? 'Đang tải thuật toán',
-        icon: '',
-        formula: '',
-        description: '',
-        rankBadge: '',
-      }
-    );
-  }
-
-  predict() {
-    this.predictionCancelled.next();
-    const requestedCategory = this.category;
-    if (
-      this.payload?.category !== this.category ||
-      this.payload?.primaryAlgorithmResult?.id !== this.selectedAlgorithm ||
-      this.payload?.secondaryAlgorithmResult?.id !== this.selectedAlgorithm2
-    )
-      this.payload = null;
-    this.isSpinning = true;
-    this.errorMessage = null;
-    this.closePopup();
-    this.cdr.markForCheck();
-
-    this.analyzeService
-      .getPrediction(this.category, this.selectedAlgorithm, this.selectedAlgorithm2)
-      .pipe(takeUntil(this.predictionCancelled), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          if (
-            requestedCategory !== this.category ||
-            (res.category && res.category !== requestedCategory)
-          ) {
-            this.isSpinning = false;
-            this.errorMessage = 'Kết quả không khớp loại xổ số đang chọn. Vui lòng tải lại.';
-            this.cdr.markForCheck();
-            return;
-          }
-          if (res.status !== 'SUCCESS' && res.status !== 'WAITING') {
-            this.payload = null;
-            this.errorMessage =
-              res.message ?? res.analysisSummary ?? 'Chưa có lịch sử hợp lệ để phân tích.';
-            this.isSpinning = false;
-            this.cdr.markForCheck();
-            return;
-          }
-          this.payload = res;
-          this.isSpinning = false;
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          console.error('Lỗi API predict:', err);
-          this.errorMessage = 'Có lỗi xảy ra khi kết nối thuật toán dự đoán. Vui lòng thử lại!';
-          this.isSpinning = false;
-          this.cdr.markForCheck();
-        },
-      });
-  }
-
-  // --- TRẢ VỀ 3 KẾT QUẢ DỰ ĐOÁN (THUẬT TOÁN 1, THUẬT TOÁN 2, KẾT HỢP 2 THUẬT TOÁN) ---
-  getMegaPortfolioContext(): MegaPortfolioContext | null {
-    const payload = this.payload;
-    if (this.isSpinning || this.category !== 'MEGA' || payload?.category !== 'MEGA') return null;
-    const targetDate = payload.workspace?.targetDate || payload.targetDrawDate;
-    if (!targetDate) return null;
-    const tickets = [
-      ...(payload.workspace?.tickets.map((ticket) => ticket.numbers) ?? []),
-      payload.primaryAlgorithmResult?.numbers,
-      payload.secondaryAlgorithmResult?.numbers,
-      payload.combinedAlgorithmResult?.numbers,
-    ].filter((numbers): numbers is number[] => Array.isArray(numbers) && numbers.length === 6);
-    return { targetDate, tickets };
-  }
-
-  workspaceChanged(view: WorkspaceSuggestion) {
-    if (!this.payload || view.category !== this.category) return;
-    const sameHistory = this.payload.workspace?.historyHash === view.historyHash;
-    this.payload.workspace = view;
-    this.payload.baseDrawDate = view.trainingThrough;
-    this.payload.baseDrawDateFormatted = view.trainingThrough?.split('-').reverse().join('/');
-    this.payload.totalDrawsAnalyzed = view.historyCount ?? this.payload.totalDrawsAnalyzed;
-    this.selectedAlgorithm = view.primaryAlgorithm;
-    this.selectedAlgorithm2 = view.secondaryAlgorithm;
-    for (const [id, field] of [
-      ['primary', 'primaryAlgorithmResult'],
-      ['secondary', 'secondaryAlgorithmResult'],
-      ['combined', 'combinedAlgorithmResult'],
-    ] as const) {
-      const ticket = view.tickets.find((t) => t.id === id);
-      if (ticket) {
-        const old = this.payload[field];
-        this.payload[field] = {
-          ...old,
-          id,
-          name: ticket.label,
-          numbers: ticket.numbers,
-          details: sameHistory
-            ? (old?.details ?? []).filter((d) => ticket.numbers.includes(d.number))
-            : [],
-        };
-      }
-    }
-    this.cdr.markForCheck();
-  }
-
-  getPrimaryResult(): any {
-    if (this.payload?.primaryAlgorithmResult) {
-      return this.payload.primaryAlgorithmResult;
-    }
-    const numbers = this.getPureAlgorithmNumbers();
-    return {
-      id: this.selectedAlgorithm,
-      name: this.getCurrentAlgorithmInfo().name,
-      badge: 'Thuật Toán 1',
-      rankBadge: this.getCurrentAlgorithmInfo().rankBadge,
-      accuracyScore: null,
-      hitRate: 'N/A',
-      numbers,
-      specialNumber: this.getPureSpecialNumber(),
-      composition: this.getTicketParity(numbers) + ' • Tổng = ' + this.getTicketSum(numbers),
-      details: this.payload?.pureAlgorithmTicket?.details || [],
-    };
-  }
-
-  getSecondaryResult(): any {
-    if (this.payload?.secondaryAlgorithmResult) {
-      return this.payload.secondaryAlgorithmResult;
-    }
-    return {
-      id: this.selectedAlgorithm2,
-      name: this.getSecondaryAlgorithmInfo().name,
-      numbers: [],
-      accuracyScore: null,
-      hitRate: 'N/A',
-      details: [],
-    };
-  }
-
-  getPatternCards(): any[] {
-    const patterns = this.payload?.commonPatternsAnalysis;
-    return patterns
-      ? Object.entries(patterns)
-          .filter(([key]) => key !== 'evaluatedDraws')
-          .map(([, value]) => value)
-      : [];
-  }
-
-  getCommonPatternsAnalysis(): any {
-    return this.payload?.commonPatternsAnalysis;
-  }
-
-  getCombinedResult(): any {
-    if (this.payload?.combinedAlgorithmResult) {
-      return this.payload.combinedAlgorithmResult;
-    }
-    return {
-      id: 'combined_ensemble',
-      name: 'Ensemble consensus',
-      numbers: [],
-      accuracyScore: null,
-      hitRate: 'N/A',
-      details: [],
-    };
-  }
-
-  getPureAlgorithmNumbers(): number[] {
-    if (this.payload?.pureAlgorithmTicket?.numbers?.length) {
-      return this.payload.pureAlgorithmTicket.numbers;
-    }
-    if (this.payload?.pureNumbers?.length) {
-      return this.payload.pureNumbers;
-    }
-    if (this.payload?.tickets && this.payload.tickets.length > 0) {
-      return this.payload.tickets[0].slice(0, 6);
-    }
-    if (this.payload?.numbers && this.payload.numbers.length >= 6) {
-      return this.payload.numbers.slice(0, 6);
-    }
-    return [];
-  }
-
-  getPureSpecialNumber(): number | undefined {
-    return this.payload?.pureAlgorithmTicket?.specialNumber ?? this.payload?.specialNumber;
-  }
-
-  getPureNumberDetail(num: number): any {
-    if (this.payload?.pureAlgorithmTicket?.details) {
-      const found = this.payload.pureAlgorithmTicket.details.find((d: any) => d.number === num);
-      if (found) return found;
-    }
-    if (this.payload?.details) {
-      const found = this.payload.details.find((d: any) => d.number === num);
-      if (found) return found;
-    }
-    if (this.payload?.selectionReasons) {
-      const found = this.payload.selectionReasons.find((r: any) => r.number === num);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  getSecondaryNumberDetail(num: number): any {
-    return (
-      this.payload?.secondaryAlgorithmResult?.details?.find((detail) => detail.number === num) ??
-      null
-    );
-  }
-
-  // --- HÀM PHỤC VỤ TAB FOCUS ANALYSIS (ĐÃ KHÔI PHỤC) ---
-  selectFocusNumber(num: number) {
-    this.selectedFocusNumber = num;
-    this.cdr.markForCheck();
-  }
-
-  getTarget3Items(): any[] {
-    if (!this.payload?.focusAnalysis?.focusItems) return [];
-    const upgraded = this.payload.focusAnalysis.upgradedNumbers || [];
-    const targetItems = this.payload.focusAnalysis.focusItems.filter(
-      (item: any) => item.isTargetUpgrade || upgraded.includes(item.number),
-    );
-    return targetItems.length > 0
-      ? targetItems.slice(0, 3)
-      : this.payload.focusAnalysis.focusItems.slice(0, 3);
-  }
-
-  // HÀM BẠN ĐÃ HỎI: Lọc danh sách thẻ tra cứu
-  getFilteredScores(): any[] {
-    if (!this.payload?.focusAnalysis?.focusItems) return [];
-    let items = this.payload.focusAnalysis.focusItems;
-
-    if (this.scoreSearchTerm && this.scoreSearchTerm.trim() !== '') {
-      items = items.filter((item: any) =>
-        item.number.toString().includes(this.scoreSearchTerm.trim()),
-      );
-    }
-    return items;
-  }
-
-  getFocusItem(num: number | null): any {
-    if (!num || !this.payload?.focusAnalysis?.focusItems) return null;
-    return this.payload.focusAnalysis.focusItems.find((item: any) => item.number === num);
-  }
-
-  // --- HÀM PHỤC VỤ POPUP & GHIM (ĐÃ KHÔI PHỤC) ---
-  showPopup(num: number | undefined | null, event: MouseEvent) {
-    if (num === undefined || num === null) return;
-    if (this.isPopupPinned) return; // Nếu đang ghim số khác thì bỏ qua hover
-    this.hoveredNumber = num;
-    this.loadPopupData(num);
-    this.updatePopupPosition(event);
-    this.cdr.markForCheck();
-  }
-
-  updatePopupPosition(event: MouseEvent) {
-    if (this.isPopupPinned || !this.hoveredNumber) return; // Đã ghim thì không di chuyển theo chuột nữa
-
-    let x = event.clientX + 15;
-    let y = event.clientY + 15;
-    const popupWidth = 420; // Khớp với CSS .floating-popup width 420px
-    const popupHeight = 400;
-
-    if (x + popupWidth > window.innerWidth) x = event.clientX - popupWidth - 15;
-    if (y + popupHeight > window.innerHeight) y = event.clientY - popupHeight - 15;
-
-    this.popupStyle = { top: y + 'px', left: x + 'px' };
-    this.cdr.markForCheck();
-  }
-
-  hidePopup() {
-    if (this.isPopupPinned) return;
-    this.hoveredNumber = null;
-    this.hoveredNumberDetail = null;
-    this.hoveredNumberHistory = [];
-    this.cdr.markForCheck();
-  }
-
-  // Hàm ghim Popup (Click vào bóng)
-  pinPopup(num: number | undefined | null, event: MouseEvent) {
-    if (num === undefined || num === null) return;
-    event.stopPropagation(); // Ngăn click lan ra ngoài
-    this.isPopupPinned = true;
-    this.hoveredNumber = num;
-    this.loadPopupData(num);
-    // Tính lại vị trí ghim 1 lần
-    let x = event.clientX + 15;
-    let y = event.clientY + 15;
-    if (x + 420 > window.innerWidth) x = event.clientX - 420 - 15;
-    if (y + 400 > window.innerHeight) y = event.clientY - 400 - 15;
-    this.popupStyle = { top: y + 'px', left: x + 'px' };
-    this.cdr.markForCheck();
-  }
-
-  closePopup() {
-    this.isPopupPinned = false;
-    this.hoveredNumber = null;
-    this.hoveredNumberDetail = null;
-    this.hoveredNumberHistory = [];
-    this.cdr.markForCheck();
-  }
-
-  loadPopupData(num: number | undefined | null) {
-    if (num === undefined || num === null || !this.payload) return;
-    if (this.payload.selectionReasons) {
-      this.hoveredNumberDetail = this.payload.selectionReasons.find((r) => r.number === num);
-    }
-    if (this.payload.recentDraws) {
-      this.hoveredNumberHistory = this.payload.recentDraws.filter(
-        (draw) => (draw.numbers && draw.numbers.includes(num)) || draw.specialNumber === num,
-      );
-    }
-  }
-
-  // --- UTILS ---
-  formatNumber(num: number | undefined | null): string {
-    if (num === undefined || num === null) return '--';
-    return num < 10 ? '0' + num : num.toString();
-  }
-
-  getDayOfWeek(dateString: string): string {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    return days[date.getDay()];
-  }
-
-  formatDateVN(dateStr: string): string {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const dow = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])).getDay();
-      const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-      return `${days[dow]} ${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return dateStr;
-  }
-
-  copyTicketSuccessMsg: string | null = null;
-  async copyTicket(numbers: number[], _special?: number | null) {
-    const text = numbers.map((n) => this.formatNumber(n)).join(' - ');
+  async copyTicket(numbers: number[]) {
+    this.copyMessage.set('');
     try {
-      await navigator.clipboard.writeText(text);
-      this.copyTicketSuccessMsg = `Đã sao chép vé: [ ${text} ]`;
+      await navigator.clipboard.writeText(
+        numbers.map((number) => String(number).padStart(2, '0')).join(' - '),
+      );
+      this.copyMessage.set('Đã sao chép dãy số.');
     } catch {
-      this.copyTicketSuccessMsg = `Chưa sao chép được. Chọn và sao chép thủ công: ${text}`;
+      this.copyMessage.set('Chưa sao chép được. Vui lòng chọn và sao chép dãy số trực tiếp.');
     }
-    this.cdr.markForCheck();
-    timer(5000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.copyTicketSuccessMsg = null;
-        this.cdr.markForCheck();
-      });
   }
-
-  getTargetDrawInfo(): {
-    drawDate: string;
-    dayName: string;
-    drawDateFormatted: string;
-    isToday: boolean;
-    statusText: string;
-    statusBadgeClass: string;
-    fullDisplay: string;
-  } {
-    const drawDate = this.payload?.targetDrawDate ?? '';
-    const dayName = this.payload?.targetDayName ?? '';
-    const drawDateFormatted =
-      this.payload?.targetDrawDateFormatted ??
-      (drawDate ? drawDate.split('-').reverse().join('/') : '');
-    const isToday = this.payload?.isTargetDrawToday === true;
-    return {
-      drawDate,
-      dayName,
-      drawDateFormatted,
-      isToday,
-      statusText: drawDate
-        ? (isToday ? 'Kỳ quay hôm nay: ' : 'Kỳ quay tiếp theo: ') +
-          dayName +
-          ' ' +
-          drawDateFormatted
-        : 'Chưa có lịch quay từ máy chủ.',
-      statusBadgeClass: isToday ? 'bg-warning text-dark' : 'bg-info text-dark',
-      fullDisplay: [dayName, drawDateFormatted].filter(Boolean).join(' '),
-    };
-  }
-
-  getTransformedSequences(): any[] {
-    return this.payload?.transformedSequences ?? [];
-  }
-
-  // --- CHIẾN LƯỢC LỌC DÃY SỐ VÀ LIÊN HỆ THỰC TẾ VS DỰ ĐOÁN AI ---
-  selectedSeqCategory: string = 'all';
-
-  setSeqCategory(cat: string) {
-    this.selectedSeqCategory = cat;
-    this.cdr.markForCheck();
-  }
-
-  getRealityVsAiAnalysis(): any {
-    return this.payload?.realityVsAiAnalysis || null;
-  }
-
-  getFilteredSequences(): any[] {
-    const list = this.getTransformedSequences();
-    if (!Array.isArray(list)) return [];
-    if (this.selectedSeqCategory === 'all') {
-      return list;
-    }
-    if (this.selectedSeqCategory === 'high_zone') {
-      return list.filter((s) => s.categoryTag === 'high_zone' || s.id === 'high_zone_surge');
-    }
-    if (this.selectedSeqCategory === 'near_miss') {
-      return list.filter(
-        (s) =>
-          s.categoryTag === 'drift' ||
-          s.categoryTag === 'near_miss' ||
-          s.id === 'neighbor_drift' ||
-          s.id === 'near_miss_tolerance',
-      );
-    }
-    if (this.selectedSeqCategory === 'core_clique') {
-      return list.filter(
-        (s) =>
-          s.categoryTag === 'core' ||
-          s.categoryTag === 'clique' ||
-          s.categoryTag === 'poisson_cold' ||
-          s.id === 'concentrated_synthesis' ||
-          s.id === 'pair_synergy_clique' ||
-          s.id === 'poisson_gap_rebound',
-      );
-    }
-    if (this.selectedSeqCategory === 'special_modulo') {
-      return list.filter(
-        (s) =>
-          s.categoryTag === 'special' ||
-          s.categoryTag === 'modulo' ||
-          s.id === 'special_migration_mirror' ||
-          s.id === 'tail_congruence_decompression',
-      );
-    }
-    return list;
-  }
-
-  // --- GHÉP VÉ TỰ CHỌN TỪ BỘ SỐ GỢI Ý (CUSTOM TICKET MIXER) ---
-
-  getTargetDrawDateDisplay(): string {
-    const info = this.getTargetDrawInfo();
-    return info.fullDisplay;
-  }
-
-  getTicketSum(ticket: number[]): number {
-    if (!ticket) return 0;
-    return ticket.reduce((a, b) => a + b, 0);
-  }
-
-  getTicketParity(ticket: number[]): string {
-    if (!ticket) return '';
-    const odd = ticket.filter((n) => n % 2 !== 0).length;
-    const even = ticket.length - odd;
-    return `${even} Chẵn / ${odd} Lẻ`;
-  }
-
-  getNumberTag(num: number): string {
-    if (!this.payload) return 'TIỀM NĂNG';
-    if (this.payload.focusAnalysis?.focusItems) {
-      const found = this.payload.focusAnalysis.focusItems.find((item: any) => item.number === num);
-      if (found?.tag) return found.tag;
-    }
-    if (this.payload.selectionReasons) {
-      const reason = this.payload.selectionReasons.find((r: any) => r.number === num);
-      if (reason?.tag) return reason.tag;
-    }
-    return 'TIỀM NĂNG';
-  }
-
-  getNumberProbability(num: number): number | null {
-    if (!this.payload) return null;
-    if (this.payload.focusAnalysis?.focusItems) {
-      const found = this.payload.focusAnalysis.focusItems.find((item: any) => item.number === num);
-      if (found?.probabilityPercent != null) return found.probabilityPercent;
-    }
-    if (this.payload.selectionReasons) {
-      const reason = this.payload.selectionReasons.find((r: any) => r.number === num);
-      if (reason?.probabilityPercent != null) return reason.probabilityPercent;
-    }
-    return (
-      this.payload?.details?.find((detail) => detail.number === num)?.probabilityPercent ?? null
-    );
-  }
-
-  getNumberUpgradeReason(num: number): string {
-    const latestWinning: number[] =
-      this.recommendations?.megaDrawReconciliation?.officialWinningNumbers || [];
-    const latestSpecial: number | null =
-      this.recommendations?.megaDrawReconciliation?.specialNumber ?? null;
-
-    if (latestWinning.includes(num)) {
-      return `🔄 Số lặp quán tính: Nổ trực tiếp từ kỳ mở thưởng gần nhất. Chưa có xác suất lặp được hiệu chuẩn.`;
-    }
-    const neighbor = latestWinning.find((w: number) => Math.abs(w - num) === 1);
-    if (neighbor !== undefined) {
-      return `↔️ Lệch biên lân cận ±1: Bước nhảy sát nút từ quả banh ${this.formatNumber(neighbor)} kỳ trước (${num > neighbor ? this.formatNumber(neighbor) + ' + 1' : this.formatNumber(neighbor) + ' - 1'}).`;
-    }
-    if (latestSpecial && num === latestSpecial) {
-      return `⭐ Chuyển vị banh phụ: Banh phụ ⭐${this.formatNumber(latestSpecial)} từ kỳ trước chuyển vị sang dàn banh chính.`;
-    }
-    if (this.payload?.selectionReasons) {
-      const reason = this.payload.selectionReasons.find((r: any) => r.number === num);
-      if (reason && reason.reason) {
-        return reason.reason;
-      }
-    }
-    const tailMatch = latestWinning.find((w: number) => w % 10 === num % 10);
-    if (tailMatch !== undefined) {
-      return `🔗 Đồng dư đuôi mod 10: Ghép cặp cùng chữ số hàng đơn vị (đuôi ${num % 10}) với quả banh ${this.formatNumber(tailMatch)} kỳ trước.`;
-    }
-    return `⚡ Hóa giải cụm nén dồn: Phân rã năng lượng từ cụm số dồn nén kỳ trước sang vị trí ${this.formatNumber(num)}, cân đối phương sai dải số toàn diện.`;
-  }
-
-  getNewBallsTransformationMatrix(): any[] {
-    const list: number[] = this.payload?.numbers || [];
-    const latestWinning: number[] =
-      this.recommendations?.megaDrawReconciliation?.officialWinningNumbers || [];
-    const latestSpecial: number | null =
-      this.recommendations?.megaDrawReconciliation?.specialNumber ?? null;
-
-    return list.map((num: number) => {
-      let ruleType = 'CÂN BẰNG PHƯƠNG SAI';
-      let ruleBadge = 'bg-secondary text-white';
-      let ruleIcon = '⚖️';
-      let ruleFormula = `Số ${this.formatNumber(num)}`;
-      let ruleExplanation = `Cân bằng phương sai và dải điểm tần suất và độ trễ.`;
-      const probability = this.getNumberProbability(num);
-
-      if (latestWinning.includes(num)) {
-        ruleType = 'LẶP LẠI QUÁN TÍNH';
-        ruleBadge = 'bg-primary text-white';
-        ruleIcon = '🔄';
-        ruleFormula = `${this.formatNumber(num)} &larr; ${this.formatNumber(num)} (Kỳ trước)`;
-        ruleExplanation = `Nổ trực tiếp từ kỳ trước. Xung lực lặp lại trạng thái chuỗi Markov.`;
-      } else {
-        const neighbor = latestWinning.find((w: number) => Math.abs(w - num) === 1);
-        if (neighbor !== undefined) {
-          ruleType = 'LỆCH BIÊN LÂN CẬN ±1';
-          ruleBadge = 'bg-warning text-dark';
-          ruleIcon = '↔️';
-          ruleFormula = `${this.formatNumber(num)} = ${this.formatNumber(neighbor)} ${num > neighbor ? '+ 1' : '- 1'}`;
-          ruleExplanation = `Bước nhảy lân cận biên sát nút từ quả banh ${this.formatNumber(neighbor)} của kỳ trước.`;
-        } else if (latestSpecial && num === latestSpecial) {
-          ruleType = 'CHUYỂN VỊ BANH PHỤ';
-          ruleBadge = 'bg-success text-white';
-          ruleIcon = '⭐';
-          ruleFormula = `${this.formatNumber(num)} &larr; ⭐${this.formatNumber(latestSpecial)}`;
-          ruleExplanation = `Banh phụ Jackpot 2 kỳ trước chuyển vị sang dàn banh chính kỳ này.`;
-        } else {
-          const tailMatch = latestWinning.find((w: number) => w % 10 === num % 10);
-          if (tailMatch !== undefined) {
-            ruleType = 'ĐỒNG DƯ ĐUÔI MOD 10';
-            ruleBadge = 'bg-info text-dark';
-            ruleIcon = '🔗';
-            ruleFormula = `${this.formatNumber(num)} &equiv; ${this.formatNumber(tailMatch)} (Đuôi ${num % 10})`;
-            ruleExplanation = `Ghép cặp cùng chữ số hàng đơn vị (đuôi ${num % 10}) với quả banh ${this.formatNumber(tailMatch)}.`;
-          } else if (num >= 20 && num <= 50) {
-            ruleType = 'HÓA GIẢI CỤM NÉN DỒN';
-            ruleBadge = 'bg-danger text-white';
-            ruleIcon = '⚡';
-            ruleFormula = `Giải nén cụm dồn &rarr; ${this.formatNumber(num)}`;
-            ruleExplanation = `Hóa giải bẫy dồn 3 số liên tiếp ở hàng chục, giải phóng năng lượng sang dải ${this.formatNumber(num)}.`;
-          }
-        }
-      }
-
-      return {
-        number: num,
-        ruleType,
-        ruleBadge,
-        ruleIcon,
-        ruleFormula,
-        ruleExplanation,
-        probability,
-      };
-    });
-  }
-
-  // --- 5. QUẢN LÝ MỤC KHUYẾN NGHỊ TRÊN UI ---
-  showRecommendationsSection: boolean = true;
-  recommendationTab: 'overview' | 'strategies' | 'goldenTickets' | 'newBallsLogic' =
-    'goldenTickets';
-
-  toggleRecommendations(): void {
-    this.showRecommendationsSection = !this.showRecommendationsSection;
-    this.cdr.markForCheck();
-  }
-
-  setRecommendationTab(tab: 'overview' | 'strategies' | 'goldenTickets' | 'newBallsLogic'): void {
-    this.recommendationTab = tab;
-    this.cdr.markForCheck();
-  }
-
-  get recommendations(): any {
-    return this.payload?.recommendations || this.payload?.aiRecommendation || null;
-  }
-
-  getRecent5DrawDates(): string {
-    if (!this.payload?.recentDraws || this.payload.recentDraws.length === 0) return '';
-    return this.payload.recentDraws
-      .slice(0, 5)
-      .map((d) => d.drawDate)
-      .join(', ');
-  }
-
-  getWinningDrawCharacteristics(): string {
-    const nums = this.recommendations?.megaDrawReconciliation?.officialWinningNumbers;
-    if (!nums || nums.length === 0) return '';
-    const sum = nums.reduce((a: number, b: number) => a + b, 0);
-    const even = nums.filter((n: number) => n % 2 === 0).length;
-    const odd = nums.length - even;
-    const special = this.recommendations?.megaDrawReconciliation?.specialNumber;
-    return `Tổng = ${sum} • ${even} Chẵn / ${odd} Lẻ${special ? ` • Banh Phụ ⭐${special}` : ''}`;
-  }
-
-  getNeighborDriftAnalysis(): any {
-    return this.payload?.neighborDriftAnalysis;
-  }
-
-  copyHedgingTicket(): void {
-    const drift = this.getNeighborDriftAnalysis();
-    if (drift?.hedgingTicketNumbers?.length) void this.copyTicket(drift.hedgingTicketNumbers);
-  }
-
-  // ==========================================
-  // XỬ LÝ BIỂU ĐỒ LIÊN KẾT DÃY SỐ CSDL (HISTORICAL SEQUENCE LINKAGE CHART)
-  // ==========================================
 }

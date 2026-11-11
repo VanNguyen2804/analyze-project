@@ -1,148 +1,158 @@
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { BackendReadinessService } from '../../core/services/backend-readiness.service';
-import { of as readyNow } from 'rxjs';
-import { TestBed } from '@angular/core/testing';
-import { of, Subject } from 'rxjs';
+import { LabPredictionGroup, LabPredictions } from '../../core/models/forecast.model';
 import { PredictionComponent } from './prediction.component';
-import { AnalyzeService } from '@app/core/services/analyze.service';
+import { environment } from '../../../environments/environment';
 
-describe('Prediction request category isolation', () => {
+const target = '2099-11-13';
+function group(
+  model: string,
+  percentage: number | null,
+  hits: number,
+  draws: number,
+): LabPredictionGroup {
+  return {
+    model,
+    cohort: model,
+    modelVersion: 'v2',
+    targetDate: target,
+    tickets: [
+      {
+        id: model,
+        model,
+        targetDate: target,
+        createdAt: '2099-11-11T08:00:00Z',
+        numbers: [3, 14, 22, 27, 41, 43],
+      },
+    ],
+    performance: {
+      evaluatedDraws: draws,
+      evaluatedTickets: draws * 5,
+      hitTickets: hits,
+      bestMatched: hits ? 3 : 0,
+      latestHitDate: null,
+      levels: [3, 2, 1].map((threshold) => ({
+        threshold,
+        drawHits: hits,
+        drawPercent: percentage,
+      })),
+    },
+    history: [],
+  };
+}
+function response(
+  groups: LabPredictionGroup[],
+  category: 'MEGA' | 'POWER' = 'MEGA',
+): LabPredictions {
+  return { category, targetDate: target, asOf: '2099-11-11T10:00:00Z', groups };
+}
+describe('AI Lab prediction page', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: BackendReadinessService,
-          useValue: {
-            ready: () => readyNow(undefined),
-            waiting: () => false,
-            invalidate: () => {},
-          },
+          useValue: { ready: () => of(undefined), invalidate: () => {} },
         },
       ],
     }),
   );
-  it('copies six POWER numbers and waits for clipboard completion before reporting success', async () => {
-    TestBed.configureTestingModule({ providers: [{ provide: AnalyzeService, useValue: {} }] });
+  const endpoint = (category: string) =>
+    `${environment.apiUrl || ''}/api/ai-lab/predictions?category=${category}&async=true`;
+
+  it('shows ranked Lab models with three rates and denominators, without requesting legacy algorithms', fakeAsync(() => {
+    const fixture = TestBed.createComponent(PredictionComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    tick(0);
+    http
+      .expectOne(endpoint('MEGA'))
+      .flush(
+        response([
+          group('logistic_feedback_coverage', 100, 1, 1),
+          group('recency', 28.6, 2, 7),
+          group('logistic', null, 0, 0),
+        ]),
+      );
+    fixture.detectChanges();
+    const cards = fixture.nativeElement.querySelectorAll('.model-card');
+    expect(cards.length).toBe(3);
+    expect(cards[0].querySelector('h2').textContent).toContain('phản hồi');
+    expect(cards[1].textContent).toContain('28.6%');
+    expect(cards[1].textContent).toContain('2/7 kỳ');
+    expect(cards[0].querySelectorAll('.rate').length).toBe(3);
+    expect(cards[2].textContent).toContain('Chưa có');
+    expect(fixture.nativeElement.querySelector('app-user-desk')).toBeNull();
+    http.expectNone((req) => req.method === 'POST' || req.url.includes('/api/analyze'));
+    fixture.destroy();
+    http.verify();
+  }));
+
+  it('cancels the previous category and clears its tickets before loading POWER', fakeAsync(() => {
+    const fixture = TestBed.createComponent(PredictionComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    tick(0);
+    const previous = http.expectOne(endpoint('MEGA'));
+    fixture.componentInstance.selectCategory('POWER');
+    fixture.detectChanges();
+    tick(0);
+    expect(previous.cancelled).toBeTrue();
+    expect(fixture.nativeElement.querySelectorAll('.ticket').length).toBe(0);
+    http.expectOne(endpoint('POWER')).flush(response([], 'POWER'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Chưa có dãy AI Lab');
+    fixture.destroy();
+    http.verify({ ignoreCancelled: true });
+  }));
+
+  it('rejects mismatched categories, supports retry and hides expired tickets', fakeAsync(() => {
+    const fixture = TestBed.createComponent(PredictionComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    tick(0);
+    http.expectOne(endpoint('MEGA')).flush(response([group('recency', 100, 1, 1)], 'POWER'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.ticket').length).toBe(0);
+    fixture.componentInstance.refresh();
+    const expired = group('recency', 100, 1, 1);
+    expired.targetDate = '2020-11-13';
+    http
+      .expectOne(endpoint('MEGA'))
+      .flush({ ...response([expired]), targetDate: expired.targetDate });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.ticket').length).toBe(0);
+    fixture.destroy();
+    http.verify();
+  }));
+
+  it('copies the selected Lab ticket and reports success only after completion', async () => {
     const fixture = TestBed.createComponent(PredictionComponent);
     const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
     let complete!: () => void;
-    const writeText = jasmine.createSpy().and.returnValue(
-      new Promise<void>((resolve) => {
-        complete = resolve;
-      }),
-    );
+    const writeText = jasmine
+      .createSpy()
+      .and.returnValue(new Promise<void>((resolve) => (complete = resolve)));
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
     try {
-      const pending = fixture.componentInstance.copyTicket([1, 2, 3, 4, 5, 6], 55);
-      expect(writeText).toHaveBeenCalledWith('01 - 02 - 03 - 04 - 05 - 06');
-      expect(fixture.componentInstance.copyTicketSuccessMsg).toBeNull();
+      const pending = fixture.componentInstance.copyTicket([3, 14, 22, 27, 41, 43]);
+      expect(writeText).toHaveBeenCalledWith('03 - 14 - 22 - 27 - 41 - 43');
+      expect(fixture.componentInstance.copyMessage()).toBe('');
       complete();
       await pending;
-      expect(fixture.componentInstance.copyTicketSuccessMsg).toContain('Đã sao chép');
-      writeText.and.returnValue(Promise.reject(new Error('Denied')));
-      await fixture.componentInstance.copyTicket([1, 2, 3, 4, 5, 6], 55);
-      expect(fixture.componentInstance.copyTicketSuccessMsg).toContain('Chưa sao chép');
+      expect(fixture.componentInstance.copyMessage()).toContain('Đã sao chép');
     } finally {
       if (original) Object.defineProperty(navigator, 'clipboard', original);
       else Reflect.deleteProperty(navigator, 'clipboard');
       fixture.destroy();
     }
-  });
-  it('passes original and Lab tickets for the current target to experimental deduplication', () => {
-    TestBed.configureTestingModule({ providers: [{ provide: AnalyzeService, useValue: {} }] });
-    const fixture = TestBed.createComponent(PredictionComponent);
-    const component = fixture.componentInstance;
-    component.payload = {
-      category: 'MEGA',
-      status: 'SUCCESS',
-      targetDrawDate: '2026-11-04',
-      primaryAlgorithmResult: { name: 'Primary', numbers: [1, 2, 3, 4, 5, 6] },
-      secondaryAlgorithmResult: { name: 'Secondary', numbers: [7, 8, 9, 10, 11, 12] },
-      combinedAlgorithmResult: { name: 'Combined', numbers: [1, 2, 7, 8, 9, 10] },
-      workspace: {
-        id: 'suggestion',
-        category: 'MEGA',
-        targetDate: '2026-11-04',
-        createdAt: '2026-11-01T12:00:00Z',
-        status: 'READY',
-        expectedRevision: 0,
-        primaryAlgorithm: 'temporal_learning',
-        secondaryAlgorithm: 'bayesian_graph',
-        primaryWeight: 0.5,
-        keep: [],
-        exclude: [],
-        labStatus: 'READY',
-        labPolicy: 'test',
-        tickets: [{ id: 'lab', source: 'AI_LAB', label: 'Lab', numbers: [13, 14, 15, 16, 17, 18] }],
-      },
-    };
-    const context = component.getMegaPortfolioContext();
-    expect(context?.targetDate).toBe('2026-11-04');
-    expect(context?.tickets.length).toBe(4);
-    component.isSpinning = true;
-    expect(component.getMegaPortfolioContext()).toBeNull();
-    component.isSpinning = false;
-    component.category = 'POWER';
-    expect(component.getMegaPortfolioContext()).toBeNull();
-    fixture.destroy();
-  });
-  it('does not request the legacy deviation matrix after predicting', () => {
-    const legacy = jasmine.createSpy('getDeviationVariables');
-    TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: AnalyzeService,
-          useValue: {
-            getPrediction: () =>
-              of({ status: 'SUCCESS', category: 'POWER', tickets: [[1, 2, 3, 4, 5, 6]] }),
-            getDeviationVariables: legacy,
-          },
-        },
-      ],
-    });
-    const fixture = TestBed.createComponent(PredictionComponent);
-    fixture.componentInstance.category = 'POWER';
-    fixture.componentInstance.predict();
-    expect(legacy).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.payload?.tickets).toEqual([[1, 2, 3, 4, 5, 6]]);
-    fixture.destroy();
-  });
-  it('cancels an older request when changing lottery category', () => {
-    const mega = new Subject<any>();
-    const power = new Subject<any>();
-    const api = {
-      getPrediction: jasmine.createSpy().and.returnValues(mega, power),
-      getDeviationVariables: () => of([]),
-    };
-    TestBed.configureTestingModule({ providers: [{ provide: AnalyzeService, useValue: api }] });
-    const fixture = TestBed.createComponent(PredictionComponent);
-    const component = fixture.componentInstance;
-    component.category = 'MEGA';
-    component.predict();
-    component.category = 'POWER';
-    component.predict();
-    power.next({ status: 'SUCCESS', category: 'POWER', numbers: [9, 18, 27, 28, 31, 35] });
-    mega.next({ status: 'SUCCESS', category: 'MEGA', numbers: [1, 2, 3, 4, 5, 6] });
-    expect(component.payload?.category).toBe('POWER');
-    expect(component.payload?.numbers).toEqual([9, 18, 27, 28, 31, 35]);
-    fixture.destroy();
-  });
-
-  it('rejects a response whose category differs from the requested category', () => {
-    TestBed.configureTestingModule({
-      providers: [
-        {
-          provide: AnalyzeService,
-          useValue: {
-            getPrediction: () => of({ status: 'SUCCESS', category: 'MEGA' }),
-          },
-        },
-      ],
-    });
-    const fixture = TestBed.createComponent(PredictionComponent);
-    fixture.componentInstance.category = 'POWER';
-    fixture.componentInstance.predict();
-    expect(fixture.componentInstance.payload).toBeNull();
-    expect(fixture.componentInstance.errorMessage).toContain('không khớp');
-    fixture.destroy();
   });
 });

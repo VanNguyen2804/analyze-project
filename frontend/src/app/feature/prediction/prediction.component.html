@@ -1,871 +1,143 @@
-<div class="prediction-container prediction-night w-100">
-  <app-lab-highlights [category]="category" [remote]="true" />
-  <header class="prediction-heading">
+<section class="prediction-page" aria-label="Dự đoán từ AI Lab" [attr.aria-busy]="loading()">
+  <header class="page-heading">
     <div>
-      <span class="prediction-kicker">PREDICTION STUDIO <span aria-hidden="true">✳</span></span>
+      <span class="eyebrow">AI LAB · DỰ ĐOÁN</span>
+      <h1>Các dãy số cho kỳ tới</h1>
+      <p>Ưu tiên thuật toán có tỷ lệ kỳ khớp ≥3 số cao hơn.</p>
     </div>
     <div class="category-switch" role="group" aria-label="Loại xổ số">
       <button
-        [class.active]="category === 'MEGA'"
-        [attr.aria-pressed]="category === 'MEGA'"
+        [class.active]="category() === 'MEGA'"
+        [attr.aria-pressed]="category() === 'MEGA'"
         (click)="selectCategory('MEGA')"
       >
-        MEGA <span>6/45</span></button
-      ><button
-        [class.active]="category === 'POWER'"
-        [attr.aria-pressed]="category === 'POWER'"
+        MEGA <span>6/45</span>
+      </button>
+      <button
+        [class.active]="category() === 'POWER'"
+        [attr.aria-pressed]="category() === 'POWER'"
         (click)="selectCategory('POWER')"
       >
         POWER <span>6/55</span>
       </button>
     </div>
   </header>
-  @if (isSpinning) {
-    <div class="prediction-loading" role="status">
-      <span class="loading-orbit" aria-hidden="true"></span>
-      <div>
-        <strong>{{
-          backend.waiting() ? 'Đang kết nối máy chủ…' : 'Đang chuẩn bị các bộ số…'
-        }}</strong>
-        <p>
-          Tính từ lịch sử {{ category === 'POWER' ? 'Power 6/55' : 'Mega 6/45' }} trước kỳ mục tiêu.
-        </p>
-      </div>
-    </div>
-  }
-  @if (errorMessage) {
-    <div class="prediction-alert error-alert" role="alert">
-      {{ errorMessage }} <button (click)="predict()" [disabled]="isSpinning">Thử lại</button>
-    </div>
-  }
-  @if (copyTicketSuccessMsg) {
-    <div class="prediction-alert copy-alert" role="status">
-      {{ copyTicketSuccessMsg
-      }}<button (click)="copyTicketSuccessMsg = null" aria-label="Đóng thông báo">×</button>
-    </div>
-  }
-  @if (payload?.workspace; as workspace) {
-    <app-user-desk [suggestion]="workspace" (changed)="workspaceChanged($event)" />
-  }
-  @if (payload && payload.status === 'SUCCESS') {
-    <div class="draw-strip">
-      <span class="draw-icon" aria-hidden="true">◷</span>
-      <div>
-        <span class="draw-label">KỲ MỤC TIÊU</span
-        ><strong
-          >{{ getTargetDrawInfo().dayName }}, {{ getTargetDrawInfo().drawDateFormatted }}</strong
-        >
-      </div>
-      <span class="draw-schedule">Quay 18:00 <span>·</span> Kết quả từ 19:00</span
-      ><span class="history-source"
-        >{{ payload.totalDrawsAnalyzed ?? 0 }} kỳ lịch sử
-        <span>· Cập nhật {{ payload.baseDrawDateFormatted || 'chưa có' }}</span></span
-      >
-    </div>
-    <app-prediction-overview
-      [showTickets]="!payload.workspace"
-      [primary]="getPrimaryResult()"
-      [secondary]="getSecondaryResult()"
-      [combined]="getCombinedResult()"
-      [category]="category"
-      [historyCount]="payload.totalDrawsAnalyzed ?? 0"
-      (copied)="copyTicket($event.numbers, $event.special)"
-    >
-      <app-expanded-tickets
-        expanded-tickets
-        [tickets]="payload.tickets ?? []"
-        [experimental]="recommendations?.diversifiedTickets ?? []"
-        [category]="category"
-        [specialNumber]="payload.specialNumber ?? null"
-        (copied)="copyTicket($event.numbers, $event.special)"
-      />
-      @if (payload.forecastSnapshot; as saved) {
-        <div class="saved-strip" [class.saved-warning]="saved.status !== 'SAVED'" role="status">
-          <span aria-hidden="true">{{ saved.status === 'SAVED' ? '✓' : '◷' }}</span>
-          <div>
-            @if (saved.status === 'SAVED') {
-              <strong>Bản dự đoán đầu tiên đã được chốt</strong>
-              <p>
-                {{ saved.numbers?.join(' – ') }} ·
-                {{ saved.createdAt | date: 'dd/MM HH:mm' : '+0700' }} giờ Việt Nam.
-                @if (saved.sameAsDisplayed === false) {
-                  <span> Bộ đang hiển thị khác bản đã chốt; đối soát vẫn dùng bản đầu tiên.</span>
-                }
-              </p>
-            } @else {
-              <strong>Lượt tính này chưa được lưu</strong>
-              <p>
-                {{
-                  saved.message ||
-                    (saved.status === 'DISABLED'
-                      ? 'Chức năng lưu đang tắt.'
-                      : 'Xem trạng thái trong lịch sử đối soát.')
-                }}
-              </p>
-            }
-          </div>
-          <a routerLink="/analyze/history">Xem lịch sử ↗</a>
-        </div>
-      }
-    </app-prediction-overview>
-  }
-  @if (category === 'MEGA') {
-    @defer (on viewport) {
-      <app-mega-portfolio [context]="getMegaPortfolioContext()" (copied)="copyTicket($event)" />
-    } @placeholder {
-      <div class="deferred-portfolio" aria-hidden="true"></div>
-    } @error {
-      <p role="alert">Không tải được danh mục MEGA. Vui lòng tải lại trang.</p>
-    }
-  }
-  <details class="studio-settings">
-    <summary>
-      <span><span aria-hidden="true">⌘</span> Tùy chỉnh thuật toán</span
-      ><small>{{ getCurrentAlgorithmInfo().name }} + {{ getSecondaryAlgorithmInfo().name }}</small
-      ><span class="expand-symbol" aria-hidden="true">＋</span>
-    </summary>
-    <div class="settings-content">
-      <div>
-        <label for="algorithmSelectDropdown1">Thuật toán 1</label
-        ><select
-          id="algorithmSelectDropdown1"
-          [ngModel]="selectedAlgorithm"
-          (ngModelChange)="selectAlgorithm($event)"
-          [disabled]="isSpinning"
-        >
-          @for (alg of algorithms; track alg.id) {
-            <option [value]="alg.id">{{ alg.name }}</option>
-          }
-        </select>
-      </div>
-      <div>
-        <label for="algorithmSelectDropdown2">Thuật toán 2</label
-        ><select
-          id="algorithmSelectDropdown2"
-          [ngModel]="selectedAlgorithm2"
-          (ngModelChange)="selectAlgorithm2($event)"
-          [disabled]="isSpinning"
-        >
-          @for (alg of algorithms; track alg.id) {
-            <option [value]="alg.id">{{ alg.name }}</option>
-          }
-        </select>
-      </div>
-      <button class="calculate-button" (click)="predict()" [disabled]="isSpinning">
-        {{ isSpinning ? 'Đang tính…' : 'Tính lại ↗' }}
+
+  <div class="toolbar">
+    <span>{{ groups().length }} thuật toán · {{ ticketCount() }} dãy</span>
+    <div>
+      <a routerLink="/ai-lab">Xem lịch sử AI Lab ↗</a
+      ><button (click)="refresh()" [disabled]="loading()">
+        {{ loading() ? 'Đang tải…' : 'Tải lại' }}
       </button>
-      <p>
-        Hai thuật toán chấm điểm trên cùng lịch sử; bộ kết hợp hợp nhất hai xếp hạng. Bạn chọn và
-        chốt vé ở khu vực phía trên; tính lại giữ lịch sử các bản đã chốt.
-      </p>
     </div>
-  </details>
-  @if (payload) {
-    <details class="explore-section" (toggle)="historyChartOpened = true">
-      <summary>
-        <span class="explore-icon" aria-hidden="true">⌁</span>
-        <div>
-          <strong>Khám phá lịch sử bằng biểu đồ</strong>
-          <p>Liên kết giữa các kỳ, khoảng cách xuất hiện và phân bố dịch chuyển.</p>
-        </div>
-        <span class="expand-symbol" aria-hidden="true">＋</span>
-      </summary>
-      @defer (when historyChartOpened) {
-        <div class="explore-body"><app-prediction-chart /></div>
-      }
-    </details>
-    <details class="explore-section advanced-section" (toggle)="advancedOpened = true">
-      <summary>
-        <span class="explore-icon" aria-hidden="true">◈</span>
-        <div>
-          <strong>Phân tích chuyên sâu</strong>
-          <p>Biến thể bộ số, ghép vé và thống kê liên kết trong lịch sử.</p>
-        </div>
-        <span class="expand-symbol" aria-hidden="true">＋</span>
-      </summary>
-      @defer (when advancedOpened) {
-        <div class="advanced-content">
-          @if (getCommonPatternsAnalysis(); as patterns) {
-            <div
-              class="card shadow-sm border-0 mb-4 border-start border-4 border-info rounded-4 bg-white"
-            >
-              <div class="card-header bg-info bg-opacity-10 p-3 p-md-4">
-                <h4 class="h5 fw-bold mb-1">Thống kê liên kết trong lịch sử</h4>
-                <p class="text-muted small mb-0">
-                  Tính từ {{ patterns.evaluatedDraws }} kỳ đã lưu của {{ category }}. Các tỷ lệ mô
-                  tả mẫu lịch sử.
-                </p>
-              </div>
-              <div class="card-body p-3 p-md-4">
-                <div class="row g-3">
-                  @for (pattern of getPatternCards(); track pattern) {
-                    <div class="col-12 col-md-6 col-xl-4">
-                      <div class="p-3 rounded-4 bg-light border h-100">
-                        <div class="d-flex justify-content-between gap-2 mb-2">
-                          <span class="fw-bold">{{ pattern.rule }}</span>
-                          <span class="badge bg-info text-dark"
-                            >{{ pattern.percentage | number: '1.0-1' }}%</span
-                          >
-                        </div>
-                        <p class="small text-muted mb-0">{{ pattern.insight }}</p>
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          }
-          @if (getNeighborDriftAnalysis(); as drift) {
-            <div
-              class="card shadow-sm border-0 mb-4 border-start border-4 border-danger rounded-4 bg-white"
-            >
-              <div class="card-header bg-danger bg-opacity-10 border-bottom p-3 p-md-4">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                  <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                      <span class="fs-4">🛡️</span>
-                      <h4 class="h5 fw-bold text-dark mb-0">PHÂN TÍCH & BỌC LÓT BẪY LỆCH 1 NÚT</h4>
-                      <span class="badge bg-danger text-white rounded-pill px-3 py-1 small fw-bold">
-                        Cảnh Báo Lệch ±1 Nút
-                      </span>
-                    </div>
-                    <p class="text-muted small mb-0">
-                      Nhận diện chu kỳ thay đổi thống kê lịch sử có nguy cơ trượt 1 nấc lân cận, đối
-                      soát toàn bộ CSDL và tự động sinh vé bọc lót lựa chọn phân bổ vé thử nghiệm.
-                    </p>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <button
-                      class="btn btn-danger btn-sm rounded-pill fw-bold shadow-xs d-flex align-items-center gap-1"
-                      (click)="copyHedgingTicket()"
-                    >
-                      <span>📋</span> Sao Chép Vé Bọc Lót Lệch 1 Nút
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
-                <!-- 1. BÁO CÁO THỐNG KÊ TOÀN CSDL (ĐỐI CHIẾU LỊCH SỬ) -->
-                <div class="row g-3 mb-4">
-                  <div class="col-12 col-md-4">
-                    <div class="p-3 bg-white rounded-3 border h-100 shadow-xs">
-                      <div class="text-muted small fw-bold text-uppercase mb-1">
-                        Tổng Số Kỳ Từng Lệch ≥2 Bóng
-                      </div>
-                      <div class="fs-4 fw-bold text-danger">
-                        {{ drift.totalDriftDrawsCount }} Kỳ
-                      </div>
-                      <div class="small text-muted">
-                        Chiếm
-                        <strong class="text-dark">{{ drift.historicalRatioPercent }}%</strong> tổng
-                        số kỳ quay CSDL (Power: {{ drift.powerDriftRatioPercent }}%, Mega:
-                        {{ drift.megaDriftRatioPercent }}%)
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-12 col-md-4">
-                    <div class="p-3 bg-white rounded-3 border h-100 shadow-xs">
-                      <div class="text-muted small fw-bold text-uppercase mb-1">
-                        Kỳ Lệch Hàng Loạt (≥3 Bóng)
-                      </div>
-                      <div class="fs-4 fw-bold text-warning">
-                        {{ drift.severeDriftDrawsCount }} Kỳ Điển Hình
-                      </div>
-                      <div class="small text-muted">
-                        @for (draw of drift.keyHistoricalDraws; track draw) {
-                          <span
-                            >{{ draw.drawDate | date: 'dd/MM/yyyy' }} ({{ draw.driftCount }} số) ·
-                          </span>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-12 col-md-4">
-                    <div class="p-3 bg-white rounded-3 border h-100 shadow-xs">
-                      <div class="text-muted small fw-bold text-uppercase mb-1">
-                        Chẩn Đoán Chu Kỳ Hiện Tại
-                      </div>
-                      <div class="small fw-semibold text-dark mt-1">
-                        {{ drift.cycleDiagnosis }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- 2. BẢNG RADAR CÁC SỐ CÓ NGUY CƠ LỆCH 1 NÚT CAO NHẤT -->
-                <div class="p-3 p-md-4 rounded-4 bg-white border shadow-xs mb-4">
-                  <div
-                    class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"
-                  >
-                    <div
-                      class="text-uppercase text-dark fw-bold small d-flex align-items-center gap-2"
-                    >
-                      <span>🎯</span> BẢNG THEO DÕI NGUY CƠ LỆCH 1 NÚT CHO TỪNG CON SỐ (RADAR DRIFT
-                      RISK)
-                    </div>
-                    <span
-                      class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 small"
-                    >
-                      Số Tâm [N] & Đôi Cánh Bọc Lót [N-1 / N+1]
-                    </span>
-                  </div>
-                  <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                      <thead class="table-light small">
-                        <tr>
-                          <th style="width: 50px">#</th>
-                          <th style="width: 220px">Cụm Số Bọc Lót (Trái • Tâm • Phải)</th>
-                          <th style="width: 150px">Hướng Lệch Ưu Thế</th>
-                          <th>Phân Tích Cơ Chế Chu Kỳ Lồng Cầu</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (item of drift.riskCandidates; track item; let i = $index) {
-                          <tr>
-                            <td class="text-muted fw-bold">{{ i + 1 }}</td>
-                            <td>
-                              <div class="d-flex align-items-center gap-2">
-                                <!-- Bóng bọc lót trái N-1 -->
-                                <div
-                                  class="ball ball-sm"
-                                  [ngClass]="
-                                    item.preferredShift === '-1' || item.preferredShift === 'both'
-                                      ? 'border border-danger border-2 text-danger fw-bold'
-                                      : 'text-muted border'
-                                  "
-                                  style="
-                                    width: 34px;
-                                    height: 34px;
-                                    font-size: 13px;
-                                    background: #fff;
-                                  "
-                                  title="Bọc lót biên trái (N - 1)"
-                                >
-                                  {{ formatNumber(item.leftHedging) }}
-                                </div>
-                                <span class="text-muted small">←</span>
-                                <!-- Bóng tâm gốc N -->
-                                <div
-                                  class="ball ball-sm shadow-xs"
-                                  [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
-                                  style="width: 38px; height: 38px; font-size: 14px"
-                                  title="Số tâm điểm dự đoán gốc (N)"
-                                >
-                                  {{ formatNumber(item.originalNumber) }}
-                                </div>
-                                <span class="text-muted small">→</span>
-                                <!-- Bóng bọc lót phải N+1 -->
-                                <div
-                                  class="ball ball-sm"
-                                  [ngClass]="
-                                    item.preferredShift === '+1' || item.preferredShift === 'both'
-                                      ? 'border border-danger border-2 text-danger fw-bold'
-                                      : 'text-muted border'
-                                  "
-                                  style="
-                                    width: 34px;
-                                    height: 34px;
-                                    font-size: 13px;
-                                    background: #fff;
-                                  "
-                                  title="Bọc lót biên phải (N + 1)"
-                                >
-                                  {{ formatNumber(item.rightHedging) }}
-                                </div>
-                              </div>
-                            </td>
-                            <td>
-                              <span
-                                class="badge rounded-pill small px-2 py-1"
-                                [ngClass]="
-                                  item.preferredShift === '-1'
-                                    ? 'bg-danger-subtle text-danger border border-danger-subtle'
-                                    : item.preferredShift === '+1'
-                                      ? 'bg-primary-subtle text-primary border border-primary-subtle'
-                                      : 'bg-warning-subtle text-dark border border-warning-subtle'
-                                "
-                              >
-                                {{
-                                  item.preferredShift === '-1'
-                                    ? '← Lệch Biên Trái (-1)'
-                                    : item.preferredShift === '+1'
-                                      ? '→ Lệch Biên Phải (+1)'
-                                      : '↔ Bọc Lót Cả 2 Phía'
-                                }}
-                              </span>
-                            </td>
+  </div>
+  <p class="explanation">
+    Tỷ lệ tính theo <strong>kỳ có ít nhất một trong 5 vé khớp từ 3, 2 hoặc 1 số</strong>, trên toàn
+    bộ kỳ đã đối soát của thuật toán, gồm các phiên bản lịch sử. Các mức có tính lũy kế; kỳ khớp 3
+    số cũng được tính ở mức ≥2 và ≥1. Đây là thành tích đã ghi nhận, không phải xác suất trúng kỳ
+    tới.
+  </p>
 
-                            <td class="small text-secondary">
-                              {{ item.reason }}
-                            </td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <!-- 3. DÃY VÉ BỌC LÓT HÓA GIẢI BẪY LỆCH 1 NÚT (HEDGING TICKET) -->
-                <div
-                  class="p-3 p-md-4 rounded-4 bg-white border border-danger shadow-xs text-center"
-                >
-                  <div
-                    class="text-uppercase text-danger fw-bold small mb-2 d-flex justify-content-center align-items-center gap-2"
-                  >
-                    <span>🛡️</span> DÃY VÉ BỌC LÓT PHÒNG THỦ LỆCH 1 NÚT TỐI ƯU CHO KỲ
-                    {{ getTargetDrawInfo().dayName }}, {{ getTargetDrawInfo().drawDateFormatted }}
-                  </div>
-                  <p class="text-muted small mb-3">
-                    {{ drift.hedgingRationale }}
-                  </p>
-                  <div
-                    class="d-flex justify-content-center align-items-center flex-wrap gap-3 gap-md-4 mb-3"
-                  >
-                    @for (num of drift.hedgingTicketNumbers; track num; let i = $index) {
-                      <div
-                        class="text-center position-relative cursor-pointer"
-                        (mouseenter)="showPopup(num, $event)"
-                        (mouseleave)="hidePopup()"
-                        (click)="pinPopup(num, $event)"
-                        style="cursor: pointer"
-                      >
-                        <div
-                          class="ball position-relative shadow-sm"
-                          [ngClass]="[
-                            category === 'POWER' ? 'ball-power' : 'ball-mega',
-                            hoveredNumber === num ? 'ball-highlight' : '',
-                          ]"
-                          style="width: 52px; height: 52px; font-size: 19px"
-                        >
-                          {{ formatNumber(num) }}
-                        </div>
-                        <div class="mt-2">
-                          <span
-                            class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill small px-2 py-0"
-                            style="font-size: 0.68rem"
-                          >
-                            🛡️ Bọc lót #{{ i + 1 }}
-                          </span>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                  <div
-                    class="d-flex justify-content-center align-items-center gap-2 pt-2 border-top"
-                  >
-                    <button
-                      class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3 py-2 shadow-xs d-flex align-items-center gap-2"
-                      (click)="copyHedgingTicket()"
-                    >
-                      <span>📋</span> Sao Chép Dãy Số Bọc Lót Này
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-          <!-- ========================================================================================= -->
-          <!-- PHẦN 2: CÁC DÃY SỐ KẾ TIẾP KHI CÓ BIẾN SỐ (VARIATION SEQUENCES)   -->
-          <!-- ========================================================================================= -->
-          <!-- THẤU KÍNH ĐỐI CHIẾU THỰC TẾ & LIÊN HỆ DỰ ĐOÁN AI (REALITY VS. AI PROXIMITY) -->
-          @if (payload.relationshipLearning; as learning) {
-            <div
-              class="card shadow-sm border-0 mb-4 border-start border-4 border-primary rounded-4 bg-white"
-            >
-              <div class="card-header bg-primary bg-opacity-10 p-3 p-md-4">
-                <h4 class="h5 fw-bold mb-1">Học mối liên kết giữa các kỳ</h4>
-                <p class="small mb-0">
-                  Đến {{ learning.asOfDate | date: 'dd/MM/yyyy' }} · {{ learning.trainingDraws }} kỳ
-                  · {{ learning.evaluation.evaluatedDraws }} dự đoán đã kiểm tra trước khi cập nhật
-                  kết quả.
-                </p>
-                @if (learning.skippedGapTransitions > 0) {
-                  <p class="small text-muted mb-0">
-                    Bỏ qua {{ learning.skippedGapTransitions }} chuyển tiếp bị thiếu kỳ ở giữa.
-                  </p>
-                }
-                @if (learning.forecastPolicy === 'frequency_fallback') {
-                  <p class="small text-muted mb-0">
-                    Đang dùng tần suất nền vì tổ hợp học chưa khớp tốt hơn nền trên các kỳ đã kiểm
-                    tra.
-                  </p>
-                }
-              </div>
-              <div class="card-body p-3 p-md-4">
-                <div class="row g-3 mb-3">
-                  @for (pattern of learning.patterns; track pattern) {
-                    <div class="col-12 col-md-6 col-xl-4">
-                      <div class="p-3 rounded-3 bg-light border h-100">
-                        <strong>{{ pattern.name }}</strong>
-                        <div class="small">
-                          Trọng số {{ pattern.weightPercent | number: '1.1-1' }}% ·
-                          {{ pattern.support }} mẫu
-                        </div>
-                        @if (pattern.occurrences != null) {
-                          <div class="small text-muted">
-                            Khớp {{ pattern.occurrences }} quan sát
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-                @if (learning.evaluation.evaluatedDraws > 0) {
-                  <div class="p-3 border rounded-3 mb-3">
-                    <div>
-                      Trung bình khớp:
-                      <strong>{{ learning.evaluation.averageMatched | number: '1.2-2' }}/6</strong>
-                      · Tần suất nền:
-                      {{ learning.evaluation.baselineAverageMatched | number: '1.2-2' }}/6
-                    </div>
-                    <div>
-                      Vé khớp ít nhất 3 số:
-                      <strong>{{ learning.evaluation.hit3RatePercent | number: '1.1-1' }}%</strong>
-                      trên {{ learning.evaluation.evaluatedDraws }} kỳ kiểm tra.
-                    </div>
-                    <div class="small text-muted">
-                      Brier: {{ learning.evaluation.brierScore | number: '1.4-4' }} · Nền:
-                      {{ learning.evaluation.baselineBrierScore | number: '1.4-4' }} (thấp hơn là
-                      tốt hơn).
-                    </div>
-                  </div>
-                } @else {
-                  <p class="text-muted">Chưa đủ các kỳ nối tiếp để đánh giá mô hình.</p>
-                }
-                @if (learning.topTransitions.length > 0) {
-                  <div class="table-responsive mb-3">
-                    <table class="table table-sm align-middle mb-0">
-                      <thead>
-                        <tr>
-                          <th>Liên kết từ số kỳ gần nhất</th>
-                          <th>Số lần / mẫu</th>
-                          <th>Tỷ lệ có làm trơn</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (link of learning.topTransitions; track link) {
-                          <tr>
-                            <td>
-                              {{ formatNumber(link.fromNumber) }} →
-                              {{ formatNumber(link.toNumber) }}
-                            </td>
-                            <td>{{ link.occurrences }}/{{ link.support }}</td>
-                            <td>{{ link.conditionalPercent | number: '1.1-1' }}%</td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                }
-                <h6 class="fw-bold">Vé đã lưu khớp từ 3 số chính</h6>
-                <p class="small text-muted">
-                  Đối chiếu lại từng vé với kết quả đã lưu. Đây không phải bằng chứng thuật toán đã
-                  dự đoán trước kỳ quay.
-                </p>
-                @if (!learning.verifiedWinningTickets?.length) {
-                  <p class="small text-muted">Chưa có vé đủ dữ liệu để xác nhận.</p>
-                }
-                @for (ticket of learning.verifiedWinningTickets; track ticket) {
-                  <div class="border rounded-3 p-2 mb-2">
-                    <strong>{{ ticket.drawDate | date: 'dd/MM/yyyy' }}</strong> · Vé
-                    {{ ticket.numbers.join(' · ') }}
-                    <div class="small text-success">
-                      Khớp {{ ticket.matchedCount }}/6: {{ ticket.matchedNumbers.join(' · ') }}
-                    </div>
-                    @for (link of ticket.historicalLinks; track link) {
-                      <div class="small text-muted">
-                        Cùng xuất hiện ngày {{ link.drawDate | date: 'dd/MM/yyyy' }}:
-                        {{ link.sharedNumbers.join(' · ') }} (cách {{ link.daysApart }} ngày).
-                      </div>
-                    }
-                  </div>
-                }
-                <p class="small text-muted mb-0">
-                  Mô hình cập nhật khi có kỳ mới. Kết quả kiểm tra lịch sử chưa bảo đảm độ chính xác
-                  của kỳ tiếp theo.
-                </p>
-              </div>
-            </div>
-          }
-          <!-- BỘ DANH SÁCH 8 DÃY SỐ CHIẾN LƯỢC TOÀN DIỆN -->
-          <div class="card shadow-sm border-0 mb-4 border-start border-4 border-warning">
-            <div class="card-header bg-white border-bottom p-3 p-md-4">
-              <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div>
-                  <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="fs-4">⚡</span>
-                    <h4 class="h5 fw-bold text-dark mb-0">
-                      2. CÁC DÃY SỐ BIẾN THỂ TỪ KẾT QUẢ HIỆN TẠI
-                    </h4>
-                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small fw-bold">
-                      {{ getTransformedSequences().length }} dãy từ API
-                    </span>
-                  </div>
-                  <p class="text-muted small mb-0">
-                    Các dãy bên dưới được tính từ dữ liệu hiện tại. Chọn bộ lọc để xem các biến thể
-                    đang có:
-                  </p>
-                </div>
-                <!-- BỘ LỌC TABS CHIẾN LƯỢC -->
-                <div class="d-flex align-items-center gap-1 flex-wrap">
-                  <button
-                    class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
-                    [ngClass]="
-                      selectedSeqCategory === 'all'
-                        ? 'btn-warning text-dark shadow-xs'
-                        : 'btn-light border text-muted'
-                    "
-                    (click)="setSeqCategory('all')"
-                  >
-                    Tất Cả ({{ getTransformedSequences().length }} Dãy)
-                  </button>
-                  <button
-                    class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
-                    [ngClass]="
-                      selectedSeqCategory === 'high_zone'
-                        ? 'btn-danger text-white shadow-xs'
-                        : 'btn-light border text-muted'
-                    "
-                    (click)="setSeqCategory('high_zone')"
-                  >
-                    🚀 Dải Cao
-                  </button>
-                  <button
-                    class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
-                    [ngClass]="
-                      selectedSeqCategory === 'near_miss'
-                        ? 'btn-primary text-white shadow-xs'
-                        : 'btn-light border text-muted'
-                    "
-                    (click)="setSeqCategory('near_miss')"
-                  >
-                    🛡️ Bọc Lót Sát Nút (±1, ±2)
-                  </button>
-                  <button
-                    class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
-                    [ngClass]="
-                      selectedSeqCategory === 'core_clique'
-                        ? 'btn-success text-white shadow-xs'
-                        : 'btn-light border text-muted'
-                    "
-                    (click)="setSeqCategory('core_clique')"
-                  >
-                    🏆 Điểm Vàng & Cặp Đôi
-                  </button>
-                  <button
-                    class="btn btn-sm rounded-pill fw-bold px-3 py-1 transition-all"
-                    [ngClass]="
-                      selectedSeqCategory === 'special_modulo'
-                        ? 'btn-info text-dark shadow-xs'
-                        : 'btn-light border text-muted'
-                    "
-                    (click)="setSeqCategory('special_modulo')"
-                  >
-                    ⭐ Banh Phụ & Modulo-10
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="card-body p-3 p-md-4 bg-light bg-opacity-25">
-              <div class="row g-3">
-                @for (seq of getFilteredSequences(); track seq; let idx = $index) {
-                  <div class="col-12 col-xl-6">
-                    <div
-                      class="card h-100 shadow-xs border rounded-4 bg-white transition-all hover-shadow"
-                    >
-                      <div class="card-body p-3 p-md-4 d-flex flex-column justify-content-between">
-                        <div>
-                          <!-- TIÊU ĐỀ BIẾN SỐ -->
-                          <div
-                            class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3"
-                          >
-                            <div class="d-flex align-items-center gap-2">
-                              <span class="fs-4">{{ seq.icon || '🎯' }}</span>
-                              <span class="fw-bold text-dark">{{ seq.name }}</span>
-                            </div>
-                            <span
-                              class="badge rounded-pill px-3 py-1 small"
-                              [ngClass]="seq.badgeClass || 'bg-primary text-white'"
-                            >
-                              {{ seq.badge }}
-                            </span>
-                          </div>
-                          <!-- DÃY BÓNG SỐ CỦA DÃY BIẾN SỐ -->
-                          <div
-                            class="d-flex align-items-center justify-content-center flex-wrap gap-2 gap-md-3 p-3 rounded-3 bg-light border mb-3"
-                          >
-                            @for (num of seq.numbers; track num) {
-                              <div
-                                class="ball ball-sm"
-                                [ngClass]="[
-                                  category === 'POWER' ? 'ball-power' : 'ball-mega',
-                                  hoveredNumber === num ? 'ball-highlight' : '',
-                                ]"
-                                (mouseenter)="showPopup(num, $event)"
-                                (mouseleave)="hidePopup()"
-                                (click)="pinPopup(num, $event)"
-                                style="width: 44px; height: 44px; font-size: 16px; cursor: pointer"
-                              >
-                                {{ formatNumber(num) }}
-                              </div>
-                            }
-                            <!-- BANH PHỤ NẾU CÓ -->
-                            @if (category === 'POWER' && seq.specialNumber) {
-                              <div class="text-muted fw-bold px-1">+</div>
-                              <div
-                                class="ball ball-sm ball-special"
-                                [ngClass]="
-                                  hoveredNumber === seq.specialNumber ? 'ball-highlight' : ''
-                                "
-                                (mouseenter)="showPopup(seq.specialNumber, $event)"
-                                (mouseleave)="hidePopup()"
-                                (click)="pinPopup(seq.specialNumber, $event)"
-                                style="width: 44px; height: 44px; font-size: 16px; cursor: pointer"
-                              >
-                                ⭐{{ formatNumber(seq.specialNumber) }}
-                              </div>
-                            }
-                          </div>
-                          <!-- KHUNG QUY LUẬT & CÔNG THỨC BIẾN SỐ -->
-                          <div
-                            class="p-2 px-3 rounded-3 bg-white border border-warning-subtle mb-3"
-                          >
-                            <div
-                              class="d-flex align-items-center gap-2 text-warning-emphasis fw-bold small mb-1"
-                            >
-                              <span>📐</span>
-                              <span
-                                >Công thức biến đổi: <code>{{ seq.deltaFormula }}</code></span
-                              >
-                            </div>
-                            <div class="text-secondary small" style="line-height: 1.4">
-                              {{ seq.transformationRule }}
-                            </div>
-                          </div>
-                        </div>
-                        <!-- FOOTER THÔNG SỐ VÀ NÚT COPY -->
-                        <div
-                          class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-2 border-top"
-                        >
-                          <div class="d-flex align-items-center gap-2 small">
-                            <span class="badge bg-light text-dark border">
-                              {{ seq.composition || getTicketParity(seq.numbers) }}
-                            </span>
-                          </div>
-                          <button
-                            class="btn btn-outline-primary btn-sm rounded-pill fw-semibold d-flex align-items-center gap-1"
-                            (click)="copyTicket(seq.numbers, seq.specialNumber)"
-                          >
-                            <span>📋</span> Sao Chép Vé
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
-              <!-- GHÉP VÉ TỰ CHỌN TỪ BỘ SỐ GỢI Ý (CUSTOM TICKET MIXER) -->
-              <app-ticket-mixer
-                [primaryNumbers]="getPureAlgorithmNumbers()"
-                [numbers]="payload.numbers ?? []"
-                [category]="category === 'POWER' ? 'POWER' : 'MEGA'"
-                (copied)="copyTicket($event, category === 'POWER' ? payload.specialNumber : null)"
-              />
-            </div>
-          </div>
-        </div>
-      }
-    </details>
+  @if (error()) {
+    <div class="notice error" role="alert">{{ error() }}</div>
   }
-  <!-- FLOATING POPUP TỰ ĐỘNG BÁM THEO CHUỘT HOẶC GHIM KHI CLICK -->
-  <div
-    class="floating-popup card shadow-lg border"
-    [class.show]="hoveredNumber !== null"
-    [class.pinned]="isPopupPinned"
-    [ngStyle]="popupStyle"
-    style="z-index: 9999"
-  >
-    <div
-      class="card-header bg-dark text-white p-2 d-flex justify-content-between align-items-center"
-    >
-      <div class="d-flex align-items-center gap-2">
-        <span
-          class="ball ball-sm"
-          [ngClass]="category === 'POWER' ? 'ball-power' : 'ball-mega'"
-          style="width: 28px; height: 28px; font-size: 13px"
-        >
-          {{ formatNumber(hoveredNumber) }}
-        </span>
-        <span class="fw-bold small">Chi Tiết Quả Banh #{{ formatNumber(hoveredNumber) }}</span>
-        @if (isPopupPinned) {
-          <span class="badge bg-danger rounded-pill px-2 py-0" style="font-size: 0.65rem"
-            >Đang Ghim</span
-          >
-        }
-      </div>
-      <button
-        type="button"
-        class="btn-close btn-close-white btn-sm"
-        (click)="closePopup()"
-        aria-label="Close"
-      ></button>
+  @if (copyMessage()) {
+    <div class="notice" role="status">{{ copyMessage() }}</div>
+  }
+  @if (loading() && !groups().length) {
+    <div class="empty" role="status">Đang tải các dãy dự đoán và tỷ lệ lịch sử…</div>
+  } @else if (!groups().length && !error()) {
+    <div class="empty" role="status">
+      <h2>Chưa có dãy AI Lab cho kỳ tới</h2>
+      <p>Chờ AI Lab lưu đủ bộ dự đoán mới cho {{ category() }}. Trang tự cập nhật mỗi phút.</p>
     </div>
+  }
 
-    @if (hoveredNumber !== null) {
-      <div class="card-body p-3 small">
-        <div class="row g-2 mb-2 text-center">
-          <div class="col-4">
-            <div class="p-1 bg-light rounded border">
-              <div class="text-muted" style="font-size: 0.65rem">Tần Suất</div>
-              <strong class="text-primary"
-                >{{ getPureNumberDetail(hoveredNumber)?.frequency ?? '—' }} lần</strong
+  <div class="model-list">
+    @for (group of groups(); track group.cohort; let index = $index) {
+      <article class="model-card" [class.first]="index === 0">
+        <header class="model-heading">
+          <div class="model-title">
+            <span class="rank">{{ index + 1 }}</span>
+            <div>
+              <h2>{{ name(group.model) }}</h2>
+              <span class="muted"
+                >Kỳ {{ group.targetDate | date: 'dd/MM/yyyy' }} · {{ group.modelVersion }}</span
               >
             </div>
           </div>
-          <div class="col-4">
-            <div class="p-1 bg-light rounded border">
-              <div class="text-muted" style="font-size: 0.65rem">Số Kỳ Gan</div>
-              <strong class="text-danger"
-                >{{ getPureNumberDetail(hoveredNumber)?.drawGap ?? '—' }} kỳ</strong
-              >
-            </div>
-          </div>
-        </div>
-        <div class="mb-2">
-          <div class="fw-bold text-dark mb-1">💡 Lý do chọn:</div>
-          <div
-            class="text-secondary p-2 bg-light rounded border"
-            style="font-size: 0.75rem; line-height: 1.4"
-          >
-            {{ getNumberUpgradeReason(hoveredNumber) }}
-          </div>
-        </div>
-        @if (hoveredNumberHistory && hoveredNumberHistory.length > 0) {
-          <div>
-            <div class="fw-bold text-dark mb-1">📅 Xuất hiện ở các kỳ quay gần đây:</div>
-            <div class="d-flex flex-column gap-1" style="max-height: 120px; overflow-y: auto">
-              @for (draw of hoveredNumberHistory.slice(0, 4); track draw) {
-                <div
-                  class="p-1 px-2 rounded bg-light border d-flex justify-content-between align-items-center"
-                  style="font-size: 0.72rem"
-                >
-                  <span>{{ formatDateVN(draw.drawDate) }}</span>
-                  <div class="d-flex gap-1">
-                    @for (n of draw.numbers; track n) {
-                      <span
-                        class="badge"
-                        [ngClass]="
-                          n === hoveredNumber ? 'bg-danger text-white' : 'bg-secondary text-white'
-                        "
-                      >
-                        {{ formatNumber(n) }}
-                      </span>
-                    }
-                  </div>
+          <div class="rates" aria-label="Tỷ lệ kỳ có vé khớp theo lịch sử">
+            @for (threshold of [3, 2, 1]; track threshold) {
+              @if (level(group.performance, threshold); as metric) {
+                <div class="rate" [class.primary]="threshold === 3">
+                  <span>Khớp ≥{{ threshold }} số</span>
+                  <strong>{{
+                    metric.drawPercent === null
+                      ? 'Chưa có'
+                      : (metric.drawPercent | number: '1.0-1') + '%'
+                  }}</strong>
+                  <small>{{ metric.drawHits }}/{{ group.performance.evaluatedDraws }} kỳ</small>
                 </div>
               }
-            </div>
+            }
           </div>
+        </header>
+        <p class="sample">
+          {{ group.performance.evaluatedDraws }} kỳ đã đối soát ·
+          {{ group.performance.evaluatedTickets }} vé · {{ group.performance.hitTickets }} vé khớp
+          ≥3 số
+          @if (group.performance.latestHitDate) {
+            <span> · Gần nhất {{ group.performance.latestHitDate | date: 'dd/MM/yyyy' }}</span>
+          }
+        </p>
+        <div class="tickets">
+          @for (ticket of group.tickets; track ticket.id; let ticketIndex = $index) {
+            <div class="ticket">
+              <span class="muted">Dãy {{ ticketIndex + 1 }}</span>
+              <div class="numbers" [attr.aria-label]="ticket.numbers.join(', ')">
+                @for (number of ticket.numbers; track number) {
+                  <span>{{ number | number: '2.0-0' }}</span>
+                }
+              </div>
+              <button
+                class="copy"
+                (click)="copyTicket(ticket.numbers)"
+                [attr.aria-label]="
+                  'Sao chép dãy ' + (ticketIndex + 1) + ' của ' + name(group.model)
+                "
+              >
+                Sao chép
+              </button>
+            </div>
+          }
+        </div>
+        @if (group.history.length) {
+          <details class="history">
+            <summary>Chi tiết {{ group.history.length }} nhóm phiên bản lịch sử</summary>
+            <p>
+              Tỷ lệ xếp hạng phía trên gộp lịch sử thuật toán; chưa đại diện riêng cho phiên bản dự
+              đoán hiện tại.
+            </p>
+            @for (history of group.history; track history.cohort) {
+              <div class="history-row">
+                <span>{{ history.modelVersion }} · {{ history.evaluatedDraws }} kỳ</span>
+                <div>
+                  @for (threshold of [3, 2, 1]; track threshold) {
+                    @if (level(history, threshold); as metric) {
+                      <span
+                        >≥{{ threshold }}: {{ metric.drawPercent | number: '1.0-1' }}% ({{
+                          metric.drawHits
+                        }}/{{ history.evaluatedDraws }})</span
+                      >
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </details>
         }
-      </div>
+      </article>
     }
   </div>
-</div>
+</section>

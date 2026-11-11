@@ -8,6 +8,7 @@ import {
   LabOverview,
   LabTicket,
   LabRun,
+  LabPredictions,
 } from '../models/forecast.model';
 import { LotteryCategory } from '../models/lottery-category.model';
 
@@ -44,6 +45,16 @@ export class ForecastApiService {
       this.http.get<LabTicket[] | PageJob<LabTicket[]>>(`${this.base}/api/ai-lab/highlights`, {
         params: { category, async: true },
       }),
+    );
+  }
+  labPredictions(category: LotteryCategory) {
+    return this.jobs.follow(
+      this.http.get<LabPredictions | PageJob<LabPredictions>>(
+        `${this.base}/api/ai-lab/predictions`,
+        {
+          params: { category, async: true },
+        },
+      ),
     );
   }
   runLab() {

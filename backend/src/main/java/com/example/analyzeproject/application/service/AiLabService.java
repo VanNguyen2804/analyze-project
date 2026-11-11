@@ -45,7 +45,7 @@ public class AiLabService {
             var eligible=view.forecasts().stream().filter(AiLabReadView.Snapshot::prospective).map(AiLabReadView.Snapshot::data).toList();
             var groups=evaluateEligible(eligible,view.settlements());
             var rows=forecasts.stream().map(f->map("id",f.get("id"),"model",f.get("labModel"),"targetDate",f.get("targetDate"),"numbers",f.get("numbers"),
-                    "createdAt",f.get("createdAt"),"modelVersion",f.get("modelVersion"),"cohort",cohortKey(f),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
+                    "createdAt",f.get("createdAt"),"slot",f.get("slot"),"historyHash",f.get("historyHash"),"modelVersion",f.get("modelVersion"),"cohort",cohortKey(f),"feedback",feedbackSummary(f),"settlement",latest.get(f.get("id")))).toList();
             // Retain only the rendered rows/statistics, never full configurations or probability matrices.
             Set<Object> validIds=eligible.stream().map(f->f.get("id")).collect(java.util.stream.Collectors.toSet());
             var eligibleRows=rows.stream().filter(f->validIds.contains(f.get("id"))).toList();
@@ -155,6 +155,13 @@ public class AiLabService {
     public List<Map<String,Object>> highlights(String category) {
         if(!Set.of("MEGA","POWER").contains(category))throw new IllegalArgumentException("Invalid category");
         return currentHighlights(category,readOverview(category));
+    }
+    public Map<String,Object> predictions(String category) {
+        if(!Set.of("MEGA","POWER").contains(category))throw new IllegalArgumentException("Invalid category");
+        var view=readOverview(category);
+        String target=ForecastProtocol.target(category,clock.instant()).toString();
+        return map("category",category,"targetDate",target,"asOf",view.asOf().toString(),
+                "groups",AiLabPredictions.project(view.eligibleRows(),target));
     }
     private List<Map<String,Object>> currentHighlights(String category,OverviewCache view) {
         String target=ForecastProtocol.target(category,clock.instant()).toString();
