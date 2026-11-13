@@ -89,10 +89,11 @@ class AiLabPredictionsTest {
         assertEquals(expected,AiLabPredictions.project(rows,target).stream().map(g->g.get("model")).toList());
     }
     @Test void ranksIndividualSlotsByTheirOwnHistoryAndReturnsActualResults() {
-        List<Map<String,Object>> rows=new ArrayList<>(batch("model",target,"current"));
-        rows.addAll(batch("model","2026-11-01","v1",3,0,0,0,0));
-        rows.addAll(batch("model","2026-11-04","v1",0,3,0,0,0));
+        List<Map<String,Object>> rows=new ArrayList<>(batch("model",target,"v2"));
+        rows.addAll(batch("model","2026-11-01","v2",3,0,0,0,0));
+        rows.addAll(batch("model","2026-11-04","v2",0,3,0,0,0));
         rows.addAll(batch("model","2026-11-06","v2",0,4,0,0,0));
+        rows.addAll(batch("model","2026-10-30","incompatible",6,6,6,6,6));
         var group=AiLabPredictions.project(rows,target).get(0);
         var priorities=(List<Map<String,Object>>)group.get("ticketPriorities");
         assertEquals(5,priorities.size());

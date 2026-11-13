@@ -17,6 +17,12 @@ public final class CoveragePortfolio {
     private CoveragePortfolio() {}
 
     public static List<List<Integer>> select(List<Integer> ranking, int max, int budget, String seed, Policy policy) {
+        return select(ranking,max,budget,seed,policy,false);
+    }
+    public static List<List<Integer>> selectTriples(List<Integer> ranking,int max,int budget,String seed,Policy policy) {
+        return select(ranking,max,budget,seed,policy,true);
+    }
+    private static List<List<Integer>> select(List<Integer> ranking,int max,int budget,String seed,Policy policy,boolean triplesFirst) {
         if ((max != 45 && max != 55) || budget < 1 || budget > 25) throw new IllegalArgumentException("Invalid domain or budget");
         var ordered = new ArrayList<>(new LinkedHashSet<>(ranking.stream().filter(n -> n != null && n >= 1 && n <= max).toList()));
         IntStream.rangeClosed(1, max).filter(n -> !ordered.contains(n)).forEach(ordered::add);
@@ -38,7 +44,7 @@ public final class CoveragePortfolio {
             for (var candidate : pool) {
                 if (result.contains(candidate)) continue;
                 var trial = new ArrayList<>(result); trial.add(candidate);
-                double score = objective(trial, utility, policy);
+                double score = objective(trial, utility, policy, triplesFirst);
                 if (score > bestScore) { best = candidate; bestScore = score; }
             }
             if (best == null) throw new IllegalStateException("Insufficient candidates");
@@ -46,11 +52,11 @@ public final class CoveragePortfolio {
         }
         // Two bounded local-search passes; keep the anchor when the declared policy requests it.
         for (int pass = 0; pass < 2; pass++) for (int slot = policy.anchorTopSix() ? 1 : 0; slot < budget; slot++) {
-            double bestScore = objective(result, utility, policy); var best = result.get(slot);
+            double bestScore = objective(result, utility, policy, triplesFirst); var best = result.get(slot);
             for (var candidate : pool) {
                 if (result.contains(candidate)) continue;
                 var trial = new ArrayList<>(result); trial.set(slot, candidate);
-                double score = objective(trial, utility, policy);
+                double score = objective(trial, utility, policy, triplesFirst);
                 if (score > bestScore + 1e-12) { bestScore = score; best = candidate; }
             }
             result.set(slot, best);
@@ -58,14 +64,14 @@ public final class CoveragePortfolio {
         return List.copyOf(result);
     }
 
-    private static double objective(List<List<Integer>> tickets, double[] utility, Policy policy) {
+    private static double objective(List<List<Integer>> tickets, double[] utility, Policy policy, boolean triplesFirst) {
         Set<Long> triples = new HashSet<>(), quads = new HashSet<>();
         int[] exposure = new int[utility.length]; double rank = 0, repeated = 0;
         for (var ticket : tickets) {
             for (int n : ticket) { rank += utility[n]; repeated += exposure[n]++; }
             subsets(ticket, triples, quads);
         }
-        return quads.size() / 15.0 + .2 * triples.size() / 20.0 + policy.rankWeight() * rank / 6.0 - policy.exposurePenalty() * repeated;
+        return (triplesFirst ? triples.size()/20.0 + .2*quads.size()/15.0 : quads.size()/15.0 + .2*triples.size()/20.0) + policy.rankWeight() * rank / 6.0 - policy.exposurePenalty() * repeated;
     }
     private static void subsets(List<Integer> ticket, Set<Long> triples, Set<Long> quads) {
         for (int a = 0; a < 6; a++) for (int b = a + 1; b < 6; b++) for (int c = b + 1; c < 6; c++) {

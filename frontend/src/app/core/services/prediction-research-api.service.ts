@@ -14,7 +14,7 @@ export class PredictionResearchApiService {
   benchmark(category: LotteryCategory) {
     return this.http.post<BenchmarkReport>(
       `${this.base}/benchmark`,
-      { warmupDraws: 10, maximumTargets: 30, trainingWindow: 180, budget: 3 },
+      { warmupDraws: 10, maximumTargets: 30, trainingWindow: 180, budget: 5 },
       { params: { category } },
     );
   }

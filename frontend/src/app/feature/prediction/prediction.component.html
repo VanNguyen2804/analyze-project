@@ -154,7 +154,7 @@
 @if (selectedPriority(); as selected) {
 <header class="dialog-heading"><div><span class="eyebrow">{{ selectedModel() }}</span><h2 id="ticket-history-title">Dãy {{ selected.slot + 1 }} · Ưu tiên {{ selected.rank }}</h2></div><button autofocus (click)="ticketHistory.close()" aria-label="Đóng lịch sử">Đóng ×</button></header>
 <p>{{ priorityReason(selected) }}</p>
-<p class="muted">Lịch sử vị trí tạo dãy qua các phiên bản, không phải lịch sử của đúng 6 số hiện tại. Ưu tiên trong cùng thuật toán: khớp ≥3 số ít nhất 2 kỳ, rồi xét tỷ lệ điều chỉnh cỡ mẫu (Wilson 95%); bằng điểm xét số kỳ khớp. Cùng thành tích giữ thứ tự vị trí. Đây không phải xác suất trúng.</p>
+<p class="muted">Lịch sử vị trí tạo dãy trong cùng phiên bản và cấu hình hiện tại, không phải lịch sử của đúng 6 số hiện tại. Ưu tiên trong cùng thuật toán: khớp ≥3 số ít nhất 2 kỳ, rồi xét tỷ lệ điều chỉnh cỡ mẫu (Wilson 95%); bằng điểm xét số kỳ khớp. Cùng thành tích giữ thứ tự vị trí. Đây không phải xác suất trúng.</p>
 @if (selected.timeline.length) {
 <div class="history-table-scroll"><table class="ticket-history-table"><caption>{{ selected.performance.evaluatedDraws }} kỳ đối soát · Mới nhất trước</caption><thead><tr><th>Kỳ / phiên bản</th><th>Dãy đã lưu</th><th>Kết quả</th><th>Khớp</th></tr></thead><tbody>
 @for (row of selected.timeline; track row.targetDate) { <tr><td>{{ row.targetDate | date: 'dd/MM/yyyy' }}<small>{{ row.modelVersion }}</small></td><td>{{ row.numbers.join(' · ') }}</td><td>{{ row.actualNumbers.join(' · ') }}</td><td [class.hit]="row.matched >= 3">{{ row.matched }}/6</td></tr> }

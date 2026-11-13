@@ -22,7 +22,7 @@ describe('Research panel evidence boundaries', () => {
     fixture.componentInstance.run();
     const study = http.expectOne((r) => r.url.endsWith('/benchmark'));
     expect(study.request.method).toBe('POST');
-    expect(study.request.body.budget).toBe(3);
+    expect(study.request.body.budget).toBe(5);
     fixture.componentRef.setInput('category', 'POWER');
     fixture.detectChanges();
     expect(inventory.cancelled).toBeTrue();

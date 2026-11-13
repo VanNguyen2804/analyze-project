@@ -140,6 +140,24 @@ public final class AiLabModel {
         for (int number = 1; number <= max; number++) scores[number] /= rows.size() + priorDraws;
         return scores;
     }
+    /** Shrink toward uniform, then project onto capped marginals summing to six. */
+    public static double[] shrinkMarginals(double[] scores, double lambda) {
+        if ((scores.length != 46 && scores.length != 56) || !Double.isFinite(lambda) || lambda < 0 || lambda > 1)
+            throw new IllegalArgumentException("Invalid marginal policy");
+        double[] result = scores.clone();
+        for (int n=1;n<result.length;n++) {
+            if (!Double.isFinite(result[n]) || result[n]<0 || result[n]>1) throw new IllegalArgumentException("Invalid probability");
+            result[n]=(1-lambda)*6.0/(result.length-1)+lambda*result[n];
+        }
+        double low=-1, high=1;
+        for(int iteration=0;iteration<80;iteration++) {
+            double shift=(low+high)/2, sum=0;
+            for(int n=1;n<result.length;n++) sum+=Math.max(0,Math.min(1,result[n]+shift));
+            if(sum<6)low=shift;else high=shift;
+        }
+        for(int n=1;n<result.length;n++) result[n]=Math.max(0,Math.min(1,result[n]+(low+high)/2));
+        result[0]=0;return result;
+    }
     private static double dot(double[] a,double[] b) { double v=0; for(int i=0;i<a.length;i++) v+=a[i]*b[i]; return v; }
     private static double sigmoid(double x) { return 1/(1+Math.exp(-Math.max(-30,Math.min(30,x)))); }
     public static List<List<Integer>> tickets(double[] scores, String seed) {

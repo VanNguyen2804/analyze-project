@@ -36,7 +36,7 @@ final class AiLabPredictions {
             }).toList();
             result.add(map("model",first.get("model"),"modelVersion",first.get("modelVersion"),"cohort",first.get("cohort"),
                     "targetDate",target,"tickets",batch.stream().sorted(Comparator.comparingInt(r->((Number)r.get("slot")).intValue())).toList(),
-                    "performance",statistics(past),"history",breakdown,"ticketPriorities",ticketPriorities(batch,past)));
+                    "performance",statistics(past),"history",breakdown,"ticketPriorities",ticketPriorities(batch,past.stream().filter(draw->Objects.equals(draw.get(0).get("cohort"),first.get("cohort"))).toList())));
         }
         sortRanked(result);
         return result;
