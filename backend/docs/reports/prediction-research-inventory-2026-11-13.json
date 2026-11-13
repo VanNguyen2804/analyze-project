@@ -1,0 +1,34 @@
+{
+  "source": "production_read_only_inventory",
+  "baseUrl": "https://analyze-project.onrender.com",
+  "initialObservation": {
+    "observedAround": "2026-11-13T15:37:26Z",
+    "note": "Summary transcribed from successful HTTP 200 tool output; complete raw response was not archived. Later requests failed. These counts describe the observation time, not a claim of continuous availability.",
+    "MEGA": {
+      "httpStatus": 200,
+      "eligibleDraws": 47,
+      "trainingThrough": "2026-11-13",
+      "fresh": true,
+      "missingDrawDates": [],
+      "mainForecastSettledDraws": 8
+    },
+    "POWER": {
+      "httpStatus": 200,
+      "eligibleDraws": 47,
+      "trainingThrough": "2026-11-12",
+      "fresh": true,
+      "missingDrawDates": [],
+      "mainForecastSettledDraws": 8
+    },
+    "labCohortCounts": "NOT_ARCHIVED_NOT_VERIFIED"
+  },
+  "laterArchiveAttempt": {
+    "retrievedAt": "2026-11-13T15:38:20.735Z",
+    "MEGA": {
+      "error": "HTTP 503"
+    },
+    "POWER": {
+      "error": "HTTP 503"
+    }
+  }
+}

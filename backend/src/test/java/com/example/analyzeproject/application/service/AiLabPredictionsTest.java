@@ -54,7 +54,7 @@ class AiLabPredictionsTest {
         verify(store).readOverview("MEGA");verifyNoMoreInteractions(store);verifyNoInteractions(draws);
     }
 
-    @Test void ranksByRateRatherThanRawHitsAndCountsLosingDrawsInDenominator() {
+    @Test void ranksRepeatedHitsAheadOfOneOffPerfectRateAndCountsLosingDraws() {
         List<Map<String,Object>> rows=new ArrayList<>();
         rows.addAll(batch("many-hits","2026-11-01","v1",3,3,2,1,0));
         rows.addAll(batch("many-hits","2026-11-04","v2",0,0,0,0,0));
@@ -63,15 +63,50 @@ class AiLabPredictionsTest {
         rows.addAll(batch("zero-rate","2026-11-11","v1",2,1,0,0,0));
         for(String model:List.of("many-hits","higher-rate","zero-rate","no-history"))rows.addAll(batch(model,target,"current"));
         var groups=AiLabPredictions.project(rows,target);
-        assertEquals(List.of("higher-rate","many-hits","zero-rate","no-history"),groups.stream().map(g->g.get("model")).toList());
-        var stats=performance(groups.get(1));
+        assertEquals(List.of("many-hits","higher-rate","zero-rate","no-history"),groups.stream().map(g->g.get("model")).toList());
+        var stats=performance(groups.get(0));
         assertEquals(3,stats.get("evaluatedDraws"));assertEquals(15,stats.get("evaluatedTickets"));
         assertEquals(3L,stats.get("hitTickets"));assertEquals(2L,level(stats,3).get("drawHits"));
         assertEquals(200.0/3,(Double)level(stats,3).get("drawPercent"),1e-9);
         assertEquals(2L,level(stats,2).get("drawHits"));assertEquals(2L,level(stats,1).get("drawHits"));
         assertEquals(0.0,level(performance(groups.get(2)),3).get("drawPercent"));
         assertNull(level(performance(groups.get(3)),3).get("drawPercent"));
-        assertEquals(2,((List<?>)groups.get(1).get("history")).size());
+        assertEquals(2,((List<?>)groups.get(0).get("history")).size());
+    }
+
+    @Test void balancesRateAndSampleSizeWithinRepeatedHitsAndIsOrderIndependent() {
+        List<Map<String,Object>> rows=new ArrayList<>();
+        for(String model:List.of("consistent","sparse","one-off","unmeasured"))rows.addAll(batch(model,target,"current"));
+        for(int i=0;i<10;i++) {
+            String date=LocalDate.of(2026,10,1).plusDays(i).toString();
+            rows.addAll(batch("sparse",date,"v1",i<2?3:0,0,0,0,0));
+            if(i<3)rows.addAll(batch("consistent",date,"v1",i<2?3:0,0,0,0,0));
+        }
+        rows.addAll(batch("one-off","2026-11-01","v1",3,3,3,3,3));
+        var expected=List.of("consistent","sparse","one-off","unmeasured");
+        assertEquals(expected,AiLabPredictions.project(rows,target).stream().map(g->g.get("model")).toList());
+        Collections.reverse(rows);
+        assertEquals(expected,AiLabPredictions.project(rows,target).stream().map(g->g.get("model")).toList());
+    }
+    @Test void ranksIndividualSlotsByTheirOwnHistoryAndReturnsActualResults() {
+        List<Map<String,Object>> rows=new ArrayList<>(batch("model",target,"current"));
+        rows.addAll(batch("model","2026-11-01","v1",3,0,0,0,0));
+        rows.addAll(batch("model","2026-11-04","v1",0,3,0,0,0));
+        rows.addAll(batch("model","2026-11-06","v2",0,4,0,0,0));
+        var group=AiLabPredictions.project(rows,target).get(0);
+        var priorities=(List<Map<String,Object>>)group.get("ticketPriorities");
+        assertEquals(5,priorities.size());
+        var first=priorities.get(0);
+        assertEquals(1,first.get("slot"));assertEquals(1,first.get("rank"));
+        assertEquals(2L,level(performance(first),3).get("drawHits"));
+        assertEquals(3,performance(first).get("evaluatedDraws"));
+        assertEquals(1L,level(performance(priorities.get(1)),3).get("drawHits"));
+        var timeline=(List<Map<String,Object>>)first.get("timeline");
+        assertEquals(3,timeline.size());assertEquals("2026-11-06",timeline.get(0).get("targetDate"));
+        assertEquals(4,timeline.get(0).get("matched"));
+        assertEquals(List.of(1,2,3,4,5,6),timeline.get(0).get("actualNumbers"));
+        assertEquals(List.of(2,10,11,12,13,14),timeline.get(0).get("numbers"));
+        assertEquals("v2",timeline.get(0).get("modelVersion"));
     }
 
     @Test void excludesIncompleteAmbiguousWithdrawnAndInconsistentBatches() {

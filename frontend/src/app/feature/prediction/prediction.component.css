@@ -258,3 +258,18 @@ summary {
     gap: 10px;
   }
 }
+
+.ticket-label,.dialog-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.priority-badge { background:#204c43; color:#95efd0; border-radius:6px; padding:4px 8px; font-size:11px; }
+.priority-reason { color:#bdcddd; font-size:12px; line-height:1.6; margin:12px 0 6px; }
+.priority-stat { color:#8ef0ca; font-size:12px; }
+.history-trigger { color:#9be6d4; padding:6px 10px; }
+.ticket-history-dialog { color:#e5edf5; background:#141f30; border:1px solid #428e7d; border-radius:16px; padding:24px; width:min(900px, calc(100vw - 32px)); max-height:85dvh; overflow:auto; }
+.ticket-history-dialog::backdrop { background:rgb(4 10 20 / 78%); }
+.ticket-history-dialog p { font-size:13px; line-height:1.7; }
+.history-table-scroll { overflow-x:auto; }
+.ticket-history-table { width:100%; border-collapse:collapse; font-size:12px; white-space:nowrap; }
+.ticket-history-table caption { color:#aabbd0; caption-side:top; padding:12px 0; }
+.ticket-history-table th,.ticket-history-table td { text-align:left; border-bottom:1px solid #33465d; padding:12px; }
+.ticket-history-table small { display:block; color:#aabbd0; margin-top:4px; }
+.ticket-history-table .hit { color:#8ef0ca; font-weight:700; }

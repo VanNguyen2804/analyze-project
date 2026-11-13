@@ -3,7 +3,7 @@
     <div>
       <span class="eyebrow">AI LAB · DỰ ĐOÁN</span>
       <h1>Các dãy số cho kỳ tới</h1>
-      <p>Ưu tiên thuật toán có tỷ lệ kỳ khớp ≥3 số cao hơn.</p>
+      <p>Ưu tiên khớp ≥3 số lặp lại qua nhiều kỳ, kết hợp tỷ lệ và cỡ mẫu.</p>
     </div>
     <div class="category-switch" role="group" aria-label="Loại xổ số">
       <button
@@ -33,6 +33,7 @@
     </div>
   </div>
   <p class="explanation">
+    Xếp hạng ưu tiên thuật toán đã khớp ≥3 số ở ít nhất 2 kỳ, sau đó dùng điểm tỷ lệ điều chỉnh theo cỡ mẫu (cận dưới Wilson 95%). Khi bằng điểm, ưu tiên số kỳ khớp ≥3 nhiều hơn. Mẫu 1/1 được xếp sau nhóm đã khớp lặp lại. Điểm xếp hạng không phải xác suất trúng.
     Tỷ lệ tính theo <strong>kỳ có ít nhất một trong 5 vé khớp từ 3, 2 hoặc 1 số</strong>, trên toàn
     bộ kỳ đã đối soát của thuật toán, gồm các phiên bản lịch sử. Các mức có tính lũy kế; kỳ khớp 3
     số cũng được tính ở mức ≥2 và ≥1. Đây là thành tích đã ghi nhận, không phải xác suất trúng kỳ
@@ -92,9 +93,16 @@
           }
         </p>
         <div class="tickets">
-          @for (ticket of group.tickets; track ticket.id; let ticketIndex = $index) {
+          @for (ticket of prioritizedTickets(group); track ticket.id; let ticketIndex = $index) {
             <div class="ticket">
-              <span class="muted">Dãy {{ ticketIndex + 1 }}</span>
+              @let priorityInfo = priority(group, ticket.id);
+<div class="ticket-label"><span class="muted">Dãy {{ priorityInfo ? priorityInfo.slot + 1 : ticketIndex + 1 }}</span>
+@if (priorityInfo) { <span class="priority-badge">Ưu tiên {{ priorityInfo.rank }}</span> }</div>
+@if (priorityInfo) {
+<p class="priority-reason">{{ priorityReason(priorityInfo) }}</p>
+@if (level(priorityInfo.performance, 3); as hit) { <p class="priority-stat">≥3 số: {{ hit.drawHits }}/{{ priorityInfo.performance.evaluatedDraws }} kỳ · {{ hit.drawPercent === null ? 'Chưa đo' : (hit.drawPercent | number: '1.0-1') + '%' }}</p> }
+<button class="history-trigger" (click)="selectedPriority.set(priorityInfo); selectedModel.set(name(group.model)); ticketHistory.showModal()">Lý do & lịch sử ↗</button>
+} @else { <p class="priority-reason">Chưa có dữ liệu ưu tiên từng dãy.</p> }
               <div class="numbers" [attr.aria-label]="ticket.numbers.join(', ')">
                 @for (number of ticket.numbers; track number) {
                   <span>{{ number | number: '2.0-0' }}</span>
@@ -141,3 +149,16 @@
     }
   </div>
 </section>
+
+<dialog #ticketHistory aria-labelledby="ticket-history-title" class="ticket-history-dialog" (close)="selectedPriority.set(null)">
+@if (selectedPriority(); as selected) {
+<header class="dialog-heading"><div><span class="eyebrow">{{ selectedModel() }}</span><h2 id="ticket-history-title">Dãy {{ selected.slot + 1 }} · Ưu tiên {{ selected.rank }}</h2></div><button autofocus (click)="ticketHistory.close()" aria-label="Đóng lịch sử">Đóng ×</button></header>
+<p>{{ priorityReason(selected) }}</p>
+<p class="muted">Lịch sử vị trí tạo dãy qua các phiên bản, không phải lịch sử của đúng 6 số hiện tại. Ưu tiên trong cùng thuật toán: khớp ≥3 số ít nhất 2 kỳ, rồi xét tỷ lệ điều chỉnh cỡ mẫu (Wilson 95%); bằng điểm xét số kỳ khớp. Cùng thành tích giữ thứ tự vị trí. Đây không phải xác suất trúng.</p>
+@if (selected.timeline.length) {
+<div class="history-table-scroll"><table class="ticket-history-table"><caption>{{ selected.performance.evaluatedDraws }} kỳ đối soát · Mới nhất trước</caption><thead><tr><th>Kỳ / phiên bản</th><th>Dãy đã lưu</th><th>Kết quả</th><th>Khớp</th></tr></thead><tbody>
+@for (row of selected.timeline; track row.targetDate) { <tr><td>{{ row.targetDate | date: 'dd/MM/yyyy' }}<small>{{ row.modelVersion }}</small></td><td>{{ row.numbers.join(' · ') }}</td><td>{{ row.actualNumbers.join(' · ') }}</td><td [class.hit]="row.matched >= 3">{{ row.matched }}/6</td></tr> }
+</tbody></table></div>
+} @else { <p class="empty">Chưa có lịch sử đối soát cho dãy này.</p> }
+}
+</dialog>

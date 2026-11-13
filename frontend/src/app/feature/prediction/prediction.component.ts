@@ -12,7 +12,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, exhaustMap, filter, merge, switchMap, tap, timer } from 'rxjs';
 import { CategoryService } from '../../core/services/category.service';
 import { ForecastApiService } from '../../core/services/forecast-api.service';
-import { LabPredictionPerformance, LabPredictions } from '../../core/models/forecast.model';
+import { LabPredictionPerformance, LabPredictions, LabTicketPriority, LabPredictionGroup } from '../../core/models/forecast.model';
 
 @Component({
   selector: 'app-prediction',
@@ -32,6 +32,23 @@ export class PredictionComponent {
   readonly category = this.categories.category;
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly selectedPriority = signal<LabTicketPriority | null>(null);
+  readonly selectedModel = signal('');
+  prioritizedTickets(group: LabPredictionGroup) {
+    return [...group.tickets].sort((a, b) =>
+      (this.priority(group, a.id)?.rank ?? 99) - (this.priority(group, b.id)?.rank ?? 99));
+  }
+  priority(group: LabPredictionGroup, id: string) {
+    return group.ticketPriorities?.find(item => item.ticketId === id);
+  }
+  priorityReason(item: LabTicketPriority) {
+    const hits = this.level(item.performance, 3)?.drawHits ?? 0;
+    const n = item.performance.evaluatedDraws;
+    if (!n) return 'Chưa có kỳ đã đối soát để đánh giá dãy này.';
+    return hits >= 2 ? 'Đã khớp ≥3 số lặp lại; thứ tự xét cả tỷ lệ và cỡ mẫu.'
+      : hits === 1 ? 'Mới khớp ≥3 số một kỳ; cần thêm kết quả để đánh giá.'
+      : 'Chưa ghi nhận kỳ khớp ≥3 số; ưu tiên thấp hơn dãy đã khớp.';
+  }
   readonly copyMessage = signal('');
   readonly view = computed(() => {
     const value = this.response();

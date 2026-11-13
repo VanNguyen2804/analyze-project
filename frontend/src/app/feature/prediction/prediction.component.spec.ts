@@ -95,6 +95,25 @@ describe('AI Lab prediction page', () => {
     http.verify();
   }));
 
+  it('opens the selected slot history and closes the popup', fakeAsync(() => {
+    const fixture = TestBed.createComponent(PredictionComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges(); tick(0);
+    const model = group('recency', 50, 2, 4);
+    model.ticketPriorities = [{ ticketId: 'recency', slot: 2, rank: 1, performance: model.performance,
+      timeline: [{ targetDate: '2026-11-11', numbers: [1,2,3,7,8,9], actualNumbers: [1,2,3,4,5,6], matched: 3, modelVersion: 'v1' }] }];
+    http.expectOne(endpoint('MEGA')).flush(response([model])); fixture.detectChanges();
+    fixture.nativeElement.querySelector('.history-trigger').click(); fixture.detectChanges();
+    const dialog: HTMLDialogElement = fixture.nativeElement.querySelector('dialog');
+    expect(dialog.open).toBeTrue();
+    expect(dialog.textContent).toContain('Dãy 3 · Ưu tiên 1');
+    expect(dialog.textContent).toContain('3/6');
+    expect(dialog.textContent).toContain('v1');
+    (dialog.querySelector('button') as HTMLButtonElement).click(); fixture.detectChanges();
+    expect(dialog.open).toBeFalse();
+    fixture.destroy(); http.verify();
+  }));
+
   it('cancels the previous category and clears its tickets before loading POWER', fakeAsync(() => {
     const fixture = TestBed.createComponent(PredictionComponent);
     const http = TestBed.inject(HttpTestingController);

@@ -550,3 +550,12 @@ a:focus-visible {
   font-size: 12px;
   padding-bottom: 12px;
 }
+.history-tabs { display:flex; gap:8px; margin:4px 0 20px; border-bottom:1px solid #dfe7ef; }
+.history-tabs button { flex:1; border:0; border-bottom:3px solid transparent; background:transparent; padding:16px; color:#61758b; font-weight:700; cursor:pointer; }
+.history-tabs button.active { color:#245e9e; border-bottom-color:#245e9e; background:#edf5ff; }
+.research-disclosure { border:1px solid #dfe7ef; border-radius:12px; padding:16px; margin-bottom:20px; }
+.research-disclosure > summary { cursor:pointer; font-size:13px; font-weight:650; }
+.ticket-grid { grid-template-columns:1fr; gap:0; }
+.ticket-card { border:0; border-bottom:1px solid #e0e7ef; border-radius:0; padding:12px 0; }
+.ticket-balls { padding:12px 16px; }
+.number-ball { width:32px; height:32px; border-radius:7px; font-size:13px; }

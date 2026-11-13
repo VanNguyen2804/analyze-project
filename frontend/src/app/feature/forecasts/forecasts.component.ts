@@ -27,6 +27,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class ForecastsComponent implements OnInit {
   private readonly analyze = inject(AnalyzeService);
+  readonly activeView = signal<'performance' | 'history'>('performance');
   readonly category = signal<LotteryCategory>('MEGA');
   readonly busy = signal(false);
   readonly error = signal('');

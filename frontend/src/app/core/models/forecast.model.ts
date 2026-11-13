@@ -100,7 +100,15 @@ export interface LabPredictionPerformance {
   latestHitDate: string | null;
   levels: { threshold: number; drawHits: number; drawPercent: number | null }[];
 }
+export interface LabTicketPriority {
+  ticketId: string;
+  slot: number;
+  rank: number;
+  performance: LabPredictionPerformance;
+  timeline: { targetDate: string; numbers: number[]; actualNumbers: number[]; matched: number; modelVersion: string }[];
+}
 export interface LabPredictionGroup {
+  ticketPriorities?: LabTicketPriority[];
   model: string;
   modelVersion: string;
   cohort: string;
