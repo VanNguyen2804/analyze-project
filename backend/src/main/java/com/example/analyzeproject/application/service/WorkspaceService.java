@@ -174,6 +174,9 @@ public class WorkspaceService {
         return switch (model) {
             case "logistic" -> "Logistic Regression";
             case "logistic_no_feedback" -> "Logistic không feedback";
+            case "logistic_feedback_coverage" -> "Logistic + feedback + độ phủ";
+            case "logistic_concentrated" -> "Thử nghiệm ghép tập trung";
+            case "logistic_hybrid" -> "Thử nghiệm kết hợp";
             case "shrunk_frequency" -> "Tần suất làm trơn (thử nghiệm)";
             case "logistic_coverage" -> "Logistic + độ phủ (thử nghiệm)";
             default -> "Tần suất suy giảm";

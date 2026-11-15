@@ -1,0 +1,1188 @@
+{
+  "schemaVersion": "mega-lab-review-v1",
+  "targetDate": "2026-11-15",
+  "category": "MEGA",
+  "evidenceType": "READ_ONLY_PRODUCTION_SNAPSHOTS",
+  "observedAsOf": "2026-11-15T16:14:55.622944702Z",
+  "actualNumbers": [
+    6,
+    22,
+    24,
+    26,
+    40,
+    44
+  ],
+  "resultQuality": "SOURCE_MATCHED",
+  "sourceDrawId": "01589",
+  "officialVietlottIndependentlyVerified": false,
+  "apiBase": "https://analyze-project.onrender.com",
+  "sourceUrls": [
+    "https://analyze-project.onrender.com/api/ai-lab?category=MEGA&page=0",
+    "https://analyze-project.onrender.com/api/ai-lab?category=MEGA&page=1",
+    "https://analyze-project.onrender.com/api/numbers",
+    "https://analyze-project.onrender.com/api/lottery-sync/status",
+    "https://analyze-project.onrender.com/api/analyze/draw-report?category=MEGA&date=2026-11-15&algorithm=lab-logistic_coverage",
+    "https://analyze-project.onrender.com/api/analyze/draw-report?category=MEGA&date=2026-11-15&algorithm=lab-logistic",
+    "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl"
+  ],
+  "rawResponseSha256": {
+    "lab-page0.json": "5984268343616cc9546f2d47a244f2c917f58d824a4764511725199e0b0d9f4f",
+    "lab-page1.json": "0ed1773c01c3c88d2fb0df03151d6822a0e1748272767252e95c567fb8391e99",
+    "numbers.json": "995db659cd57c17b15b6405381ced63db8463da9812b8093fd95a3329704fc35",
+    "sync.json": "6e299896e1023b110da47868a799383f4cd5abdcf4d7aa01c99e6d31341c2663",
+    "feed.jsonl": "5b4c5645502ea45e25a9f176df3a817551819b44a6d22d2fba00b5d87b9fef5e",
+    "draw-report-coverage.json": "18b6ccc9317978e12802aa976d9bfe20ba024976119701c4f9781a94a28dcb7f",
+    "draw-report-logistic.json": "18f0e0b4116f31a77205151ccb514e07acab57f02c6ae92d07de94e9edf89ce5"
+  },
+  "models": [
+    {
+      "model": "logistic",
+      "cohort": "MEGA|logistic|ai-lab-dense-feedback-v2|c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0|9aaaaa09921950424e63a720291f42316552067db28c85ac0ab3f0a0f05d18e3",
+      "budget": 5,
+      "uniqueNumbers": [
+        3,
+        5,
+        8,
+        10,
+        11,
+        12,
+        15,
+        18,
+        21,
+        22,
+        24,
+        25,
+        27,
+        28,
+        29,
+        31,
+        33,
+        34,
+        35,
+        36,
+        37,
+        41,
+        42,
+        44
+      ],
+      "uniqueNumberCount": 24,
+      "coveredWinningNumbers": [
+        22,
+        24,
+        44
+      ],
+      "bestTicketMatched": 2,
+      "averageMatched": 0.8,
+      "frequencyMatchedBySlot": [
+        2,
+        1,
+        0,
+        0,
+        1
+      ],
+      "randomMatchedBySlot": [
+        2,
+        0,
+        2,
+        1,
+        0
+      ],
+      "tickets": [
+        {
+          "id": "MEGA:2026-11-15:lab-logistic-0",
+          "numbers": [
+            8,
+            12,
+            24,
+            27,
+            29,
+            35
+          ],
+          "matchedNumbers": [
+            24
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:26.012709237Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic-1",
+          "numbers": [
+            10,
+            18,
+            25,
+            35,
+            37,
+            41
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:26.012709237Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic-2",
+          "numbers": [
+            5,
+            11,
+            18,
+            21,
+            33,
+            44
+          ],
+          "matchedNumbers": [
+            44
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:26.012709237Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic-3",
+          "numbers": [
+            8,
+            15,
+            28,
+            34,
+            36,
+            42
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:26.012709237Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic-4",
+          "numbers": [
+            3,
+            22,
+            24,
+            31,
+            33,
+            42
+          ],
+          "matchedNumbers": [
+            22,
+            24
+          ],
+          "matched": 2,
+          "createdAt": "2026-11-13T15:15:26.012709237Z"
+        }
+      ]
+    },
+    {
+      "model": "logistic_coverage",
+      "cohort": "MEGA|logistic_coverage|ai-lab-dense-feedback-v2|c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0|3783b02a2e4094ca1ff24024503476bc5beffda3df2fa0b3dce6942171984803",
+      "budget": 5,
+      "uniqueNumbers": [
+        1,
+        2,
+        4,
+        6,
+        7,
+        8,
+        10,
+        11,
+        12,
+        13,
+        15,
+        16,
+        17,
+        18,
+        19,
+        21,
+        22,
+        24,
+        26,
+        27,
+        28,
+        29,
+        32,
+        33,
+        34,
+        35,
+        37,
+        42,
+        44
+      ],
+      "uniqueNumberCount": 29,
+      "coveredWinningNumbers": [
+        6,
+        22,
+        24,
+        26,
+        44
+      ],
+      "bestTicketMatched": 2,
+      "averageMatched": 1.0,
+      "frequencyMatchedBySlot": [
+        2,
+        1,
+        0,
+        0,
+        1
+      ],
+      "randomMatchedBySlot": [
+        2,
+        0,
+        2,
+        1,
+        0
+      ],
+      "tickets": [
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_coverage-0",
+          "numbers": [
+            8,
+            12,
+            24,
+            27,
+            29,
+            35
+          ],
+          "matchedNumbers": [
+            24
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:29.917880217Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_coverage-1",
+          "numbers": [
+            7,
+            16,
+            22,
+            27,
+            32,
+            34
+          ],
+          "matchedNumbers": [
+            22
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:29.917880217Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_coverage-2",
+          "numbers": [
+            13,
+            17,
+            18,
+            19,
+            21,
+            42
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:29.917880217Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_coverage-3",
+          "numbers": [
+            4,
+            11,
+            26,
+            28,
+            37,
+            44
+          ],
+          "matchedNumbers": [
+            26,
+            44
+          ],
+          "matched": 2,
+          "createdAt": "2026-11-13T15:15:29.917880217Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_coverage-4",
+          "numbers": [
+            1,
+            2,
+            6,
+            10,
+            15,
+            33
+          ],
+          "matchedNumbers": [
+            6
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:29.917880217Z"
+        }
+      ]
+    },
+    {
+      "model": "logistic_feedback_coverage",
+      "cohort": "MEGA|logistic_feedback_coverage|ai-lab-dense-feedback-v2|c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0|e4dacf5c0d3b1d6995f0b67c1939449483dc203d17b4a16e703b9f18743a5e4a",
+      "budget": 5,
+      "uniqueNumbers": [
+        3,
+        4,
+        6,
+        7,
+        8,
+        10,
+        12,
+        13,
+        14,
+        16,
+        17,
+        18,
+        21,
+        23,
+        24,
+        26,
+        27,
+        29,
+        30,
+        31,
+        32,
+        35,
+        36,
+        38,
+        39,
+        41,
+        42,
+        43,
+        44,
+        45
+      ],
+      "uniqueNumberCount": 30,
+      "coveredWinningNumbers": [
+        6,
+        24,
+        26,
+        44
+      ],
+      "bestTicketMatched": 2,
+      "averageMatched": 0.8,
+      "frequencyMatchedBySlot": [
+        2,
+        1,
+        0,
+        0,
+        1
+      ],
+      "randomMatchedBySlot": [
+        2,
+        0,
+        2,
+        1,
+        0
+      ],
+      "tickets": [
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_feedback_coverage-0",
+          "numbers": [
+            8,
+            12,
+            24,
+            27,
+            29,
+            35
+          ],
+          "matchedNumbers": [
+            24
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:31.719301649Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_feedback_coverage-1",
+          "numbers": [
+            17,
+            26,
+            32,
+            42,
+            43,
+            44
+          ],
+          "matchedNumbers": [
+            26,
+            44
+          ],
+          "matched": 2,
+          "createdAt": "2026-11-13T15:15:31.719301649Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_feedback_coverage-2",
+          "numbers": [
+            3,
+            4,
+            10,
+            14,
+            16,
+            23
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:31.719301649Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_feedback_coverage-3",
+          "numbers": [
+            18,
+            31,
+            36,
+            38,
+            39,
+            45
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:31.719301649Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_feedback_coverage-4",
+          "numbers": [
+            6,
+            7,
+            13,
+            21,
+            30,
+            41
+          ],
+          "matchedNumbers": [
+            6
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:31.719301649Z"
+        }
+      ]
+    },
+    {
+      "model": "logistic_no_feedback",
+      "cohort": "MEGA|logistic_no_feedback|ai-lab-dense-feedback-v2|c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0|2cf6831e8a16a8c7134209bdf2e076189d4bf957022713bff4b05b6624b029c2",
+      "budget": 5,
+      "uniqueNumbers": [
+        3,
+        5,
+        8,
+        10,
+        11,
+        12,
+        15,
+        18,
+        21,
+        22,
+        24,
+        25,
+        27,
+        28,
+        29,
+        31,
+        33,
+        34,
+        35,
+        36,
+        37,
+        41,
+        42,
+        44
+      ],
+      "uniqueNumberCount": 24,
+      "coveredWinningNumbers": [
+        22,
+        24,
+        44
+      ],
+      "bestTicketMatched": 2,
+      "averageMatched": 0.8,
+      "frequencyMatchedBySlot": [
+        2,
+        1,
+        0,
+        0,
+        1
+      ],
+      "randomMatchedBySlot": [
+        2,
+        0,
+        2,
+        1,
+        0
+      ],
+      "tickets": [
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_no_feedback-0",
+          "numbers": [
+            8,
+            12,
+            24,
+            27,
+            29,
+            35
+          ],
+          "matchedNumbers": [
+            24
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:26.913939402Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_no_feedback-1",
+          "numbers": [
+            10,
+            18,
+            25,
+            35,
+            37,
+            41
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:26.913939402Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_no_feedback-2",
+          "numbers": [
+            5,
+            11,
+            18,
+            21,
+            33,
+            44
+          ],
+          "matchedNumbers": [
+            44
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:26.913939402Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_no_feedback-3",
+          "numbers": [
+            8,
+            15,
+            28,
+            34,
+            36,
+            42
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:26.913939402Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-logistic_no_feedback-4",
+          "numbers": [
+            3,
+            22,
+            24,
+            31,
+            33,
+            42
+          ],
+          "matchedNumbers": [
+            22,
+            24
+          ],
+          "matched": 2,
+          "createdAt": "2026-11-13T15:15:26.913939402Z"
+        }
+      ]
+    },
+    {
+      "model": "recency",
+      "cohort": "MEGA|recency|ai-lab-dense-feedback-v2|c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0|2cf6831e8a16a8c7134209bdf2e076189d4bf957022713bff4b05b6624b029c2",
+      "budget": 5,
+      "uniqueNumbers": [
+        1,
+        2,
+        7,
+        10,
+        11,
+        14,
+        20,
+        22,
+        23,
+        25,
+        28,
+        31,
+        33,
+        36,
+        38,
+        39,
+        40,
+        41,
+        43
+      ],
+      "uniqueNumberCount": 19,
+      "coveredWinningNumbers": [
+        22,
+        40
+      ],
+      "bestTicketMatched": 1,
+      "averageMatched": 0.4,
+      "frequencyMatchedBySlot": [
+        2,
+        1,
+        0,
+        0,
+        1
+      ],
+      "randomMatchedBySlot": [
+        2,
+        0,
+        2,
+        1,
+        0
+      ],
+      "tickets": [
+        {
+          "id": "MEGA:2026-11-15:lab-recency-0",
+          "numbers": [
+            1,
+            7,
+            14,
+            20,
+            36,
+            40
+          ],
+          "matchedNumbers": [
+            40
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:27.514091320Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-recency-1",
+          "numbers": [
+            2,
+            10,
+            22,
+            23,
+            28,
+            39
+          ],
+          "matchedNumbers": [
+            22
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:27.514091320Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-recency-2",
+          "numbers": [
+            14,
+            20,
+            25,
+            38,
+            39,
+            41
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:27.514091320Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-recency-3",
+          "numbers": [
+            2,
+            11,
+            20,
+            31,
+            41,
+            43
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:27.514091320Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-recency-4",
+          "numbers": [
+            1,
+            11,
+            20,
+            31,
+            33,
+            38
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:27.514091320Z"
+        }
+      ]
+    },
+    {
+      "model": "shrunk_frequency",
+      "cohort": "MEGA|shrunk_frequency|ai-lab-dense-feedback-v2|c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0|61a32cc56cffe97c53c29ddb2c3c66d7a2931d015905aedbefa333353bc65faf",
+      "budget": 5,
+      "uniqueNumbers": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        19,
+        20,
+        22,
+        23,
+        24,
+        25,
+        30,
+        35,
+        36,
+        40,
+        41
+      ],
+      "uniqueNumberCount": 23,
+      "coveredWinningNumbers": [
+        6,
+        22,
+        24,
+        40
+      ],
+      "bestTicketMatched": 2,
+      "averageMatched": 1.0,
+      "frequencyMatchedBySlot": [
+        2,
+        1,
+        0,
+        0,
+        1
+      ],
+      "randomMatchedBySlot": [
+        2,
+        0,
+        2,
+        1,
+        0
+      ],
+      "tickets": [
+        {
+          "id": "MEGA:2026-11-15:lab-shrunk_frequency-0",
+          "numbers": [
+            3,
+            6,
+            15,
+            20,
+            36,
+            40
+          ],
+          "matchedNumbers": [
+            6,
+            40
+          ],
+          "matched": 2,
+          "createdAt": "2026-11-13T15:15:28.014034445Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-shrunk_frequency-1",
+          "numbers": [
+            3,
+            10,
+            22,
+            23,
+            25,
+            30
+          ],
+          "matchedNumbers": [
+            22
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:28.014034445Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-shrunk_frequency-2",
+          "numbers": [
+            1,
+            2,
+            11,
+            12,
+            25,
+            40
+          ],
+          "matchedNumbers": [
+            40
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:28.014034445Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-shrunk_frequency-3",
+          "numbers": [
+            3,
+            5,
+            9,
+            13,
+            19,
+            24
+          ],
+          "matchedNumbers": [
+            24
+          ],
+          "matched": 1,
+          "createdAt": "2026-11-13T15:15:28.014034445Z"
+        },
+        {
+          "id": "MEGA:2026-11-15:lab-shrunk_frequency-4",
+          "numbers": [
+            11,
+            14,
+            25,
+            30,
+            35,
+            41
+          ],
+          "matchedNumbers": [],
+          "matched": 0,
+          "createdAt": "2026-11-13T15:15:28.014034445Z"
+        }
+      ]
+    }
+  ],
+  "coverageDiagnostics": {
+    "unionHits": 5,
+    "bestTicketHits": 2,
+    "descriptiveAssemblyGap": 3,
+    "uniqueNumberCount": 29,
+    "coveredTriples": 100,
+    "coveredQuadruples": 75,
+    "coveredQuintuples": 30,
+    "repeatedNumberUsage": {
+      "27": 2
+    },
+    "pairwiseOverlap": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "frozenEvidence": {
+    "id": "MEGA:2026-11-15:lab-logistic_coverage-0",
+    "source": "AI_LAB",
+    "algorithm": "lab-logistic_coverage",
+    "createdAt": "2026-11-13T15:15:29.917880217Z",
+    "modelVersion": "ai-lab-dense-feedback-v2",
+    "codeVersion": "c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0",
+    "configurationHash": "3783b02a2e4094ca1ff24024503476bc5beffda3df2fa0b3dce6942171984803",
+    "trainingThrough": "2026-11-13",
+    "historyHash": "1f049efeb64416eb6ad1266cf49d2911325b3c937f7b574d716d8852905179cc",
+    "numbers": [
+      8,
+      12,
+      24,
+      27,
+      29,
+      35
+    ],
+    "explanationStatus": "AVAILABLE",
+    "selectionPolicy": "quad-coverage-v1",
+    "selectionConstraints": {
+      "primaryWeight": null,
+      "keep": [],
+      "exclude": []
+    },
+    "historyCount": 47,
+    "scoringPolicy": "logistic_coverage",
+    "modelWeights": {
+      "decay10": -0.003741210769272015,
+      "frequency": -0.00030823659069910593,
+      "gap30": 0.0014261003381382477,
+      "intercept": -1.8710126592838296,
+      "recent10": -0.007953258085735408
+    }
+  },
+  "winningNumberDetails": [
+    {
+      "number": 6,
+      "rank": 7,
+      "score": 0.1334496808108634,
+      "scoreType": "uncalibrated_model_score",
+      "frequency": 9,
+      "drawGap": 13,
+      "evidenceId": "MEGA:2026-11-15:lab-logistic_coverage-0",
+      "note": "Xếp hạng đã lưu trước kỳ; điểm nội bộ không phải xác suất trúng.",
+      "features": {
+        "decay10": 0.09141124104244336,
+        "frequency": 0.19148936170212766,
+        "gap30": 0.43333333333333335,
+        "intercept": 1.0,
+        "recent10": 0.0
+      }
+    },
+    {
+      "number": 22,
+      "rank": 40,
+      "score": 0.1330959464789312,
+      "scoreType": "uncalibrated_model_score",
+      "frequency": 8,
+      "drawGap": 6,
+      "evidenceId": "MEGA:2026-11-15:lab-logistic_coverage-0",
+      "note": "Xếp hạng đã lưu trước kỳ; điểm nội bộ không phải xác suất trúng.",
+      "features": {
+        "decay10": 0.1850077712788352,
+        "frequency": 0.1702127659574468,
+        "gap30": 0.2,
+        "intercept": 1.0,
+        "recent10": 0.3
+      }
+    },
+    {
+      "number": 24,
+      "rank": 2,
+      "score": 0.13351813019273903,
+      "scoreType": "uncalibrated_model_score",
+      "frequency": 2,
+      "drawGap": 19,
+      "evidenceId": "MEGA:2026-11-15:lab-logistic_coverage-0",
+      "note": "Xếp hạng đã lưu trước kỳ; điểm nội bộ không phải xác suất trúng.",
+      "features": {
+        "decay10": 0.021739299013144166,
+        "frequency": 0.0425531914893617,
+        "gap30": 0.6333333333333333,
+        "intercept": 1.0,
+        "recent10": 0.0
+      }
+    },
+    {
+      "number": 26,
+      "rank": 8,
+      "score": 0.13344946568804764,
+      "scoreType": "uncalibrated_model_score",
+      "frequency": 6,
+      "drawGap": 12,
+      "evidenceId": "MEGA:2026-11-15:lab-logistic_coverage-0",
+      "note": "Xếp hạng đã lưu trước kỳ; điểm nội bộ không phải xác suất trúng.",
+      "features": {
+        "decay10": 0.08446115567022648,
+        "frequency": 0.1276595744680851,
+        "gap30": 0.4,
+        "intercept": 1.0,
+        "recent10": 0.0
+      }
+    },
+    {
+      "number": 40,
+      "rank": 44,
+      "score": 0.13296127274110567,
+      "scoreType": "uncalibrated_model_score",
+      "frequency": 10,
+      "drawGap": 4,
+      "evidenceId": "MEGA:2026-11-15:lab-logistic_coverage-0",
+      "note": "Xếp hạng đã lưu trước kỳ; điểm nội bộ không phải xác suất trúng.",
+      "features": {
+        "decay10": 0.2556237749409257,
+        "frequency": 0.2127659574468085,
+        "gap30": 0.13333333333333333,
+        "intercept": 1.0,
+        "recent10": 0.4
+      }
+    },
+    {
+      "number": 44,
+      "rank": 10,
+      "score": 0.1334296988635682,
+      "scoreType": "uncalibrated_model_score",
+      "frequency": 5,
+      "drawGap": 10,
+      "evidenceId": "MEGA:2026-11-15:lab-logistic_coverage-0",
+      "note": "Xếp hạng đã lưu trước kỳ; điểm nội bộ không phải xác suất trúng.",
+      "features": {
+        "decay10": 0.10649377742267763,
+        "frequency": 0.10638297872340426,
+        "gap30": 0.3333333333333333,
+        "intercept": 1.0,
+        "recent10": 0.0
+      }
+    }
+  ],
+  "top12": [
+    {
+      "number": 8,
+      "rank": 1,
+      "score": 0.13358716840350907
+    },
+    {
+      "number": 24,
+      "rank": 2,
+      "score": 0.13351813019273903
+    },
+    {
+      "number": 27,
+      "rank": 3,
+      "score": 0.13347278974671736
+    },
+    {
+      "number": 29,
+      "rank": 4,
+      "score": 0.13346790472808248
+    },
+    {
+      "number": 35,
+      "rank": 5,
+      "score": 0.1334671191532463
+    },
+    {
+      "number": 12,
+      "rank": 6,
+      "score": 0.13346481825036463
+    },
+    {
+      "number": 6,
+      "rank": 7,
+      "score": 0.1334496808108634
+    },
+    {
+      "number": 26,
+      "rank": 8,
+      "score": 0.13344946568804764
+    },
+    {
+      "number": 16,
+      "rank": 9,
+      "score": 0.13344806795511374
+    },
+    {
+      "number": 44,
+      "rank": 10,
+      "score": 0.1334296988635682
+    },
+    {
+      "number": 42,
+      "rank": 11,
+      "score": 0.13335182277199767
+    },
+    {
+      "number": 32,
+      "rank": 12,
+      "score": 0.13335038585596226
+    }
+  ],
+  "scoreRange": [
+    0.13293558937319608,
+    0.13358716840350907
+  ],
+  "coverageEvaluationByCohort": [
+    {
+      "cohort": "AI_LAB|lab-logistic_coverage|ai-lab-dense-feedback-v2|1a11b41a57c75d10298843161c1aad8e67af4ab66ccfab5edcb2cbbc879a0279|3783b02a2e4094ca1ff24024503476bc5beffda3df2fa0b3dce6942171984803",
+      "source": "AI_LAB",
+      "algorithm": "lab-logistic_coverage",
+      "modelVersion": "ai-lab-dense-feedback-v2",
+      "ticketBudget": 5,
+      "evaluatedDraws": 1,
+      "firstDate": "2026-11-11",
+      "lastDate": "2026-11-11",
+      "averageMatched": 0.6,
+      "bestMatchedAverage": 1.0,
+      "coverageAverage": 3.0,
+      "hit3RatePercent": 0.0,
+      "hit4RatePercent": 0.0,
+      "frequencyAverageMatched": 0.8,
+      "randomAverageMatched": 1.6,
+      "pairedDraws": 1,
+      "pairedDifferenceVsFrequency": -0.20000000000000007,
+      "approximate95PercentInterval": null,
+      "evidenceStatus": "INSUFFICIENT_SAMPLE"
+    },
+    {
+      "cohort": "AI_LAB|lab-logistic_coverage|ai-lab-dense-feedback-v2|2d5d6d1f2a97547141a98d2672a4e160e959718b657b3053c7937c78d3b374dd|3783b02a2e4094ca1ff24024503476bc5beffda3df2fa0b3dce6942171984803",
+      "source": "AI_LAB",
+      "algorithm": "lab-logistic_coverage",
+      "modelVersion": "ai-lab-dense-feedback-v2",
+      "ticketBudget": 5,
+      "evaluatedDraws": 0,
+      "firstDate": null,
+      "lastDate": null,
+      "averageMatched": null,
+      "bestMatchedAverage": null,
+      "coverageAverage": null,
+      "hit3RatePercent": null,
+      "hit4RatePercent": null,
+      "frequencyAverageMatched": null,
+      "randomAverageMatched": null,
+      "pairedDraws": 0,
+      "pairedDifferenceVsFrequency": null,
+      "approximate95PercentInterval": null,
+      "evidenceStatus": "INSUFFICIENT_SAMPLE"
+    },
+    {
+      "cohort": "AI_LAB|lab-logistic_coverage|ai-lab-dense-feedback-v2|48fa3d494b737d09f8be7575c912e1d959722147c2c955b3a55cb8bb2ec7ef35|3783b02a2e4094ca1ff24024503476bc5beffda3df2fa0b3dce6942171984803",
+      "source": "AI_LAB",
+      "algorithm": "lab-logistic_coverage",
+      "modelVersion": "ai-lab-dense-feedback-v2",
+      "ticketBudget": 5,
+      "evaluatedDraws": 1,
+      "firstDate": "2026-11-13",
+      "lastDate": "2026-11-13",
+      "averageMatched": 1.0,
+      "bestMatchedAverage": 2.0,
+      "coverageAverage": 5.0,
+      "hit3RatePercent": 0.0,
+      "hit4RatePercent": 0.0,
+      "frequencyAverageMatched": 0.4,
+      "randomAverageMatched": 0.8,
+      "pairedDraws": 1,
+      "pairedDifferenceVsFrequency": 0.6,
+      "approximate95PercentInterval": null,
+      "evidenceStatus": "INSUFFICIENT_SAMPLE"
+    },
+    {
+      "cohort": "AI_LAB|lab-logistic_coverage|ai-lab-dense-feedback-v2|9ee2c805f1d81d1b9eaf503fbc82130b367377981dbe6178005f67ce85f1959c|3783b02a2e4094ca1ff24024503476bc5beffda3df2fa0b3dce6942171984803",
+      "source": "AI_LAB",
+      "algorithm": "lab-logistic_coverage",
+      "modelVersion": "ai-lab-dense-feedback-v2",
+      "ticketBudget": 5,
+      "evaluatedDraws": 1,
+      "firstDate": "2026-11-08",
+      "lastDate": "2026-11-08",
+      "averageMatched": 0.6,
+      "bestMatchedAverage": 1.0,
+      "coverageAverage": 3.0,
+      "hit3RatePercent": 0.0,
+      "hit4RatePercent": 0.0,
+      "frequencyAverageMatched": 0.8,
+      "randomAverageMatched": 1.2,
+      "pairedDraws": 1,
+      "pairedDifferenceVsFrequency": -0.20000000000000007,
+      "approximate95PercentInterval": null,
+      "evidenceStatus": "INSUFFICIENT_SAMPLE"
+    },
+    {
+      "cohort": "AI_LAB|lab-logistic_coverage|ai-lab-dense-feedback-v2|c7140edc63b9b708ab43c68fcb123723381e3c047e9bd5fdc4699aff5d1d67d0|3783b02a2e4094ca1ff24024503476bc5beffda3df2fa0b3dce6942171984803",
+      "source": "AI_LAB",
+      "algorithm": "lab-logistic_coverage",
+      "modelVersion": "ai-lab-dense-feedback-v2",
+      "ticketBudget": 5,
+      "evaluatedDraws": 1,
+      "firstDate": "2026-11-15",
+      "lastDate": "2026-11-15",
+      "averageMatched": 1.0,
+      "bestMatchedAverage": 2.0,
+      "coverageAverage": 5.0,
+      "hit3RatePercent": 0.0,
+      "hit4RatePercent": 0.0,
+      "frequencyAverageMatched": 0.8,
+      "randomAverageMatched": 1.0,
+      "pairedDraws": 1,
+      "pairedDifferenceVsFrequency": 0.19999999999999996,
+      "approximate95PercentInterval": null,
+      "evidenceStatus": "INSUFFICIENT_SAMPLE"
+    }
+  ],
+  "uniformUnionReference": {
+    "assumption": "One fixed set of 29 numbers selected before an independent uniform six-of-45 draw; not a ticket win probability or a selection-adjusted significance test.",
+    "expectedCoveredWinners": 3.8666666666666667,
+    "probabilityCoverAtLeastFive": 0.2916000618779972,
+    "formula": "[C(29,5)*C(16,1)+C(29,6)]/C(45,6)"
+  },
+  "limitations": [
+    "Production exposes logistic_feedback_coverage, absent from the current local MODELS list; historical deployment source identity must be reconciled before implementation.",
+    "No model was refit; no POST, database write, forecast capture, reconciliation or deployment was performed.",
+    "The observed draw is development evidence for any newly proposed generator, never an untouched validation result.",
+    "Top-K retention and the assembly gap describe outcomes; neither proves predictable missing winners or a feasible guaranteed improvement with five tickets."
+  ]
+}

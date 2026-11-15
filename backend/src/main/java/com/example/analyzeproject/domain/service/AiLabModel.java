@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 public final class AiLabModel {
     public static final String VERSION = "ai-lab-dense-feedback-v2";
     public static final int BUDGET = 5;
-    public static final List<String> MODELS = List.of("logistic", "logistic_no_feedback", "recency", "shrunk_frequency", "logistic_coverage");
+    public static final List<String> MODELS = List.of("logistic", "logistic_no_feedback", "recency", "shrunk_frequency", "logistic_coverage", "logistic_feedback_coverage", "logistic_concentrated", "logistic_hybrid");
     private AiLabModel() {}
     public record Fit(double[] scores, double[][] features, double[] weights) {}
     public record TrainingPolicy(int epochs, double learningRate, double l2, int featureMask, int windowDraws) {
@@ -83,7 +83,7 @@ public final class AiLabModel {
     }
     public static Fit fit(List<LotteryNumber> input, String category, String model, TrainingPolicy policy) {
         if (!Set.of("MEGA", "POWER").contains(category)) throw new IllegalArgumentException("Invalid category");
-        if (Set.of("logistic_no_feedback", "logistic_coverage").contains(model)) model = "logistic";
+        if (Set.of("logistic_no_feedback", "logistic_coverage", "logistic_feedback_coverage", "logistic_concentrated", "logistic_hybrid").contains(model)) model = "logistic";
         var rows = DrawQuality.history(input).stream().filter(r -> category.equals(r.getCategory()))
                 .sorted(Comparator.comparing(LotteryNumber::getDrawDate)).toList();
         if (policy.windowDraws() > 0) rows = rows.subList(Math.max(0, rows.size() - policy.windowDraws()), rows.size());

@@ -1,5 +1,17 @@
 # Hiện trạng và hướng phát triển dự án
 
+## AI Lab và trang Dự đoán — Ghép vé thử nghiệm 15/11/2026
+
+Đã thêm `logistic_concentrated` (năm vé top 12), `logistic_hybrid` (ba vé top 12, hai vé phủ rộng) dùng cùng Logistic không feedback, snapshot/version riêng và đối chứng năm vé. Bổ sung source `logistic_feedback_coverage` với hash mới, giữ bản chốt production cũ. Lab thêm diagnostics độ phủ/vé tốt nhất/top-K và bảng phân tán; projection giữ ranking slot 0. Trang Dự đoán đọc endpoint đúng kỳ/đủ batch, hiển thị khối và bóng số tím, sao chép sáu số, hủy request khi đổi loại. Workspace/review nhận diện nguồn mới.
+
+[Triển khai và kiểm chứng](backend/docs/AI_LAB_CONCENTRATION_IMPLEMENTATION.md), [replay năm vé](backend/docs/reports/concentration-study-2026-11-15.json): 48 kỳ MEGA hợp lệ từ bản xuất production, 19 kỳ outer; tập trung/kết hợp khớp TB 0,884/0,853 so coverage 0,811, nhưng mọi nhóm đều 0/19 kỳ có vé ≥4. Đối chứng xáo số của kết hợp đạt 0,895; chưa chứng minh cải thiện khả năng trúng. Top 12 là policy khám phá cố định, chưa chọn tối ưu/đăng ký xác nhận; không tự promote. Angular typecheck/102 test/build và Maven clean install với PostgreSQL thật/Onion đạt. Browser desktop/390 px đủ dãy/màu, không overflow/runtime error. Chưa triển khai hosting hoặc tích lũy kết quả tương lai cho hai ứng viên.
+
+## AI Lab MEGA 15/11/2026 — Phủ năm số nhưng phân tán trên vé
+
+Đã đọc production và đối chiếu snapshot trước kỳ: `logistic_coverage` phủ 06, 22, 24, 26, 44 trên năm vé, nhưng vé tốt nhất chỉ khớp hai số. Nhóm chọn 29 số khác nhau; ranking đã lưu của sáu số kết quả 06/22/24/26/40/44 lần lượt là 7/40/2/8/44/10. Học từ 47 kỳ đến 13/11; điểm gần phẳng, generator `quad-coverage-v1` thưởng phủ bộ ba/bốn và phạt lặp. Không thể kết luận chỉ cần gom top số là đạt vé 5/6.
+
+[Kế hoạch và phân tích](backend/docs/AI_LAB_MEGA_CONCENTRATION_PLAN.md) ưu tiên chẩn đoán ranking/ghép vé, so generator tập trung và kết hợp trên cùng scorer/ngân sách năm vé, rồi xác nhận theo thời gian. [JSON bằng chứng](backend/docs/reports/mega-lab-review-2026-11-15.json) giữ 30 vé của sáu model và metadata. Production có thêm `logistic_feedback_coverage` chưa có trong danh sách model của checkout hiện tại; phải đối chiếu source triển khai trước khi sửa. Kết quả `SOURCE_MATCHED` với feed cộng đồng, chưa xác minh độc lập Vietlott. Chưa sửa ứng dụng, cấu hình, dữ liệu hoặc triển khai; chưa có benchmark mới hay bằng chứng cải thiện xác suất trúng.
+
 ## Stock, AI Lab và Analyze: tác vụ bất đồng bộ — 08/11/2026
 
 Frontend dùng `async=true`, nhận mã job và poll nhẹ; có health check dùng chung khi backend khởi động, hủy polling khi đổi trang/đầu vào, giữ kết quả khi refresh. Stock có worker/cache RAM riêng; AI Lab và Analyze dùng hàng đợi PostgreSQL có giới hạn, chống chạy trùng, lease/claim token và cache theo revision dữ liệu/kỳ/code. V16 thêm hàng đợi và revision trigger; V17 thêm projection Lab đã kiểm tra hợp lệ, phiên bản projection và index phân trang SQL. Analyze chỉ đọc Lab của đúng kỳ. Profile `worker` cho phép chạy một Render Background Worker không mở HTTP; cấu hình mặc định vẫn giữ một backend, không tự tạo compute trả phí. Chưa đo p95 production hoặc triển khai lên Render. Xem [API, giới hạn và các bước Render](backend/docs/ASYNC_PAGE_JOBS.md).

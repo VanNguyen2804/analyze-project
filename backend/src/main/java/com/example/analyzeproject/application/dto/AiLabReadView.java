@@ -16,6 +16,7 @@ public record AiLabReadView(List<Snapshot> forecasts, List<Map<String,Object>> s
             if(original.containsKey(key))small.put(key,original.get(key));
         if(original.get("explanation") instanceof Map<?,?> explanation) {
             Map<String,Object> projected=new LinkedHashMap<>();
+            if(original.get("slot") instanceof Number slot && slot.intValue()==0 && explanation.get("ranking") instanceof List<?> ranking) projected.put("ranking",ranking);
             if(original.get("slot") instanceof Number slot && slot.intValue()==0 && explanation.get("details") instanceof List<?> details) projected.put("details",details.stream().map(item->{
                 if(!(item instanceof Map<?,?> detail))return item;
                 Map<String,Object> value=new LinkedHashMap<>();value.put("number",detail.get("number"));value.put("score",detail.get("score"));return value;

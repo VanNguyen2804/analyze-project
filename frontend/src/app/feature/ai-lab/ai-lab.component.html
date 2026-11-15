@@ -180,6 +180,37 @@
                     <dd>{{ percent(group.previous30Percent) }}</dd>
                   </div>
                 </dl>
+                @if (group.assembly?.length) {
+                  <table aria-label="Độ phủ và mức tập trung từng kỳ">
+                    <caption>
+                      Phân tán số đúng ·
+                      {{
+                        group.assembly!.length
+                      }}
+                      kỳ
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th>Kỳ</th>
+                        <th>Số đã chọn</th>
+                        <th>Phủ đúng</th>
+                        <th>Vé tốt nhất</th>
+                        <th>Chênh lệch</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (draw of group.assembly; track draw.targetDate) {
+                        <tr>
+                          <td>{{ draw.targetDate | date: 'dd/MM/yyyy' }}</td>
+                          <td>{{ draw.uniqueNumberCount }}</td>
+                          <td>{{ draw.unionHits }}/6</td>
+                          <td>{{ draw.bestTicketHits }}/6</td>
+                          <td>{{ draw.assemblyGap }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                }
                 @if (group.feedbackComparison; as comparison) {
                   <p>
                     So sánh feedback: {{ comparison.pairedDraws }} kỳ có đủ hai bản cùng lịch sử và

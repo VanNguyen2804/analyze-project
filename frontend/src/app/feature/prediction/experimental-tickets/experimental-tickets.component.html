@@ -1,0 +1,46 @@
+<section class="experiment" aria-label="Vé thử nghiệm ghép tập trung" [attr.aria-busy]="loading()">
+  <header>
+    <div>
+      <span class="badge">THỬ NGHIỆM · {{ category() }}</span>
+      <h2>Ghép số tập trung</h2>
+    </div>
+    <span>{{ rows().length }} dãy đã chốt</span>
+  </header>
+  <p>
+    Cùng mô hình Logistic, thử hai cách ghép với ngân sách 5 vé mỗi nhóm. Đang đo hiệu quả trên các
+    kỳ tiếp theo.
+  </p>
+  @if (error()) {
+    <p role="status">{{ error() }}</p>
+  }
+  @if (loading() && !rows().length) {
+    <p role="status">Đang tải vé thử nghiệm…</p>
+  } @else if (!rows().length && !error()) {
+    <p class="empty">Chưa có bộ vé thử nghiệm đã chốt cho kỳ tới. Chờ AI Lab cập nhật.</p>
+  }
+  @for (group of groups(); track group.key) {
+    <section class="group">
+      <h3>{{ name(group.model) }}</h3>
+      @if (group.tickets[0].experimentPolicy; as policy) {
+        <p>
+          {{ policy.focusedTickets }} vé từ top {{ policy.topK }} ·
+          {{ group.tickets.length - policy.focusedTickets }} vé phủ rộng
+        </p>
+      }
+      <p>Kỳ {{ group.date | date: 'dd/MM/yyyy' }} · {{ group.tickets.length }} vé</p>
+      <div class="tickets">
+        @for (ticket of group.tickets; track ticket.id; let index = $index) {
+          <article>
+            <span>Dãy thử nghiệm {{ index + 1 }}</span>
+            <div class="numbers">
+              @for (number of ticket.numbers; track number) {
+                <span>{{ number < 10 ? '0' + number : number }}</span>
+              }
+            </div>
+            <button type="button" (click)="copy(ticket)">Sao chép</button>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</section>

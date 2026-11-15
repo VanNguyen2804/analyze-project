@@ -4,6 +4,8 @@ Stock, AI Lab v? Analyze d?ng health check chung r?i nh?n/poll t?c v? n?n; tr?ng
 
 Frontend dùng Angular 22.2.0 với standalone components, OnPush và lazy routes. Các package Angular runtime/compiler/CLI/builder được chốt cùng phiên bản trong package và lockfile. Mã nguồn chia thành `src/app/core/`, `feature/`, `share/`; route cấu hình trong `src/app/app.routes.ts`.
 
+Trang Dự đoán có `feature/prediction/experimental-tickets/` hiển thị hai bộ vé tập trung/kết hợp đã chốt trong AI Lab, với màu tím và nhãn thử nghiệm riêng. Component nhận category, đọc `/api/ai-lab/experiments`, hủy request/timer khi đổi loại/rời trang và sao chép sáu số; không tự sinh vé. [Thuật toán và kiểm chứng](../backend/docs/AI_LAB_CONCENTRATION_IMPLEMENTATION.md).
+
 Chạy trong thư mục `frontend/`, với Node tương thích dependencies đã khai báo:
 
 ```powershell

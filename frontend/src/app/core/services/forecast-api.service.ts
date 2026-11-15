@@ -46,6 +46,11 @@ export class ForecastApiService {
       }),
     );
   }
+  labExperiments(category: LotteryCategory) {
+    return this.http.get<LabTicket[]>(`${this.base}/api/ai-lab/experiments`, {
+      params: { category },
+    });
+  }
   runLab() {
     return this.jobs.follow(
       this.http.post<LabRun | PageJob<LabRun>>(

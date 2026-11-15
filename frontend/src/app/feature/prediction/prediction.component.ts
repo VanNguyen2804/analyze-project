@@ -1,3 +1,4 @@
+import { ExperimentalTicketsComponent } from './experimental-tickets/experimental-tickets.component';
 import { LabHighlightsComponent } from '../../share/components/lab-highlights/lab-highlights.component';
 import { UserDeskComponent } from './user-desk/user-desk.component';
 import { WorkspaceSuggestion } from '@app/core/models/workspace.model';
@@ -31,6 +32,7 @@ import { AnalyzeService } from '@app/core/services/analyze.service';
   standalone: true,
   imports: [
     LabHighlightsComponent,
+    ExperimentalTicketsComponent,
     UserDeskComponent,
     PredictionChartComponent,
     PredictionOverviewComponent,

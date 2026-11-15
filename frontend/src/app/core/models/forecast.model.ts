@@ -71,6 +71,7 @@ export interface LabHistoricalHits {
   latestHitDate: string;
 }
 export interface LabTicket extends ForecastTicket {
+  experimentPolicy?: { topK: number; focusedTickets: number; overlapPenalty: number } | null;
   cohort?: string;
   modelVersion?: string;
   pastPerformance?: {
@@ -112,6 +113,17 @@ export interface LabProgress {
   }[];
 }
 export interface LabGroup {
+  experimental?: boolean;
+  assembly?: {
+    targetDate: string;
+    unionHits: number;
+    bestTicketHits: number;
+    assemblyGap: number;
+    uniqueNumberCount: number;
+    conditionalHit4: boolean | null;
+    conditionalHit5: boolean | null;
+    topKHits: Record<string, number>;
+  }[];
   cohortTag?: string;
   feedbackComparison?: {
     pairedDraws: number;

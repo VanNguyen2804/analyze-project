@@ -10,6 +10,22 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class LabHighlightsTest {
+    @Test void experimentsRequireCompleteCurrentPendingValidBatchWithoutHistoricalSuccess() {
+        String target=ForecastProtocol.target("MEGA",clock.instant()).toString();
+        var snapshots=new ArrayList<AiLabReadView.Snapshot>();
+        for(String model:List.of("logistic_concentrated","logistic_hybrid"))for(int slot=0;slot<5;slot++) {
+            var f=row(model+"-"+slot,model,target);f.put("slot",slot);f.put("numbers",List.of(1,2,3,4,5,6+slot));
+            snapshots.add(new AiLabReadView.Snapshot(f,true));
+        }
+        var events=new ArrayList<Map<String,Object>>();
+        var store=mock(AiLabStore.class);when(store.readOverview("MEGA")).thenAnswer(call->new AiLabReadView(snapshots,events));
+        var lab=new AiLabService(store,mock(LotteryNumberRepository.class),false,com.example.analyzeproject.domain.service.AiLabModel.FeedbackPolicy.defaults(),clock);
+        assertEquals(10,lab.experiments("MEGA").size());assertTrue(lab.highlights("MEGA").isEmpty());
+        events.add(map("forecastId","logistic_concentrated-0","status","SETTLED","matched",2));
+        lab.refreshReadCache();assertEquals(5,lab.experiments("MEGA").size());
+        snapshots.remove(snapshots.size()-1);lab.refreshReadCache();assertTrue(lab.experiments("MEGA").isEmpty());
+        assertThrows(IllegalArgumentException.class,()->lab.experiments("OTHER"));
+    }
     private final Clock clock=Clock.fixed(Instant.parse("2026-11-07T10:00:00Z"),ZoneOffset.UTC);
     private Map<String,Object> row(String id,String model,String date) {
         return map("id",id,"category","MEGA","labModel",model,"slot",0,"targetDate",date,"createdAt","2026-11-07T09:00:00Z",

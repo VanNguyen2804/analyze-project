@@ -8,7 +8,7 @@ import static com.example.analyzeproject.application.service.ForecastProtocol.ma
 
 /** Offline development replay. Never captures forecasts, settles ledgers or promotes a model. */
 public final class PredictionBenchmark {
-    public static final String VERSION = "chronological-study-v1";
+    public static final String VERSION = "chronological-study-v2-concentration";
     public record Options(int warmupDraws, int maximumTargets, int trainingWindow, int budget) {
         public Options {
             if (warmupDraws < 10 || warmupDraws > 1000 || maximumTargets < 1 || maximumTargets > 60
@@ -27,12 +27,13 @@ public final class PredictionBenchmark {
         var manifest = map("protocol", VERSION, "evidenceType", "DEVELOPMENT_REPLAY", "category", category,
                 "eligibleDraws", rows.size(), "budget", options.budget(), "options", options,
                 "historyHash", ForecastProtocol.hash(rows.stream().map(DrawQuality::fingerprint).toList()),
-                "modelPolicyVersion", "logistic-ablation-v1", "generatorVersions", List.of(TicketPortfolio.VERSION, CoveragePortfolio.VERSION),
+                "modelPolicyVersion", "logistic-ablation-v1", "generatorVersions", List.of(TicketPortfolio.VERSION, CoveragePortfolio.VERSION,ConcentratedPortfolio.VERSION),
                 "codeVersion",WorkspaceProtocol.fingerprint(PredictionBenchmark.class,AiLabModel.class,AiLabModel.TrainingPolicy.class,
-                        CoveragePortfolio.class,CoveragePortfolio.Policy.class,AnalyzeService.class,PredictionSupport.class,
+                        CoveragePortfolio.class,CoveragePortfolio.Policy.class,ConcentratedPortfolio.class,ConcentratedPortfolio.Policy.class,PortfolioDiagnostics.class,AnalyzeService.class,PredictionSupport.class,
                         TemporalRelationshipModel.class,PairRelationshipModel.class,DrawTransitionModel.class),
                 "featureSchema",List.of("intercept","frequency","recent10","decay10","gap30"),
-                "seedProtocol", VERSION + ":category:targetDate", "primaryMetric", "draw_hit3_percent",
+                "seedProtocol", VERSION + ":category:targetDate", "primaryMetric", "draw_hit4_percent",
+                "assemblyPolicies",map("focused",ConcentratedPortfolio.Policy.focused(),"hybrid",ConcentratedPortfolio.Policy.hybrid(),"selection","FIXED_EXPLORATORY_NOT_TUNED_TO_DRAW"),
                 "uniformReplicates",20,"replicateSamplingUnit","One draw; each replicate has the same ticket budget and is not another independent draw.",
                 "limitations", "Previously inspectable development data; chronological replay is not prospective evidence. No automatic promotion. Draws, not tickets or random replicates, are the sampling unit.");
         int start = Math.max(options.warmupDraws() + Math.max(3, (rows.size() - options.warmupDraws()) / 2), rows.size() - options.maximumTargets());
@@ -106,9 +107,18 @@ public final class PredictionBenchmark {
                 var tickets = sample(model.getValue(), category, target, options.budget());
                 methods.put(model.getKey(), outcome(tickets, target, model.getValue()));
             }
-            List<Integer> ranking = ranking(tuned);
-            methods.put("logistic_rank_portfolio", outcome(TicketPortfolio.select(ranking, max, options.budget()), target, null));
-            methods.put("logistic_coverage", outcome(CoveragePortfolio.select(ranking, max, options.budget(), VERSION + category + target.getDrawDate(), CoveragePortfolio.Policy.defaults()), target, null));
+            List<Integer> ranking = ranking(fit.scores());
+            methods.put("logistic_rank_portfolio", outcome(TicketPortfolio.select(ranking, max, options.budget()), target, fit.scores()));
+            methods.put("logistic_coverage", outcome(CoveragePortfolio.select(ranking, max, options.budget(), VERSION + category + target.getDrawDate(), CoveragePortfolio.Policy.defaults()), target, fit.scores()));
+            for (String assembly : List.of("logistic_concentrated", "logistic_hybrid")) {
+                var policy=assembly.equals("logistic_hybrid")?ConcentratedPortfolio.Policy.hybrid():ConcentratedPortfolio.Policy.focused();
+                var tickets=ConcentratedPortfolio.select(PredictionExplanation.ranking(fit.scores()),max,options.budget(),VERSION+category+target.getDrawDate(),policy);
+                var measured=outcome(tickets,target,fit.scores());measured.put("assemblyPolicy",policy);methods.put(assembly,measured);
+                var labels=IntStream.rangeClosed(1,max).boxed().collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+                Collections.shuffle(labels,new Random(Objects.hash(VERSION,category,target.getDrawDate(),assembly,"label-control")));
+                var shuffled=tickets.stream().map(t->t.stream().map(n->labels.get(n-1)).sorted().toList()).toList();
+                methods.put(assembly+"_shuffled",outcome(shuffled,target,null));
+            }
             if (analyze != null) {
                 var primary = analyze.analyzeAndPredictWithConfiguration(category, "temporal_learning", "bayesian_graph", history, null);
                 var stack = analyze.analyzeAndPredictWithConfiguration(category, "deep_stacking", "bayesian_graph", history, null);
@@ -186,7 +196,7 @@ public final class PredictionBenchmark {
                 "brier", scores == null ? null : brier(scores, target.getNumbers()), "logLoss", scores == null ? null : loss / (scores.length - 1),
                 "marginalProbabilities",scores==null?null:Arrays.copyOfRange(scores,1,scores.length),
                 "ranking",scores==null?null:ranking(scores),"scoreType",scores==null?"ranking_only":"marginal_probability",
-                "diagnostics", CoveragePortfolio.diagnostics(tickets));
+                "diagnostics", PortfolioDiagnostics.measure(tickets,target.getNumbers(),scores==null?List.of():ranking(scores)));
     }
     @SuppressWarnings("unchecked")
     private static List<Map<String,Object>> summarize(List<Map<String,Object>> observations, int budget) {

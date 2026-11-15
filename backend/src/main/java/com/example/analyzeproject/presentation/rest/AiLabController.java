@@ -22,5 +22,9 @@ public class AiLabController {
         try { String c=category(category);return async?PageJobController.response(jobs.submit("LAB_HIGHLIGHTS",Map.of("category",c))):ResponseEntity.ok(lab.highlights(c)); }
         catch(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
     }
+    @GetMapping("/experiments") public ResponseEntity<?> experiments(@RequestParam(defaultValue="MEGA") String category) {
+        try { return ResponseEntity.ok(lab.experiments(category(category))); }
+        catch(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
+    }
     @PostMapping("/run") public Object run(@RequestParam(defaultValue="false") boolean async) { return async?PageJobController.response(jobs.submit("LAB_RUN",Map.of())):lab.run(); }
 }

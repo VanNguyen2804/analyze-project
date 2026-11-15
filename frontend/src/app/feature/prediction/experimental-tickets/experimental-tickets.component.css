@@ -1,0 +1,88 @@
+:host {
+  display: block;
+  margin-bottom: 24px;
+}
+.experiment {
+  padding: clamp(16px, 3vw, 26px);
+  border: 1px solid #a78bfa;
+  border-radius: 20px;
+  background: linear-gradient(125deg, #281744, #171c36);
+  color: #f5f0ff;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+h2 {
+  margin: 8px 0;
+  font-size: clamp(20px, 2vw, 25px);
+}
+h3 {
+  font-size: 16px;
+  margin: 0;
+}
+p,
+header > span,
+article > span {
+  color: #d4c6eb;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.badge {
+  color: #ede0ff;
+  background: #68439b;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.group {
+  border-top: 1px solid #72558e;
+  margin-top: 20px;
+  padding-top: 18px;
+}
+.tickets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 12px;
+}
+article {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #8d6ab1;
+  border-radius: 14px;
+  background: #302044;
+}
+.numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0;
+}
+.numbers span {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #d7b7ff;
+  color: #29133f;
+  font-size: 13px;
+  font-weight: 800;
+}
+button {
+  border: 1px solid #c4a1e6;
+  background: #493060;
+  color: #fff;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:focus-visible {
+  outline: 2px solid #f1d5ff;
+  outline-offset: 3px;
+}

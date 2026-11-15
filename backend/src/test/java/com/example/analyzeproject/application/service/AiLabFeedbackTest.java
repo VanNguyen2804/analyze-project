@@ -19,7 +19,7 @@ class AiLabFeedbackTest {
         doAnswer(call->{saved.addAll((List<Map<String,Object>>)call.getArgument(0));return null;}).when(store).captureBatch(anyList());
         var service=new AiLabService(store,repository,true,AiLabModel.FeedbackPolicy.defaults(),Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"),ZoneOffset.UTC),false);
         service.run();assertEquals(15,saved.size());
-        assertTrue(saved.stream().noneMatch(f->Set.of("shrunk_frequency","logistic_coverage").contains(f.get("labModel"))));
+        assertTrue(saved.stream().noneMatch(f->AiLabService.experimental(Objects.toString(f.get("labModel")))));
         String hash=ForecastProtocol.hash(saved);service.run();assertEquals(hash,ForecastProtocol.hash(saved));
         verify(store,times(2)).reconcile(anyList(),any());
     }

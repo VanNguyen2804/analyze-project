@@ -43,6 +43,11 @@ class ResearchStorePostgresTest {
             var coverage=first.stream().filter(f->"logistic_coverage".equals(f.get("labModel"))).toList();
             assertEquals(5,coverage.size());assertEquals(5,coverage.stream().map(f->f.get("numbers")).distinct().count());
             assertTrue(((Map<?,?>)coverage.get(0).get("configuration")).containsKey("coveragePolicy"));
+            for(String model:List.of("logistic_concentrated","logistic_hybrid")) {
+                var batch=first.stream().filter(f->model.equals(f.get("labModel"))).toList();
+                assertEquals(5,batch.size());
+                assertTrue(((Map<?,?>)batch.get(0).get("configuration")).containsKey("concentrationPolicy"));
+            }
             var actual=TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,28),"MEGA",List.of(1,2,3,7,8,9),null,null));
             tx.executeWithoutResult(status->store.reconcile(List.of(actual),Instant.parse("2026-10-28T13:00:00Z")));
             @SuppressWarnings("unchecked") var events=(List<Map<String,Object>>)store.ledger().get("settlements");
@@ -50,6 +55,8 @@ class ResearchStorePostgresTest {
             var compact=store.readOverview("MEGA");assertEquals(first.size(),compact.forecasts().size());
             assertEquals(first.size(),compact.settlements().size());assertTrue(store.readOverview("POWER").forecasts().isEmpty());
             compact.forecasts().forEach(f->{assertTrue(f.prospective());assertFalse(f.data().containsKey("history"));});
+            assertEquals(AiLabModel.MODELS.size(),compact.forecasts().stream().filter(f->Objects.equals(0,f.data().get("slot")))
+                    .filter(f->((Map<?,?>)f.data().get("explanation")).get("ranking") instanceof List<?>).count());
             var readService=new AiLabService(store,repository,false,AiLabModel.FeedbackPolicy.defaults(),Clock.fixed(Instant.parse("2026-10-28T13:00:00Z"),ZoneOffset.UTC));
             assertEquals(ForecastProtocol.hash(AiLabService.evaluate(first,events)),ForecastProtocol.hash(readService.overview("MEGA",0).get("groups")));
             tx.executeWithoutResult(status->store.reconcile(List.of(actual),Instant.parse("2026-10-28T13:00:00Z")));
