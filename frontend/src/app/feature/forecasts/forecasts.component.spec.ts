@@ -166,6 +166,8 @@ describe('ForecastsComponent requests', () => {
     expect(component.isMatched(component.rows()[0], 1)).toBeTrue();
     expect(component.isMatched(component.rows()[1], 1)).toBeFalse();
     fixture.detectChanges();
+    component.activeView.set('history');
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.number-ball.matched').length).toBe(3);
     component.statusFilter.set('PENDING');
     expect(component.filteredRows().map((row) => row.id)).toEqual(['b']);
