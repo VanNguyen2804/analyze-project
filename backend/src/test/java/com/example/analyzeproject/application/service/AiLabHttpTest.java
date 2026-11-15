@@ -10,6 +10,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class AiLabHttpTest {
+    @Test void rankedPredictionsReadOnlyAndRejectInvalidCategory() throws Exception {
+        var service=mock(AiLabService.class);
+        when(service.predictions("POWER")).thenReturn(Map.of("category","POWER","groups",java.util.List.of()));
+        var http=MockMvcBuilders.standaloneSetup(new AiLabController(service,mock(PageJobService.class))).build();
+        http.perform(get("/api/ai-lab/predictions").param("category","power"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.category").value("POWER")).andExpect(jsonPath("$.groups").isEmpty());
+        http.perform(get("/api/ai-lab/predictions").param("category","invalid")).andExpect(status().isBadRequest());
+        verify(service,never()).run();verify(service).predictions("POWER");verifyNoMoreInteractions(service);
+    }
     @Test void directPageNavigationForwardsToAngular() throws Exception {
         MockMvcBuilders.standaloneSetup(new SpaForwardController()).build().perform(get("/ai-lab"))
                 .andExpect(status().isOk()).andExpect(forwardedUrl("/index.html"));

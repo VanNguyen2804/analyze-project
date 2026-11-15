@@ -10,6 +10,38 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AiLabTest {
+    @Test void novemberEleventhAddsFeedbackCoverageWithoutReplacingSavedModels() {
+        var now=Instant.parse("2026-11-10T13:00:00Z");
+        var store=mock(AiLabStore.class);var repository=mock(LotteryNumberRepository.class);
+        List<LotteryNumber> history=new ArrayList<>();
+        LocalDate date=LocalDate.of(2026,11,8);
+        while(history.size()<12) {
+            if(Set.of(3,5,7).contains(date.getDayOfWeek().getValue()))
+                history.add(TestDraws.verified(new LotteryNumber(date,"MEGA",List.of(1,2,3,4,5,6),null,null)));
+            date=date.minusDays(1);
+        }
+        when(repository.findAllByOrderByDrawDateDescCreatedAtDesc()).thenReturn(history);
+        Set<String> ids=new HashSet<>();
+        for(String model:AiLabModel.MODELS) if(!model.equals("logistic_feedback_coverage"))
+            for(int slot=0;slot<5;slot++) ids.add("MEGA:2026-11-11:lab-"+model+"-"+slot);
+        when(store.snapshotIds()).thenReturn(ids);
+        when(store.feedbackSnapshots(anyString(),any(),anyInt(),any())).thenReturn(List.of());
+        List<Map<String,Object>> saved=new ArrayList<>();
+        doAnswer(call->{List<Map<String,Object>> batch=call.getArgument(0);saved.addAll(batch);batch.forEach(f->ids.add((String)f.get("id")));return null;}).when(store).captureBatch(anyList());
+        var lab=new AiLabService(store,repository,true,AiLabModel.FeedbackPolicy.defaults(),Clock.fixed(now,ZoneOffset.UTC));
+        lab.run();assertEquals(5,saved.size());
+        assertEquals(5,saved.stream().map(f->f.get("numbers")).distinct().count());
+        for(var f:saved) {
+            assertEquals("2026-11-11",f.get("targetDate"));
+            assertEquals("logistic_feedback_coverage",f.get("labModel"));
+            assertTrue(ForecastProtocol.isProspective(f));
+            var explanation=(Map<?,?>)f.get("explanation");
+            assertEquals(CoveragePortfolio.VERSION,explanation.get("selectionPolicy"));
+            assertEquals(0,((Map<?,?>)explanation.get("feedback")).get("draws"));
+        }
+        lab.run();assertEquals(5,saved.size());verify(store,times(1)).captureBatch(anyList());
+    }
+
     @Test void feedbackComparisonUsesOnlyCompletePairedDrawsWithSameHistory() {
         List<Map<String,Object>> snapshots=new ArrayList<>(), events=new ArrayList<>();
         var actual=TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,25),"MEGA",List.of(1,2,3,30,31,32),null,null));
@@ -23,6 +55,21 @@ class AiLabTest {
         assertEquals(1,comparison.get("pairedDraws")); assertEquals(0.0,comparison.get("difference"));
         snapshots.get(5).put("historyHash","different");
         report=AiLabService.evaluate(snapshots,events).stream().filter(g->"logistic".equals(g.get("model"))).findFirst().orElseThrow();
+        assertEquals(0,((Map<?,?>)report.get("feedbackComparison")).get("pairedDraws"));
+    }
+    @Test void coverageFeedbackComparisonUsesTheCoverageControl() {
+        List<Map<String,Object>> snapshots=new ArrayList<>(), events=new ArrayList<>();
+        var actual=TestDraws.verified(new LotteryNumber(LocalDate.of(2026,10,25),"MEGA",List.of(1,2,3,30,31,32),null,null));
+        for (String model:List.of("logistic_feedback_coverage","logistic_coverage")) for(int slot=0;slot<5;slot++) {
+            var f=ForecastProtocol.prepare(history(),"MEGA","lab-"+model+"-"+slot,AiLabModel.VERSION,"code",
+                    Map.of("budget",5,"feedbackPolicy",model),List.of(1,2,3,4,5,6+slot),before);
+            f.put("labModel",model); f.put("slot",slot); snapshots.add(f); events.add(ForecastProtocol.settle(f,List.of(actual),after,null));
+        }
+        var report=AiLabService.evaluate(snapshots,events).stream().filter(g->"logistic_feedback_coverage".equals(g.get("model"))).findFirst().orElseThrow();
+        var comparison=(Map<?,?>)report.get("feedbackComparison");
+        assertEquals(1,comparison.get("pairedDraws")); assertEquals(0.0,comparison.get("difference"));
+        snapshots.get(5).put("historyHash","different");
+        report=AiLabService.evaluate(snapshots,events).stream().filter(g->"logistic_feedback_coverage".equals(g.get("model"))).findFirst().orElseThrow();
         assertEquals(0,((Map<?,?>)report.get("feedbackComparison")).get("pairedDraws"));
     }
     private final Instant before=Instant.parse("2026-10-25T10:59:59Z"), after=Instant.parse("2026-10-25T12:00:00Z");

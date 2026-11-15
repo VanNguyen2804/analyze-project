@@ -173,6 +173,7 @@ public class WorkspaceService {
     private static String labName(String model) {
         return switch (model) {
             case "logistic" -> "Logistic Regression";
+            case "logistic_feedback_coverage" -> "Logistic học phản hồi + độ phủ (10/11)";
             case "logistic_no_feedback" -> "Logistic không feedback";
             case "logistic_feedback_coverage" -> "Logistic + feedback + độ phủ";
             case "logistic_concentrated" -> "Thử nghiệm ghép tập trung";

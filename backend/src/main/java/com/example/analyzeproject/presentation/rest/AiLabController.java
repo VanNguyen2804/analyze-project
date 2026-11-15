@@ -26,5 +26,9 @@ public class AiLabController {
         try { return ResponseEntity.ok(lab.experiments(category(category))); }
         catch(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
     }
+    @GetMapping("/predictions") public ResponseEntity<?> predictions(@RequestParam(defaultValue="MEGA") String category,@RequestParam(defaultValue="false") boolean async) {
+        try { String c=category(category);return async?PageJobController.response(jobs.submit("LAB_PREDICTIONS",Map.of("category",c))):ResponseEntity.ok(lab.predictions(c)); }
+        catch(IllegalArgumentException e) { return ResponseEntity.badRequest().body(Map.of("message",e.getMessage())); }
+    }
     @PostMapping("/run") public Object run(@RequestParam(defaultValue="false") boolean async) { return async?PageJobController.response(jobs.submit("LAB_RUN",Map.of())):lab.run(); }
 }

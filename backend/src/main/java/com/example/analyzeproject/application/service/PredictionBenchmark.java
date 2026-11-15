@@ -15,7 +15,7 @@ public final class PredictionBenchmark {
                     || trainingWindow < 10 || trainingWindow > 250 || budget < 1 || budget > 5)
                 throw new IllegalArgumentException("Invalid benchmark options");
         }
-        public static Options defaults() { return new Options(10, 30, 180, 3); }
+        public static Options defaults() { return new Options(10, 30, 180, 5); }
     }
     private final AnalyzeService analyze;
     public PredictionBenchmark(AnalyzeService analyze) { this.analyze = analyze; }
@@ -70,6 +70,17 @@ public final class PredictionBenchmark {
             if (count > 0 && loss / count < bestPrior) { bestPrior = loss / count; prior = k; }
         }
         if (!Double.isFinite(best)) return map("manifest", manifest, "status", "INSUFFICIENT_VALIDATION", "byDraw", List.of(), "summary", List.of());
+        double selectedLambda=0, bestShrinkLoss=Double.POSITIVE_INFINITY;
+        for(double lambda:List.of(0.0,.25,.5,.75,1.0)) {
+            double loss=0;int count=0;
+            for(int i=innerStart;i<start;i++) if(hasPrevious(rows,i,category)) {
+                var scores=AiLabModel.fit(prefix(rows,i,options),category,"logistic",selected).scores();
+                loss+=brier(AiLabModel.shrinkMarginals(scores,lambda),rows.get(i).getNumbers());count++;
+            }
+            tuning.add(map("shrinkLambda",lambda,"validationDraws",count,"brier",count==0?null:loss/count));
+            if(count>0 && loss/count<bestShrinkLoss){bestShrinkLoss=loss/count;selectedLambda=lambda;}
+        }
+        manifest.put("shrinkLambda",selectedLambda);
         double[] calibrator = calibrate(calibrationPairs);
         manifest.put("selection", map("innerFrom", rows.get(innerStart).getDrawDate().toString(), "innerThrough", rows.get(start - 1).getDrawDate().toString(),
                 "outerFrom", rows.get(start).getDrawDate().toString(), "outerThrough", rows.get(rows.size() - 1).getDrawDate().toString(),
@@ -99,6 +110,7 @@ public final class PredictionBenchmark {
             var selectedFit=AiLabModel.fit(history, category, "logistic", selected);
             double[] tuned = selectedFit.scores();
             probabilities.put("logistic_selected", tuned);
+            probabilities.put("logistic_shrunk", AiLabModel.shrinkMarginals(tuned,selectedLambda));
             double[] calibrated = tuned.clone();
             for (int n = 1; n <= max; n++) calibrated[n] = sigmoid(calibrator[0] + calibrator[1] * logit(tuned[n]));
             probabilities.put("logistic_calibrated", calibrated);
@@ -119,6 +131,7 @@ public final class PredictionBenchmark {
                 var shuffled=tickets.stream().map(t->t.stream().map(n->labels.get(n-1)).sorted().toList()).toList();
                 methods.put(assembly+"_shuffled",outcome(shuffled,target,null));
             }
+            methods.put("logistic_triple_coverage", outcome(CoveragePortfolio.selectTriples(ranking,max,options.budget(),VERSION+category+target.getDrawDate(),CoveragePortfolio.Policy.defaults()),target,fit.scores()));
             if (analyze != null) {
                 var primary = analyze.analyzeAndPredictWithConfiguration(category, "temporal_learning", "bayesian_graph", history, null);
                 var stack = analyze.analyzeAndPredictWithConfiguration(category, "deep_stacking", "bayesian_graph", history, null);

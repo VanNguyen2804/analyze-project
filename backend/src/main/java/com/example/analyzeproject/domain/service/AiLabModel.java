@@ -9,6 +9,8 @@ public final class AiLabModel {
     public static final String VERSION = "ai-lab-dense-feedback-v2";
     public static final int BUDGET = 5;
     public static final List<String> MODELS = List.of("logistic", "logistic_no_feedback", "recency", "shrunk_frequency", "logistic_coverage", "logistic_feedback_coverage", "logistic_concentrated", "logistic_hybrid");
+    public static boolean usesFeedback(String model) { return Set.of("logistic", "logistic_feedback_coverage").contains(model); }
+    public static boolean usesCoverage(String model) { return Set.of("logistic_coverage", "logistic_feedback_coverage").contains(model); }
     private AiLabModel() {}
     public record Fit(double[] scores, double[][] features, double[] weights) {}
     public record TrainingPolicy(int epochs, double learningRate, double l2, int featureMask, int windowDraws) {
@@ -39,7 +41,7 @@ public final class AiLabModel {
     public static Fit fit(List<LotteryNumber> input, String category, String model,
                           List<FeedbackRound> feedback, FeedbackPolicy policy) {
         Fit base = fit(input, category, model);
-        if (!"logistic".equals(model) || feedback.isEmpty()) return base;
+        if (!usesFeedback(model) || feedback.isEmpty()) return base;
         return applyFeedback(base,input,category,feedback,policy);
     }
     public static Fit applyFeedback(Fit base,List<LotteryNumber> input,String category,List<FeedbackRound> feedback,FeedbackPolicy policy) {
@@ -137,6 +139,24 @@ public final class AiLabModel {
         for (var row : rows) for (int number : row.getNumbers()) scores[number]++;
         for (int number = 1; number <= max; number++) scores[number] /= rows.size() + priorDraws;
         return scores;
+    }
+    /** Shrink toward uniform, then project onto capped marginals summing to six. */
+    public static double[] shrinkMarginals(double[] scores, double lambda) {
+        if ((scores.length != 46 && scores.length != 56) || !Double.isFinite(lambda) || lambda < 0 || lambda > 1)
+            throw new IllegalArgumentException("Invalid marginal policy");
+        double[] result = scores.clone();
+        for (int n=1;n<result.length;n++) {
+            if (!Double.isFinite(result[n]) || result[n]<0 || result[n]>1) throw new IllegalArgumentException("Invalid probability");
+            result[n]=(1-lambda)*6.0/(result.length-1)+lambda*result[n];
+        }
+        double low=-1, high=1;
+        for(int iteration=0;iteration<80;iteration++) {
+            double shift=(low+high)/2, sum=0;
+            for(int n=1;n<result.length;n++) sum+=Math.max(0,Math.min(1,result[n]+shift));
+            if(sum<6)low=shift;else high=shift;
+        }
+        for(int n=1;n<result.length;n++) result[n]=Math.max(0,Math.min(1,result[n]+(low+high)/2));
+        result[0]=0;return result;
     }
     private static double dot(double[] a,double[] b) { double v=0; for(int i=0;i<a.length;i++) v+=a[i]*b[i]; return v; }
     private static double sigmoid(double x) { return 1/(1+Math.exp(-Math.max(-30,Math.min(30,x)))); }

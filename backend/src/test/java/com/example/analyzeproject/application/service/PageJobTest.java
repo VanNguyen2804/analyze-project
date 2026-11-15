@@ -16,6 +16,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class PageJobTest {
+    @Test void rankedLabJobOnlyRefreshesAndReadsExistingPredictions() {
+        var lab=mock(AiLabService.class);var stocks=mock(StockService.class);var workspace=mock(WorkspaceService.class);
+        var expected=Map.<String,Object>of("category","MEGA","groups",List.of());
+        when(lab.predictions("MEGA")).thenReturn(expected);
+        var tasks=new PageJobTasks(stocks,lab,workspace,Clock.systemUTC());
+        assertEquals(expected,tasks.execute(new PageJobStore.Work("unused","LAB_PREDICTIONS",Map.of("category","MEGA"),"token")));
+        verify(lab).refreshReadCache();verify(lab).predictions("MEGA");verifyNoMoreInteractions(lab);verifyNoInteractions(stocks,workspace);
+    }
     @Test void queuedPredictionDoesNotSilentlyMoveToAnotherDrawAfterCutoff() {
         Instant now=Instant.parse("2026-11-08T11:30:00Z");
         String oldTarget=ForecastProtocol.target("MEGA",now.minusSeconds(3600)).toString();

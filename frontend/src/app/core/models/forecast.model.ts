@@ -93,6 +93,37 @@ export interface LabProgressLevel {
   frequencyTicketPercent: number | null;
   randomTicketPercent: number | null;
 }
+export interface LabPredictionPerformance {
+  evaluatedDraws: number;
+  evaluatedTickets: number;
+  hitTickets: number;
+  bestMatched: number;
+  latestHitDate: string | null;
+  levels: { threshold: number; drawHits: number; drawPercent: number | null }[];
+}
+export interface LabTicketPriority {
+  ticketId: string;
+  slot: number;
+  rank: number;
+  performance: LabPredictionPerformance;
+  timeline: { targetDate: string; numbers: number[]; actualNumbers: number[]; matched: number; modelVersion: string }[];
+}
+export interface LabPredictionGroup {
+  ticketPriorities?: LabTicketPriority[];
+  model: string;
+  modelVersion: string;
+  cohort: string;
+  targetDate: string;
+  tickets: LabTicket[];
+  performance: LabPredictionPerformance;
+  history: (LabPredictionPerformance & { cohort: string; modelVersion: string })[];
+}
+export interface LabPredictions {
+  category: LotteryCategory;
+  targetDate: string;
+  asOf: string;
+  groups: LabPredictionGroup[];
+}
 export interface LabProgress {
   evaluationVersion: string;
   evaluatedTickets: number;

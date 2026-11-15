@@ -8,7 +8,7 @@ import java.util.*;
 public final class PageJobService {
     private final PageJobStore durable, local;
     private final Clock clock;
-    private final String version = WorkspaceProtocol.codeVersion()+WorkspaceProtocol.fingerprint(PageJobService.class,PageJobTasks.class,AiLabService.class,com.example.analyzeproject.domain.service.AiLabModel.class);
+    private final String version = WorkspaceProtocol.codeVersion()+WorkspaceProtocol.fingerprint(PageJobService.class,PageJobTasks.class,AiLabService.class,AiLabPredictions.class,com.example.analyzeproject.domain.service.AiLabModel.class);
     public PageJobService(PageJobStore durable, PageJobStore local, Clock clock) {
         this.durable=durable; this.local=local; this.clock=clock;
     }

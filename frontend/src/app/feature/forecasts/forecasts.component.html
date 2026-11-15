@@ -84,12 +84,11 @@
     </div>
   }
 
-  @defer (on viewport) {
-    <app-research-panel [category]="category()" />
-  } @placeholder {
-    <div class="research-placeholder">Kiểm kê dữ liệu & benchmark</div>
-  }
-  <section class="panel">
+  <nav class="history-tabs" aria-label="Nội dung lịch sử">
+    <button [class.active]="activeView() === 'performance'" [attr.aria-pressed]="activeView() === 'performance'" (click)="activeView.set('performance')">Hiệu quả thuật toán</button>
+    <button [class.active]="activeView() === 'history'" [attr.aria-pressed]="activeView() === 'history'" (click)="activeView.set('history')">Lịch sử đối soát</button>
+  </nav>
+  @if (activeView() === 'history') {  <section class="panel">
     <header class="panel-heading">
       <div>
         <h3>Các bộ số đã chốt</h3>
@@ -213,6 +212,8 @@
     }
   </section>
 
+  }
+  @if (activeView() === 'performance') {
   <section class="panel comparison-panel">
     <div class="evidence-filters">
       <label
@@ -321,4 +322,12 @@
       </details>
     }
   </section>
+  }
+  <details class="research-disclosure"><summary>Kiểm kê dữ liệu & benchmark</summary>
+  @defer (on viewport) {
+    <app-research-panel [category]="category()" />
+  } @placeholder {
+    <div class="research-placeholder">Kiểm kê dữ liệu & benchmark</div>
+  }
+  </details>
 </section>

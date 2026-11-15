@@ -54,6 +54,7 @@ class AiLabFeedbackTest {
         assertEquals(List.of(1,2,2,0,0,0,0),evidence.audit().get("ticketMatchHistogram"));
         var base=AiLabModel.fit(known(),"MEGA","logistic");
         var learned=AiLabModel.fit(known(),"MEGA","logistic",evidence.rounds(),AiLabModel.FeedbackPolicy.defaults());
+        assertArrayEquals(learned.weights(),AiLabModel.fit(known(),"MEGA","logistic_feedback_coverage",evidence.rounds(),AiLabModel.FeedbackPolicy.defaults()).weights());
         assertFalse(Arrays.equals(base.weights(),learned.weights()));assertFalse(Arrays.equals(base.scores(),learned.scores()));
         assertArrayEquals(learned.weights(),AiLabModel.fit(known(),"MEGA","logistic",evidence.rounds(),AiLabModel.FeedbackPolicy.defaults()).weights());
         assertEquals(original,ForecastProtocol.hash(snapshots));

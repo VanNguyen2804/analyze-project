@@ -27,6 +27,25 @@ class PredictionResearchTest {
         }
         return rows;
     }
+    @Test void projectedLogisticMarginalsStayValidAndTriplePortfolioIsDeterministic() {
+        for(int max:List.of(45,55)) {
+            double[] scores=new double[max+1];
+            for(int n=1;n<=max;n++)scores[n]=n%3==0?1:0;
+            for(double lambda:List.of(0.0,.5,1.0)) {
+                var projected=AiLabModel.shrinkMarginals(scores,lambda);
+                assertEquals(6,Arrays.stream(projected).sum(),1e-10);
+                for(int n=1;n<=max;n++)assertTrue(projected[n]>=0&&projected[n]<=1);
+                if(lambda==0)assertEquals(6.0/max,projected[1],1e-12);
+            }
+            var ranking=IntStream.rangeClosed(1,max).boxed().toList();
+            var tickets=CoveragePortfolio.selectTriples(ranking,max,5,"test",CoveragePortfolio.Policy.defaults());
+            assertEquals(5,new HashSet<>(tickets).size());
+            assertEquals(tickets,CoveragePortfolio.selectTriples(ranking,max,5,"test",CoveragePortfolio.Policy.defaults()));
+            for(var ticket:tickets)assertEquals(6,new HashSet<>(ticket).size());
+        }
+        assertThrows(IllegalArgumentException.class,()->AiLabModel.shrinkMarginals(new double[46],Double.NaN));
+        assertEquals(5,PredictionBenchmark.Options.defaults().budget());
+    }
     @Test void shrinkagePreservesSixExpectedNumbersAndHandlesEmptyOrQuarantinedHistory() {
         for (String category : List.of("MEGA","POWER")) {
             var rows = history(category,15); var p = AiLabModel.shrunkFrequency(rows,category,16);

@@ -19,12 +19,13 @@ public final class PageJobTasks {
         var p=work.input();String category=Objects.toString(p.get("category"),"MEGA");
         if(work.kind().equals("ANALYZE")&&!ForecastProtocol.target(category,clock.instant()).toString().equals(p.get("_target")))
             throw new IllegalStateException("Kỳ mục tiêu vừa thay đổi. Hãy tải lại.");
-        if(work.kind().equals("LAB_OVERVIEW")||work.kind().equals("LAB_HIGHLIGHTS"))lab.refreshReadCache();
+        if(work.kind().equals("LAB_OVERVIEW")||work.kind().equals("LAB_HIGHLIGHTS")||work.kind().equals("LAB_PREDICTIONS"))lab.refreshReadCache();
         return switch(work.kind()) {
             case "STOCK_ANALYSIS" -> stocks.analyzeCached((String)p.get("symbol"),Mode.valueOf((String)p.get("mode")));
             case "STOCK_WATCHLIST" -> stocks.watchlist();
             case "LAB_OVERVIEW" -> lab.overview(category,((Number)p.get("page")).intValue());
             case "LAB_HIGHLIGHTS" -> lab.highlights(category);
+            case "LAB_PREDICTIONS" -> lab.predictions(category);
             case "LAB_RUN" -> lab.run();
             case "ANALYZE" -> workspace.create(new Create(category,(String)p.get("algorithm"),(String)p.get("algorithm2")));
             default -> throw new IllegalArgumentException("Unknown page task");

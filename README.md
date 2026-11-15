@@ -12,11 +12,11 @@ Mở `/stocks` hoặc `/stocks/FPT` để xem VIC, FPT, SZC, MBB: nến ngày/15
 
 Nguồn công khai hiện ở chế độ thử nghiệm, tín hiệu hành động phụ thuộc chất lượng dữ liệu. Vị thế tính chênh lệch giá tham khảo bằng VND, ghi rõ mốc giá và chưa tính phí/thuế/sự kiện quyền; giao diện không yêu cầu phí mua/bán. Xem [cấu hình, phương pháp và giới hạn](backend/docs/STOCKS_IMPLEMENTATION.md), [báo cáo dữ liệu thật](backend/docs/reports/stocks-development-2026-11-03.json). Không có thay đổi schema hoặc chức năng đặt lệnh.
 
-## Trang dự đoán có người dùng chọn vé
+## Trang dự đoán từ AI Lab
 
-Trong `/analyze`, xem hai dãy thuật toán và bộ kết hợp; chỉnh trọng số/giữ/bỏ số trước khi chọn vé. Khu vực AI Lab có thể hiển thị 3–5 dãy đã lưu cho đúng loại/kỳ, theo quy tắc luân phiên mô hình; đây không phải thứ hạng xác suất trúng. Chọn gợi ý hoặc tự nhập, sửa sáu số rồi chốt danh sách trước 18:00 giờ Việt Nam. Tối đa 25 vé khác nhau mỗi bản chốt. Chốt là lưu lựa chọn trong ứng dụng, không phải mua vé.
+Trang `/analyze` hiển thị các bộ năm vé đã lưu của AI Lab cho kỳ tới, xếp theo tỷ lệ kỳ có vé khớp ≥3 số giảm dần. Bên cạnh mỗi thuật toán có tỷ lệ ≥3, ≥2, ≥1 và số kỳ đã đối soát. Tỷ lệ tính cả kỳ không trúng, gộp lịch sử qua các phiên bản và có chi tiết riêng từng nhóm phiên bản. Chưa có dữ liệu hiển thị riêng, không coi là 0%.
 
-Bản nháp lưu riêng theo loại trong trình duyệt; nếu đang giữ vé nháp cũ, bấm **Dùng gợi ý mới, bỏ nháp** để chuyển nguồn. Sau khi chốt vẫn có thể chỉnh và chốt revision mới trước cutoff; bản cuối có hiệu lực và các bản cũ còn lịch sử. Khu vực bên dưới hiển thị kết quả từng vé, vé tốt nhất, độ phủ các số khác nhau và đối chứng cùng ngân sách vé; có nút tải lại và đối soát. Tab lịch sử tự động cũ và trang AI Lab vẫn có ledger riêng.
+Có chọn MEGA/POWER, sao chép từng dãy, tải lại và liên kết tới AI Lab. Mở trang chỉ đọc `GET /api/ai-lab/predictions?category=MEGA&async=true`, không sinh hai thuật toán hoặc bộ kết hợp. Xem [hợp đồng API và cách tính tỷ lệ](backend/docs/AI_LAB_PREDICTIONS.md). Các API workspace và lịch sử vé dưới đây vẫn được giữ để tương thích; phần chỉnh/ghép/chốt vé cũ không còn gắn trên trang dự đoán này.
 
 Khi triển khai, Flyway chạy V13 tạo `prediction_suggestions`, `prediction_user_batches`, `prediction_user_settlements`. Không chuyển lịch sử dò vé cũ thành vé đã chốt trước kỳ. Backend kiểm tra độ mới của lịch sử khi chốt gợi ý; khoảng chờ 18:00–19:00 không đóng băng dự đoán kỳ sau bằng lịch sử thiếu kỳ liền trước. Vé tự nhập có thể chốt trước cutoff dù mô hình đang chờ.
 
@@ -37,7 +37,7 @@ Kế hoạch và báo cáo phát triển: [workspace](backend/docs/PREDICTION_WO
 
 ## Thử nghiệm MEGA giảm trùng vé
 
-Trang `/analyze` có vùng **Giảm trùng vé** khi chọn MEGA. Phiên bản `mega-portfolio-v2` chọn ba vé bổ sung từ danh mục giảm trùng, loại các bộ giống ba gợi ý gốc và snapshot mô hình/AI Lab đã lưu trước kỳ cho cùng loại/ngày. So sánh bộ số sau khi sắp tăng dần, không phụ thuộc thứ tự nhập; mỗi cặp vé thử nghiệm vẫn trùng tối đa ba số. Dùng `temporal_learning` với tham số mặc định đóng băng theo phiên bản code. Phiên bản v1 từng giữ lại vé top sáu, nên có thể trùng bộ gốc; lịch sử v1 được giữ nguyên và đo riêng. Chưa có bằng chứng phiên bản mới tăng khả năng trúng.
+Thử nghiệm **Giảm trùng vé** có API/ledger riêng; vùng giao diện cũ không còn gắn trên `/analyze`. Phiên bản `mega-portfolio-v2` chọn ba vé bổ sung từ danh mục giảm trùng, loại các bộ giống ba gợi ý gốc và snapshot mô hình/AI Lab đã lưu trước kỳ cho cùng loại/ngày. So sánh bộ số sau khi sắp tăng dần, không phụ thuộc thứ tự nhập; mỗi cặp vé thử nghiệm vẫn trùng tối đa ba số. Dùng `temporal_learning` với tham số mặc định đóng băng theo phiên bản code. Phiên bản v1 từng giữ lại vé top sáu, nên có thể trùng bộ gốc; lịch sử v1 được giữ nguyên và đo riêng. Chưa có bằng chứng phiên bản mới tăng khả năng trúng.
 
 Mỗi kỳ chốt nguyên khối bốn nhóm, mỗi nhóm ba vé: giảm trùng, ba vé đầu của cách ghép cũ trên cùng ranking, tần suất + giảm trùng, và ngẫu nhiên đều có seed cố định theo phiên bản/loại/kỳ. Snapshot giữ ranking, cấu hình, toàn bộ lịch sử đầu vào và bộ vé của mọi nhóm. Scheduler kiểm tra mỗi phút, cần ít nhất mười kỳ hợp lệ và kết quả kỳ liền trước; chốt trước 18:00 và đối soát từ 19:00 giờ Việt Nam. Retry và nhiều instance cùng chốt vẫn giữ bản đầu tiên. Không sinh bù các kỳ đã quay.
 
