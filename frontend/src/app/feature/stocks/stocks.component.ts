@@ -73,6 +73,13 @@ export class StocksComponent implements OnInit {
   private readonly refreshChanges = new BehaviorSubject(0);
   private readonly quoteRefreshChanges = new BehaviorSubject(0);
   private readonly cancelPosition = new Subject<void>();
+  readonly checkpoints = signal<Array<{checkpoint: string; capturedAt: string; swing: StockSnapshot; intraday: StockSnapshot; swingPosition?: StockPositionResult; intradayPosition?: StockPositionResult; longTermNote: string}>>([]);
+  readonly checkpointError = signal('');
+  readonly horizon = signal<'LONG' | 'SWING'>('SWING');
+  hasCheckpoint(slot: string) { return this.checkpoints().some(r => r.checkpoint === slot); }
+  loadCheckpoints(symbol: string) {
+    this.api.checkpoints(symbol).pipe(takeUntilDestroyed(this.destroy)).subscribe({next: rows => { if(this.activeSymbol === symbol) { this.checkpoints.set(rows); this.checkpointError.set(''); } },error: () => this.checkpointError.set('Không tải được báo cáo theo mốc giờ.')});
+  }
   readonly mode = signal<StockMode>('SWING');
   readonly data = signal<StockSnapshot | null>(null);
   readonly loading = signal(false);
@@ -82,12 +89,19 @@ export class StocksComponent implements OnInit {
   readonly positionError = signal('');
   readonly positionStale = signal(false);
   readonly symbols = this.loadSymbols();
-  private loadSymbols(): string[] {
-    try {
-      const saved = JSON.parse(localStorage.getItem('stocks.watchlist.v1') || '[]');
-      if (Array.isArray(saved)) return [...new Set<string>(['VIC', ...saved.filter((v: unknown) => typeof v === 'string' && /^[A-Z][A-Z0-9]{2,9}$/.test(v))])];
-    } catch {}
-    return ['VIC'];
+  private loadSymbols(): string[] { return ['VIC']; }
+  readonly saveStatus = signal('');
+  private saveTimer: ReturnType<typeof setTimeout> | undefined;
+  private editVersion = 0;
+  private persistPosition() {
+    clearTimeout(this.saveTimer);
+    const input = structuredClone(this.input), symbol = this.activeSymbol, session = this.session, version = this.editVersion;
+    if (!input.purchasePrice || !input.quantity || input.purchasePrice <= 0 || input.quantity <= 0 || !Number.isInteger(input.quantity)) return;
+    this.saveStatus.set('Đang lưu vị thế…');
+    this.saveTimer = setTimeout(() => this.api.savePosition(symbol, input).pipe(takeUntilDestroyed(this.destroy)).subscribe({
+      next: () => { session.autoAnalyze = true; if (this.session === session && this.editVersion === version) { this.saveStatus.set('Đã lưu vị thế trên máy chủ'); this.analyzePosition(); } },
+      error: () => this.saveStatus.set('Chưa lưu được trên máy chủ. Hãy thử cập nhật lại.')
+    }), 600);
   }
   readonly symbolError = signal('');
   addSymbol(raw: string) {
@@ -143,6 +157,17 @@ export class StocksComponent implements OnInit {
     ];
   });
   ngOnInit() {
+    const initialVersion = this.editVersion;
+    this.api.savedPositions().pipe(takeUntilDestroyed(this.destroy)).subscribe({next: saved => {
+      if (this.editVersion !== initialVersion) return;
+      for (const [symbol, input] of Object.entries(saved)) {
+        const session = this.sessions.forSymbol(symbol);
+        session.input = { ...newStockPosition(), ...input }; session.autoAnalyze = true;
+      }
+      this.session = this.sessions.forSymbol(this.activeSymbol);
+      if (this.session.autoAnalyze) this.analyzePosition();
+    }, error: () => this.saveStatus.set('Không tải được vị thế đã lưu trên máy chủ.')});
+
     this.quoteRefreshChanges
       .pipe(
         switchMap(() => this.api.watchlist().pipe(catchError(() => of(null)))),
@@ -163,6 +188,7 @@ export class StocksComponent implements OnInit {
             current = this.data();
           if (symbol !== this.activeSymbol) {
             this.activeSymbol = symbol;
+            this.checkpoints.set([]);
             this.session = this.sessions.forSymbol(symbol);
             this.position.set(this.session.result);
           }
@@ -184,7 +210,7 @@ export class StocksComponent implements OnInit {
         takeUntilDestroyed(this.destroy),
       )
       .subscribe((data) => {
-        if (data) this.data.set(data);
+        if (data) { this.data.set(data); this.loadCheckpoints(data.symbol); }
         this.loading.set(false);
         if (data && this.session.autoAnalyze) this.analyzePosition();
       });
@@ -213,6 +239,8 @@ export class StocksComponent implements OnInit {
     this.quoteRefreshChanges.next(this.quoteRefreshChanges.value + 1);
   }
   resetPosition() {
+    this.editVersion++;
+    this.persistPosition();
     this.sessions.save();
     this.cancelPosition.next();
     this.positionBusy.set(false);
@@ -265,6 +293,7 @@ export class StocksComponent implements OnInit {
             session.input.plan.availableQuantity = result.positionPlan.sellableQuantity;
           }
           this.sessions.save();
+          this.api.savePosition(this.activeSymbol, session.input).pipe(takeUntilDestroyed(this.destroy)).subscribe({error: () => this.saveStatus.set("Chưa lưu được kế hoạch trên máy chủ.")});
           session.result = result;
           session.autoAnalyze = true;
           this.position.set(result);

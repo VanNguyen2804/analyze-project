@@ -16,6 +16,9 @@ export class StockApiService {
   private readonly http = inject(HttpClient);
   private readonly jobs = inject(PageJobApiService);
   private readonly base = `${environment.apiUrl || ''}/api/stocks`;
+  checkpoints(symbol: string) { return this.http.get<Array<{checkpoint: string; capturedAt: string; swing: StockSnapshot; intraday: StockSnapshot; swingPosition?: StockPositionResult; intradayPosition?: StockPositionResult; longTermNote: string}>>(this.base + '/' + symbol + '/checkpoints'); }
+  savedPositions() { return this.http.get<Record<string, StockPositionInput>>(this.base + '/saved-positions'); }
+  savePosition(symbol: string, input: StockPositionInput) { return this.http.put<void>(this.base + '/saved-positions/' + symbol, { ...input, purchaseDate: input.purchaseDate || null }); }
   watchlist() {
     return this.jobs.follow(
       this.http.get<StockWatchQuote[] | PageJob<StockWatchQuote[]>>(`${this.base}/watchlist`, {

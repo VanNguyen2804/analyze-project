@@ -1,0 +1,1 @@
+CREATE TABLE stock_checkpoint_reports (report_key VARCHAR(100) PRIMARY KEY, symbol VARCHAR(10) NOT NULL, report_day VARCHAR(10) NOT NULL, checkpoint VARCHAR(5) NOT NULL, report_json TEXT NOT NULL);

@@ -498,3 +498,5 @@ p {
   min-height: 540px;
 }
 .add-symbol { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:16px 0 24px; } .add-symbol input { background:#111c30; border:1px solid #514778; border-radius:10px; padding:12px; color:#e6eef8; width:150px; }
+
+.horizon-panel,.checkpoints-panel { padding:20px; margin:18px 0; } .checkpoint-card { padding:16px; margin:12px 0; border:1px solid #334766; border-radius:12px; } .checkpoint-card p { line-height:1.6; }

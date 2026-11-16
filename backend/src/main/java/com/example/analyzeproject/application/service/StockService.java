@@ -29,7 +29,7 @@ public final class StockService {
     private final java.util.concurrent.locks.ReentrantLock quoteLock=new java.util.concurrent.locks.ReentrantLock();
     public StockService(StockMarketDataPort feed,Clock clock,StockLearningEngine learning){this(feed,clock,learning,new StockRecommendationEngine(StockRecommendationEngine.Policy.defaults()));}
     public StockService(StockMarketDataPort feed,Clock clock,StockLearningEngine learning,StockRecommendationEngine recommendations){this.feed=feed;this.clock=clock;this.learning=learning;this.recommendations=recommendations;}
-    public List<Map<String,String>> instruments(){return List.of(Map.of("symbol","VIC","name","Vingroup"),Map.of("symbol","FPT","name","FPT"),Map.of("symbol","SZC","name","Sonadezi Châu Đức"),Map.of("symbol","MBB","name","Ngân hàng Quân đội"));}
+    public List<Map<String,String>> instruments(){return List.of(Map.of("symbol","VIC","name","Vingroup"));}
     public List<Map<String,Object>> watchlist(){
         var cached=cachedQuotes;if(cached!=null&&System.nanoTime()<cached.expiresAt())return quotes(cached.feeds());
         if(!quoteLock.tryLock())throw new ServiceBusyException("Bảng giá đang cập nhật. Vui lòng thử tải lại sau ít giây.");
@@ -50,7 +50,7 @@ public final class StockService {
         }
         return result;
     }
-    private void validate(String symbol){if(instruments().stream().noneMatch(i->i.get("symbol").equals(symbol)))throw new IllegalArgumentException("Chỉ hỗ trợ VIC, FPT, SZC, MBB");}
+    private void validate(String symbol){if(symbol==null || !java.util.Set.of("VIC","FPT","SZC","MBB").contains(symbol))throw new IllegalArgumentException("Invalid symbol");}
     public Snapshot analyzeCached(String symbol,Mode mode){
         validate(symbol);
         var latest=latestSnapshots.get(symbol+mode);
