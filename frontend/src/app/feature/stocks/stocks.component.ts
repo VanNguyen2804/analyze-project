@@ -78,17 +78,21 @@ export class StocksComponent implements OnInit {
     const rect = dialog.getBoundingClientRect();
     if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
   }
+  readonly calculation = signal<'SR_ATR' | 'EMA200'>('SR_ATR');
+  readonly closedDailyBars = computed(() => this.data()?.data.candles.filter(c => c.closed).length ?? 0);
+  selectCalculation(value: 'SR_ATR' | 'EMA200') { if(value === 'EMA200' && this.closedDailyBars() < 200) return; this.calculation.set(value); this.loadTradingPlans(); }
   readonly tradingPlans = signal<TradingPlan[]>([]);
   readonly planMessage = signal('Nhập vị thế để lập kế hoạch mua bán.');
   loadTradingPlans() {
-    const symbol = this.activeSymbol, signature = JSON.stringify(this.input);
+    const symbol = this.activeSymbol, signature = JSON.stringify(this.input), calculation = this.calculation();
     this.tradingPlans.set([]);
     if (!this.input.purchasePrice || !this.input.quantity) return;
     this.planMessage.set('Đang lập hai kế hoạch…');
-    this.api.tradingPlans(symbol, this.input).pipe(takeUntilDestroyed(this.destroy)).subscribe({next: r => { if (symbol === this.activeSymbol && signature === JSON.stringify(this.input)) { this.tradingPlans.set(r.plans); this.planMessage.set(r.message || ''); } }, error: () => this.planMessage.set('Chưa lập được kế hoạch. Hãy cập nhật lại vị thế.')});
+    this.api.tradingPlans(symbol, this.input, calculation).pipe(takeUntilDestroyed(this.destroy)).subscribe({next: r => { if (symbol === this.activeSymbol && calculation === this.calculation() && signature === JSON.stringify(this.input)) { this.tradingPlans.set(r.plans); this.planMessage.set(r.message || ''); } }, error: () => this.planMessage.set('Chưa lập được kế hoạch. Hãy cập nhật lại vị thế.')});
   }
   readonly checkpoints = signal<Array<{checkpoint: string; capturedAt: string; swing: StockSnapshot; intraday: StockSnapshot; swingPosition?: StockPositionResult; intradayPosition?: StockPositionResult; longTermNote: string}>>([]);
   readonly checkpointError = signal('');
+  readonly tradeSide = signal<'BUY' | 'SELL'>('BUY');
   readonly selectedPlan = computed(() => this.tradingPlans().find(p => p.id === this.horizon()));
   readonly planCandles = computed(() => {
     const candles = this.data()?.data.candles ?? [];
@@ -148,9 +152,10 @@ export class StocksComponent implements OnInit {
     if (!s || !plan || this.positionStale() || !s.data.verified || s.data.priceBasis !== 'RAW') return [];
     const factor = s.data.unit === 'VND' ? 1 : s.data.unit === 'THOUSAND_VND' ? 1000 : 0;
     if (!factor) return [];
-    return [
+    return this.tradeSide() === 'BUY' ? [
       { price: plan.entryLow / factor, title: 'Vùng mua thấp', color: '#38bdf8' },
       { price: plan.entryHigh / factor, title: 'Vùng mua cao', color: '#38bdf8' },
+    ] : [
       { price: plan.target1 / factor, title: 'Chốt lời 1', color: '#2dd4bf' },
       { price: plan.target2 / factor, title: 'Chốt lời 2', color: '#2dd4bf' },
       { price: plan.stop / factor, title: 'Bảo vệ vốn', color: '#fb7185' },

@@ -61,7 +61,14 @@
     </nav>
     <section class="strategy-workspace comparison-panel" aria-labelledby="plan-comparison-title">
       <div class="comparison-heading"><div><p class="eyebrow">KẾ HOẠCH &amp; MỐC GIAO DỊCH</p><h3 id="plan-comparison-title">So sánh kế hoạch mua bán</h3></div><span class="strategy-tag">{{ s.symbol }} · VND</span></div>
+      <div class="calculation-options" role="group" aria-label="Cách tính kế hoạch">
+        <button type="button" [class.selected]="calculation() === 'SR_ATR'" [attr.aria-pressed]="calculation() === 'SR_ATR'" (click)="selectCalculation('SR_ATR')">Hỗ trợ / Kháng cự + ATR14</button>
+        <button type="button" [class.selected]="calculation() === 'EMA200'" [attr.aria-pressed]="calculation() === 'EMA200'" [disabled]="closedDailyBars() < 200" (click)="selectCalculation('EMA200')">EMA200 + ATR14</button>
+        <small>{{ closedDailyBars() }} nến ngày đóng @if (closedDailyBars() < 200) { · EMA200 còn thiếu {{ 200 - closedDailyBars() }} nến }</small>
+      </div>
+      @if (selectedPlan()?.ema200; as ema) { <p class="comparison-note">EMA200: {{ ema | number:'1.0-0' }} VND/CP</p> }
       @if (planMessage()) { <p class="notice" role="status">{{ planMessage() }}</p> }
+      @if (!selectedPlan() && horizon() === 'LONG' && tradingPlans().length) { <p class="notice">Chưa đủ lịch sử cho kế hoạch dài hạn. Chọn Lướt sóng hoặc chờ tích lũy thêm nến.</p> }
       @if (tradingPlans().length) {
         <div class="comparison-scroll" tabindex="0" role="region" aria-label="Bảng so sánh kế hoạch">
           <table class="plan-comparison">
@@ -72,6 +79,7 @@
               }
             </tr></thead>
             <tbody>
+              <tr><th scope="row">Hỗ trợ / Kháng cự<small>ATR14 Wilder</small></th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id">{{ plan.support | number:'1.0-0' }} / {{ plan.resistance | number:'1.0-0' }}<small>ATR14: {{ plan.atr14 | number:'1.0-0' }} VND</small></td>}</tr>
               <tr class="status-comparison"><th scope="row">Trạng thái</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id">{{ plan.status }}</td>}</tr>
               <tr class="buy-comparison"><th scope="row"><span class="level-dot buy-dot"></span>Vùng mua<small>Chờ nến xác nhận</small></th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong>{{ plan.entryLow | number:'1.0-0' }} – {{ plan.entryHigh | number:'1.0-0' }}</strong></td>}</tr>
               <tr><th scope="row"><span class="level-dot target-dot"></span>Chốt lời 1</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="target-value">{{ plan.target1 | number:'1.0-0' }}</strong><small [class.loss-value]="plan.profit1 < 0">Lãi/lỗ: {{ plan.profit1 > 0 ? '+' : '' }}{{ plan.profit1 | number:'1.0-0' }} VND</small></td>}</tr>
@@ -144,6 +152,25 @@
               >
             </div>
           </div>
+          <div class="trade-view-switch" role="group" aria-label="Các mốc giao dịch trên biểu đồ">
+            <button type="button" class="buy-view" [class.active]="tradeSide() === 'BUY'" [attr.aria-pressed]="tradeSide() === 'BUY'" (click)="tradeSide.set('BUY')">↗ Mua</button>
+            <button type="button" class="sell-view" [class.active]="tradeSide() === 'SELL'" [attr.aria-pressed]="tradeSide() === 'SELL'" (click)="tradeSide.set('SELL')">↘ Bán</button>
+            <span>{{ horizon() === 'SWING' ? 'Lướt sóng' : 'Dài hạn' }} · {{ tradeSide() === 'BUY' ? 'Vùng mua trên biểu đồ' : 'Chốt lời & bảo vệ vốn' }}</span>
+          </div>
+          @if (selectedPlan(); as plan) {
+            <div class="trade-levels" aria-live="polite">
+              @if (tradeSide() === 'BUY') {
+                <div class="buy-level"><small>VÙNG MUA THẤP</small><strong>{{ plan.entryLow | number:'1.0-0' }}</strong></div>
+                <div class="buy-level"><small>VÙNG MUA CAO</small><strong>{{ plan.entryHigh | number:'1.0-0' }}</strong></div>
+                <p>VND/CP · chờ nến đóng xác nhận phục hồi tại hỗ trợ và khối lượng phù hợp.</p>
+              } @else {
+                <div><small>CHỐT LỜI 1</small><strong>{{ plan.target1 | number:'1.0-0' }}</strong></div>
+                <div><small>CHỐT LỜI 2</small><strong>{{ plan.target2 | number:'1.0-0' }}</strong></div>
+                <div class="stop-level"><small>BẢO VỆ VỐN</small><strong>{{ plan.stop | number:'1.0-0' }}</strong></div>
+                <p>VND/CP · theo dõi chốt từng phần và lượng cổ phiếu thực tế có thể bán.</p>
+              }
+            </div>
+          } @else { <p class="muted small">Nhập vị thế và cập nhật kế hoạch để hiện các mốc {{ tradeSide() === 'BUY' ? 'mua' : 'bán' }}.</p> }
           <div class="chart-context-actions">
             <button class="secondary" type="button" (click)="marketTab.set('updates'); marketDialog.showModal()">◷ Cập nhật thị trường <small>09:15 · 11:30 · 14:15</small></button>
             <button class="secondary" type="button" (click)="marketTab.set('context'); marketDialog.showModal()">◈ Bối cảnh thị trường <small>Tín hiệu · VNINDEX</small></button>
