@@ -6,6 +6,7 @@ import {
   ElementRef,
   Input,
   OnChanges,
+  SimpleChanges,
   OnDestroy,
   ViewChild,
   signal,
@@ -193,7 +194,11 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.markers = createSeriesMarkers(this.candlesSeries);
     this.render();
   }
-  ngOnChanges() {
+  ngOnChanges(changes?: SimpleChanges) {
+    if (changes?.['planLevels']) {
+      this.planVisible.set(true);
+      this.chart?.priceScale('right').applyOptions({ autoScale: true });
+    }
     this.visibleBars = this.initialVisibleBars;
     this.render();
   }

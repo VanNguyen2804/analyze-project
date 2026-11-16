@@ -14,14 +14,22 @@ public class StockTradingPlanService {
   Snapshot snapshot=stocks.analyzeCached(symbol,Mode.SWING);
   double factor=snapshot.data().unit().equals("VND")?1:snapshot.data().unit().equals("THOUSAND_VND")?1000:0;
   var bars=snapshot.data().candles().stream().filter(Candle::closed).toList();
-  if(factor==0 || !snapshot.data().verified() || !snapshot.data().priceBasis().equals("RAW") || !snapshot.freshness().equals("RECENT"))return Map.of("plans",List.of(),"message","Cần nến ngày RAW đã xác minh và đủ mới để lập kế hoạch.");
+  if(factor==0)return Map.of("plans",List.of(),"message","Chưa xác định được đơn vị giá của nguồn; không thể quy đổi mốc mua/bán sang VND.");
+  boolean confirmed=com.example.analyzeproject.domain.service.stock.StockDataQuality.canConfirm(snapshot.data(),snapshot.freshness());
+  String qualityMessage=confirmed?"":"KẾ HOẠCH THAM KHẢO · "+(!snapshot.data().verified()?"Nguồn chưa xác minh. ":"")+(!snapshot.data().priceBasis().equals("RAW")?"Cơ sở giá "+snapshot.data().priceBasis()+" chưa thể đối chiếu giá vốn. ":"")+(!snapshot.freshness().equals("RECENT")?"Dữ liệu cũ. ":"")+"Chưa dùng để xác nhận giao dịch.";
   if(bars.size()<policy.minimumBars())return Map.of("plans",List.of(),"message","Cần tối thiểu 15 nến ngày đã đóng để tính biên độ và lập kế hoạch lướt sóng.");
   if(calculation==Calculation.EMA200 && bars.size()<200)return Map.of("plans",List.of(),"message","EMA200 cần ít nhất 200 nến ngày đã đóng; còn thiếu "+(200-bars.size())+" nến.");
   List<Object> plans=new ArrayList<>();
   plans.add(plan(bars,Math.min(policy.swingWindow(),bars.size()),factor,input,"SWING","Lướt sóng","2–8 tuần"));
   if(bars.size()>=policy.longMinimumBars())plans.add(plan(bars,Math.min(policy.longWindow(),bars.size()),factor,input,"LONG","Dài hạn",bars.size()<policy.standardBars()?"Tạm tính · cần bổ sung lịch sử":"6–18 tháng"));
   if(calculation==Calculation.EMA200)plans.replaceAll(p -> emaPlan((Map<String,Object>)p,bars,factor,input));
-  return Map.of("plans",plans,"policy",policy,"asOf",bars.get(bars.size()-1).time(),"message",bars.size()<policy.longMinimumBars()?"Đã có kế hoạch lướt sóng. Dài hạn cần tối thiểu 30 nến ngày; không suy diễn từ lịch sử quá ngắn.":bars.size()<policy.standardBars()?"Kế hoạch dài hạn tạm tính từ lịch sử ngắn; cần tích lũy thêm nến trước khi đánh giá xu hướng dài hạn.":"");
+  for(Object item:plans){
+   Map<String,Object> plan=(Map<String,Object>)item;
+   plan.put("confirmed",confirmed);plan.put("priceBasis",snapshot.data().priceBasis());
+   if(!snapshot.data().verified() || !snapshot.data().priceBasis().equals("RAW")){plan.put("profit1",null);plan.put("profit2",null);plan.put("riskAmount",null);}
+   if(!confirmed)plan.put("status","Tham khảo · "+plan.get("status"));
+  }
+  return Map.of("plans",plans,"policy",policy,"asOf",bars.get(bars.size()-1).time(),"message",qualityMessage+(bars.size()<policy.longMinimumBars()?"Đã có kế hoạch lướt sóng. Dài hạn cần tối thiểu 30 nến ngày; không suy diễn từ lịch sử quá ngắn.":bars.size()<policy.standardBars()?"Kế hoạch dài hạn tạm tính từ lịch sử ngắn; cần tích lũy thêm nến trước khi đánh giá xu hướng dài hạn.":""));
  }
  public Map<String,Object> plan(List<Candle> bars,int window,double factor,PositionInput input,String id,String title,String duration){
   var range=bars.subList(bars.size()-window,bars.size());

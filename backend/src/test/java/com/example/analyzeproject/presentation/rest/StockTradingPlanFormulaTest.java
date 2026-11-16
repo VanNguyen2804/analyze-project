@@ -43,4 +43,15 @@ class StockTradingPlanFormulaTest {
  @Test void inconsistentPolicyIsRejected(){
   assertThrows(IllegalArgumentException.class,()->new com.example.analyzeproject.application.service.StockTradingPolicy(20,120,1,30,60,.25,.5,1,1.5,1,2,.25,1.5,.25,1.5,2,2,3,4));
  }
+ @Test void unverifiedUnknownBasisStillReturnsReferenceLevelsWithoutPnl(){
+  var stocks=org.mockito.Mockito.mock(com.example.analyzeproject.application.service.StockService.class);
+  List<Candle> bars=new ArrayList<>();for(int i=0;i<30;i++)bars.add(new Candle(1700000000L+i*86400L,100,110,90,100,1000,true));
+  var feed=new Feed(bars,java.time.Instant.now(),"test","VND","UNKNOWN",false,List.of());
+  var snapshot=new Snapshot("VIC",Mode.SWING,"1D","id",feed,feed,"STALE","CLOSED",bars.get(29).time(),null,null);
+  org.mockito.Mockito.when(stocks.analyzeCached("VIC",Mode.SWING)).thenReturn(snapshot);
+  var configured=new com.example.analyzeproject.application.service.StockTradingPlanService(stocks,new com.example.analyzeproject.application.service.StockTradingPolicy(20,120,15,30,60,.25,.5,1,1.5,1,2,.25,1.5,.25,1.5,2,2,3,4));
+  var response=(Map<?,?>)configured.plans("VIC",new PositionInput(null,100.0,10.0,null,null,null,null),com.example.analyzeproject.application.service.StockTradingPlanService.Calculation.SR_ATR);
+  var plans=(List<?>)response.get("plans");assertEquals(2,plans.size());
+  var first=(Map<?,?>)plans.get(0);assertEquals(false,first.get("confirmed"));assertNull(first.get("profit1"));assertNotNull(first.get("entryHigh"));
+ }
 }

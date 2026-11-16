@@ -1,4 +1,4 @@
-export interface TradingPlan { ema200?: number; support: number; resistance: number; atr14: number; id: string; title: string; duration: string; entryLow: number; entryHigh: number; stop: number; target1: number; target2: number; profit1: number; profit2: number; riskAmount: number; rewardRisk: number; status: string; method: string; }
+export interface TradingPlan { ema200?: number; support: number; resistance: number; atr14: number; id: string; title: string; duration: string; entryLow: number; entryHigh: number; stop: number; target1: number; target2: number; profit1: number | null; profit2: number | null; riskAmount: number | null; rewardRisk: number; status: string; method: string; }
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';

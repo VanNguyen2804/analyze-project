@@ -86,12 +86,16 @@ export class StocksComponent implements OnInit {
   loadTradingPlans() {
     const symbol = this.activeSymbol, signature = JSON.stringify(this.input), calculation = this.calculation();
     this.tradingPlans.set([]);
-    if (!this.input.purchasePrice || !this.input.quantity) return;
+    if (!this.input.purchasePrice || !this.input.quantity) { this.planMessage.set('Nhập giá vốn và số cổ phiếu để tính các mốc mua/bán.'); return; }
     this.planMessage.set('Đang lập hai kế hoạch…');
     this.api.tradingPlans(symbol, this.input, calculation).pipe(takeUntilDestroyed(this.destroy)).subscribe({next: r => { if (symbol === this.activeSymbol && calculation === this.calculation() && signature === JSON.stringify(this.input)) { this.tradingPlans.set(r.plans); this.planMessage.set(r.message || ''); } }, error: () => this.planMessage.set('Chưa lập được kế hoạch. Hãy cập nhật lại vị thế.')});
   }
   readonly checkpoints = signal<Array<{checkpoint: string; capturedAt: string; swing: StockSnapshot; intraday: StockSnapshot; swingPosition?: StockPositionResult; intradayPosition?: StockPositionResult; longTermNote: string}>>([]);
   readonly checkpointError = signal('');
+  selectTradeSide(side: 'BUY' | 'SELL') {
+    this.tradeSide.set(side);
+    if (!this.selectedPlan()) this.loadTradingPlans();
+  }
   readonly tradeSide = signal<'BUY' | 'SELL'>('BUY');
   readonly selectedPlan = computed(() => this.tradingPlans().find(p => p.id === this.horizon()));
   readonly planCandles = computed(() => {
@@ -149,7 +153,7 @@ export class StocksComponent implements OnInit {
   }
   readonly chartLevels = computed<StockPlanLevel[]>(() => {
     const s = this.data(), plan = this.selectedPlan();
-    if (!s || !plan || this.positionStale() || !s.data.verified || s.data.priceBasis !== 'RAW') return [];
+    if (!s || !plan) return [];
     const factor = s.data.unit === 'VND' ? 1 : s.data.unit === 'THOUSAND_VND' ? 1000 : 0;
     if (!factor) return [];
     return this.tradeSide() === 'BUY' ? [
@@ -215,7 +219,7 @@ export class StocksComponent implements OnInit {
         takeUntilDestroyed(this.destroy),
       )
       .subscribe((data) => {
-        if (data) { this.data.set(data); this.loadCheckpoints(data.symbol); }
+        if (data) { this.data.set(data); this.loadCheckpoints(data.symbol); this.loadTradingPlans(); }
         this.loading.set(false);
         if (data && this.session.autoAnalyze) this.analyzePosition();
       });

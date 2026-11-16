@@ -196,3 +196,21 @@ describe('Stock chart with the real chart library', () => {
     fixture.destroy();
   });
 });
+
+describe('Trade plan line updates', () => {
+  it('replaces buy lines with sell lines and restores their visibility', () => {
+    const fixture = TestBed.createComponent(StockChartComponent);
+    fixture.nativeElement.style.width = '900px';
+    fixture.componentRef.setInput('candles', Array.from({length: 30}, (_, i) => ({time:1700000000+i*86400,open:100,high:110,low:90,close:105,volume:1000,closed:true})));
+    fixture.componentRef.setInput('planLevels', [{price:95,title:'Buy',color:'#38bdf8'}]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['planLines'].map(l => l.options().price)).toEqual([95]);
+    fixture.componentInstance.togglePlan();
+    expect(fixture.componentInstance['planLines'].length).toBe(0);
+    fixture.componentRef.setInput('planLevels', [{price:120,title:'Sell',color:'#2dd4bf'}, {price:85,title:'Stop',color:'#fb7185'}]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.planVisible()).toBeTrue();
+    expect(fixture.componentInstance['planLines'].map(l => l.options().price)).toEqual([120,85]);
+    fixture.destroy();
+  });
+});

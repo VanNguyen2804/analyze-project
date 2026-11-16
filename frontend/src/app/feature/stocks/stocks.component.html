@@ -82,9 +82,9 @@
               <tr><th scope="row">Hỗ trợ / Kháng cự<small>ATR14 Wilder</small></th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id">{{ plan.support | number:'1.0-0' }} / {{ plan.resistance | number:'1.0-0' }}<small>ATR14: {{ plan.atr14 | number:'1.0-0' }} VND</small></td>}</tr>
               <tr class="status-comparison"><th scope="row">Trạng thái</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id">{{ plan.status }}</td>}</tr>
               <tr class="buy-comparison"><th scope="row"><span class="level-dot buy-dot"></span>Vùng mua<small>Chờ nến xác nhận</small></th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong>{{ plan.entryLow | number:'1.0-0' }} – {{ plan.entryHigh | number:'1.0-0' }}</strong></td>}</tr>
-              <tr><th scope="row"><span class="level-dot target-dot"></span>Chốt lời 1</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="target-value">{{ plan.target1 | number:'1.0-0' }}</strong><small [class.loss-value]="plan.profit1 < 0">Lãi/lỗ: {{ plan.profit1 > 0 ? '+' : '' }}{{ plan.profit1 | number:'1.0-0' }} VND</small></td>}</tr>
-              <tr><th scope="row"><span class="level-dot target-dot"></span>Chốt lời 2</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="target-value">{{ plan.target2 | number:'1.0-0' }}</strong><small [class.loss-value]="plan.profit2 < 0">Lãi/lỗ: {{ plan.profit2 > 0 ? '+' : '' }}{{ plan.profit2 | number:'1.0-0' }} VND</small></td>}</tr>
-              <tr><th scope="row"><span class="level-dot stop-dot"></span>Bảo vệ vốn</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="stop-value">{{ plan.stop | number:'1.0-0' }}</strong><small [class.loss-value]="plan.riskAmount < 0">Lãi/lỗ: {{ plan.riskAmount | number:'1.0-0' }} VND</small></td>}</tr>
+              <tr><th scope="row"><span class="level-dot target-dot"></span>Chốt lời 1</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="target-value">{{ plan.target1 | number:'1.0-0' }}</strong><small [class.loss-value]="(plan.profit1 ?? 0) < 0">Lãi/lỗ: {{ (plan.profit1 ?? 0) > 0 ? '+' : '' }}{{ plan.profit1 === null ? 'Chưa xác minh' : (plan.profit1 | number:'1.0-0') }} VND</small></td>}</tr>
+              <tr><th scope="row"><span class="level-dot target-dot"></span>Chốt lời 2</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="target-value">{{ plan.target2 | number:'1.0-0' }}</strong><small [class.loss-value]="(plan.profit2 ?? 0) < 0">Lãi/lỗ: {{ (plan.profit2 ?? 0) > 0 ? '+' : '' }}{{ plan.profit2 === null ? 'Chưa xác minh' : (plan.profit2 | number:'1.0-0') }} VND</small></td>}</tr>
+              <tr><th scope="row"><span class="level-dot stop-dot"></span>Bảo vệ vốn</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="stop-value">{{ plan.stop | number:'1.0-0' }}</strong><small [class.loss-value]="(plan.riskAmount ?? 0) < 0">Lãi/lỗ: {{ plan.riskAmount === null ? 'Chưa xác minh' : (plan.riskAmount | number:'1.0-0') }} VND</small></td>}</tr>
               <tr><th scope="row">Lợi nhuận / rủi ro<small>Từ vùng mua đến mục tiêu 1</small></th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id">{{ plan.rewardRisk | number:'1.1-1' }}R</td>}</tr>
             </tbody>
           </table>
@@ -153,8 +153,8 @@
             </div>
           </div>
           <div class="trade-view-switch" role="group" aria-label="Các mốc giao dịch trên biểu đồ">
-            <button type="button" class="buy-view" [class.active]="tradeSide() === 'BUY'" [attr.aria-pressed]="tradeSide() === 'BUY'" (click)="tradeSide.set('BUY')">↗ Mua</button>
-            <button type="button" class="sell-view" [class.active]="tradeSide() === 'SELL'" [attr.aria-pressed]="tradeSide() === 'SELL'" (click)="tradeSide.set('SELL')">↘ Bán</button>
+            <button type="button" class="buy-view" [class.active]="tradeSide() === 'BUY'" [attr.aria-pressed]="tradeSide() === 'BUY'" (click)="selectTradeSide('BUY')">↗ Mua</button>
+            <button type="button" class="sell-view" [class.active]="tradeSide() === 'SELL'" [attr.aria-pressed]="tradeSide() === 'SELL'" (click)="selectTradeSide('SELL')">↘ Bán</button>
             <span>{{ horizon() === 'SWING' ? 'Lướt sóng' : 'Dài hạn' }} · {{ tradeSide() === 'BUY' ? 'Vùng mua trên biểu đồ' : 'Chốt lời & bảo vệ vốn' }}</span>
           </div>
           @if (selectedPlan(); as plan) {
@@ -171,6 +171,7 @@
               }
             </div>
           } @else { <p class="muted small">Nhập vị thế và cập nhật kế hoạch để hiện các mốc {{ tradeSide() === 'BUY' ? 'mua' : 'bán' }}.</p> }
+          @if (!selectedPlan()) { <p class="notice" role="status">{{ planMessage() }}</p> }
           <div class="chart-context-actions">
             <button class="secondary" type="button" (click)="marketTab.set('updates'); marketDialog.showModal()">◷ Cập nhật thị trường <small>09:15 · 11:30 · 14:15</small></button>
             <button class="secondary" type="button" (click)="marketTab.set('context'); marketDialog.showModal()">◈ Bối cảnh thị trường <small>Tín hiệu · VNINDEX</small></button>
