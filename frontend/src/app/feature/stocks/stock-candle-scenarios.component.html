@@ -47,6 +47,8 @@
           Vốn cần bổ sung: <strong>{{ item.additionalCash | number: '1.0-0' }} VND</strong>
         </p>
       }
+      <p>{{ item.side === 'BUY' ? 'Giá trị mua dự kiến' : 'Tiền bán dự kiến' }}: <strong>{{ item.triggerPrice * item.suggestedQuantity | number: '1.0-0' }} VND</strong></p>
+      <p>Lãi/lỗ tại mức giá này: <strong>{{ item.estimatedPnlAtTrigger | number: '1.0-0' }} VND</strong><small> · {{ item.side === 'BUY' ? 'toàn vị thế' : 'phần bán' }} · trước phí/thuế</small></p>
       <details>
         <summary>Điều kiện nến và tác động lên vị thế</summary>
         <ul>

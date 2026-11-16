@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { DecimalPipe, PercentPipe, DatePipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BackendReadinessService } from '../../core/services/backend-readiness.service';
 import {
@@ -63,11 +63,12 @@ import { StockPositionSessions, newStockPosition } from './stock-position-sessio
 export class StocksComponent implements OnInit {
   readonly backend = inject(BackendReadinessService);
   private readonly api = inject(StockApiService);
+  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroy = inject(DestroyRef);
   private readonly sessions = inject(StockPositionSessions);
-  private session = this.sessions.forSymbol('FPT');
-  private activeSymbol = 'FPT';
+  private session = this.sessions.forSymbol('VIC');
+  private activeSymbol = 'VIC';
   private readonly modeChanges = new BehaviorSubject<StockMode>('SWING');
   private readonly refreshChanges = new BehaviorSubject(0);
   private readonly quoteRefreshChanges = new BehaviorSubject(0);
@@ -80,7 +81,26 @@ export class StocksComponent implements OnInit {
   readonly positionBusy = signal(false);
   readonly positionError = signal('');
   readonly positionStale = signal(false);
-  readonly symbols = ['VIC', 'FPT', 'SZC', 'MBB'];
+  readonly symbols = this.loadSymbols();
+  private loadSymbols(): string[] {
+    try {
+      const saved = JSON.parse(localStorage.getItem('stocks.watchlist.v1') || '[]');
+      if (Array.isArray(saved)) return [...new Set<string>(['VIC', ...saved.filter((v: unknown) => typeof v === 'string' && /^[A-Z][A-Z0-9]{2,9}$/.test(v))])];
+    } catch {}
+    return ['VIC'];
+  }
+  readonly symbolError = signal('');
+  addSymbol(raw: string) {
+    const symbol = raw.trim().toUpperCase();
+    if (!/^[A-Z][A-Z0-9]{2,9}$/.test(symbol)) {
+      this.symbolError.set('Nhập mã hợp lệ (3–10 ký tự).');
+      return;
+    }
+    this.symbolError.set('');
+    if (!this.symbols.includes(symbol)) this.symbols.push(symbol);
+    try { localStorage.setItem('stocks.watchlist.v1', JSON.stringify(this.symbols)); } catch {}
+    void this.router.navigate(['/stocks', symbol]);
+  }
   readonly quotes = signal<Record<string, StockWatchQuote>>({});
   get input(): StockPositionInput {
     return this.session.input;
@@ -139,7 +159,7 @@ export class StocksComponent implements OnInit {
           this.cancelPosition.next();
           this.positionBusy.set(false);
           this.positionError.set('');
-          const symbol = params.get('symbol') || 'FPT',
+          const symbol = params.get('symbol') || 'VIC',
             current = this.data();
           if (symbol !== this.activeSymbol) {
             this.activeSymbol = symbol;
@@ -150,7 +170,7 @@ export class StocksComponent implements OnInit {
           this.positionStale.set(!!this.position());
         }),
         switchMap(([params, mode]) =>
-          this.api.analyze(params.get('symbol') || 'FPT', mode).pipe(
+          this.api.analyze(params.get('symbol') || 'VIC', mode).pipe(
             catchError((err) => {
               this.error.set(
                 err.name === 'TimeoutError'
@@ -193,6 +213,7 @@ export class StocksComponent implements OnInit {
     this.quoteRefreshChanges.next(this.quoteRefreshChanges.value + 1);
   }
   resetPosition() {
+    this.sessions.save();
     this.cancelPosition.next();
     this.positionBusy.set(false);
     this.positionError.set('');
@@ -243,6 +264,7 @@ export class StocksComponent implements OnInit {
             session.input.plan.observedPeak = result.positionPlan.observedPeak;
             session.input.plan.availableQuantity = result.positionPlan.sellableQuantity;
           }
+          this.sessions.save();
           session.result = result;
           session.autoAnalyze = true;
           this.position.set(result);

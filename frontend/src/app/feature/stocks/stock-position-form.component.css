@@ -103,3 +103,4 @@ summary {
     grid-template-columns: 1fr;
   }
 }
+.capital-preview { margin:16px 0; padding:18px; border:1px solid #514778; border-radius:14px; background:#142637; display:grid; gap:8px; color:#b8c8df; } .capital-preview strong { font-size:26px; color:#5eead4; overflow-wrap:anywhere; } .capital-preview p { font-size:12px; margin:0; }

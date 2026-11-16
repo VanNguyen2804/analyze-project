@@ -497,3 +497,4 @@ p {
 .deferred-chart {
   min-height: 540px;
 }
+.add-symbol { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:16px 0 24px; } .add-symbol input { background:#111c30; border:1px solid #514778; border-radius:10px; padding:12px; color:#e6eef8; width:150px; }

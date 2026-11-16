@@ -35,6 +35,12 @@
       </a>
     }
   </nav>
+  <form class="add-symbol" (submit)="$event.preventDefault(); addSymbol(symbolInput.value)">
+    <label for="stock-symbol">Thêm mã theo dõi</label>
+    <input id="stock-symbol" #symbolInput placeholder="Ví dụ: FPT" maxlength="10" />
+    <button class="secondary" type="submit">+ Thêm mã</button>
+  </form>
+  @if (symbolError()) { <p role="alert">{{ symbolError() }}</p> }
   @if (loading() && !data()) {
     <div class="panel empty" role="status">
       <div class="loading-bar"></div>
@@ -153,7 +159,7 @@
       </div>
       <aside class="panel plan-panel">
         <section class="position-workspace" aria-labelledby="position-heading">
-          <details [open]="!position()?.positionPlan">
+          <details open>
             <summary id="position-heading">
               <span
                 ><span class="eyebrow">VỊ THẾ CỦA TÔI · {{ s.symbol }}</span
@@ -161,7 +167,7 @@
               ><span class="edit-hint">Chỉ cần 2 thông tin ↗</span>
             </summary>
             <app-stock-position-form
-              [value]="input"
+              [value]="input" [marketPrice]="s.data.verified &amp;&amp; s.data.priceBasis === 'RAW' ? (s.data.unit === 'VND' ? latestPrice(s) : s.data.unit === 'THOUSAND_VND' &amp;&amp; latestPrice(s) !== null ? latestPrice(s)! * 1000 : null) : null"
               [busy]="loading() || positionBusy()"
               (changed)="resetPosition()"
               (calculate)="analyzePosition()"

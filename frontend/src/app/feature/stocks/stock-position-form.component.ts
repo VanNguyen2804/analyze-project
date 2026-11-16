@@ -12,6 +12,7 @@ import { StockPositionInput } from '../../core/models/stock.model';
 })
 export class StockPositionFormComponent {
   readonly value = input.required<StockPositionInput>();
+  readonly marketPrice = input<number | null>(null);
   readonly busy = input(false);
   readonly changed = output<void>();
   readonly calculate = output<void>();

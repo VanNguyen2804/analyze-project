@@ -29,6 +29,19 @@
       /></label>
     </div>
   </fieldset>
+  @if (v.purchasePrice && v.quantity) {
+    <div class="capital-preview" aria-live="polite">
+      @if (marketPrice() !== null) {
+        <span>Giá trị hiện tại: {{ (marketPrice()! * v.quantity).toLocaleString('vi-VN') }} VND</span>
+        <strong [style.color]="marketPrice()! >= v.purchasePrice ? '#5eead4' : '#fb7185'">Lãi/lỗ: {{ ((marketPrice()! - v.purchasePrice) * v.quantity).toLocaleString('vi-VN') }} VND</strong>
+        <small>{{ ((marketPrice()! / v.purchasePrice - 1) * 100).toFixed(2) }}% · trước phí/thuế · theo giá nến gần nhất</small>
+      }
+      <span>Tổng vốn mua</span>
+      <strong>{{ (v.purchasePrice * v.quantity).toLocaleString('vi-VN') }} VND</strong>
+      <small>{{ v.quantity }} cổ phiếu × {{ v.purchasePrice.toLocaleString('vi-VN') }} VND</small>
+      <p>Lập kịch bản bên dưới để xem lãi/lỗ và các mức mua, bán.</p>
+    </div>
+  }
   @if (locked()) {
     <p class="note">
       Vị thế cũ có giao dịch đã ghi nhận. Chuyển sang lập kịch bản từ lượng còn giữ để nhập lại hai
