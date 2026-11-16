@@ -13,7 +13,7 @@ import java.time.Clock;
 /** Composition root: only the outer layer knows how application ports are wired. */
 @Configuration
 public class ApplicationConfig {
-    @Bean StockService stockService(com.fasterxml.jackson.databind.ObjectMapper json, Clock clock,
+    @Bean StockService stockService(com.fasterxml.jackson.databind.ObjectMapper json, Clock clock, JdbcTemplate stockJdbc, org.springframework.transaction.PlatformTransactionManager stockTransactions,
             @Value("${stocks.source.enabled:true}") boolean enabled,
             @Value("${stocks.source.price-scale:1000}") double scale,
             @Value("${stocks.source.price-basis:UNKNOWN}") String basis,
@@ -26,7 +26,7 @@ public class ApplicationConfig {
             @Value("${stocks.recommendation.stop-atr:1.5}") double stopAtr,
             @Value("${stocks.recommendation.target-atr:3.0}") double targetAtr,
             @Value("${stocks.recommendation.max-buy-rsi:70}") double maxBuyRsi) {
-        return new StockService(new com.example.analyzeproject.infrastructure.marketdata.EntradeStockAdapter(json,clock,enabled,scale,basis,verified),
+        return new StockService(new com.example.analyzeproject.infrastructure.marketdata.PersistentStockMarketData(new com.example.analyzeproject.infrastructure.marketdata.EntradeStockAdapter(json,clock,enabled,scale,basis,verified),stockJdbc,json,clock,stockTransactions),
                 clock,new com.example.analyzeproject.domain.service.stock.StockLearningEngine(buyThreshold,sellThreshold,cost),
                 new com.example.analyzeproject.domain.service.stock.StockRecommendationEngine(new com.example.analyzeproject.domain.service.stock.StockRecommendationEngine.Policy(breakoutAtr,volumeMultiple,stopAtr,targetAtr,maxBuyRsi)));
     }

@@ -72,6 +72,12 @@ export class StocksComponent implements OnInit {
   private readonly refreshChanges = new BehaviorSubject(0);
   private readonly quoteRefreshChanges = new BehaviorSubject(0);
   private readonly cancelPosition = new Subject<void>();
+  readonly marketTab = signal<'updates' | 'context'>('updates');
+  closeMarketBackdrop(event: MouseEvent, dialog: HTMLDialogElement) {
+    if (event.target !== dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+  }
   readonly tradingPlans = signal<TradingPlan[]>([]);
   readonly planMessage = signal('Nhập vị thế để lập kế hoạch mua bán.');
   loadTradingPlans() {

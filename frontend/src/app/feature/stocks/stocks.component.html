@@ -59,22 +59,31 @@
       <button type="button" [class.selected]="horizon() === 'SWING'" [attr.aria-pressed]="horizon() === 'SWING'" (click)="selectHorizon('SWING')">Lướt sóng<small>Kế hoạch ngắn hạn</small></button>
       <button type="button" [class.selected]="horizon() === 'LONG'" [attr.aria-pressed]="horizon() === 'LONG'" (click)="selectHorizon('LONG')">Dài hạn<small>Tích lũy và nắm giữ</small></button>
     </nav>
-    <section class="strategy-workspace">
-      <div class="strategy-heading"><div><p class="eyebrow">KẾ HOẠCH MUA BÁN</p><h3>{{ horizon() === 'SWING' ? 'Kế hoạch lướt sóng' : 'Kế hoạch dài hạn' }}</h3><p class="muted">Vùng mua và mục tiêu lợi nhuận theo thời gian nắm giữ.</p></div><span class="strategy-tag">{{ s.symbol }} / VND</span></div>
+    <section class="strategy-workspace comparison-panel" aria-labelledby="plan-comparison-title">
+      <div class="comparison-heading"><div><p class="eyebrow">KẾ HOẠCH &amp; MỐC GIAO DỊCH</p><h3 id="plan-comparison-title">So sánh kế hoạch mua bán</h3></div><span class="strategy-tag">{{ s.symbol }} · VND</span></div>
       @if (planMessage()) { <p class="notice" role="status">{{ planMessage() }}</p> }
-      <div class="strategy-grid">
-        @if (selectedPlan(); as plan) {
-          <article class="strategy-card" [class.long-strategy]="plan.id === 'LONG'">
-            <div class="strategy-top"><span>{{ plan.duration }}</span><span>{{ plan.id === 'LONG' ? '02' : '01' }}</span></div>
-            <h3>{{ plan.title }}</h3><p class="strategy-status">{{ plan.status }}</p>
-            <div class="entry-zone"><small>VÙNG MUA CÓ ĐIỀU KIỆN</small><strong>{{ plan.entryLow | number:'1.0-0' }} – {{ plan.entryHigh | number:'1.0-0' }}</strong><p>Chờ nến đóng phục hồi tại hỗ trợ; kiểm tra xu hướng và khối lượng trước khi mua.</p></div>
-            <div class="target-row"><span>Chốt lời 1<strong>{{ plan.target1 | number:'1.0-0' }}</strong></span><span>Chốt lời 2<strong>{{ plan.target2 | number:'1.0-0' }}</strong></span></div>
-            <div class="profit-row"><small>Lãi/lỗ nếu bán toàn bộ vị thế tại mục tiêu 1 / 2</small><strong>{{ plan.profit1 | number:'1.0-0' }} / {{ plan.profit2 | number:'1.0-0' }} VND</strong></div>
-            <div class="risk-row"><span>Mốc bảo vệ vốn <b>{{ plan.stop | number:'1.0-0' }}</b></span><span>Lãi/lỗ tại mốc <b>{{ plan.riskAmount | number:'1.0-0' }} VND</b></span></div>
-            <details><summary>Cơ sở kế hoạch · {{ plan.rewardRisk | number:'1.1-1' }}R</summary><p>{{ plan.method }}</p><p>Kế hoạch kỹ thuật, trước phí/thuế; lợi nhuận là kịch bản theo mức giá, chưa được bảo đảm. Dài hạn cần kết hợp sức khỏe doanh nghiệp.</p></details>
-          </article>
-        }
-      </div>
+      @if (tradingPlans().length) {
+        <div class="comparison-scroll" tabindex="0" role="region" aria-label="Bảng so sánh kế hoạch">
+          <table class="plan-comparison">
+            <caption>Giá theo VND/cổ phiếu. Chọn kế hoạch để xem các mốc trên biểu đồ.</caption>
+            <thead><tr><th scope="col">Mốc kế hoạch</th>
+              @for (plan of tradingPlans(); track plan.id) {
+                <th scope="col" [class.active-plan]="horizon() === plan.id"><button type="button" [attr.aria-pressed]="horizon() === plan.id" (click)="selectHorizon(plan.id === 'LONG' ? 'LONG' : 'SWING')">{{ plan.title }}<small>{{ plan.duration }} · {{ horizon() === plan.id ? 'Đang xem biểu đồ' : 'Xem biểu đồ →' }}</small></button></th>
+              }
+            </tr></thead>
+            <tbody>
+              <tr class="status-comparison"><th scope="row">Trạng thái</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id">{{ plan.status }}</td>}</tr>
+              <tr class="buy-comparison"><th scope="row"><span class="level-dot buy-dot"></span>Vùng mua<small>Chờ nến xác nhận</small></th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong>{{ plan.entryLow | number:'1.0-0' }} – {{ plan.entryHigh | number:'1.0-0' }}</strong></td>}</tr>
+              <tr><th scope="row"><span class="level-dot target-dot"></span>Chốt lời 1</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="target-value">{{ plan.target1 | number:'1.0-0' }}</strong><small [class.loss-value]="plan.profit1 < 0">Lãi/lỗ: {{ plan.profit1 > 0 ? '+' : '' }}{{ plan.profit1 | number:'1.0-0' }} VND</small></td>}</tr>
+              <tr><th scope="row"><span class="level-dot target-dot"></span>Chốt lời 2</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="target-value">{{ plan.target2 | number:'1.0-0' }}</strong><small [class.loss-value]="plan.profit2 < 0">Lãi/lỗ: {{ plan.profit2 > 0 ? '+' : '' }}{{ plan.profit2 | number:'1.0-0' }} VND</small></td>}</tr>
+              <tr><th scope="row"><span class="level-dot stop-dot"></span>Bảo vệ vốn</th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id"><strong class="stop-value">{{ plan.stop | number:'1.0-0' }}</strong><small [class.loss-value]="plan.riskAmount < 0">Lãi/lỗ: {{ plan.riskAmount | number:'1.0-0' }} VND</small></td>}</tr>
+              <tr><th scope="row">Lợi nhuận / rủi ro<small>Từ vùng mua đến mục tiêu 1</small></th>@for (plan of tradingPlans(); track plan.id) {<td [class.active-plan]="horizon() === plan.id">{{ plan.rewardRisk | number:'1.1-1' }}R</td>}</tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="comparison-note">Lãi/lỗ mô phỏng bán toàn bộ {{ input.quantity | number }} cổ phiếu tại từng mốc, trước phí và thuế. Hai mục tiêu là các kịch bản riêng.</p>
+        @if (selectedPlan(); as plan) {<details class="comparison-method"><summary>Cơ sở kế hoạch {{ plan.title.toLowerCase() }}</summary><p>{{ plan.method }}</p><p>Vùng mua cần nến đóng xác nhận xu hướng và khối lượng. Lợi nhuận dự kiến phụ thuộc giá thực tế; kế hoạch dài hạn cần kết hợp sức khỏe doanh nghiệp.</p></details>}
+      }
     </section>
     <div class="toolbar">
       <span class="source-line"
@@ -135,6 +144,10 @@
               >
             </div>
           </div>
+          <div class="chart-context-actions">
+            <button class="secondary" type="button" (click)="marketTab.set('updates'); marketDialog.showModal()">◷ Cập nhật thị trường <small>09:15 · 11:30 · 14:15</small></button>
+            <button class="secondary" type="button" (click)="marketTab.set('context'); marketDialog.showModal()">◈ Bối cảnh thị trường <small>Tín hiệu · VNINDEX</small></button>
+          </div>
           @if (s.data.candles.length) {
             @defer (on viewport) {
               <app-stock-chart
@@ -185,7 +198,18 @@
         <p class="note">{{ horizon() === 'SWING' ? 'Đang xem kế hoạch lướt sóng và các mức giá ngắn hạn.' : 'Đang xem kế hoạch dài hạn và các mức giá tích lũy.' }} Vùng mua, chốt lời và bảo vệ vốn được đánh dấu trên biểu đồ.</p>
       </aside>
     </div>
-    <details class="panel checkpoints-panel"><summary>Cập nhật thị trường · 09:15 / 11:30 / 14:15</summary>
+    <dialog #marketDialog class="market-dialog" aria-labelledby="market-dialog-title" (click)="closeMarketBackdrop($event, marketDialog)">
+      <header class="market-dialog-header">
+        <div><p class="eyebrow">{{ s.symbol }} · THỊ TRƯỜNG</p><h3 id="market-dialog-title">Cập nhật &amp; bối cảnh</h3></div>
+        <button type="button" class="dialog-close" aria-label="Đóng popup" (click)="marketDialog.close()" autofocus>×</button>
+      </header>
+      <nav class="market-dialog-tabs" aria-label="Nội dung thị trường">
+        <button type="button" [class.selected]="marketTab() === 'updates'" [attr.aria-pressed]="marketTab() === 'updates'" (click)="marketTab.set('updates')">Cập nhật trong ngày</button>
+        <button type="button" [class.selected]="marketTab() === 'context'" [attr.aria-pressed]="marketTab() === 'context'" (click)="marketTab.set('context')">Bối cảnh thị trường</button>
+      </nav>
+      <div class="market-dialog-body">
+        @if (marketDialog.open && marketTab() === 'updates') {
+    <details open class="panel checkpoints-panel"><summary>Cập nhật thị trường · 09:15 / 11:30 / 14:15</summary>
       <h3>Ba mốc phân tích trong ngày · giờ Việt Nam</h3>
       <p>09:15 · 11:30 · 14:15 — máy chủ bắt đầu cập nhật sau mỗi mốc 30 giây. Kết quả được lưu theo ngày, kể cả khi đóng trang.</p>
       @if (checkpointError()) { <p role="alert">{{ checkpointError() }}</p> }
@@ -210,6 +234,9 @@
         </article>
       }
     </details>
+
+        }
+        @if (marketDialog.open && marketTab() === 'context') {
     <div class="section-title">
       <div>
         <p class="eyebrow">HIỂU CƠ SỞ CỦA QUYẾT ĐỊNH</p>
@@ -304,6 +331,10 @@
         }
       </details>
     </article>
+
+        }
+      </div>
+    </dialog>
     @if (s.data.warnings.length) {
       <details class="source-notices">
         <summary>Thông tin nguồn · {{ s.data.warnings.length }} lưu ý</summary>
