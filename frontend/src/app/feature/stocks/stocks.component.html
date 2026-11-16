@@ -55,55 +55,28 @@
     <div class="notice danger" role="alert">{{ error() }}</div>
   }
   @if (data(); as s) {
-    <section class="panel horizon-panel">
-      <div class="segments"><button [class.selected]="horizon() === 'SWING'" (click)="horizon.set('SWING'); setMode('SWING')">Kế hoạch lướt sóng</button><button [class.selected]="horizon() === 'LONG'" (click)="horizon.set('LONG'); setMode('SWING')">Góc nhìn dài hạn</button></div>
-      @if (horizon() === 'LONG') {
-        <h3>Dài hạn · theo dõi xu hướng nến ngày</h3>
-        <p>Đánh giá xu hướng và EMA200 trong bảng bối cảnh bên dưới. Vùng hỗ trợ/kháng cự hiện tại là mốc theo dõi; chưa có mô hình định giá dài hạn riêng.</p>
-        <p>Vị thế đã lưu được dùng để tính lại kịch bản. Kịch bản kỹ thuật hiện tại có thời hạn vài tuần đến vài tháng.</p>
-      } @else { <p>Lướt sóng · theo dõi các mức mua, bán và bảo vệ vốn theo nến đã đóng.</p> }
-    </section>
-    <section class="panel checkpoints-panel">
-      <h3>Ba mốc phân tích trong ngày · giờ Việt Nam</h3>
-      <p>09:15 · 11:30 · 14:15 — máy chủ bắt đầu cập nhật sau mỗi mốc 30 giây. Kết quả được lưu theo ngày, kể cả khi đóng trang.</p>
-      @if (checkpointError()) { <p role="alert">{{ checkpointError() }}</p> }
-      @for (slot of ['09:15', '11:30', '14:15']; track slot) {
-        <article class="checkpoint-card">
-          <h4>{{ slot }}</h4>
-          @for (report of checkpoints(); track report.checkpoint) {
-            @if (report.checkpoint === slot) {
-              <p>Đã cập nhật {{ report.capturedAt | date:'dd/MM HH:mm:ss':'+0700' }} · {{ report.intraday.freshness }}</p>
-              <h4>Chart trong ngày · {{ label(report.intraday.analysis.signal) }}</h4>
-              <p>Hỗ trợ {{ report.intraday.analysis.indicators?.support | number:'1.0-2' }} · Kháng cự {{ report.intraday.analysis.indicators?.resistance | number:'1.0-2' }} · RSI {{ report.intraday.analysis.indicators?.rsi | number:'1.1-1' }} · đơn vị {{ report.intraday.data.unit }}</p>
-              @for (reason of report.intraday.analysis.reasons; track $index) { <p>{{ reason }}</p> }
-              <details><summary>Xem chart tại thời điểm cập nhật</summary>
-                @if (report.intraday.data.candles.length) { <app-stock-chart [candles]="report.intraday.data.candles" [intraday]="true" /> }
-              </details>
-              <p>Lướt sóng: {{ label(report.swing.analysis.signal) }}</p>
-              @if (report.swingPosition?.scenarios; as scenarios) { <app-stock-candle-scenarios [scenarios]="scenarios" [stale]="false" /> }
-              <small>{{ report.longTermNote }}</small>
-            }
-          }
-          @if (!hasCheckpoint(slot)) { <p>Chưa có báo cáo cho mốc này hôm nay. Không dùng kết quả ngày trước thay thế.</p> }
-        </article>
-      }
+    <nav class="strategy-switch" aria-label="Chọn kế hoạch mua bán">
+      <button type="button" [class.selected]="horizon() === 'SWING'" [attr.aria-pressed]="horizon() === 'SWING'" (click)="selectHorizon('SWING')">Lướt sóng<small>Kế hoạch ngắn hạn</small></button>
+      <button type="button" [class.selected]="horizon() === 'LONG'" [attr.aria-pressed]="horizon() === 'LONG'" (click)="selectHorizon('LONG')">Dài hạn<small>Tích lũy và nắm giữ</small></button>
+    </nav>
+    <section class="strategy-workspace">
+      <div class="strategy-heading"><div><p class="eyebrow">KẾ HOẠCH MUA BÁN</p><h3>{{ horizon() === 'SWING' ? 'Kế hoạch lướt sóng' : 'Kế hoạch dài hạn' }}</h3><p class="muted">Vùng mua và mục tiêu lợi nhuận theo thời gian nắm giữ.</p></div><span class="strategy-tag">{{ s.symbol }} / VND</span></div>
+      @if (planMessage()) { <p class="notice" role="status">{{ planMessage() }}</p> }
+      <div class="strategy-grid">
+        @if (selectedPlan(); as plan) {
+          <article class="strategy-card" [class.long-strategy]="plan.id === 'LONG'">
+            <div class="strategy-top"><span>{{ plan.duration }}</span><span>{{ plan.id === 'LONG' ? '02' : '01' }}</span></div>
+            <h3>{{ plan.title }}</h3><p class="strategy-status">{{ plan.status }}</p>
+            <div class="entry-zone"><small>VÙNG MUA CÓ ĐIỀU KIỆN</small><strong>{{ plan.entryLow | number:'1.0-0' }} – {{ plan.entryHigh | number:'1.0-0' }}</strong><p>Chờ nến đóng phục hồi tại hỗ trợ; kiểm tra xu hướng và khối lượng trước khi mua.</p></div>
+            <div class="target-row"><span>Chốt lời 1<strong>{{ plan.target1 | number:'1.0-0' }}</strong></span><span>Chốt lời 2<strong>{{ plan.target2 | number:'1.0-0' }}</strong></span></div>
+            <div class="profit-row"><small>Lãi/lỗ nếu bán toàn bộ vị thế tại mục tiêu 1 / 2</small><strong>{{ plan.profit1 | number:'1.0-0' }} / {{ plan.profit2 | number:'1.0-0' }} VND</strong></div>
+            <div class="risk-row"><span>Mốc bảo vệ vốn <b>{{ plan.stop | number:'1.0-0' }}</b></span><span>Lãi/lỗ tại mốc <b>{{ plan.riskAmount | number:'1.0-0' }} VND</b></span></div>
+            <details><summary>Cơ sở kế hoạch · {{ plan.rewardRisk | number:'1.1-1' }}R</summary><p>{{ plan.method }}</p><p>Kế hoạch kỹ thuật, trước phí/thuế; lợi nhuận là kịch bản theo mức giá, chưa được bảo đảm. Dài hạn cần kết hợp sức khỏe doanh nghiệp.</p></details>
+          </article>
+        }
+      </div>
     </section>
     <div class="toolbar">
-      <div class="segments" aria-label="Chế độ phân tích">
-        <button
-          [class.selected]="mode() === 'SWING'"
-          [attr.aria-pressed]="mode() === 'SWING'"
-          (click)="setMode('SWING')"
-        >
-          Vài tuần – vài tháng</button
-        ><button
-          [class.selected]="mode() === 'INTRADAY'"
-          [attr.aria-pressed]="mode() === 'INTRADAY'"
-          (click)="setMode('INTRADAY')"
-        >
-          Trong ngày
-        </button>
-      </div>
       <span class="source-line"
         >{{ s.data.source }} · {{ s.data.fetchedAt | date: 'dd/MM HH:mm' : '+0700' }} (VN)<span
           class="badge"
@@ -144,7 +117,7 @@
         <article class="panel chart-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">{{ mode() === 'SWING' ? 'NẾN NGÀY' : 'NẾN 15 PHÚT' }}</p>
+              <p class="eyebrow">{{ horizon() === 'SWING' ? 'LƯỚT SÓNG · 90 NẾN NGÀY GẦN NHẤT' : 'DÀI HẠN · TOÀN BỘ LỊCH SỬ NẾN NGÀY' }}</p>
               <h3>
                 {{ s.symbol }}
                 <span class="muted"
@@ -165,8 +138,8 @@
           @if (s.data.candles.length) {
             @defer (on viewport) {
               <app-stock-chart
-                [candles]="s.data.candles"
-                [intraday]="mode() === 'INTRADAY'"
+                [candles]="planCandles()" [initialVisibleBars]="horizon() === 'LONG' ? 260 : 90"
+                [intraday]="false"
                 [purchasePrice]="purchaseChartPrice(s)"
                 [purchaseDate]="input.purchaseDate"
                 [planLevels]="chartLevels()"
@@ -209,32 +182,34 @@
             />
           </details>
         </section>
-        @if (position()?.scenarios; as scenarios) {
-          <app-stock-candle-scenarios
-            [scenarios]="scenarios"
-            [stale]="loading() || positionBusy() || positionStale()"
-          />
-        }
-
-        @if (!position()?.scenarios) {
-          <app-stock-position-plan
-            [plan]="position()?.positionPlan ?? null"
-            [busy]="loading() || positionBusy() || positionStale()"
-            (recorded)="recordExecution($event)"
-          />
-        }
-        @if (position(); as p) {
-          @if (!p.positionPlan && !p.scenarios) {
-            <div class="legacy-result">
-              <h3>{{ label(p.status) }}</h3>
-              @for (reason of p.reasons; track reason) {
-                <p>{{ reason }}</p>
-              }
-            </div>
-          }
-        }
+        <p class="note">{{ horizon() === 'SWING' ? 'Đang xem kế hoạch lướt sóng và các mức giá ngắn hạn.' : 'Đang xem kế hoạch dài hạn và các mức giá tích lũy.' }} Vùng mua, chốt lời và bảo vệ vốn được đánh dấu trên biểu đồ.</p>
       </aside>
     </div>
+    <details class="panel checkpoints-panel"><summary>Cập nhật thị trường · 09:15 / 11:30 / 14:15</summary>
+      <h3>Ba mốc phân tích trong ngày · giờ Việt Nam</h3>
+      <p>09:15 · 11:30 · 14:15 — máy chủ bắt đầu cập nhật sau mỗi mốc 30 giây. Kết quả được lưu theo ngày, kể cả khi đóng trang.</p>
+      @if (checkpointError()) { <p role="alert">{{ checkpointError() }}</p> }
+      @for (slot of ['09:15', '11:30', '14:15']; track slot) {
+        <article class="checkpoint-card">
+          <h4>{{ slot }}</h4>
+          @for (report of checkpoints(); track report.checkpoint) {
+            @if (report.checkpoint === slot) {
+              <p>Đã cập nhật {{ report.capturedAt | date:'dd/MM HH:mm:ss':'+0700' }} · {{ report.intraday.freshness }}</p>
+              <h4>Chart trong ngày · {{ label(report.intraday.analysis.signal) }}</h4>
+              <p>Hỗ trợ {{ report.intraday.analysis.indicators?.support | number:'1.0-2' }} · Kháng cự {{ report.intraday.analysis.indicators?.resistance | number:'1.0-2' }} · RSI {{ report.intraday.analysis.indicators?.rsi | number:'1.1-1' }} · đơn vị {{ report.intraday.data.unit }}</p>
+              @for (reason of report.intraday.analysis.reasons; track $index) { <p>{{ reason }}</p> }
+              <details><summary>Xem chart tại thời điểm cập nhật</summary>
+                @if (report.intraday.data.candles.length) { <app-stock-chart [candles]="report.intraday.data.candles" [intraday]="true" /> }
+              </details>
+              <p>Lướt sóng: {{ label(report.swing.analysis.signal) }}</p>
+              @if (report.swingPosition?.scenarios; as scenarios) { <app-stock-candle-scenarios [scenarios]="scenarios" [stale]="false" /> }
+              <small>{{ report.longTermNote }}</small>
+            }
+          }
+          @if (!hasCheckpoint(slot)) { <p>Chưa có báo cáo cho mốc này hôm nay. Không dùng kết quả ngày trước thay thế.</p> }
+        </article>
+      }
+    </details>
     <div class="section-title">
       <div>
         <p class="eyebrow">HIỂU CƠ SỞ CỦA QUYẾT ĐỊNH</p>

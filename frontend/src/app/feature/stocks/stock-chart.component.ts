@@ -43,6 +43,7 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
   @ViewChild('host') host!: ElementRef<HTMLDivElement>;
   @Input() candles: StockCandle[] = [];
   @Input() intraday = false;
+  @Input() initialVisibleBars = 90;
   @Input() purchasePrice: number | null = null;
   @Input() purchaseDate = '';
   @Input() planLevels: StockPlanLevel[] = [];
@@ -193,6 +194,7 @@ export class StockChartComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.render();
   }
   ngOnChanges() {
+    this.visibleBars = this.initialVisibleBars;
     this.render();
   }
   setRange(bars: number) {

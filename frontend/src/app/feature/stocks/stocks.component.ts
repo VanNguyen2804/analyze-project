@@ -23,7 +23,7 @@ import {
   takeUntil,
   tap,
 } from 'rxjs';
-import { StockApiService } from '../../core/services/stock-api.service';
+import { StockApiService, TradingPlan } from '../../core/services/stock-api.service';
 import {
   StockMode,
   StockSnapshot,
@@ -37,7 +37,7 @@ import { StockRecommendationComponent } from './stock-recommendation.component';
 import { StockDailyDeskComponent } from './stock-daily-desk.component';
 import { StockPositionFormComponent } from './stock-position-form.component';
 import { StockPositionSummaryComponent } from './stock-position-summary.component';
-import { StockPositionPlanComponent, StockExecutionDraft } from './stock-position-plan.component';
+import { StockExecutionDraft } from './stock-position-plan.component';
 import { StockPositionSessions, newStockPosition } from './stock-position-session';
 
 @Component({
@@ -54,7 +54,6 @@ import { StockPositionSessions, newStockPosition } from './stock-position-sessio
     StockDailyDeskComponent,
     StockPositionFormComponent,
     StockPositionSummaryComponent,
-    StockPositionPlanComponent,
     StockCandleScenariosComponent,
   ],
   templateUrl: './stocks.component.html',
@@ -73,8 +72,23 @@ export class StocksComponent implements OnInit {
   private readonly refreshChanges = new BehaviorSubject(0);
   private readonly quoteRefreshChanges = new BehaviorSubject(0);
   private readonly cancelPosition = new Subject<void>();
+  readonly tradingPlans = signal<TradingPlan[]>([]);
+  readonly planMessage = signal('Nhập vị thế để lập kế hoạch mua bán.');
+  loadTradingPlans() {
+    const symbol = this.activeSymbol, signature = JSON.stringify(this.input);
+    this.tradingPlans.set([]);
+    if (!this.input.purchasePrice || !this.input.quantity) return;
+    this.planMessage.set('Đang lập hai kế hoạch…');
+    this.api.tradingPlans(symbol, this.input).pipe(takeUntilDestroyed(this.destroy)).subscribe({next: r => { if (symbol === this.activeSymbol && signature === JSON.stringify(this.input)) { this.tradingPlans.set(r.plans); this.planMessage.set(r.message || ''); } }, error: () => this.planMessage.set('Chưa lập được kế hoạch. Hãy cập nhật lại vị thế.')});
+  }
   readonly checkpoints = signal<Array<{checkpoint: string; capturedAt: string; swing: StockSnapshot; intraday: StockSnapshot; swingPosition?: StockPositionResult; intradayPosition?: StockPositionResult; longTermNote: string}>>([]);
   readonly checkpointError = signal('');
+  readonly selectedPlan = computed(() => this.tradingPlans().find(p => p.id === this.horizon()));
+  readonly planCandles = computed(() => {
+    const candles = this.data()?.data.candles ?? [];
+    return this.horizon() === 'SWING' ? candles.slice(-90) : candles;
+  });
+  selectHorizon(value: 'SWING' | 'LONG') { this.horizon.set(value); }
   readonly horizon = signal<'LONG' | 'SWING'>('SWING');
   hasCheckpoint(slot: string) { return this.checkpoints().some(r => r.checkpoint === slot); }
   loadCheckpoints(symbol: string) {
@@ -124,36 +138,16 @@ export class StocksComponent implements OnInit {
     this.resetPosition();
   }
   readonly chartLevels = computed<StockPlanLevel[]>(() => {
-    const p = this.position()?.positionPlan,
-      s = this.data();
-    if (!s || this.positionStale() || !s.data.verified || s.data.priceBasis !== 'RAW') return [];
+    const s = this.data(), plan = this.selectedPlan();
+    if (!s || !plan || this.positionStale() || !s.data.verified || s.data.priceBasis !== 'RAW') return [];
     const factor = s.data.unit === 'VND' ? 1 : s.data.unit === 'THOUSAND_VND' ? 1000 : 0;
     if (!factor) return [];
-    const scenarios = this.position()?.scenarios;
-    if (scenarios)
-      return [
-        { price: scenarios.averageCost / factor, title: 'Giá vốn', color: '#a78bfa' },
-        ...scenarios.items
-          .filter((item) => item.suggestedQuantity > 0)
-          .map((item) => ({
-            price: item.triggerPrice / factor,
-            title: item.title,
-            color: item.side === 'BUY' ? '#38bdf8' : '#fb7185',
-          })),
-      ];
-    if (!p) return [];
-
     return [
-      { price: p.averageCost / factor, title: 'Giá vốn', color: '#a78bfa' },
-      { price: p.alertPrice / factor, title: 'Cảnh báo lỗ', color: '#fbbf24' },
-      { price: p.effectiveStop / factor, title: 'Dừng rủi ro', color: '#fb7185' },
-      ...p.steps
-        .filter((t) => t.id !== 'REDUCE' && t.status !== 'DONE' && t.quantity > 0)
-        .map((t) => ({
-          price: t.triggerPrice / factor,
-          title: t.id,
-          color: t.side === 'BUY' ? '#38bdf8' : '#2dd4bf',
-        })),
+      { price: plan.entryLow / factor, title: 'Vùng mua thấp', color: '#38bdf8' },
+      { price: plan.entryHigh / factor, title: 'Vùng mua cao', color: '#38bdf8' },
+      { price: plan.target1 / factor, title: 'Chốt lời 1', color: '#2dd4bf' },
+      { price: plan.target2 / factor, title: 'Chốt lời 2', color: '#2dd4bf' },
+      { price: plan.stop / factor, title: 'Bảo vệ vốn', color: '#fb7185' },
     ];
   });
   ngOnInit() {
@@ -239,6 +233,7 @@ export class StocksComponent implements OnInit {
     this.quoteRefreshChanges.next(this.quoteRefreshChanges.value + 1);
   }
   resetPosition() {
+    this.tradingPlans.set([]);
     this.editVersion++;
     this.persistPosition();
     this.sessions.save();
@@ -257,6 +252,7 @@ export class StocksComponent implements OnInit {
     const s = this.data();
     if (!s || this.positionBusy() || this.loading()) return;
     this.cancelPosition.next();
+    this.loadTradingPlans();
     this.positionBusy.set(true);
     this.positionError.set('');
     const session = this.session,
