@@ -33,13 +33,61 @@ public class LotteryFeedClient {
         if (!"https".equals(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null) {
             throw new IllegalArgumentException("Feed URL must use HTTPS without credentials");
         }
+        if ("vietlott.vn".equals(uri.getHost())) return fetchOfficial(uri, category, from, now);
+        return parse(download(uri), category, from, now);
+    }
+
+    private String download(URI uri) throws IOException, InterruptedException {
         var request = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
                 .header("Accept", "application/x-ndjson, text/plain")
                 .header("User-Agent", "analyze-project-result-sync/1.0").GET().build();
         // A bounded body subscriber keeps both the whole-request timeout and a maximum response size.
         var response = client.send(request, info -> new LimitedBodySubscriber(MAX_BYTES));
         if (response.statusCode() != 200) throw new IOException("Feed returned HTTP " + response.statusCode());
-        return parse(response.body(), category, from, now);
+        return response.body();
+    }
+
+    private List<FeedDraw> fetchOfficial(URI uri, String category, LocalDate from, ZonedDateTime now)
+            throws IOException, InterruptedException {
+        var draws = new TreeMap<LocalDate, FeedDraw>();
+        String base = uri.toString().split("\\?", 2)[0];
+        var current = parseOfficial(download(URI.create(base + "?nocatche=1")), category, LocalDate.MIN, now.plusDays(1)).get(0);
+        for (int count = 0; count < 4000; count++) {
+            if (current.date().isBefore(from)) return completed(draws);
+            var local = now.withZoneSameInstant(ZONE);
+            if (current.date().isBefore(local.toLocalDate()) ||
+                    (current.date().equals(local.toLocalDate()) && local.toLocalTime().getHour() >= 19))
+                draws.put(current.date(), current);
+            if (current.date().equals(from) || Long.parseLong(current.drawId()) <= 1) return completed(draws);
+            String previousId = String.format(Locale.ROOT, "%05d", Long.parseLong(current.drawId()) - 1);
+            Thread.sleep(250);
+            var previous = parseOfficial(download(URI.create(base + "?id=" + previousId + "&nocatche=1")),
+                    category, LocalDate.MIN, now.plusDays(1)).get(0);
+            if (!previous.drawId().equals(previousId) || !previous.date().isBefore(current.date()))
+                throw new IOException("Official history returned unexpected draw: " + previousId);
+            current = previous;
+        }
+        throw new IOException("Official history exceeded traversal limit");
+    }
+
+    private List<FeedDraw> completed(TreeMap<LocalDate, FeedDraw> draws) throws IOException {
+        if (draws.isEmpty()) throw new IOException("No completed official draws in requested window");
+        return List.copyOf(draws.values());
+    }
+
+    public List<FeedDraw> parseOfficial(String html, String category, LocalDate from, ZonedDateTime now) throws IOException {
+        var header = java.util.regex.Pattern.compile("<h5[^>]*>.*?<b>\\s*#([0-9]+)</b>.*?<b>([0-9]{2}/[0-9]{2}/[0-9]{4})</b>", java.util.regex.Pattern.DOTALL).matcher(html);
+        if (!header.find()) throw new IOException("Official draw header missing");
+        String date;
+        try { date = LocalDate.parse(header.group(2), java.time.format.DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(java.time.format.ResolverStyle.STRICT)).toString(); }
+        catch (RuntimeException ex) { throw new IOException("Invalid official date", ex); }
+        int start = html.indexOf("day_so_ket_qua_v2", header.end());
+        int end = html.indexOf("</div>", start);
+        if (start < 0 || end < 0) throw new IOException("Official result missing");
+        var balls = java.util.regex.Pattern.compile("<span[^>]*class=[\"'][^\"']*bong_tron[^\"']*[\"'][^>]*>\\s*([0-9]{1,2})\\s*</span>").matcher(html.substring(start, end));
+        var values = new ArrayList<Integer>();
+        while (balls.find()) values.add(Integer.parseInt(balls.group(1)));
+        return parse(mapper.writeValueAsString(Map.of("date", date, "id", header.group(1), "result", values)), category, from, now);
     }
 
     public List<FeedDraw> parse(String body, String category, LocalDate from, ZonedDateTime now) throws IOException {

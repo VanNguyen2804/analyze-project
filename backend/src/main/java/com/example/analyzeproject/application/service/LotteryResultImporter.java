@@ -46,7 +46,7 @@ public class LotteryResultImporter {
                 }
                 continue;
             }
-            incoming.setNote("Imported from " + sourceUrl + " | draw #" + draw.drawId() + " | community mirror of vietlott.vn");
+            incoming.setNote("Imported from " + sourceUrl + " | draw #" + draw.drawId());
             DrawReconciliation.reconcile(incoming, incoming, sourceUrl, draw.drawId(), null);
             repository.save(incoming);
             inserted++;

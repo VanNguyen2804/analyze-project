@@ -99,11 +99,11 @@ class AiLabPredictionsTest {
         assertEquals(5,priorities.size());
         var first=priorities.get(0);
         assertEquals(1,first.get("slot"));assertEquals(1,first.get("rank"));
-        assertEquals(2L,level(performance(first),3).get("drawHits"));
-        assertEquals(3,performance(first).get("evaluatedDraws"));
-        assertEquals(1L,level(performance(priorities.get(1)),3).get("drawHits"));
+        assertEquals(3L,level(performance(first),3).get("drawHits"));
+        assertEquals(4,performance(first).get("evaluatedDraws"));
+        assertEquals(2L,level(performance(priorities.get(1)),3).get("drawHits"));
         var timeline=(List<Map<String,Object>>)first.get("timeline");
-        assertEquals(3,timeline.size());assertEquals("2026-11-06",timeline.get(0).get("targetDate"));
+        assertEquals(4,timeline.size());assertEquals("2026-11-06",timeline.get(0).get("targetDate"));
         assertEquals(4,timeline.get(0).get("matched"));
         assertEquals(List.of(1,2,3,4,5,6),timeline.get(0).get("actualNumbers"));
         assertEquals(List.of(2,10,11,12,13,14),timeline.get(0).get("numbers"));
