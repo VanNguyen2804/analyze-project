@@ -90,7 +90,7 @@ export class StocksComponent implements OnInit {
     this.planMessage.set('Đang lập hai kế hoạch…');
     this.api.tradingPlans(symbol, this.input, calculation).pipe(takeUntilDestroyed(this.destroy)).subscribe({next: r => { if (symbol === this.activeSymbol && calculation === this.calculation() && signature === JSON.stringify(this.input)) { this.tradingPlans.set(r.plans); this.planMessage.set(r.message || ''); } }, error: () => this.planMessage.set('Chưa lập được kế hoạch. Hãy cập nhật lại vị thế.')});
   }
-  readonly checkpoints = signal<Array<{checkpoint: string; capturedAt: string; swing: StockSnapshot; intraday: StockSnapshot; swingPosition?: StockPositionResult; intradayPosition?: StockPositionResult; longTermNote: string}>>([]);
+  readonly checkpoints = signal<Array<{checkpoint: string; capturedAt: string; lateCapture?: boolean; swing: StockSnapshot; intraday: StockSnapshot; swingPosition?: StockPositionResult; intradayPosition?: StockPositionResult; longTermNote: string}>>([]);
   readonly checkpointError = signal('');
   selectTradeSide(side: 'BUY' | 'SELL') {
     this.tradeSide.set(side);

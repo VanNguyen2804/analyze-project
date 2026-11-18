@@ -164,16 +164,16 @@
                 <div class="buy-level"><small>VÙNG MUA CAO</small><strong>{{ plan.entryHigh | number:'1.0-0' }}</strong></div>
                 <p>VND/CP · chờ nến đóng xác nhận phục hồi tại hỗ trợ và khối lượng phù hợp.</p>
               } @else {
-                <div><small>CHỐT LỜI 1</small><strong>{{ plan.target1 | number:'1.0-0' }}</strong></div>
-                <div><small>CHỐT LỜI 2</small><strong>{{ plan.target2 | number:'1.0-0' }}</strong></div>
-                <div class="stop-level"><small>BẢO VỆ VỐN</small><strong>{{ plan.stop | number:'1.0-0' }}</strong></div>
+                <div><small>CHỐT LỜI 1</small><strong>{{ plan.target1 | number:'1.0-0' }}</strong><p class="level-explanation">Mục tiêu bán từng phần đầu tiên khi giá tăng đến vùng này, để ghi nhận một phần lợi nhuận.</p></div>
+                <div><small>CHỐT LỜI 2</small><strong>{{ plan.target2 | number:'1.0-0' }}</strong><p class="level-explanation">Mục tiêu tiếp theo cho phần cổ phiếu còn giữ nếu giá tiếp tục tăng sau chốt lời 1.</p></div>
+                <div class="stop-level"><small>BẢO VỆ VỐN</small><strong>{{ plan.stop | number:'1.0-0' }}</strong><p class="level-explanation">Ngưỡng cân nhắc giảm vị thế khi giá giảm về vùng này để hạn chế thua lỗ. Có thể thấp hơn giá vốn, không đảm bảo hòa vốn.</p></div>
                 <p>VND/CP · theo dõi chốt từng phần và lượng cổ phiếu thực tế có thể bán.</p>
               }
             </div>
           } @else { <p class="muted small">Nhập vị thế và cập nhật kế hoạch để hiện các mốc {{ tradeSide() === 'BUY' ? 'mua' : 'bán' }}.</p> }
           @if (!selectedPlan()) { <p class="notice" role="status">{{ planMessage() }}</p> }
           <div class="chart-context-actions">
-            <button class="secondary" type="button" (click)="marketTab.set('updates'); marketDialog.showModal()">◷ Cập nhật thị trường <small>09:15 · 11:30 · 14:15</small></button>
+            <button class="secondary" type="button" (click)="marketTab.set('updates'); loadCheckpoints(s.symbol); marketDialog.showModal()">◷ Cập nhật thị trường <small>09:15 · 11:30 · 14:15</small></button>
             <button class="secondary" type="button" (click)="marketTab.set('context'); marketDialog.showModal()">◈ Bối cảnh thị trường <small>Tín hiệu · VNINDEX</small></button>
           </div>
           @if (s.data.candles.length) {
@@ -232,7 +232,7 @@
         <button type="button" class="dialog-close" aria-label="Đóng popup" (click)="marketDialog.close()" autofocus>×</button>
       </header>
       <nav class="market-dialog-tabs" aria-label="Nội dung thị trường">
-        <button type="button" [class.selected]="marketTab() === 'updates'" [attr.aria-pressed]="marketTab() === 'updates'" (click)="marketTab.set('updates')">Cập nhật trong ngày</button>
+        <button type="button" [class.selected]="marketTab() === 'updates'" [attr.aria-pressed]="marketTab() === 'updates'" (click)="marketTab.set('updates'); loadCheckpoints(s.symbol)">Cập nhật trong ngày</button>
         <button type="button" [class.selected]="marketTab() === 'context'" [attr.aria-pressed]="marketTab() === 'context'" (click)="marketTab.set('context')">Bối cảnh thị trường</button>
       </nav>
       <div class="market-dialog-body">
@@ -247,7 +247,7 @@
           @for (report of checkpoints(); track report.checkpoint) {
             @if (report.checkpoint === slot) {
               <p>Đã cập nhật {{ report.capturedAt | date:'dd/MM HH:mm:ss':'+0700' }} · {{ report.intraday.freshness }}</p>
-              <h4>Chart trong ngày · {{ label(report.intraday.analysis.signal) }}</h4>
+              @if (report.lateCapture) { <p role="status">Báo cáo bổ sung muộn bằng dữ liệu tại thời gian cập nhật phía trên; không phải dữ liệu chụp đúng mốc {{ slot }}.</p> } <h4>Chart trong ngày · {{ label(report.intraday.analysis.signal) }}</h4>
               <p>Hỗ trợ {{ report.intraday.analysis.indicators?.support | number:'1.0-2' }} · Kháng cự {{ report.intraday.analysis.indicators?.resistance | number:'1.0-2' }} · RSI {{ report.intraday.analysis.indicators?.rsi | number:'1.1-1' }} · đơn vị {{ report.intraday.data.unit }}</p>
               @for (reason of report.intraday.analysis.reasons; track $index) { <p>{{ reason }}</p> }
               <details><summary>Xem chart tại thời điểm cập nhật</summary>
