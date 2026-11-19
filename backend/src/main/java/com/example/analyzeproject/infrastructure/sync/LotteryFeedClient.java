@@ -28,13 +28,32 @@ public class LotteryFeedClient {
         this.client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(properties.getTimeoutSeconds())).build();
     }
 
+    public record FetchResult(List<FeedDraw> draws, String sourceUrl, String primaryError) {}
+
     public List<FeedDraw> fetch(String category, LocalDate from, ZonedDateTime now) throws IOException, InterruptedException {
+        return fetchWithSource(category, from, now).draws();
+    }
+
+    public FetchResult fetchWithSource(String category, LocalDate from, ZonedDateTime now) throws IOException, InterruptedException {
         URI uri = URI.create(properties.sourceUrl(category));
         if (!"https".equals(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null) {
             throw new IllegalArgumentException("Feed URL must use HTTPS without credentials");
         }
-        if ("vietlott.vn".equals(uri.getHost())) return fetchOfficial(uri, category, from, now);
-        return parse(download(uri), category, from, now);
+        if ("vietlott.vn".equals(uri.getHost())) {
+            try {
+                return new FetchResult(fetchOfficial(uri, category, from, now), uri.toString(), null);
+            } catch (IOException primary) {
+                String fallback = properties.getPowerFallbackUrl();
+                if (!"POWER".equals(category) || fallback == null || fallback.isBlank()) throw primary;
+                URI backup = URI.create(fallback);
+                if (!"https".equals(backup.getScheme()) || backup.getHost() == null || backup.getUserInfo() != null)
+                    throw new IOException("Fallback URL must use HTTPS without credentials", primary);
+                try {
+                    return new FetchResult(parse(download(backup), category, from, now), fallback, primary.getMessage());
+                } catch (IOException failure) { failure.addSuppressed(primary); throw failure; }
+            }
+        }
+        return new FetchResult(parse(download(uri), category, from, now), uri.toString(), null);
     }
 
     String download(URI uri) throws IOException, InterruptedException {

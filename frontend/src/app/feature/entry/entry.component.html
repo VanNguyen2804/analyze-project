@@ -462,6 +462,9 @@
                       <!-- CHẾ ĐỘ XEM NGÀY -->
                       @if (editingDrawId !== draw.id) {
                         <span>{{ draw.drawDate }}</span>
+                        <small class="d-block text-muted">
+                          {{ draw.quality?.status === 'SOURCE_MATCHED' ? 'Đã đối chiếu nguồn' : 'Chờ đối chiếu / cần kiểm tra nguồn' }}
+                        </small>
                       }
                       <!-- CHẾ ĐỘ CHỈNH SỬA NGÀY -->
                       @if (editingDrawId === draw.id) {

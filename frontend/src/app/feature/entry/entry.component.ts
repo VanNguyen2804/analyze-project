@@ -103,7 +103,7 @@ export class EntryComponent implements OnInit {
     this.isLoadingHistory = true;
     this.cdr.markForCheck();
     this.analyzeService
-      .getHistory(this.category)
+      .getStoredHistory(this.category)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {

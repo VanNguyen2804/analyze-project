@@ -40,8 +40,12 @@ public class LotteryResultScheduler implements com.example.analyzeproject.applic
             var detail = new LinkedHashMap<String, Object>();
             detail.put("sourceUrl", properties.sourceUrl(category));
             try {
-                var draws = client.fetch(category, from, now);
-                var imported = importer.importDraws(draws, properties.sourceUrl(category));
+                var fetched = client.fetchWithSource(category, from, now);
+                var draws = fetched.draws();
+                detail.put("sourceUrl", fetched.sourceUrl());
+                detail.put("fallbackUsed", fetched.primaryError() != null);
+                if (fetched.primaryError() != null) detail.put("primaryError", fetched.primaryError());
+                var imported = importer.importDraws(draws, fetched.sourceUrl());
                 LocalDate latest = draws.get(draws.size() - 1).date();
                 LocalDate expected = LotteryFeedClient.latestExpected(category, now);
                 detail.put("status", imported.conflicts().isEmpty() && imported.quarantined().isEmpty() ? (latest.isBefore(expected) ? "STALE" : "SUCCESS") : "CONFLICT");

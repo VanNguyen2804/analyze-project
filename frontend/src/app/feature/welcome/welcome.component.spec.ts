@@ -44,7 +44,7 @@ describe('Welcome landing page', () => {
     http.expectNone((request) => request.url.includes('/api/'));
     await harness.navigateByUrl('/entry');
     expect(harness.routeNativeElement?.querySelector('input')).not.toBeNull();
-    http.expectOne((request) => request.url.includes('/api/analyze/history')).flush([]);
+    http.expectOne((request) => request.url.includes('/api/numbers')).flush([]);
     http.expectOne((request) => request.url.includes('/api/analyze/user-history')).flush([]);
     http.expectNone((request) => /suggestions|stocks|overview/.test(request.url));
     await harness.navigateByUrl('/landing');

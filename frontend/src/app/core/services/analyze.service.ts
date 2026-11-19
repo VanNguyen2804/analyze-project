@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, switchMap, map } from 'rxjs';
 import { CategoryService } from './category.service';
 import { AlgorithmOption } from '../models/algorithm.model';
 import { PredictionPayload } from '../models/prediction-payload.model';
@@ -96,26 +96,48 @@ export class AnalyzeService {
     return this.http.get<any>(url);
   }
 
+  private numbersUrl = `${environment.apiUrl || ''}/api/numbers`;
+
   getHistory(category: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/history?category=${category}`);
+  }
+
+  getStoredHistory(category: string): Observable<any[]> {
+    return this.http.get<any[]>(this.numbersUrl, { params: { category } });
   }
 
   checkTickets(payload: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/check-tickets`, payload);
   }
 
+  private verifySaved(saved: any): Observable<any> {
+    if (!saved?.id || !saved?.category || !saved?.drawDate) {
+      throw new Error('Máy chủ chưa trả về bản ghi đã lưu.');
+    }
+    return this.http.get<any[]>(this.numbersUrl, {
+      params: { category: saved.category, date: saved.drawDate },
+    }).pipe(map(rows => {
+      const row = rows.find(r => r.id === saved.id);
+      if (!row || JSON.stringify(row.numbers) !== JSON.stringify(saved.numbers)
+          || row.specialNumber !== saved.specialNumber) {
+        throw new Error('Chưa xác nhận được dữ liệu sau khi lưu. Vui lòng tải lại.');
+      }
+      return row;
+    }));
+  }
+
   addOfficialResult(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/add-result`, payload, {
-      responseType: 'text' as 'json',
-    });
+    return this.http.post<any>(this.numbersUrl, payload).pipe(
+      switchMap(saved => this.verifySaved(saved)),
+    );
   }
 
   editOfficialResult(id: number, payload: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/update-result/${id}`, payload, {
-      responseType: 'text' as 'json',
-    });
+    return this.http.put<any>(`${this.numbersUrl}/${id}`, payload).pipe(
+      switchMap(saved => this.verifySaved(saved)),
+      map(() => 'Đã đọc lại và xác nhận kết quả đã lưu.'),
+    );
   }
-
   getUserHistory(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/user-history`);
   }

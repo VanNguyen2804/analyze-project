@@ -20,6 +20,8 @@ public class LotterySyncProperties {
     private String megaUrl = "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power645.jsonl";
     private String powerUrl = "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/655";
 
+    private String powerFallbackUrl = "https://raw.githubusercontent.com/vietvudanh/vietlott-data/main/data/power655.jsonl";
+
     public String sourceUrl(String category) {
         return "POWER".equals(category) ? powerUrl : megaUrl;
     }

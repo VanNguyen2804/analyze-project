@@ -29,10 +29,10 @@ public class PageJobConfig {
             String category=(String)input.get("category");
             var date=java.time.LocalDate.parse((String)input.get("drawDate"));
             try {
-                var fetched=feed.fetch(category,date,java.time.ZonedDateTime.now(clock));
-                var matching=fetched.stream().filter(draw -> draw.date().equals(date)).toList();
+                var fetched=feed.fetchWithSource(category,date,java.time.ZonedDateTime.now(clock));
+                var matching=fetched.draws().stream().filter(draw -> draw.date().equals(date)).toList();
                 if(matching.isEmpty())throw new IllegalStateException("Official result not published for " + date);
-                var result=importer.importDraws(matching,properties.sourceUrl(category));
+                var result=importer.importDraws(matching,fetched.sourceUrl());
                 if(!result.conflicts().isEmpty())throw new IllegalStateException("Official result conflicts with saved numbers");
             } catch(InterruptedException error){Thread.currentThread().interrupt();throw new IllegalStateException(error);}
             catch(java.io.IOException error){throw new IllegalStateException("Cannot verify official result",error);}

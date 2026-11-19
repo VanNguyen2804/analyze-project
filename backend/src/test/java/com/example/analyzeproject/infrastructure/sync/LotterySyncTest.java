@@ -39,6 +39,25 @@ class LotterySyncTest {
         assertEquals(LocalDate.of(2026, 11, 17), draws.get(0).date());
         assertEquals(7, draws.get(0).special());
     }
+    @Test void fallsBackWhenOfficialSourceBlocksRequestsAndRetainsProvenance() throws Exception {
+        for (String status : List.of("403", "429")) {
+            var remote=spy(client);
+            doThrow(new IOException("Feed returned HTTP " + status)).when(remote).download(
+                    java.net.URI.create(properties.getPowerUrl()+"?nocatche=1"));
+            doReturn(POWER).when(remote).download(java.net.URI.create(properties.getPowerFallbackUrl()));
+            var result=remote.fetchWithSource("POWER",FROM,NOW);
+            assertEquals(properties.getPowerFallbackUrl(),result.sourceUrl());
+            assertTrue(result.primaryError().contains(status));
+            assertEquals(53,result.draws().get(0).special());
+        }
+    }
+
+    @Test void rejectsInvalidFallbackRatherThanImportingBadNumbers() throws Exception {
+        var remote=spy(client);
+        doThrow(new IOException("HTTP 403")).when(remote).download(java.net.URI.create(properties.getPowerUrl()+"?nocatche=1"));
+        doReturn(POWER.replace("53","50")).when(remote).download(java.net.URI.create(properties.getPowerFallbackUrl()));
+        assertThrows(IOException.class,()->remote.fetchWithSource("POWER",FROM,NOW));
+    }
     @Test void parsesPublicSchemaAndKeepsSpecialSeparate() throws Exception {
         var draws = client.parse(POWER + "\n" + POWER, "POWER", FROM, NOW);
         assertEquals(1, draws.size());
@@ -98,8 +117,8 @@ class LotterySyncTest {
         var scheduler = new LotteryResultScheduler(properties, remote, importer);
         var powerDraws = client.parse(POWER, "POWER", FROM, NOW);
         var megaDraws = client.parse(MEGA, "MEGA", FROM, NOW);
-        when(remote.fetch(eq("MEGA"), any(), any())).thenThrow(new IOException("HTTP 503")).thenReturn(megaDraws);
-        when(remote.fetch(eq("POWER"), any(), any())).thenReturn(powerDraws);
+        when(remote.fetchWithSource(eq("MEGA"), any(), any())).thenThrow(new IOException("HTTP 503")).thenReturn(new LotteryFeedClient.FetchResult(megaDraws, properties.getMegaUrl(), null));
+        when(remote.fetchWithSource(eq("POWER"), any(), any())).thenReturn(new LotteryFeedClient.FetchResult(powerDraws, properties.getPowerUrl(), null));
         when(importer.importDraws(any(), any())).thenReturn(new LotteryResultImporter.ImportResult(1, 0, List.of(), 0, 0, List.of()));
         scheduler.runAt(NOW);
         assertEquals("ERROR", categoryStatus(scheduler, "MEGA").get("status"));
@@ -109,7 +128,7 @@ class LotterySyncTest {
         assertEquals(true, categoryStatus(scheduler, "MEGA").get("sourceStale"));
         properties.setEnabled(false);
         scheduler.sync();
-        verify(remote, times(2)).fetch(eq("MEGA"), any(), any());
+        verify(remote, times(2)).fetchWithSource(eq("MEGA"), any(), any());
     }
 
     @SuppressWarnings("unchecked")
