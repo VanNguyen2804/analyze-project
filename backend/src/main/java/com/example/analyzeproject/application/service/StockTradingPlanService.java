@@ -1,9 +1,9 @@
 package com.example.analyzeproject.application.service;
 import com.example.analyzeproject.application.service.StockService;
 import com.example.analyzeproject.domain.model.stock.StockModels.*;
-import org.springframework.stereotype.Service;
+
 import java.util.*;
-@Service
+
 public class StockTradingPlanService {
  public enum Calculation { SR_ATR, EMA200 }
  private final StockService stocks;

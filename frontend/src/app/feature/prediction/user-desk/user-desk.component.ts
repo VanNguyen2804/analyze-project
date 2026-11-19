@@ -92,7 +92,12 @@ export class UserDeskComponent implements OnChanges {
   private readonly historyCancel = new Subject<void>();
   private inputId = '';
   private latestSuggestion: WorkspaceSuggestion | null = null;
-  private requestKey: string = crypto.randomUUID();
+  private createKey(): string {
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+  private requestKey: string = this.createKey();
   private requestPayload = '';
   private lastCategory = '';
 
@@ -142,7 +147,7 @@ export class UserDeskComponent implements OnChanges {
     this.exclude = view.exclude.join(' ');
   }
   private newRequest() {
-    this.requestKey = crypto.randomUUID();
+    this.requestKey = this.createKey();
     this.requestPayload = '';
   }
   private saveDraft() {
@@ -207,7 +212,7 @@ export class UserDeskComponent implements OnChanges {
     this.rows.update((rows) => [
       ...rows,
       {
-        key: crypto.randomUUID(),
+        key: this.createKey(),
         sourceId: ticket?.id ?? null,
         label: ticket?.label ?? 'Tự nhập',
         text: ticket?.numbers.join(' ') ?? '',

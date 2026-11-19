@@ -21,7 +21,23 @@ public class PageJobConfig {
     @Bean("localPageJobs") PageJobStore localPageJobs(){return new LocalPageJobStore();}
     @Bean PageJobService pageJobService(@Qualifier("durablePageJobs") PageJobStore durable,
             @Qualifier("localPageJobs") PageJobStore local,Clock clock){return new PageJobService(durable,local,clock);}
-    @Bean PageJobTasks pageJobTasks(StockService stocks,AiLabService lab,WorkspaceService workspace,Clock clock){return new PageJobTasks(stocks,lab,workspace,clock);}
+    @Bean PageJobTasks pageJobTasks(StockService stocks,AiLabService lab,WorkspaceService workspace,Clock clock,
+            com.example.analyzeproject.infrastructure.sync.LotteryFeedClient feed,
+            LotteryResultImporter importer,
+            com.example.analyzeproject.infrastructure.sync.LotterySyncProperties properties){
+        return new PageJobTasks(stocks,lab,workspace,clock,input -> {
+            String category=(String)input.get("category");
+            var date=java.time.LocalDate.parse((String)input.get("drawDate"));
+            try {
+                var fetched=feed.fetch(category,date,java.time.ZonedDateTime.now(clock));
+                var matching=fetched.stream().filter(draw -> draw.date().equals(date)).toList();
+                if(matching.isEmpty())throw new IllegalStateException("Official result not published for " + date);
+                var result=importer.importDraws(matching,properties.sourceUrl(category));
+                if(!result.conflicts().isEmpty())throw new IllegalStateException("Official result conflicts with saved numbers");
+            } catch(InterruptedException error){Thread.currentThread().interrupt();throw new IllegalStateException(error);}
+            catch(java.io.IOException error){throw new IllegalStateException("Cannot verify official result",error);}
+        });
+    }
     @Bean(destroyMethod="close") @ConditionalOnProperty(name="app.jobs.worker-enabled",havingValue="true",matchIfMissing=true)
     PageJobRunner durablePageJobRunner(@Qualifier("durablePageJobs") PageJobStore store,PageJobTasks tasks,Clock clock,
             @Value("${app.jobs.concurrency:1}") int concurrency){return new PageJobRunner(store,tasks,clock,concurrency,"lottery-page-worker");}

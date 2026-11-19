@@ -12,7 +12,13 @@ public final class PageJobTasks {
     private final AiLabService lab;
     private final WorkspaceService workspace;
     private final Clock clock;
+    private final java.util.function.Consumer<java.util.Map<String,Object>> syncOfficial;
     public PageJobTasks(StockService stocks,AiLabService lab,WorkspaceService workspace,Clock clock) {
+        this(stocks,lab,workspace,clock,input -> {});
+    }
+    public PageJobTasks(StockService stocks,AiLabService lab,WorkspaceService workspace,Clock clock,
+            java.util.function.Consumer<java.util.Map<String,Object>> syncOfficial) {
+        this.syncOfficial=syncOfficial;
         this.stocks=stocks;this.lab=lab;this.workspace=workspace;this.clock=clock;
     }
     public Object execute(Work work) {
@@ -26,7 +32,10 @@ public final class PageJobTasks {
             case "LAB_OVERVIEW" -> lab.overview(category,((Number)p.get("page")).intValue());
             case "LAB_HIGHLIGHTS" -> lab.highlights(category);
             case "LAB_PREDICTIONS" -> lab.predictions(category);
-            case "LAB_RUN" -> lab.run();
+            case "LAB_RUN" -> {
+                if (p.containsKey("drawDate")) syncOfficial.accept(p);
+                yield lab.run();
+            }
             case "ANALYZE" -> workspace.create(new Create(category,(String)p.get("algorithm"),(String)p.get("algorithm2")));
             default -> throw new IllegalArgumentException("Unknown page task");
         };

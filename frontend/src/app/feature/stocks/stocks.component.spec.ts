@@ -74,7 +74,33 @@ const emptySnapshot = (symbol: string): StockSnapshot => ({
   },
 });
 
+function flushSupportingRequests(http: HttpTestingController) {
+  for (const request of http.match(r => r.url.endsWith('/saved-positions'))) {
+    expect(request.request.method).toBe('GET');
+    if (request.cancelled) continue;
+    request.flush({});
+  }
+  for (const request of http.match(r => r.url.endsWith('/checkpoints'))) {
+    expect(request.request.method).toBe('GET');
+    if (request.cancelled) continue;
+    request.flush([]);
+  }
+  for (const request of http.match(r => r.url.endsWith('/trading-plans'))) {
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body.purchasePrice).toBeGreaterThan(0);
+    if (request.cancelled) continue;
+    request.flush({ plans: [], message: '' });
+  }
+  for (const request of http.match(r => /\/saved-positions\/[A-Z]+$/.test(r.url))) {
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body.quantity).toBeGreaterThan(0);
+    if (request.cancelled) continue;
+    request.flush(null);
+  }
+}
 describe('Stocks page', () => {
+  beforeEach(() => localStorage.removeItem('stocks.positions.v1'));
+  afterEach(() => localStorage.removeItem('stocks.positions.v1'));
   beforeEach(() =>
     TestBed.configureTestingModule({
       providers: [
@@ -95,26 +121,27 @@ describe('Stocks page', () => {
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
-    const snapshot = emptySnapshot('FPT');
+    const snapshot = emptySnapshot('VIC');
     snapshot.data.candles = [
       { time: 1700000000, open: 10, high: 12, low: 9, close: 11, volume: 100, closed: true },
     ];
-    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(snapshot);
+    http.expectOne((r) => r.url.endsWith('/VIC/analysis')).flush(snapshot);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-stock-chart')).toBeNull();
     expect(fixture.nativeElement.querySelector('.deferred-chart')).not.toBeNull();
     const [chart] = await fixture.getDeferBlocks();
     fixture.componentInstance.setMode('INTRADAY');
-    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush({ ...snapshot, mode: 'INTRADAY' });
+    http.expectOne((r) => r.url.endsWith('/VIC/analysis')).flush({ ...snapshot, mode: 'INTRADAY' });
     fixture.detectChanges();
     await chart.render(DeferBlockState.Complete);
     expect(fixture.nativeElement.querySelector('app-stock-chart')).not.toBeNull();
     const rendered = fixture.debugElement.query(By.directive(StockChartComponent))
       .componentInstance as StockChartComponent;
-    expect(rendered.intraday).toBeTrue();
+    expect(rendered.intraday).toBeFalse();
     expect(rendered.candles).toEqual(snapshot.data.candles);
     expect(fixture.nativeElement.querySelector('.deferred-chart')).toBeNull();
     fixture.destroy();
+    flushSupportingRequests(http);
     http.verify();
   });
   it('posts only the two position inputs without assigning a budget or sellable shares', () => {
@@ -122,15 +149,15 @@ describe('Stocks page', () => {
       http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
-    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    http.expectOne((r) => r.url.endsWith('/VIC/analysis')).flush(emptySnapshot('VIC'));
     fixture.componentInstance.input.purchasePrice = 25000;
     fixture.componentInstance.input.quantity = 100;
     fixture.componentInstance.analyzePosition();
-    const request = http.expectOne((r) => r.url.endsWith('/FPT/position-analysis'));
+    const request = http.expectOne((r) => r.url.endsWith('/VIC/position-analysis'));
     expect(request.request.body).toEqual({ purchasePrice: 25000, quantity: 100 });
-    expect(request.request.params.get('snapshotId')).toBe('FPT-snapshot');
+    expect(request.request.params.get('snapshotId')).toBe('VIC-snapshot');
     request.flush({
-      snapshotId: 'FPT-snapshot',
+      snapshotId: 'VIC-snapshot',
       status: 'WATCH',
       price: null,
       changePercent: null,
@@ -140,6 +167,7 @@ describe('Stocks page', () => {
       reasons: [],
     });
     fixture.destroy();
+    flushSupportingRequests(http);
     http.verify();
   });
   it('refreshes only the selected analysis each minute and the watchlist every five minutes', fakeAsync(() => {
@@ -148,14 +176,15 @@ describe('Stocks page', () => {
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
-    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    http.expectOne((r) => r.url.endsWith('/VIC/analysis')).flush(emptySnapshot('VIC'));
     for (let minute = 1; minute <= 5; minute++) {
       tick(60000);
-      http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+      http.expectOne((r) => r.url.endsWith('/VIC/analysis')).flush(emptySnapshot('VIC'));
       if (minute === 5) http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
       else http.expectNone((r) => r.url.endsWith('/watchlist'));
     }
     fixture.destroy();
+    flushSupportingRequests(http);
     http.verify();
   }));
   it('stops a stalled stock refresh and retains the displayed snapshot', fakeAsync(() => {
@@ -163,16 +192,17 @@ describe('Stocks page', () => {
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
-    http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(emptySnapshot('FPT'));
+    http.expectOne((r) => r.url.endsWith('/VIC/analysis')).flush(emptySnapshot('VIC'));
     fixture.componentInstance.refresh();
     http.expectOne((r) => r.url.endsWith('/watchlist')).flush([]);
-    const stalled = http.expectOne((r) => r.url.endsWith('/FPT/analysis'));
+    const stalled = http.expectOne((r) => r.url.endsWith('/VIC/analysis'));
     tick(180001);
     expect(stalled.cancelled).toBeTrue();
     expect(fixture.componentInstance.loading()).toBeFalse();
-    expect(fixture.componentInstance.data()?.snapshotId).toBe('FPT-snapshot');
+    expect(fixture.componentInstance.data()?.snapshotId).toBe('VIC-snapshot');
     expect(fixture.componentInstance.error()).toContain('phản hồi chậm');
     fixture.destroy();
+    flushSupportingRequests(http);
     http.verify({ ignoreCancelled: true });
   }));
   beforeEach(() =>
@@ -200,6 +230,7 @@ describe('Stocks page', () => {
     expect(current.request.params.has('category')).toBeFalse();
     current.flush(emptySnapshot('MBB'));
     TestBed.inject(CategoryService).setCategory('POWER');
+    flushSupportingRequests(http);
     http.expectNone((r) => r.url.includes('/api/stocks'));
     page.input = {
       purchaseDate: '2026-10-01',
@@ -218,6 +249,7 @@ describe('Stocks page', () => {
     next.flush(emptySnapshot('MBB'));
     harness.detectChanges();
     expect(harness.routeNativeElement?.textContent).toContain('Chưa đủ dữ liệu');
+    flushSupportingRequests(http);
     http.verify({ ignoreCancelled: true });
   });
   it('keeps lottery controls in page context and preserves the category across stock routes', async () => {
@@ -237,6 +269,7 @@ describe('Stocks page', () => {
     expect(TestBed.inject(CategoryService).category()).toBe('POWER');
     expect(header.nativeElement.querySelector('.category-picker')).toBeNull();
     header.destroy();
+    flushSupportingRequests(http);
     http.verify();
   });
   it('submits a position without fee fields and displays reference price PnL', async () => {
@@ -293,6 +326,7 @@ describe('Stocks page', () => {
     harness.detectChanges();
     expect(harness.routeNativeElement?.textContent).toContain('0.00%');
     expect(harness.routeNativeElement?.textContent).not.toContain('Lãi/lỗ ròng');
+    flushSupportingRequests(http);
     http.verify();
   });
   it('puts classifier scores in collapsed details and leads with conditional price guidance', async () => {
@@ -325,12 +359,17 @@ describe('Stocks page', () => {
     http.expectOne((r) => r.url.endsWith('/FPT/analysis')).flush(data);
     harness.detectChanges();
     const root = harness.routeNativeElement!;
+    const dialog = root.querySelector('dialog')!;
+    dialog.showModal();
+    (harness.routeDebugElement!.componentInstance as StocksComponent).marketTab.set('context');
+    harness.detectChanges();
     expect(root.querySelector('app-stock-recommendation')?.textContent).toContain(
       'Chờ xác nhận vượt kháng cự',
     );
     const details = root.querySelector('.score-grid')?.closest('details');
     expect(details?.open).toBeFalse();
     expect(root.textContent).toContain('không phải tỷ lệ vốn nên mua/bán');
+    flushSupportingRequests(http);
     http.verify();
   });
   it('keeps separate inputs per symbol and refreshes an accepted position without clearing it', async () => {
@@ -378,6 +417,7 @@ describe('Stocks page', () => {
       .flush({ ...result, snapshotId: 'FPT-new' });
     expect(page.input.purchasePrice).toBe(30000);
     expect(page.input.quantity).toBe(1000);
+    flushSupportingRequests(http);
     http.verify();
   });
   it('cancels position calculation after editing and never accepts a mismatched snapshot', async () => {
@@ -398,6 +438,7 @@ describe('Stocks page', () => {
       .flush({ snapshotId: 'OTHER', status: 'SELL', reasons: [] });
     expect(page.position()).toBeNull();
     expect(page.positionError()).toContain('snapshot');
+    flushSupportingRequests(http);
     http.verify({ ignoreCancelled: true });
   });
 });

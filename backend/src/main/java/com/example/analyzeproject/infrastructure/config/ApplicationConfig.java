@@ -86,4 +86,9 @@ public class ApplicationConfig {
     @Bean LotteryResultImporter lotteryResultImporter(LotteryNumberRepository draws, JdbcTemplate jdbc) {
         return new TransactionalLotteryResultImporter(draws, jdbc);
     }
+
+    @org.springframework.context.annotation.Bean
+    public com.example.analyzeproject.application.service.StockTradingPlanService stockTradingPlanService(com.example.analyzeproject.application.service.StockService stocks, com.example.analyzeproject.application.service.StockTradingPolicy policy) {
+        return new com.example.analyzeproject.application.service.StockTradingPlanService(stocks, policy);
+    }
 }

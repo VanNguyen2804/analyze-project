@@ -37,7 +37,7 @@ public class LotteryFeedClient {
         return parse(download(uri), category, from, now);
     }
 
-    private String download(URI uri) throws IOException, InterruptedException {
+    String download(URI uri) throws IOException, InterruptedException {
         var request = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
                 .header("Accept", "application/x-ndjson, text/plain")
                 .header("User-Agent", "analyze-project-result-sync/1.0").GET().build();
@@ -61,8 +61,16 @@ public class LotteryFeedClient {
             if (current.date().equals(from) || Long.parseLong(current.drawId()) <= 1) return completed(draws);
             String previousId = String.format(Locale.ROOT, "%05d", Long.parseLong(current.drawId()) - 1);
             Thread.sleep(250);
-            var previous = parseOfficial(download(URI.create(base + "?id=" + previousId + "&nocatche=1")),
+            FeedDraw previous;
+            try {
+                previous = parseOfficial(download(URI.create(base + "?id=" + previousId + "&nocatche=1")),
                     category, LocalDate.MIN, now.plusDays(1)).get(0);
+            } catch (IOException ex) {
+                if (draws.isEmpty()) throw ex;
+                org.slf4j.LoggerFactory.getLogger(LotteryFeedClient.class).warn(
+                        "Official history stopped at draw {}; importing completed newer draws: {}", previousId, ex.getMessage());
+                return completed(draws);
+            }
             if (!previous.drawId().equals(previousId) || !previous.date().isBefore(current.date()))
                 throw new IOException("Official history returned unexpected draw: " + previousId);
             current = previous;

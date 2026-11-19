@@ -23,6 +23,22 @@ class LotterySyncTest {
     private static final String POWER = "{\"date\":\"2026-10-24\",\"id\":\"01415\",\"result\":[6,7,18,41,44,50,53]}";
     private static final String MEGA = "{\"date\":\"2026-10-23\",\"id\":\"01579\",\"result\":[2,5,11,22,32,40]}";
 
+    @Test void preservesNovember17WhenOlderOfficialHistoryIsRateLimited() throws Exception {
+        var remote = spy(client);
+        String html = "<h5>Draw <b>#01425</b> date <b>17/11/2026</b></h5>"
+                + "<div class=\"day_so_ket_qua_v2\">"
+                + java.util.stream.IntStream.rangeClosed(1, 7)
+                    .mapToObj(n -> "<span class=\"bong_tron\">" + n + "</span>")
+                    .collect(java.util.stream.Collectors.joining()) + "</div>";
+        doReturn(html).when(remote).download(java.net.URI.create(properties.getPowerUrl() + "?nocatche=1"));
+        doThrow(new IOException("Feed returned HTTP 429")).when(remote).download(
+                java.net.URI.create(properties.getPowerUrl() + "?id=01424&nocatche=1"));
+        var draws = remote.fetch("POWER", LocalDate.of(2026, 8, 21),
+                ZonedDateTime.parse("2026-11-19T22:00:00+07:00"));
+        assertEquals(1, draws.size());
+        assertEquals(LocalDate.of(2026, 11, 17), draws.get(0).date());
+        assertEquals(7, draws.get(0).special());
+    }
     @Test void parsesPublicSchemaAndKeepsSpecialSeparate() throws Exception {
         var draws = client.parse(POWER + "\n" + POWER, "POWER", FROM, NOW);
         assertEquals(1, draws.size());

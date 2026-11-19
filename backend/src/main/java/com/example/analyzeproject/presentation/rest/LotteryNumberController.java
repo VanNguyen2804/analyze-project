@@ -20,9 +20,12 @@ public class LotteryNumberController {
 
     private final LotteryNumberService service;
 
+    private final com.example.analyzeproject.application.service.PageJobService jobs;
+
     @Autowired
-    public LotteryNumberController(LotteryNumberService service) {
+    public LotteryNumberController(LotteryNumberService service, com.example.analyzeproject.application.service.PageJobService jobs) {
         this.service = service;
+        this.jobs = jobs;
     }
 
     @GetMapping
@@ -36,7 +39,7 @@ public class LotteryNumberController {
     public ResponseEntity<?> create(@RequestBody NumberEntryRequest request) {
         try {
             LotteryNumber saved = service.saveNumbers(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+            return savedResponse(saved, HttpStatus.CREATED);
         } catch (IllegalArgumentException ex) {
             Map<String, String> error = new HashMap<>();
             error.put("error", ex.getMessage());
@@ -48,7 +51,7 @@ public class LotteryNumberController {
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody NumberEntryRequest request) {
         try {
             LotteryNumber updated = service.updateNumbers(id, request);
-            return ResponseEntity.ok(updated);
+            return savedResponse(updated, HttpStatus.OK);
         } catch (IllegalArgumentException ex) {
             Map<String, String> error = new HashMap<>();
             error.put("error", ex.getMessage());
@@ -56,6 +59,19 @@ public class LotteryNumberController {
         }
     }
 
+    private ResponseEntity<LotteryNumber> savedResponse(LotteryNumber saved, HttpStatus status) {
+        try {
+            var job = jobs.submit("LAB_RUN", Map.of("category", saved.getCategory(),
+                    "drawDate", saved.getDrawDate().toString(),
+                    "resultFingerprint", com.example.analyzeproject.domain.service.DrawQuality.fingerprint(saved)));
+            return ResponseEntity.status(status).header("X-AI-Lab-Job-Id", job.id())
+                    .header("X-AI-Lab-Sync", job.status()).body(saved);
+        } catch (RuntimeException error) {
+            org.slf4j.LoggerFactory.getLogger(getClass()).warn(
+                    "Official result saved but AI Lab could not be queued", error);
+            return ResponseEntity.status(status).header("X-AI-Lab-Sync", "QUEUE_FAILED").body(saved);
+        }
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         boolean deleted = service.deleteNumber(id);
